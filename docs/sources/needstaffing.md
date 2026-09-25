@@ -38,6 +38,13 @@ Opdrachtgever en deadline zijn eerder vastgesteld (zie Sluitingsdatum hieronder)
 - Er is geen `robots.txt` aangetroffen; daardoor is ook geen crawl-delay uit de probe beschikbaar.
 - ToS/licentie is niet opgenomen in de aangeleverde probe. Houd `voorwaarden_status: te_toetsen` vóór activatie.
 
+## Voorwaarden
+
+- robots.txt: www.needstaffing.nl: HTTP 404, geen robots.txt, geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: zie "Licentie en voorwaarden" hierboven
+- Besluit: `toegestaan`
+- Besluitnemer en datum: Ryan (operatorbesluit 2026-09-03, live testimport productie)
+
 ## Risico's
 
 1. Zonder sitemap is listingpaginering de enige geprobeerde discovery-route.

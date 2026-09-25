@@ -32,6 +32,13 @@ De sitemap bevat uitsluitend vacature-URL's. Defense-in-depth behoudt alleen de 
 
 De seed gebruikt 2000 ms. `listingHashCoversDetail: false`: sitemapmetadata dekt de JobPosting-body niet; known hashes worden niet doorgegeven.
 
+## Voorwaarden
+
+- robots.txt: www.werkenbijvolkerwessels.nl: HTTP 200, geen Disallow op connectorpaden (/, /vacature/3334/, /vacature/3353/, /vacature/3440/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: niet gevonden
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)
+
 ## Durable JSON-LD-cohort (CTP-638, bewezen 2026-09-21)
 
 VolkerWessels is bewezen op het duurzame ingestpad (`curated.durable_job` +

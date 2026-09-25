@@ -42,6 +42,13 @@ Contact- en recruiter-/sourcer-velden worden niet genormaliseerd of gelogd.
 - `robots.txt` staat de publieke site toe; de sitemap bevat geen job-URL's. Het Olliworks-portaal is uitgesloten en is niet nodig.
 - Er is geen ToS-wall gezien. Houd de voorwaardenstatus desondanks expliciet in het bronregister vóór activatie.
 
+## Voorwaarden
+
+- robots.txt: yhjktxqtoyeruztiwupf.supabase.co: HTTP 404, geen robots.txt, geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: zie "Licentie en voorwaarden" hierboven
+- Besluit: `toegestaan`
+- Besluitnemer en datum: Ryan (operatorbesluit 2026-09-03, live testimport productie)
+
 ## Risico's
 
 1. Het private endpoint kan zonder aankondiging wijzigen of verdwijnen.

@@ -41,6 +41,13 @@ de uniforme waarde van 2000 ms. Fixture-captures: listing
 `listingHashCoversDetail: false`: de sitemapmetadata dekt de detail-JobPosting
 niet. Known hashes worden daarom niet doorgegeven.
 
+## Voorwaarden
+
+- robots.txt: www.datajobs.nl: HTTP 200, geen Disallow op connectorpaden (/, /vacatures/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: niet gevonden
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)
+
 ## Durable JSON-LD-cohort (CTP-638, bewezen 2026-09-21)
 
 DataJobs.nl is bewezen op het duurzame ingestpad (`curated.durable_job` +

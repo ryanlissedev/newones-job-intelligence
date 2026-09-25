@@ -74,3 +74,10 @@ Fixture-captures: listing `2026-09-18T20:05:25.358Z`, detail-4419416701
 `2026-09-18T20:06:03.134Z` (zónder ld+json), detail-4468200147
 `2026-09-18T20:06:04.988Z` (zónder ld+json), detail-4456662010
 `2026-09-18T20:06:06.847Z` (mét JobPosting ld+json).
+
+## Voorwaarden
+
+- robots.txt: www.linkedin.com: HTTP 200; `User-agent: *` heeft `Disallow: /` — connectorpaden / geblokkeerd, geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: niet gevonden
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)

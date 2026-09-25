@@ -42,6 +42,13 @@ Recruiternaam, e-mail en telefoon worden niet genormaliseerd of gelogd.
 - `robots.txt` staat alles toe en heeft geen crawl-delay; de sitemap bevat geen individuele opdrachten.
 - Een gebruikslicentie of bruikbare ToS-uitkomst staat niet in de probe. Houd `voorwaarden_status: te_toetsen` vóór activatie.
 
+## Voorwaarden
+
+- robots.txt: striive-cms.codebridge.nl: HTTP 200, geen Disallow op connectorpaden (/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: zie "Licentie en voorwaarden" hierboven
+- Besluit: `toegestaan`
+- Besluitnemer en datum: Ryan (operatorbesluit 2026-09-03, live testimport productie)
+
 ## Risico's
 
 1. JobPosting JSON-LD is malformed en niet parsebaar.

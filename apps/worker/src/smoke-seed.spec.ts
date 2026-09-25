@@ -42,7 +42,7 @@ if (!postgresAvailable && databaseRequired) {
 
 describe("Slice A smoke seed defaults", () => {
   it("leaves sources whose terms need review deferred on a fresh seed", () => {
-    expect(buildSliceABronSeedValues(SOURCES.hero)).toMatchObject({
+    expect(buildSliceABronSeedValues(SOURCES.linkedin)).toMatchObject({
       status: "deferred",
       voorwaardenStatus: "te_toetsen",
     });

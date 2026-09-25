@@ -48,3 +48,10 @@ werkzoeken.
 Fixtures: `tools/fixtures/record.ts`, standaardstrips. De drie detailpagina's
 zijn opgenomen met de bot-UA omdat de fixture-UA op dezelfde privacy-poort
 uitkomt (`--from-raw` op een reële capture).
+
+## Voorwaarden
+
+- robots.txt: www.intermediair.nl: HTTP 200, geen Disallow op connectorpaden (/cdn/sitemaps/, /vacature/0cad6431-f0e1-4d5a-9872-d4cba5ef0225/, /vacature/7fd25dd1-894d-4844-acf7-b5b672a10afc/, /vacature/f7184d95-36c8-4b0c-8a6d-c4054a749c39/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: zie "Robots, voorwaarden en fixtures" hierboven
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)

@@ -32,6 +32,13 @@ Status: **probe afgerond; connector nog niet gebouwd** — adapter-categorie `ht
 - `robots.txt` heeft een lege `Disallow` en geen crawl-delay.
 - Een gebruikslicentie of bruikbare ToS-uitkomst staat niet in de probe. Houd `voorwaarden_status: te_toetsen` vóór activatie.
 
+## Voorwaarden
+
+- robots.txt: www.flinter.nl: HTTP 200, geen Disallow op connectorpaden (/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: zie "Licentie en voorwaarden" hierboven
+- Besluit: `toegestaan`
+- Besluitnemer en datum: Ryan (operatorbesluit 2026-09-03, live testimport productie)
+
 ## Risico's
 
 1. Uren zijn slechts gedeeltelijk uit vrije tekst beschikbaar.

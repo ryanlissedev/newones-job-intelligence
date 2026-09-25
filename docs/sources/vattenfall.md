@@ -89,3 +89,10 @@ tegelijk, ná de CTP-630/CTP-637-cohorten. Rollback = slug uit de vlag halen;
 in-flight jobs lopen leeg, geen dubbele scheduling (`main.ts` returnt voor de
 inline poll). `VATTENFALL_LIVE` blijft uit — dit bewijs is fixture-only.
 Operator-canary en release-gate blijven open.
+
+## Voorwaarden
+
+- robots.txt: careers.vattenfall.com: HTTP 200, geen Disallow op connectorpaden (/, /global/job/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: niet gevonden
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)

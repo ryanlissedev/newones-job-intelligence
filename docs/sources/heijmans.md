@@ -36,6 +36,12 @@ De sitemap bevat stale URL's die HTTP 200 geven met `Niet gevonden` en zonder Jo
 
 De seed gebruikt 2000 ms. `listingHashCoversDetail: false`: sitemapmetadata dekt de JobPosting-body niet.
 
+## Voorwaarden
+
+- robots.txt: www.werkenbijheijmans.nl: HTTP 200, geen Disallow op connectorpaden (/, /vacatures/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: niet gevonden
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)
 
 ## Durable JSON-LD-cohort (CTP-637, bewezen 2026-09-21)
 

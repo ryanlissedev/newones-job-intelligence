@@ -31,7 +31,9 @@ export const proAct = {
   seed: {
     crawlDelayMs: 10_000,
     methode: "json-ld",
-    voorwaardenStatus: "te_toetsen",
+    // Operatorbesluit 2026-09-03 (live testimport productie); bewijs in
+    // docs/sources/pro-act.md "Voorwaarden" + robots-probe scripts/probe-source-voorwaarden.ts.
+    voorwaardenStatus: "toegestaan",
   },
   slug: "pro-act",
 } satisfies SourceDefinition<"pro-act">;

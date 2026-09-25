@@ -33,6 +33,13 @@ zoek- en vacaturelijsten, job-alerts, `/artikel/`, `/article/`,
 `traineeships`, `techblog`, `overview` en niet-JR detailruis vallen buiten de
 discovery.
 
+## Voorwaarden
+
+- robots.txt: rabobank.jobs: HTTP 403, geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: niet gevonden
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)
+
 ## Veldmapping → canoniek `aanvraag`
 
 | Rabobank JSON-LD | Canoniek | Provenance/noot |

@@ -50,6 +50,13 @@ De robots-capture staat `Disallow: /login` en noemt beide sitemaps. In de
 privacy/voorwaarden-skim is geen scrapeverbod gevonden; de status blijft
 `voorwaardenStatus: "te_toetsen"` vóór activatie.
 
+## Voorwaarden
+
+- robots.txt: www.werkenvoornederland.nl: HTTP 200, geen Disallow op connectorpaden (/, /vacatures/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: zie "Robots en voorwaarden" hierboven
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)
+
 ## Overlap en known hashes
 
 Werken voor Nederland is **geen ALIAS** van Opdrachtoverheid/TenderNed. De

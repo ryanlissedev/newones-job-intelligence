@@ -40,6 +40,13 @@ Afwezig bij de bron (blijft UNKNOWN, nooit gegokt): **tarief** (nergens gerender
 - ToS (`/terms-of-use/`, geverifieerd 2026-09-18): *"the User shall not itself or allow a third party to copy, analyze, decompile, make public, distribute, transfer to third parties, or change any content encumbered with Intellectual Property Rights unless expressly permitted by ProUnity."* De IP-definitie omvat expliciet *"rights relating to databases"* → IP/databankclausule raakt mogelijk het overnemen van de missie-index. Geen expliciete scraping/robotsclausule verder.
 - **`voorwaardenStatus: "te_toetsen"`** — de GO geldt de BE-scope; de IP/databankclausule blijft te toetsen (HeadFirst-relatie via Striive/Inhuurdesk benutten voor expliciete toestemming).
 
+## Voorwaarden
+
+- robots.txt: www.pro-unity.com: HTTP 200, geen Disallow op connectorpaden (/), Crawl-delay 10, geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: zie "Licentie en voorwaarden" hierboven
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)
+
 ## Sluitingsdatum
 
 ProUnity publiceert geen sollicitatiedeadline. Het enige sluitingssignaal op de detailpagina is het eigen werkvenster: een missie waarvan de periode is verstreken (de 2023-historie) kan onmogelijk nog open staan → het **periode-einde** voedt `sluitingsdatum` als ondergrens van sluiting (`closingMomentInstant`, Europe/Amsterdam ≡ Europe/Brussels). Open missies (einddatum in de toekomst) blijven `active`; historische missies worden `closed`.

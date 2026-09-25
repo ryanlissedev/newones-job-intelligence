@@ -36,6 +36,13 @@ Robots allows the canonical careers pages and provides a sitemap. The following 
 
 The terms of use were a standard IP skim and are not Gate0; `voorwaardenStatus` is therefore `te_toetsen`.
 
+## Voorwaarden
+
+- robots.txt: www.asml.com: HTTP 200, geen Disallow op connectorpaden (/en/, /en/careers/find-your-job/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: zie "Robots and terms" hierboven
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)
+
 ## Operations
 
 - `bronId`: `00000000-0000-4000-8000-00000000000f`

@@ -107,3 +107,10 @@ voor elk van de 5 rijen. `ContactPerson{DisplayName,Email,Phone}` per
 3. Geen locatievelden → provincie/land altijd UNKNOWN.
 4. Detail zonder `Deadline` → sluitingsdatum is afhankelijk van de listing;
    een item dat alleen via detail gezien wordt heeft geen sluitingsmoment.
+
+## Voorwaarden
+
+- robots.txt: api.s2c.mercell.com: HTTP 404, geen robots.txt, geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: zie intro hierboven — eigenaar heeft ToS expliciet gewaived (CTP-570)
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open: CTP-570 (robots Disallow: / hele site; beleidsbesluit Robbie)

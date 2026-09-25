@@ -42,3 +42,10 @@ false` en worden known hashes niet doorgestuurd. `crawlDelayMs` is 2000 en
 zijn echte API-opnames; recruitercontact in de description-prosa is mechanisch
 geredacteerd; de recruiter-naam in de description-prosa is vervangen door een
 generieke placeholder.
+
+## Voorwaarden
+
+- robots.txt: werkenbij.alliander.com: HTTP 200, geen Disallow op connectorpaden (/, /api/vacancy/, /vacatures/business-partner-veiligheid-milieu-en-kwaliteit/, /vacatures/cloud-security-specialist/, /vacatures/gasmonteur-in-opleiding/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: niet gevonden
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)

@@ -59,6 +59,13 @@ Fixtures: `tools/fixtures/record.ts`, standaardstrips. Op de detailpagina's
 staan recruiter-contactgegevens in de tekst; e-mail en telefoon zijn
 mechanisch geredigeerd (zie `captureNote` per fixture).
 
+## Voorwaarden
+
+- robots.txt: www.haert.nl: HTTP 200, geen Disallow op connectorpaden (/, /opdrachten/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: zie "Robots, voorwaarden en fixtures" hierboven
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)
+
 ## Durable ingest-pad (CTP-639, bewezen 2026-09-21)
 
 Haert is bewezen op het duurzame ingestpad (`curated.durable_job` +

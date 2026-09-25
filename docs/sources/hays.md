@@ -100,3 +100,10 @@ tegelijk, ná de L3a/L3b/L3c-cohorten. Rollback = slug uit de vlag halen;
 in-flight jobs lopen leeg, geen dubbele scheduling. `HAYS_LIVE` blijft
 uit — dit bewijs is fixture-only. Operator-canary en release-gate blijven
 open.
+
+## Voorwaarden
+
+- robots.txt: www.hays.nl: HTTP 200, geen Disallow op connectorpaden (/, /vacature-details/), Crawl-delay 10, geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: niet gevonden
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)

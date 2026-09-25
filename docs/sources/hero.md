@@ -33,6 +33,13 @@ Status: **connector gebouwd** (`packages/connectors/src/json-ld/configs/hero.ts`
 - `robots.txt` staat publieke pagina's toe, sluit onder meer `/api/`, `/auth/` en `/onboarding/` uit en staat GPTBot, ChatGPT-User en OAI-SearchBot expliciet toe.
 - Een gebruikslicentie of bruikbare ToS-uitkomst staat niet in de probe. Houd `voorwaarden_status: te_toetsen` vóór activatie.
 
+## Voorwaarden
+
+- robots.txt: hero.eu: HTTP 200, geen Disallow op connectorpaden (/, /interim-opdrachten/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: zie "Licentie en voorwaarden" hierboven
+- Besluit: `toegestaan`
+- Besluitnemer en datum: Ryan (operatorbesluit 2026-09-03, live testimport productie)
+
 ## Risico's
 
 1. Opdrachtgever is geanonimiseerd.

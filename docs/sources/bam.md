@@ -13,6 +13,13 @@ Status: **probe afgerond; connector toegevoegd** — JSON-LD Path A.
 
 Alleen de NL-locale sitemap wordt gebruikt. De uitsluiting behoudt uitsluitend `/nl/nl/job/<id>/<slug>` en sluit CMS-, blog- en andere locale-paden uit.
 
+## Voorwaarden
+
+- robots.txt: www.bamcareers.com: HTTP 200, geen Disallow op connectorpaden (/nl/nl/, /nl/nl/job/24586/, /nl/nl/job/26209/, /nl/nl/job/26832/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: niet gevonden
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)
+
 ## Veldmapping → canoniek `aanvraag`
 
 | JSON-LD | Canoniek | Noot |
@@ -31,7 +38,6 @@ Alleen de NL-locale sitemap wordt gebruikt. De uitsluiting behoudt uitsluitend `
 ## Robots, crawl-delay en known hashes
 
 De seed gebruikt 2000 ms. `listingHashCoversDetail: false`: sitemapmetadata dekt de JobPosting-body niet.
-
 
 ## Durable JSON-LD-cohort (CTP-637, bewezen 2026-09-21)
 

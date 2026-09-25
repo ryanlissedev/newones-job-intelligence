@@ -133,3 +133,10 @@ ToS/robots: `robots.txt` staat `/jobs` crawlen formeel toe voor `*`, maar de
 ToS-verklaring en de "route: Apify"-beslissing op CTP-540 blijven leidend —
 `te_toetsen` tot een juridische GO ligt. De browser-PoC was expliciet
 technisch-bewijs, geen autorisatie.
+
+## Voorwaarden
+
+- robots.txt: nl.indeed.com: HTTP 200, geen Disallow op connectorpaden (/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: zie "Juridisch" hierboven
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)

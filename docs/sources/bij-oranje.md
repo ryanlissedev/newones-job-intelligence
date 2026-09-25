@@ -47,6 +47,13 @@ inschrijfvoorwaarden staan op `https://bijoranje.nl/terms-conditionss`.
 Er is in de inventaris-skim geen expliciet publiek scrapeverbod gevonden;
 `voorwaardenStatus` blijft daarom **`te_toetsen`** vóór activatie.
 
+## Voorwaarden
+
+- robots.txt: www.bijoranje.nl: HTTP 200, geen Disallow op connectorpaden (/, /vacatures/onbekend/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: zie "Robots en voorwaarden" hierboven
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)
+
 ## Overlap, deduplicatie en known hashes
 
 De inhoud kan overlappen met Opdrachtoverheid en Flextender. Dit is geen

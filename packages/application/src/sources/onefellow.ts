@@ -24,7 +24,9 @@ export const onefellow = {
   seed: {
     crawlDelayMs: 1500,
     methode: "json-api",
-    voorwaardenStatus: "te_toetsen",
+    // Operatorbesluit 2026-09-03 (live testimport productie); bewijs in
+    // docs/sources/onefellow.md "Voorwaarden" + robots-probe scripts/probe-source-voorwaarden.ts.
+    voorwaardenStatus: "toegestaan",
   },
   slug: "onefellow",
 } satisfies SourceDefinition<"onefellow">;
