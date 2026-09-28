@@ -27,6 +27,9 @@ session boundary. A caller cannot choose its own subject or role.
 - The role comes from the server-owned `user.role` column. Better Auth marks
   this additional field `input: false`, so sign-up and update bodies cannot set
   it. Allowed values are `recruiter`, `operator`, `admin`, and `approver`.
+  An `approver` receives the full Slice A read surface (`PERM_SLICE_READ`)
+  plus approval and export permissions, but not the recruiter-only
+  `read_raw` or mutating capabilities (CTP-655).
 - Public email/password sign-up is disabled. `/jobs` performs no capability
   calls without a session and shows `Log in om opdrachten te bekijken`.
 

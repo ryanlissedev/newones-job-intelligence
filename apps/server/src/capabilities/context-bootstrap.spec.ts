@@ -230,12 +230,27 @@ describe("operator context transport contract", () => {
       for (const excluded of [
         "private-bootstrap-name",
         "private-bootstrap-query",
-        "queryText",
-        "filters",
         "rawPayload",
         credentialOne,
       ]) {
         expect(serialized).not.toContain(excluded);
+      }
+      // CTP-655: slice-a reads are visible to the operator's capability
+      // catalog, so their schema field names (queryText, filters) legitimately
+      // appear in the serialized context. The invariant is that the selected
+      // saved search itself only exposes its id.
+      // SAFETY: the response was just asserted to carry
+      // selected.savedSearch.id; narrowing to inspect that object only.
+      const selectedSavedSearch = JSON.stringify(
+        (body as { selected?: { savedSearch?: object } }).selected?.savedSearch
+      );
+      for (const sensitiveField of [
+        '"filters"',
+        '"naam"',
+        '"queryText"',
+        '"rawPayload"',
+      ]) {
+        expect(selectedSavedSearch).not.toContain(sensitiveField);
       }
       expect(JSON.stringify(fixture.metrics)).not.toContain(saved.id);
     } finally {

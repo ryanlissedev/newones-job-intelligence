@@ -2,7 +2,10 @@ import { describe, expect, it } from "bun:test";
 
 import {
   createTestSliceARegistry,
+  PERM_APPROVAL,
+  PERM_SLICE_READ,
   permissionsForRole,
+  sliceARoles,
   TEST_DEPLOYMENT_SCOPE_ID,
 } from "@ji/application/registry";
 
@@ -473,6 +476,46 @@ describe("read_raw contact-PII gate (CTP-610)", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.code).toBe("NOT_FOUND");
+    }
+  });
+});
+
+describe("approver read surface (CTP-655)", () => {
+  const approvalFlowReads = [
+    "list_bronnen",
+    "search_aanvragen",
+    "get_aanvraag",
+    "get_snapshot",
+    "get_snapshot_approval",
+    "get_export_status",
+  ] as const;
+
+  it("lets every role with PERM_APPROVAL invoke the approval-flow reads", () => {
+    const bundle = createTestSliceARegistry();
+    const approvalRoles = sliceARoles.filter((role) =>
+      permissionsForRole(role).has(PERM_APPROVAL)
+    );
+    expect(approvalRoles.length).toBeGreaterThan(0);
+    for (const role of approvalRoles) {
+      const permissions = permissionsForRole(role);
+      const denied = bundle.entries
+        .filter(
+          (entry) => !permissions.has(entry.capability.authorization.permission)
+        )
+        .map((entry) => entry.capability.id);
+      for (const capabilityId of approvalFlowReads) {
+        expect(denied).not.toContain(capabilityId);
+      }
+    }
+  });
+
+  it("keeps read_raw and every non-read capability above slice read", () => {
+    const bundle = createTestSliceARegistry();
+    for (const entry of bundle.entries) {
+      const { capability } = entry;
+      if (capability.id === "read_raw" || capability.effect !== "read") {
+        expect(capability.authorization.permission).not.toBe(PERM_SLICE_READ);
+      }
     }
   });
 });
