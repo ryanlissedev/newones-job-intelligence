@@ -51,3 +51,33 @@ describe("restore drill compose isolation", () => {
     expect(sourcePortDefault).not.toBe(SHARED_POSTGRES_PORT);
   });
 });
+
+describe("restore drill RPO/RTO thresholds (ADR-0017)", () => {
+  it("defaults RTO to 7200s and RPO to 900s via env overrides", () => {
+    expect(script).toContain("RESTORE_DRILL_MAX_RTO_SECONDS:-7200");
+    expect(script).toContain("RESTORE_DRILL_MAX_RPO_SECONDS:-900");
+  });
+
+  it("measures RTO from backup-fetch to integrity-check success", () => {
+    const fetchIndex = script.indexOf("wal-g backup-fetch");
+    const startIndex = script.indexOf("restore_started_at_ms=");
+    const rtoIndex = script.indexOf("rto_ms=");
+
+    expect(startIndex).toBeGreaterThan(-1);
+    expect(startIndex).toBeLessThan(fetchIndex);
+    expect(rtoIndex).toBeGreaterThan(fetchIndex);
+    expect(script).toContain("finished_at_ms - restore_started_at_ms");
+  });
+
+  it("writes a fail evidence artifact before exiting non-zero on breach", () => {
+    const failWrite = script.indexOf('write_evidence "fail"');
+    const breachExit = script.indexOf("exit 1", failWrite);
+
+    expect(failWrite).toBeGreaterThan(-1);
+    expect(breachExit).toBeGreaterThan(failWrite);
+    expect(script).toContain('"breached":');
+    expect(script).toContain('"thresholds":');
+    expect(script).toContain('"rtoMs":');
+    expect(script).toContain('"rpoObservedSeconds":');
+  });
+});

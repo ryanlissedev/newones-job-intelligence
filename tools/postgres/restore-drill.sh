@@ -14,6 +14,10 @@ export MINIO_API_PORT="${RESTORE_DRILL_MINIO_PORT:-59000}"
 source_port="$POSTGRES_HOST_PORT"
 restore_container="${POSTGRES_RESTORE_CONTAINER:-catapulze-postgres-restore-target}"
 evidence_path="${RESTORE_EVIDENCE_PATH:-.artifacts/postgres-restore-evidence.json}"
+# ADR-0017 §2: the drill fails hard above these thresholds; the numbers are the
+# ADR's proposed RTO (2h) and RPO (15min) until owners accept or amend them.
+max_rto_seconds="${RESTORE_DRILL_MAX_RTO_SECONDS:-7200}"
+max_rpo_seconds="${RESTORE_DRILL_MAX_RPO_SECONDS:-900}"
 
 compose=(docker compose -p "$compose_project" --env-file "$compose_env_file" -f docker-compose.yml -f docker-compose.backup.yml)
 
@@ -27,6 +31,16 @@ require_command() {
 require_command docker
 require_command bun
 
+now_ms() {
+  # BSD date (macOS) lacks %N and prints a literal "N"; fall back to seconds.
+  local stamp
+  stamp="$(date +%s%3N)"
+  if [[ "$stamp" == *N ]]; then
+    stamp="$(date +%s)000"
+  fi
+  printf '%s' "$stamp"
+}
+
 cleanup() {
   "${compose[@]}" down --remove-orphans >/dev/null 2>&1 || true
   docker rm -f "$restore_container" >/dev/null 2>&1 || true
@@ -35,7 +49,7 @@ cleanup() {
 
 trap cleanup EXIT
 
-started_at_ms="$(date +%s%3N)"
+started_at_ms="$(now_ms)"
 POSTGRES_DATA_VOLUME="$source_volume" bash tools/postgres/ensure-volume.sh
 docker volume rm "$restore_volume" >/dev/null 2>&1 || true
 docker volume create "$restore_volume" >/dev/null
@@ -81,6 +95,14 @@ wal_g_source backup-list
   -c "INSERT INTO ${marker_table} (marker) VALUES ('${marker_value}-after-backup');" \
   -c "SELECT pg_switch_wal(); CHECKPOINT;"
 
+# ADR-0017 §2: last confirmed commit time on the source; the RPO observation
+# is this minus the latest marker replayed on the target after restore.
+source_marker_epoch="$(
+  "${compose[@]}" exec -T postgres \
+    psql -U ji_admin -d ji_test -Atqc \
+    "SELECT extract(epoch from created_at)::bigint FROM ${marker_table} WHERE marker='${marker_value}-after-backup';"
+)"
+
 wal_g_source backup-push /var/lib/postgresql/data
 
 latest_backup="$(
@@ -109,6 +131,8 @@ docker run -d --name "$restore_container" \
   catapulze-postgres-walg:16 \
   sleep infinity >/dev/null
 
+# ADR-0017 §2: RTO runs from backup-fetch until the integrity checks pass.
+restore_started_at_ms="$(now_ms)"
 docker exec -u postgres \
   -e "PGUSER=${pg_admin_user}" \
   -e "PGPASSWORD=${pg_admin_password}" \
@@ -140,16 +164,29 @@ done
 
 bash tools/postgres/integrity-checks.sh "$restore_container" "$marker_value"
 
-finished_at_ms="$(date +%s%3N)"
+finished_at_ms="$(now_ms)"
 duration_ms="$((finished_at_ms - started_at_ms))"
+rto_ms="$((finished_at_ms - restore_started_at_ms))"
+target_marker_epoch="$(
+  docker exec -e PGPASSWORD="${POSTGRES_ADMIN_PASSWORD:-ji_admin_local}" "$restore_container" \
+    psql -U ji_admin -d ji_test -Atqc \
+    "SELECT max(extract(epoch from created_at))::bigint FROM ${marker_table};"
+)"
+rpo_observed_seconds=$((source_marker_epoch - target_marker_epoch))
+if [[ "$rpo_observed_seconds" -lt 0 ]]; then
+  rpo_observed_seconds=0
+fi
 git_sha="$(git rev-parse HEAD)"
 recovery_point="$(
   docker exec -e PGPASSWORD="${POSTGRES_ADMIN_PASSWORD:-ji_admin_local}" "$restore_container" \
     psql -U ji_admin -d ji_test -Atqc "SELECT pg_last_wal_replay_lsn();"
 )"
 
-mkdir -p "$(dirname "$evidence_path")"
-cat >"$evidence_path" <<EOF
+write_evidence() {
+  local result="$1"
+  local breached_json="$2"
+  mkdir -p "$(dirname "$evidence_path")"
+  cat >"$evidence_path" <<EOF
 {
   "schemaVersion": 1,
   "requirement": "AE9 / R21 / JI-037",
@@ -162,10 +199,31 @@ cat >"$evidence_path" <<EOF
   "backupName": "${latest_backup}",
   "recoveryPointLsn": "${recovery_point}",
   "durationMs": ${duration_ms},
+  "rtoMs": ${rto_ms},
+  "rpoObservedSeconds": ${rpo_observed_seconds},
+  "thresholds": { "maxRtoSeconds": ${max_rto_seconds}, "maxRpoSeconds": ${max_rpo_seconds} },
+  "breached": ${breached_json},
   "markerTable": "${marker_table}",
   "markerValue": "${marker_value}",
-  "result": "pass"
+  "result": "${result}"
 }
 EOF
+}
 
-echo "restore-drill: passed in ${duration_ms}ms; evidence written to ${evidence_path}"
+breached=()
+if [[ "$rto_ms" -gt $((max_rto_seconds * 1000)) ]]; then
+  breached+=("rto")
+fi
+if [[ "$rpo_observed_seconds" -gt "$max_rpo_seconds" ]]; then
+  breached+=("rpo")
+fi
+
+if [[ "${#breached[@]}" -gt 0 ]]; then
+  breached_json="$(printf '"%s",' "${breached[@]}")"
+  write_evidence "fail" "[${breached_json%,}]"
+  echo "restore-drill: FAILED rto=${rto_ms}ms rpo=${rpo_observed_seconds}s breached=${breached[*]}; evidence written to ${evidence_path}" >&2
+  exit 1
+fi
+
+write_evidence "pass" "[]"
+echo "restore-drill: passed in ${duration_ms}ms (rto=${rto_ms}ms rpo=${rpo_observed_seconds}s); evidence written to ${evidence_path}"

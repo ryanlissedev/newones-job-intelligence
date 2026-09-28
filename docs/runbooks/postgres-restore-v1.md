@@ -71,6 +71,12 @@ That helper checks the Drizzle journal, three core relations, and the fixture
 marker. The marker is created by `restore-drill.sh`; it is deliberately a
 fixture-only assertion and must not be fabricated for a production restore.
 
+The drill enforces the numeric RPO/RTO grens from
+[ADR-0017](../adr/ADR-0017-rpo-rto-herstelgrens.md): it fails with exit 1 and a
+`result: "fail"` evidence artifact when the measured restore time or observed
+replication lag exceeds `RESTORE_DRILL_MAX_RTO_SECONDS` /
+`RESTORE_DRILL_MAX_RPO_SECONDS`.
+
 CI runs this script in the `postgres-restore-drill` job and uploads
 `.artifacts/postgres-restore-evidence.json`. The repository also has
 `tools/postgres/restore-drill.spec.ts`, which guards the drill's isolated
