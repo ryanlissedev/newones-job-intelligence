@@ -26,6 +26,7 @@ import {
   createListSavedSearchesHandler,
   createListAlertsHandler,
   createListBronnenHandler,
+  createListSnapshotsHandler,
   createListVersiesHandler,
   createMarkeerAanvraagHandler,
   createReadRawHandler,
@@ -60,6 +61,8 @@ import {
   getOperatorContextOutputSchema,
   listAlertsOutputSchema,
   listBronnenOutputSchema,
+  listSnapshotsInputSchema,
+  listSnapshotsOutputSchema,
   listVersiesInputSchema,
   listVersiesOutputSchema,
   markeerAanvraagInputSchema,
@@ -361,6 +364,20 @@ export const createSliceACapabilityCatalog = (deps: SliceAHandlerDeps) => {
     inputSchema: createSnapshotInputSchema,
     outcome: "Maak immutable QuerySnapshot van huidige zoekresultaten",
     outputSchema: snapshotViewSchema,
+  });
+
+  const listSnapshots = defineCapability({
+    authorization: { permission: PERM_SLICE_READ },
+    bindings: dualBindings("GET", "/v1/snapshots", "list_snapshots"),
+    effect: "read",
+    failureSchema: domainFailureSchema,
+    grounding: true,
+    handler: createListSnapshotsHandler(deps),
+    id: "list_snapshots",
+    inputSchema: listSnapshotsInputSchema,
+    outcome:
+      "Lijst eigen snapshots met approval- en exportstatus (metadata only)",
+    outputSchema: listSnapshotsOutputSchema,
   });
 
   const getSnapshot = defineCapability({
@@ -875,6 +892,13 @@ export const createSliceACapabilityCatalog = (deps: SliceAHandlerDeps) => {
         "ui:SearchPanel.CreateSnapshot",
       ],
     }),
+    defineSliceACapabilityEntry(listSnapshots, {
+      auditClass: "access",
+      reversible: true,
+      sideEffectClass: "read",
+      target: "internal",
+      wiredTransports: ["mcp:list_snapshots", "rest:GET /v1/snapshots"],
+    }),
     defineSliceACapabilityEntry(getSnapshot, {
       auditClass: "access",
       reversible: true,
@@ -1150,6 +1174,7 @@ export const sliceACapabilityIds = [
   "update_saved_search",
   "remove_saved_search",
   "create_snapshot",
+  "list_snapshots",
   "get_snapshot",
   "approve_snapshot",
   "get_snapshot_approval",

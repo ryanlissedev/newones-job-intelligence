@@ -402,11 +402,52 @@ export interface SavedSearchStore {
   } | null>;
 }
 
+/** Keyset cursor for list_snapshots paging: created_at desc, id desc. */
+export interface SnapshotListCursor {
+  readonly createdAt: Date;
+  readonly id: string;
+}
+
+export interface ListedSnapshotApproval {
+  readonly actorId: string;
+  readonly expiresAt: Date;
+}
+
+export interface ListedSnapshotExport {
+  readonly externalIdCount: number;
+  /** True when any attempt for the snapshot reached a success status. */
+  readonly hasSuccess: boolean;
+  readonly lastAttemptAt: Date;
+  readonly status: ExportAttemptStatus;
+}
+
+/** Joined list row: snapshot plus latest approval and latest export attempt. */
+export interface ListedSnapshotRecord {
+  readonly actorId: string;
+  readonly approval: ListedSnapshotApproval | null;
+  readonly createdAt: Date;
+  readonly export: ListedSnapshotExport | null;
+  readonly id: string;
+  readonly query: string;
+  readonly resultCount: number;
+}
+
 export interface QuerySnapshotStore {
   create: (
     record: Omit<QuerySnapshotRecord, "createdAt" | "id">
   ) => Promise<QuerySnapshotRecord>;
   getById: (id: string, scopeId: string) => Promise<QuerySnapshotRecord | null>;
+  /**
+   * Owner-scoped keyset listing ordered by created_at desc, id desc. One
+   * joined read: latest approval per snapshot plus the latest export attempt
+   * and the count of external ids; no per-row lookups.
+   */
+  list: (input: {
+    readonly cursor?: SnapshotListCursor;
+    readonly limit: number;
+    readonly scopeId: string;
+    readonly userId: string;
+  }) => Promise<readonly ListedSnapshotRecord[]>;
 }
 
 export interface ApprovalRecord {

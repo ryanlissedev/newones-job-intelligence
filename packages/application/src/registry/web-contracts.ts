@@ -28,6 +28,7 @@ import type {
   getSnapshotApprovalOutputSchema,
   getSnapshotOutputSchema,
   snapshotViewSchema,
+  listSnapshotsOutputSchema,
 } from "./handlers/index";
 import type { SchemaType } from "./schema-helpers";
 import type { MarkeringReadback } from "./schemas";
@@ -114,3 +115,11 @@ export type CommitExportResult = SchemaType<typeof commitExportOutputSchema>;
 
 /** get_export_status output — attempts with receipts and readback status. */
 export type ExportStatusView = SchemaType<typeof getExportStatusOutputSchema>;
+// CTP-652: snapshot list wire DTO for the /exports screen. The import above
+// is type-only, so no handler runtime reaches the browser bundle.
+
+/** list_snapshots output — keyset-paged snapshot metadata rows. */
+export type ListedSnapshotsView = SchemaType<typeof listSnapshotsOutputSchema>;
+
+/** One row of list_snapshots output. */
+export type ListedSnapshotView = ListedSnapshotsView["items"][number];

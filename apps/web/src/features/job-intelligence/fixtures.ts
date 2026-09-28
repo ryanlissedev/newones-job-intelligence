@@ -4,6 +4,7 @@ import type {
   ExportStatusView,
   SnapshotApprovalView,
   SnapshotDetailView,
+  ListedSnapshotView,
 } from "./contracts";
 import { sourceLabel } from "./presentation";
 import { CapabilityRequestError } from "./rest/capability-client";
@@ -839,6 +840,82 @@ const createFixtureSnapshot = ({
   return Promise.resolve({ id, resultCount: selectedIds.length });
 };
 
+// CTP-652: fixture snapshots for the /exports list — pending, approved and
+// committed so the status column renders every badge without the API.
+export const SNAPSHOT_FIXTURES = [
+  {
+    actorId: "fixture-actor",
+    approval: null,
+    createdAt: "2026-09-24T09:12:00.000Z",
+    export: null,
+    id: "fixture-snapshot-pending",
+    query: "Azure AND data",
+    resultCount: 3,
+    status: "pending",
+  },
+  {
+    actorId: "fixture-actor",
+    approval: {
+      actorId: "fixture-approver",
+      expiresAt: "2026-10-02T09:15:00.000Z",
+    },
+    createdAt: "2026-09-25T09:15:00.000Z",
+    export: null,
+    id: "fixture-snapshot-approved",
+    query: "Power BI NOT junior",
+    resultCount: 2,
+    status: "approved",
+  },
+  {
+    actorId: "fixture-actor",
+    approval: {
+      actorId: "fixture-approver",
+      expiresAt: "2026-10-01T09:00:00.000Z",
+    },
+    createdAt: "2026-09-23T14:02:00.000Z",
+    export: {
+      externalIdCount: 4,
+      lastAttemptAt: "2026-09-23T14:06:00.000Z",
+      status: "created",
+    },
+    id: "fixture-snapshot-committed",
+    query: "freelance AND utrecht",
+    resultCount: 4,
+    status: "committed",
+  },
+] as const;
+
+export const fixtureListSnapshots = (
+  input: {
+    readonly cursor?: string;
+    readonly limit?: number;
+  } = {}
+): Promise<{
+  readonly items: readonly ListedSnapshotView[];
+  readonly nextCursor: string | null;
+}> => {
+  const start = input.cursor
+    ? SNAPSHOT_FIXTURES.findIndex((item) => item.id === input.cursor) + 1
+    : 0;
+  const limit = input.limit ?? SNAPSHOT_FIXTURES.length;
+  const items = SNAPSHOT_FIXTURES.slice(start, start + limit);
+  const last = items.at(-1);
+  return Promise.resolve({
+    items: items.map((item): ListedSnapshotView => ({
+      actorId: item.actorId,
+      approval: item.approval,
+      createdAt: item.createdAt,
+      export: item.export,
+      id: item.id,
+      query: item.query,
+      resultCount: item.resultCount,
+      status: item.status,
+    })),
+    nextCursor:
+      start + items.length < SNAPSHOT_FIXTURES.length && last ? last.id : null,
+  });
+};
+
 export const fixtureJobActions: JobIntelligenceActions = {
   approveSnapshot: approveFixtureSnapshot,
   commitExport: commitFixtureExport,
@@ -873,6 +950,7 @@ export const fixtureJobActions: JobIntelligenceActions = {
     );
   },
   listSavedSearches: () => Promise.resolve([]),
+  listSnapshots: (input) => fixtureListSnapshots(input),
   markeerAanvraag: ({ status }) =>
     Promise.resolve({
       reden: null,

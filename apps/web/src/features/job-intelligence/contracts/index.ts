@@ -38,6 +38,8 @@ export {
   type ApprovalView,
   type CommitExportResult,
   type ExportStatusView,
+  type ListedSnapshotsView,
+  type ListedSnapshotView,
   type MarkeringReadback,
   type MarkeringStatus,
   type MarkeringView,
