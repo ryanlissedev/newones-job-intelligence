@@ -10,7 +10,7 @@ import { NotFoundFault } from "../effect-runtime";
 import { shouldSkipFetch } from "../known-hash";
 import type { KnownHashStore } from "../known-hash";
 import { hashContent } from "../object-store";
-import { createJsonLdClient } from "./client";
+import { createJsonLdClient, MissingDetailFixtureError } from "./client";
 import type { JsonLdClient } from "./client";
 import { applyExcludes, dedupeUrls } from "./discovery";
 import { hashJsonLdListingItem, hashJsonLdPayload } from "./hash";
@@ -281,6 +281,12 @@ export const createJsonLdConnector = (
       try {
         detail = await client.fetchDetail(entry.url, signal);
       } catch (error) {
+        // Replay-scope skip: the audit scripts configure the fixture client
+        // with `onMissingDetailFixture: "skip"` so discovered URLs without a
+        // committed detail fixture count as skipped, never as errors.
+        if (error instanceof MissingDetailFixtureError) {
+          return null;
+        }
         // A URL in the source's own sitemap can already be gone: reject that
         // item instead of failing the whole run (CTP-608: one dead
         // datajobs.nl detail URL was killing every 244-item poll).

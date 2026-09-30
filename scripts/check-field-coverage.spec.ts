@@ -39,6 +39,7 @@ const fullReportOf = (
   keys: extras.keys ?? {},
   records,
   rejected: extras.rejected ?? 0,
+  skippedDetails: 0,
   slug,
 });
 

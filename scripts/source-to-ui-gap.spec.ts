@@ -47,6 +47,7 @@ const reportOf = (
   keys,
   records,
   rejected: 0,
+  skippedDetails: 0,
   slug,
 });
 
@@ -270,6 +271,7 @@ describe("analyseReport", () => {
       missingDisplayFields: [],
       records: 2,
       rejected: 0,
+      skippedDetails: 0,
       slug: "bron-a",
       zeroCoverageFields: [
         "locatie",

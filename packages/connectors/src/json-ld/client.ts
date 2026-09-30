@@ -55,6 +55,19 @@ export interface JsonLdClient {
   ) => Promise<JsonLdDiscoveryUrl[]>;
 }
 
+/**
+ * Thrown in fixture mode when `onMissingDetailFixture: "skip"` is set and a
+ * discovered detail URL has no committed fixture. The connector maps it to a
+ * `null` fetch result so offline replay scopes to the fixture-backed corpus
+ * instead of erroring on every unrecorded URL (CTP-647).
+ */
+export class MissingDetailFixtureError extends Error {
+  constructor(slug: string, url: string) {
+    super(`Missing ${slug} detail fixture for ${url}`);
+    this.name = "MissingDetailFixtureError";
+  }
+}
+
 export interface JsonLdClientOptions {
   config: JsonLdConnectorConfig;
   /**
@@ -66,6 +79,14 @@ export interface JsonLdClientOptions {
   fetchImpl?: typeof fetch;
   listingFixturePath?: string;
   liveEnabled?: boolean;
+  /**
+   * Fixture mode only. `"throw"` (default) keeps the hard `Missing … detail
+   * fixture` error so specs fail loudly on unrecorded detail URLs; `"skip"`
+   * throws `MissingDetailFixtureError`, which the connector turns into a
+   * `null` fetch result. Audit tooling uses `"skip"` to replay only the
+   * detail-backed slice of a listing fixture.
+   */
+  onMissingDetailFixture?: "throw" | "skip";
   /** Maximum time for one live request, including response-body consumption. */
   timeoutMs?: number;
 }
@@ -195,6 +216,9 @@ export const createJsonLdClient = (
       if (!liveEnabled) {
         const relativePath = detailFixtures[url];
         if (!relativePath) {
+          if (options.onMissingDetailFixture === "skip") {
+            throw new MissingDetailFixtureError(config.slug, url);
+          }
           throw new Error(`Missing ${config.slug} detail fixture for ${url}`);
         }
         const fixture = await loadConnectorFixture<unknown>(relativePath);

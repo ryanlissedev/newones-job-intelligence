@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-09-20T13:06:19.738Z",
-  "sourceSha": "dc31c44f15a4504eca8e2fcd10874f7c2db6d694",
+  "generatedAt": "2026-09-25T18:05:03.858Z",
+  "sourceSha": "6ef83ea1b68048af9dfc06ebffa315875b2879d7",
   "sources": {
     "alliander": {
       "fields": {
@@ -327,22 +327,22 @@
     },
     "heijmans": {
       "fields": {
-        "contract": 0,
+        "contract": 1,
         "duur": 0,
         "einddatum": 0,
         "gepubliceerd": 0,
-        "locatie": 3,
+        "locatie": 8,
         "opleiding": 0,
-        "organisatie": 3,
+        "organisatie": 8,
         "provincie": 0,
         "skills": 0,
         "sluit": 0,
         "startdatum": 0,
-        "tarief": 3,
-        "uren": 3,
+        "tarief": 7,
+        "uren": 8,
         "werkvorm": 0
       },
-      "records": 3
+      "records": 8
     },
     "hero": {
       "fields": {
@@ -403,22 +403,22 @@
     },
     "intermediair": {
       "fields": {
-        "contract": 2,
+        "contract": 3,
         "duur": 0,
         "einddatum": 0,
-        "gepubliceerd": 3,
-        "locatie": 3,
-        "opleiding": 3,
-        "organisatie": 3,
-        "provincie": 3,
+        "gepubliceerd": 8,
+        "locatie": 8,
+        "opleiding": 8,
+        "organisatie": 8,
+        "provincie": 8,
         "skills": 0,
-        "sluit": 3,
+        "sluit": 8,
         "startdatum": 0,
-        "tarief": 1,
-        "uren": 3,
+        "tarief": 6,
+        "uren": 8,
         "werkvorm": 0
       },
-      "records": 3
+      "records": 8
     },
     "jobbird": {
       "fields": {
@@ -824,19 +824,19 @@
         "contract": 0,
         "duur": 0,
         "einddatum": 0,
-        "gepubliceerd": 3,
-        "locatie": 3,
+        "gepubliceerd": 8,
+        "locatie": 8,
         "opleiding": 0,
-        "organisatie": 3,
-        "provincie": 1,
+        "organisatie": 8,
+        "provincie": 2,
         "skills": 0,
-        "sluit": 3,
+        "sluit": 8,
         "startdatum": 0,
-        "tarief": 3,
+        "tarief": 8,
         "uren": 0,
         "werkvorm": 0
       },
-      "records": 3
+      "records": 8
     },
     "vattenfall": {
       "fields": {
@@ -862,19 +862,19 @@
         "contract": 0,
         "duur": 0,
         "einddatum": 0,
-        "gepubliceerd": 3,
-        "locatie": 3,
+        "gepubliceerd": 8,
+        "locatie": 8,
         "opleiding": 0,
-        "organisatie": 3,
-        "provincie": 3,
+        "organisatie": 8,
+        "provincie": 8,
         "skills": 0,
         "sluit": 0,
         "startdatum": 0,
-        "tarief": 0,
+        "tarief": 1,
         "uren": 0,
         "werkvorm": 0
       },
-      "records": 3
+      "records": 8
     },
     "werk-nl": {
       "fields": {
@@ -916,22 +916,22 @@
     },
     "zzp-opdrachten": {
       "fields": {
-        "contract": 3,
+        "contract": 8,
         "duur": 0,
         "einddatum": 0,
-        "gepubliceerd": 3,
-        "locatie": 3,
+        "gepubliceerd": 8,
+        "locatie": 8,
         "opleiding": 0,
-        "organisatie": 3,
-        "provincie": 2,
+        "organisatie": 8,
+        "provincie": 6,
         "skills": 0,
-        "sluit": 3,
+        "sluit": 8,
         "startdatum": 0,
-        "tarief": 3,
+        "tarief": 8,
         "uren": 0,
         "werkvorm": 0
       },
-      "records": 3
+      "records": 8
     }
   }
 }

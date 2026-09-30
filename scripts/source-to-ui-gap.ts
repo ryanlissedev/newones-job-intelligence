@@ -160,11 +160,11 @@ const pad = (value: string, width: number): string =>
 
 export const formatReport = (reports: SourceReport[]): string => {
   const analyses = reports.map(analyseReport);
-  const header = `${pad("bron", 24)} ${pad("n", 4)} ${pad("zero", 5)} ${pad("miss", 5)} ${pad("invalid", 7)} ${pad("disp", 5)} ${pad("gap", 5)} ${pad("id", 4)} ${pad("proc", 5)} ${pad("stat", 5)} ${pad("unclass", 7)} ${pad("errs", 5)}`;
+  const header = `${pad("bron", 24)} ${pad("n", 4)} ${pad("zero", 5)} ${pad("miss", 5)} ${pad("invalid", 7)} ${pad("disp", 5)} ${pad("gap", 5)} ${pad("id", 4)} ${pad("proc", 5)} ${pad("stat", 5)} ${pad("unclass", 7)} ${pad("skip", 5)} ${pad("errs", 5)}`;
   const lines: string[] = [header, "-".repeat(header.length)];
   for (const report of analyses) {
     lines.push(
-      `${pad(report.slug, 24)} ${pad(String(report.records), 4)} ${pad(String(report.zeroCoverageFields.length), 5)} ${pad(String(report.missingDisplayFields.length), 5)} ${pad(String(report.invalidDisplayFields.length), 7)} ${pad(String(report.keyCategories.displayed.length), 5)} ${pad(String(report.keyCategories.gap.length), 5)} ${pad(String(report.keyCategories.identity.length), 4)} ${pad(String(report.keyCategories.procedure.length), 5)} ${pad(String(report.keyCategories.status.length), 5)} ${pad(String(report.keyCategories.unused.length), 7)} ${pad(String(report.errors.length), 5)}`
+      `${pad(report.slug, 24)} ${pad(String(report.records), 4)} ${pad(String(report.zeroCoverageFields.length), 5)} ${pad(String(report.missingDisplayFields.length), 5)} ${pad(String(report.invalidDisplayFields.length), 7)} ${pad(String(report.keyCategories.displayed.length), 5)} ${pad(String(report.keyCategories.gap.length), 5)} ${pad(String(report.keyCategories.identity.length), 4)} ${pad(String(report.keyCategories.procedure.length), 5)} ${pad(String(report.keyCategories.status.length), 5)} ${pad(String(report.keyCategories.unused.length), 7)} ${pad(String(report.skippedDetails), 5)} ${pad(String(report.errors.length), 5)}`
     );
   }
 

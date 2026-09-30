@@ -58,11 +58,12 @@ Zelfherstellend, nooit stil verouderd.
 
 **Fixture-corpus (eerlijk):** de committed listing-fixture is de echte
 sitemap-opname (533 vacature-URL's — de sitemap bevat uitsluitend
-vacature-URL's), waarvan er 3 een detail-fixture hebben (`vacature/3334`,
-`vacature/3353`, `vacature/3440`). De integratiespec scope de écht geparse
-listing daarom op de detail-backed URL's; elke gepersisteerde payload is een
-echte opname. Er is géén opgenomen soft-404/reject-fixture voor deze bron —
-alle drie de detail-URL's persisteren. Heel-corpus-enumeratie is los vastgelegd
+vacature-URL's), waarvan er 8 een detail-fixture hebben (`vacature/3334`,
+`vacature/3353`, `vacature/3383`, `vacature/3400`, `vacature/3434`,
+`vacature/3440`, `vacature/3441`, `vacature/3450`). De integratiespec scope de
+écht geparse listing daarom op de detail-backed URL's; elke gepersisteerde
+payload is een echte opname. Er is géén opgenomen soft-404/reject-fixture voor
+deze bron — alle acht de detail-URL's persisteren. Heel-corpus-enumeratie is los vastgelegd
 in de connector-spec.
 
 **End-to-end op de echte pipeline** (fixture-client, `ji_test_iso_*`-Postgres,

@@ -7,6 +7,8 @@ import type {
 } from "@ji/application/normalise";
 import { SOURCES, SUPPORTED_BRON_SLUGS } from "@ji/application/sources";
 import type { SourceDefinition } from "@ji/application/sources";
+import * as jsonLd from "@ji/connectors/json-ld";
+import type { JsonLdConnectorConfig } from "@ji/connectors/json-ld";
 import { readAanvraagBronFacts } from "@ji/db/aanvraag-read-mapping";
 import { CLEARED, UNKNOWN } from "@ji/domain";
 
@@ -193,8 +195,26 @@ export interface SourceReport {
   keys: Record<string, number>;
   records: number;
   rejected: number;
+  /** Discovered detail URLs skipped because no detail fixture is committed
+   * for them (CTP-647): the listing fixture stays the real recording, but
+   * replay only enumerates the detail-backed slice. */
+  skippedDetails: number;
   slug: string;
 }
+
+/** CTP-647: every exported json-ld config, keyed by slug, so the audit can
+ * scope replay to URLs with a committed detail fixture instead of erroring
+ * on each unrecorded listing entry. */
+const JSON_LD_CONFIGS = new Map<string, JsonLdConnectorConfig>(
+  Object.values(jsonLd)
+    .filter(
+      (value): value is JsonLdConnectorConfig =>
+        isRecord(value) &&
+        typeof value["slug"] === "string" &&
+        "discovery" in value
+    )
+    .map((config) => [config.slug, config])
+);
 
 const auditSource = async (source: SourceDefinition): Promise<SourceReport> => {
   const report: SourceReport = {
@@ -209,15 +229,34 @@ const auditSource = async (source: SourceDefinition): Promise<SourceReport> => {
     keys: {},
     records: 0,
     rejected: 0,
+    skippedDetails: 0,
     slug: source.slug,
   };
   const listingFixturePath = path.join(source.slug, "listing-page-0.json");
-  const connector = source.createConnector({
-    bronId: source.bronId,
-    listingFixturePath,
-    live: false,
-    runKind: "test",
-  });
+  // CTP-647: json-ld sources replay with `onMissingDetailFixture: "skip"` so
+  // a listing fixture that names hundreds of detail URLs only enumerates the
+  // ones with a committed detail fixture. The connector is built directly —
+  // same wiring as `source.createConnector`'s fixture branch — because the
+  // `CreateSourceConnectorInput` seam does not carry the skip flag.
+  const jsonLdConfig = JSON_LD_CONFIGS.get(source.slug);
+  const connector =
+    jsonLdConfig === undefined
+      ? source.createConnector({
+          bronId: source.bronId,
+          listingFixturePath,
+          live: false,
+          runKind: "test",
+        })
+      : jsonLd.createJsonLdConnector({
+          bronId: source.bronId,
+          client: jsonLd.createJsonLdClient({
+            config: jsonLdConfig,
+            listingFixturePath,
+            liveEnabled: false,
+            onMissingDetailFixture: "skip",
+          }),
+          config: jsonLdConfig,
+        });
 
   const items: {
     bronReferentie: string;
@@ -267,6 +306,9 @@ const auditSource = async (source: SourceDefinition): Promise<SourceReport> => {
       continue;
     }
     if (!fetched) {
+      // A null fetch is a replay-scope skip (no committed detail fixture);
+      // known-hash skips cannot occur here because no store is passed.
+      report.skippedDetails += 1;
       continue;
     }
     if (fetched.status === "rejected") {
@@ -333,7 +375,7 @@ const printTable = (reports: readonly SourceReport[]): void => {
 const printDetails = (reports: readonly SourceReport[]): void => {
   for (const report of reports) {
     console.log(
-      `\n== ${report.slug} (${report.records} records, ${report.rejected} rejected)`
+      `\n== ${report.slug} (${report.records} records, ${report.rejected} rejected, ${report.skippedDetails} skipped: no detail fixture)`
     );
     const keys = Object.entries(report.keys).toSorted((a, b) =>
       a[0].localeCompare(b[0])

@@ -3,10 +3,20 @@ import type { JsonLdConnectorConfig } from "../types";
 /** ZZP-Opdrachten publishes historical sitemap chunks behind a sitemap index. */
 export const zzpOpdrachtenConfig: JsonLdConnectorConfig = {
   detailFixtures: {
+    "https://www.zzp-opdrachten.nl/vacatures/vacature-adviseur-mobiliteit-708003/":
+      "zzp-opdrachten/detail-adviseur-mobiliteit-708003.json",
     "https://www.zzp-opdrachten.nl/vacatures/vacature-bouwprojectmanager-708001/":
       "zzp-opdrachten/detail-bouwprojectmanager-708001.json",
     "https://www.zzp-opdrachten.nl/vacatures/vacature-jurist-707983/":
       "zzp-opdrachten/detail-jurist-707983.json",
+    "https://www.zzp-opdrachten.nl/vacatures/vacature-jurist-bezwaar-en-beroep-ruimtelijke-ordening-708008/":
+      "zzp-opdrachten/detail-jurist-bezwaar-en-beroep-ruimtelijke-ordening-708008.json",
+    "https://www.zzp-opdrachten.nl/vacatures/vacature-strategische-doorontwikkeling-po-707992/":
+      "zzp-opdrachten/detail-strategische-doorontwikkeling-po-707992.json",
+    "https://www.zzp-opdrachten.nl/vacatures/vacature-teamleider-facilitair-707985/":
+      "zzp-opdrachten/detail-teamleider-facilitair-707985.json",
+    "https://www.zzp-opdrachten.nl/vacatures/vacature-technisch-beheerder-708005/":
+      "zzp-opdrachten/detail-technisch-beheerder-708005.json",
     "https://www.zzp-opdrachten.nl/vacatures/vacature-woonfraude-specialist-710585/":
       "zzp-opdrachten/detail-woonfraude-specialist-710585.json",
   },

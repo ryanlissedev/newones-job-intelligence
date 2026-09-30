@@ -6,6 +6,7 @@ import {
   createJsonLdConnector,
   datajobsConfig,
   unicaConfig,
+  urlSlugBronReferentie,
   vattenfallConfig,
   volkerwesselsConfig,
   werkenVoorNederlandConfig,
@@ -154,22 +155,25 @@ const DATAJOBS: BronSpec = {
   naam: "DataJobs.nl",
   rejectedReferenties: [],
 };
+/** bronReferenties of every committed detail fixture for `config` — the
+ * replay-scoped corpus the wrapper client enumerates. Derived from
+ * `config.detailFixtures` so a new capture widens the expected corpus
+ * instead of breaking the spec (CTP-647). */
+const detailBackedReferenties = (
+  config: JsonLdConnectorConfig
+): readonly string[] =>
+  Object.keys(config.detailFixtures ?? {}).map(urlSlugBronReferentie);
+
+const UNICA_DISCOVERED = detailBackedReferenties(unicaConfig);
+
 const UNICA: BronSpec = {
   abortOnDetailCall: 2,
   bronId: "00000000-0000-4000-8000-00000000001f",
   bronSlug: "unica",
   categorie: "werkgever",
   config: unicaConfig,
-  discoveredReferenties: [
-    "vacatures/accountmanager-venray-aqkcmj2yd4e-nszi",
-    "vacatures/technisch-administratief-medewerker-oosterhout-aqk-1g-tfhzmqqg",
-    "vacatures/werkvoorbereider-warmtenetten-oosterhout-aqlgyyae65n4goyv",
-  ],
-  fixtureReferenties: [
-    "vacatures/accountmanager-venray-aqkcmj2yd4e-nszi",
-    "vacatures/technisch-administratief-medewerker-oosterhout-aqk-1g-tfhzmqqg",
-    "vacatures/werkvoorbereider-warmtenetten-oosterhout-aqlgyyae65n4goyv",
-  ],
+  discoveredReferenties: UNICA_DISCOVERED,
+  fixtureReferenties: UNICA_DISCOVERED,
   naam: "Unica",
   rejectedReferenties: [],
 };
@@ -192,22 +196,16 @@ const VATTENFALL: BronSpec = {
   naam: "Vattenfall",
   rejectedReferenties: [],
 };
+const VOLKERWESSELS_DISCOVERED = detailBackedReferenties(volkerwesselsConfig);
+
 const VOLKERWESSELS: BronSpec = {
   abortOnDetailCall: 2,
   bronId: "00000000-0000-4000-8000-000000000014",
   bronSlug: "volkerwessels",
   categorie: "werkgever",
   config: volkerwesselsConfig,
-  discoveredReferenties: [
-    "vacature/3334/voorman-timmerman",
-    "vacature/3353/projectontwikkelaar-1",
-    "vacature/3440/projectleider-industriebouw",
-  ],
-  fixtureReferenties: [
-    "vacature/3334/voorman-timmerman",
-    "vacature/3353/projectontwikkelaar-1",
-    "vacature/3440/projectleider-industriebouw",
-  ],
+  discoveredReferenties: VOLKERWESSELS_DISCOVERED,
+  fixtureReferenties: VOLKERWESSELS_DISCOVERED,
   naam: "VolkerWessels",
   rejectedReferenties: [],
 };

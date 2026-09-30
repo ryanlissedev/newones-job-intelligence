@@ -9,6 +9,7 @@ import {
   enecoConfig,
   heijmansConfig,
   nsConfig,
+  urlSlugBronReferentie,
 } from "@ji/connectors/json-ld";
 import type {
   JsonLdClient,
@@ -184,30 +185,38 @@ const ENECO: BronSpec = {
   naam: "Eneco",
   rejectedReferenties: [],
 };
+/** bronReferenties of every committed detail fixture for `config` — the
+ * replay-scoped corpus the wrapper client enumerates. Derived from
+ * `config.detailFixtures` so a new capture widens the expected corpus
+ * instead of breaking the spec (CTP-647). */
+const detailBackedReferenties = (
+  config: JsonLdConnectorConfig
+): readonly string[] =>
+  Object.keys(config.detailFixtures ?? {}).map(urlSlugBronReferentie);
+
+// Recorded soft-404: HTTP 200 "Niet gevonden" without JobPosting JSON-LD;
+// the connector rejects the item instead of failing the run (CTP-608).
+const HEIJMANS_REJECTED: readonly string[] = [
+  "vacatures/allround-bouwmedewerker-veldhoven-v-014984",
+];
+
+const HEIJMANS_DISCOVERED = detailBackedReferenties(heijmansConfig);
+
 const HEIJMANS: BronSpec = {
-  // Call 1 is the soft-404 fixture (rejected, no persistence); call 2
-  // persists; call 3 aborts, so the retake still has a stored item for the
-  // replay key to absorb.
+  // Call 3 aborts after at most one reject (the soft-404 fixture), so at
+  // least one JobPosting item is always persisted first and the retake has
+  // a stored item for the replay key to absorb.
   abortOnDetailCall: 3,
   bronId: "00000000-0000-4000-8000-000000000016",
   bronSlug: "heijmans",
   categorie: "werkgever",
   config: heijmansConfig,
-  discoveredReferenties: [
-    "vacatures/allround-bouwmedewerker-veldhoven-v-014984",
-    "vacatures/maintenance-engineer-drachten-v-014747",
-    "vacatures/manager-finance-control-energie-rosmalen-v-015264",
-    "vacatures/modelleur-elektrotechniek-schiphol-v-010603",
-  ],
-  fixtureReferenties: [
-    "vacatures/maintenance-engineer-drachten-v-014747",
-    "vacatures/manager-finance-control-energie-rosmalen-v-015264",
-    "vacatures/modelleur-elektrotechniek-schiphol-v-010603",
-  ],
+  discoveredReferenties: HEIJMANS_DISCOVERED,
+  fixtureReferenties: HEIJMANS_DISCOVERED.filter(
+    (ref) => !HEIJMANS_REJECTED.includes(ref)
+  ),
   naam: "Heijmans",
-  // Recorded soft-404: HTTP 200 "Niet gevonden" without JobPosting JSON-LD;
-  // the connector rejects the item instead of failing the run (CTP-608).
-  rejectedReferenties: ["vacatures/allround-bouwmedewerker-veldhoven-v-014984"],
+  rejectedReferenties: HEIJMANS_REJECTED,
 };
 const NS: BronSpec = {
   abortOnDetailCall: 2,
