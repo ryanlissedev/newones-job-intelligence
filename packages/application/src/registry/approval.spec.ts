@@ -86,7 +86,7 @@ describe("approve_snapshot", () => {
     });
     const result = await approve(
       {
-        expiresAt: "2026-09-30T00:00:00.000Z",
+        expiresAt: "2027-12-31T00:00:00.000Z",
         id: snapshot.id,
         motivatie: "Resultaten handmatig gecontroleerd",
       },
@@ -117,7 +117,7 @@ describe("approve_snapshot", () => {
     });
     const result = await approve(
       {
-        expiresAt: "2026-09-30T00:00:00.000Z",
+        expiresAt: "2027-12-31T00:00:00.000Z",
         id: "00000000-0000-4000-8000-000000000777",
         motivatie: "Onbekende snapshot",
       },
@@ -138,7 +138,7 @@ describe("approve_snapshot", () => {
       transport: "mcp",
     });
     const input = {
-      expiresAt: "2026-09-30T00:00:00.000Z",
+      expiresAt: "2027-12-31T00:00:00.000Z",
       id: snapshot.id,
       motivatie: "Idempotent approval",
     };
@@ -194,7 +194,7 @@ describe("approve_snapshot", () => {
     });
     const result = await approve(
       {
-        expiresAt: "2026-09-30T00:00:00.000Z",
+        expiresAt: "2027-12-31T00:00:00.000Z",
         id: snapshot.id,
         motivatie: "Recruiter mag niet goedkeuren",
       },
@@ -221,7 +221,7 @@ describe("approve_snapshot", () => {
     });
     const approveResult = await crossScopeApprove(
       {
-        expiresAt: "2026-09-30T00:00:00.000Z",
+        expiresAt: "2027-12-31T00:00:00.000Z",
         id: snapshot.id,
         motivatie: "Must remain invisible",
       },
@@ -239,7 +239,7 @@ describe("approve_snapshot", () => {
     });
     const sameScopeResult = await sameScopeApprove(
       {
-        expiresAt: "2026-09-30T00:00:00.000Z",
+        expiresAt: "2027-12-31T00:00:00.000Z",
         id: snapshot.id,
         motivatie: "Visible only in the owning deployment",
       },
@@ -288,7 +288,7 @@ describe("validate_snapshot_approval", () => {
     });
     await approve(
       {
-        expiresAt: "2026-09-30T00:00:00.000Z",
+        expiresAt: "2027-12-31T00:00:00.000Z",
         id: snapshot.id,
         motivatie: "OK voor exportvoorbereiding",
       },
@@ -350,7 +350,7 @@ describe("validate_snapshot_approval", () => {
     await bundle.deps.stores.approvals.createWithAudit(
       {
         actorId: approverPrincipal.subjectId,
-        expiresAt: new Date("2026-09-30T00:00:00.000Z"),
+        expiresAt: new Date("2027-12-31T00:00:00.000Z"),
         motivatie: "Alleen eerste snapshot",
         resultIds: [...firstSnapshot.resultIds],
         scopeId: TEST_DEPLOYMENT_SCOPE_ID,

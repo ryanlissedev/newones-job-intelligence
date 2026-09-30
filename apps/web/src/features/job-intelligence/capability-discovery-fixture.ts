@@ -138,6 +138,17 @@ const fixtureDefinitions: readonly FixtureCapabilityDefinition[] = [
     uiActions: ["SearchPanel.SaveQuery"],
   },
   {
+    auditClass: "access",
+    effectClass: "read",
+    id: "list_snapshots",
+    outcome:
+      "Lijst eigen snapshots met approval- en exportstatus (metadata only)",
+    requiredPermission: "slice-a:read",
+    restOperations: ["GET /v1/snapshots"],
+    reversible: true,
+    target: "internal",
+  },
+  {
     auditClass: "effect",
     effectClass: "commit",
     id: "create_snapshot",

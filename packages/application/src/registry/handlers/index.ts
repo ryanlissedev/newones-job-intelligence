@@ -26,6 +26,7 @@ import {
   IntegerNumber,
   IsoDateTimeString,
   NonEmptyString,
+  NonNegativeInteger,
   optionalField,
   PositiveInteger,
   toCapabilitySchema,
@@ -52,8 +53,10 @@ import type {
   AanvraagRecord,
   AlertRecord,
   ApprovalRecord,
+  ListedSnapshotRecord,
   QuerySnapshotRecord,
   SavedSearchRecord,
+  SnapshotListCursor,
 } from "../stores/types";
 import type { SliceAHandlerDeps } from "./deps";
 
@@ -773,6 +776,161 @@ export const createGetSnapshotHandler =
         savedSearchId: snapshot.savedSearchId,
         scope: snapshot.scope,
         selectionDigest,
+      },
+    };
+  };
+
+export const LIST_SNAPSHOTS_MAX_LIMIT = 100;
+export const LIST_SNAPSHOTS_DEFAULT_LIMIT = 50;
+
+export const listSnapshotsInputSchema = toCapabilitySchema(
+  Schema.Struct({
+    /** Opaque base64url keyset cursor: `${createdAt ISO}|${id}`. */
+    cursor: optionalField(Schema.String),
+    limit: optionalField(
+      IntegerNumber.check(
+        Schema.isGreaterThanOrEqualTo(1),
+        Schema.isLessThanOrEqualTo(LIST_SNAPSHOTS_MAX_LIMIT)
+      )
+    ),
+  })
+);
+
+const LISTED_SNAPSHOT_STATUSES = [
+  "pending",
+  "approved",
+  "committed",
+  "failed",
+] as const;
+
+type ListedSnapshotStatus = (typeof LISTED_SNAPSHOT_STATUSES)[number];
+
+const listedSnapshotStatus = Schema.Literals(LISTED_SNAPSHOT_STATUSES);
+
+export const listSnapshotsOutputSchema = toCapabilitySchema(
+  Schema.Struct({
+    items: Schema.Array(
+      Schema.Struct({
+        actorId: Schema.NullOr(Schema.String),
+        approval: Schema.NullOr(
+          Schema.Struct({
+            actorId: Schema.String,
+            expiresAt: Schema.String,
+          })
+        ),
+        createdAt: Schema.String,
+        export: Schema.NullOr(
+          Schema.Struct({
+            externalIdCount: NonNegativeInteger,
+            lastAttemptAt: Schema.String,
+            status: Schema.String,
+          })
+        ),
+        id: Schema.String,
+        query: Schema.NullOr(Schema.String),
+        resultCount: NonNegativeInteger,
+        status: listedSnapshotStatus,
+      })
+    ),
+    nextCursor: Schema.NullOr(Schema.String),
+  })
+);
+
+const encodeSnapshotCursor = (cursor: SnapshotListCursor): string =>
+  Buffer.from(
+    `${cursor.createdAt.toISOString()}|${cursor.id}`,
+    "utf-8"
+  ).toString("base64url");
+
+const decodeSnapshotCursor = (cursor: string): SnapshotListCursor | null => {
+  const decoded = Buffer.from(cursor, "base64url").toString("utf-8");
+  const separator = decoded.lastIndexOf("|");
+  if (separator <= 0) {
+    return null;
+  }
+  const createdAt = new Date(decoded.slice(0, separator));
+  const id = decoded.slice(separator + 1);
+  if (Number.isNaN(createdAt.getTime()) || id.length === 0) {
+    return null;
+  }
+  return { createdAt, id };
+};
+
+const listedSnapshotStatusFor = (
+  record: ListedSnapshotRecord,
+  now: number
+): ListedSnapshotStatus => {
+  if (record.export) {
+    if (record.export.hasSuccess) {
+      return "committed";
+    }
+    if (record.export.status === "failed") {
+      return "failed";
+    }
+  }
+  if (record.approval && record.approval.expiresAt.getTime() > now) {
+    return "approved";
+  }
+  return "pending";
+};
+
+/**
+ * Owner-scoped list of snapshots with their latest approval and latest export
+ * attempt. Metadata only — no result payloads — so it stays readable under
+ * PERM_SLICE_READ where the detail reads are actor-scoped anyway.
+ */
+export const createListSnapshotsHandler =
+  (deps: SliceAHandlerDeps) =>
+  async (
+    input: SchemaType<typeof listSnapshotsInputSchema>,
+    context: { principal: { subjectId: string } }
+  ) => {
+    let cursor: SnapshotListCursor | undefined;
+    if (input.cursor !== undefined) {
+      const decoded = decodeSnapshotCursor(input.cursor);
+      if (!decoded) {
+        return domainFailure("VALIDATION_ERROR", "Invalid cursor");
+      }
+      cursor = decoded;
+    }
+    const limit = input.limit ?? LIST_SNAPSHOTS_DEFAULT_LIMIT;
+    const rows = await deps.stores.snapshots.list({
+      cursor,
+      limit: limit + 1,
+      scopeId: deps.scopeId,
+      userId: context.principal.subjectId,
+    });
+    const items = rows.slice(0, limit);
+    const last = items.at(-1);
+    const now = Date.now();
+    return {
+      ok: true as const,
+      value: {
+        items: items.map((record) => ({
+          actorId: record.actorId,
+          approval: record.approval
+            ? {
+                actorId: record.approval.actorId,
+                expiresAt: record.approval.expiresAt.toISOString(),
+              }
+            : null,
+          createdAt: record.createdAt.toISOString(),
+          export: record.export
+            ? {
+                externalIdCount: record.export.externalIdCount,
+                lastAttemptAt: record.export.lastAttemptAt.toISOString(),
+                status: record.export.status,
+              }
+            : null,
+          id: record.id,
+          query: record.query,
+          resultCount: record.resultCount,
+          status: listedSnapshotStatusFor(record, now),
+        })),
+        nextCursor:
+          rows.length > limit && last
+            ? encodeSnapshotCursor({ createdAt: last.createdAt, id: last.id })
+            : null,
       },
     };
   };

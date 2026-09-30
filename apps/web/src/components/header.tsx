@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   MessageSquare,
   Search,
+  Upload,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -36,6 +37,11 @@ const navigationItems = [
     href: "/bronnen",
     icon: Activity,
     label: "Bronnen",
+  },
+  {
+    href: "/exports",
+    icon: Upload,
+    label: "Exports",
   },
   {
     href: "/chat",

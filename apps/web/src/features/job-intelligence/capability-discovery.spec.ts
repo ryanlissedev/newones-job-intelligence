@@ -84,11 +84,11 @@ describe("capability discovery entry point", () => {
       (capability) => capability.id === "commit_export"
     );
 
-    expect(document.capabilities).toHaveLength(20);
+    expect(document.capabilities).toHaveLength(21);
     expect(document.statusCounts).toEqual({
       denied: 0,
       disabled: 1,
-      executable: 16,
+      executable: 17,
       fixtureStub: 3,
       planned: 0,
     });

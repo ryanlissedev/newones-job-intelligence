@@ -1,16 +1,19 @@
 /* oxlint-disable max-classes-per-file -- cohesive Postgres adapters share schema mapping */
 import type {
+  ExportAttemptStatus,
+  ListedSnapshotRecord,
   QuerySnapshotRecord,
   QuerySnapshotStore,
+  SnapshotListCursor,
 } from "@ji/application/registry";
 import { searchFiltersSchema } from "@ji/application/registry";
 import { SEARCH_SCOPES } from "@ji/search";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { z } from "zod";
 
 import type * as schema from "./schema";
-import { querySnapshot } from "./schema";
+import { approvalRecord, exportAttempt, querySnapshot } from "./schema";
 
 export type ReadPathDatabase = PostgresJsDatabase<typeof schema>;
 
@@ -133,5 +136,115 @@ export class PostgresQuerySnapshotStore implements QuerySnapshotStore {
       where: and(eq(querySnapshot.id, id), eq(querySnapshot.scopeId, scopeId)),
     });
     return row ? toQuerySnapshotRecord(row) : null;
+  }
+
+  async list(input: {
+    readonly cursor?: SnapshotListCursor;
+    readonly limit: number;
+    readonly scopeId: string;
+    readonly userId: string;
+  }): Promise<readonly ListedSnapshotRecord[]> {
+    const latestAttempt = this.database
+      .selectDistinctOn([exportAttempt.snapshotId], {
+        createdAt: exportAttempt.createdAt,
+        snapshotId: exportAttempt.snapshotId,
+        status: exportAttempt.status,
+      })
+      .from(exportAttempt)
+      .where(eq(exportAttempt.scopeId, input.scopeId))
+      .orderBy(
+        exportAttempt.snapshotId,
+        desc(exportAttempt.createdAt),
+        desc(exportAttempt.id)
+      )
+      .as("latest_attempt");
+
+    const attemptExternalIds = this.database
+      .select({
+        externalIdCount:
+          sql<number>`count(${exportAttempt.externalId})::int`.as(
+            "external_id_count"
+          ),
+        hasSuccess:
+          sql<boolean>`count(*) filter (where ${exportAttempt.status} in ('created', 'skipped')) > 0`.as(
+            "has_success"
+          ),
+        snapshotId: exportAttempt.snapshotId,
+      })
+      .from(exportAttempt)
+      .where(eq(exportAttempt.scopeId, input.scopeId))
+      .groupBy(exportAttempt.snapshotId)
+      .as("attempt_external_ids");
+
+    const conditions = [
+      eq(querySnapshot.scopeId, input.scopeId),
+      eq(querySnapshot.userId, input.userId),
+    ];
+    if (input.cursor) {
+      const { cursor } = input;
+      conditions.push(
+        sql`(${querySnapshot.createdAt}, ${querySnapshot.id}) < (${cursor.createdAt.toISOString()}::timestamptz, ${cursor.id}::uuid)`
+      );
+    }
+
+    const rows = await this.database
+      .select({
+        approvalActorId: approvalRecord.actorId,
+        approvalExpiresAt: approvalRecord.expiresAt,
+        createdAt: querySnapshot.createdAt,
+        exportExternalIdCount: attemptExternalIds.externalIdCount,
+        exportHasSuccess: attemptExternalIds.hasSuccess,
+        exportLastAttemptAt: latestAttempt.createdAt,
+        exportStatus: latestAttempt.status,
+        id: querySnapshot.id,
+        queryText: querySnapshot.queryText,
+        resultIds: querySnapshot.resultIds,
+      })
+      .from(querySnapshot)
+      .leftJoin(
+        approvalRecord,
+        and(
+          eq(approvalRecord.snapshotId, querySnapshot.id),
+          eq(approvalRecord.scopeId, input.scopeId)
+        )
+      )
+      .leftJoin(latestAttempt, eq(latestAttempt.snapshotId, querySnapshot.id))
+      .leftJoin(
+        attemptExternalIds,
+        eq(attemptExternalIds.snapshotId, querySnapshot.id)
+      )
+      .where(and(...conditions))
+      .orderBy(desc(querySnapshot.createdAt), desc(querySnapshot.id))
+      .limit(input.limit);
+
+    return rows.map((row) => ({
+      actorId: input.userId,
+      approval:
+        row.approvalExpiresAt === null || row.approvalActorId === null
+          ? null
+          : {
+              actorId: row.approvalActorId,
+              expiresAt: row.approvalExpiresAt,
+            },
+      createdAt: row.createdAt,
+      export:
+        row.exportLastAttemptAt === null || row.exportStatus === null
+          ? null
+          : {
+              externalIdCount: row.exportExternalIdCount ?? 0,
+              hasSuccess: row.exportHasSuccess ?? false,
+              lastAttemptAt: row.exportLastAttemptAt,
+              // SAFETY: the export_attempt_status_check constraint keeps the
+              // column inside ExportAttemptStatus; parseExportAttemptStatus in
+              // export-stores.ts documents the same closed vocabulary.
+              status: row.exportStatus as ExportAttemptStatus,
+            },
+      id: row.id,
+      query: row.queryText,
+      resultCount: parseSnapshotColumn(resultIdsSchema, row.resultIds, [], {
+        column: "resultIds",
+        snapshotId: row.id,
+      }).length,
+    }));
   }
 }

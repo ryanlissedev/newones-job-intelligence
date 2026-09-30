@@ -14,6 +14,7 @@ import type {
   SearchSort,
   SnapshotApprovalView,
   SnapshotDetailView,
+  ListedSnapshotView,
 } from "./contracts";
 
 export const JOB_MARKERING_STATUSES = MARKERING_STATUSES;
@@ -348,6 +349,13 @@ export interface JobIntelligenceActions {
   }) => Promise<{ readonly id: string; readonly resultCount: number }>;
   readonly deleteSavedSearch: (id: string) => Promise<void>;
   readonly listSavedSearches: () => Promise<readonly SavedSearchSummary[]>;
+  readonly listSnapshots: (input?: {
+    readonly cursor?: string;
+    readonly limit?: number;
+  }) => Promise<{
+    readonly items: readonly ListedSnapshotView[];
+    readonly nextCursor: string | null;
+  }>;
   readonly markeerAanvraag: (input: {
     readonly aanvraagId: string;
     readonly reden?: string | null;

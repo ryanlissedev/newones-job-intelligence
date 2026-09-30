@@ -6,6 +6,7 @@ import type {
   ApprovalView,
   CommitExportResult,
   ExportStatusView,
+  ListedSnapshotsView,
   SnapshotApprovalView,
   SnapshotDetailView,
   SnapshotView,
@@ -560,6 +561,19 @@ export const createRestJobIntelligence = ({
         query: item.queryText ?? "",
         updatedAt: item.updatedAt ?? new Date(0).toISOString(),
       }));
+    },
+    listSnapshots: ({ cursor, limit } = {}) => {
+      const params = new URLSearchParams();
+      if (limit !== undefined) {
+        params.set("limit", String(limit));
+      }
+      if (cursor !== undefined) {
+        params.set("cursor", cursor);
+      }
+      const query = params.toString();
+      return client.get<ListedSnapshotsView>(
+        `/v1/snapshots${query === "" ? "" : `?${query}`}`
+      );
     },
     markeerAanvraag: async ({ aanvraagId, reden = null, status }) => {
       const result = await client.post<MarkeerResponseBody>(

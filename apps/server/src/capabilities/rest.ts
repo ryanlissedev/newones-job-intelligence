@@ -287,6 +287,19 @@ const normalizeRestInput = (
     case "commit_export": {
       return toRestJsonBody([["snapshotId", readSnapshotId(raw)]]);
     }
+    case "list_snapshots": {
+      const limit = readString(raw, "limit");
+      const parsedLimit = limit === undefined ? undefined : Number(limit);
+      return toRestJsonBody([
+        ["cursor", readString(raw, "cursor")],
+        [
+          "limit",
+          parsedLimit !== undefined && Number.isInteger(parsedLimit)
+            ? parsedLimit
+            : limit,
+        ],
+      ]);
+    }
     case "get_export_status": {
       return toRestJsonBody([["snapshotId", readSnapshotId(raw)]]);
     }

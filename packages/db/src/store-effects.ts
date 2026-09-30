@@ -49,6 +49,11 @@ export const wrapQuerySnapshotStoreEffect = (
       fromStorePromise(() => store.getById(id, scopeId)),
       options
     ),
+  list: (input) =>
+    runDbStorePromise(
+      fromStorePromise(() => store.list(input)),
+      options
+    ),
 });
 
 export const wrapAanvraagStoreEffect = (

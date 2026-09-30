@@ -24,13 +24,14 @@ export const createMemorySliceAStores = (): SliceAStores & {
   readonly rawPayloads: MemoryRawPayloadStore;
 } => {
   const audit = new MemoryAuditStore();
+  const approvals = new MemoryApprovalStore(audit);
   const exportAttempts = new MemoryExportAttemptStore();
   const externalCrosswalk = new MemoryExternalIdCrosswalkStore();
   const externalReceipts = new MemoryExternalReceiptStore();
   return {
     aanvragen: new MemoryAanvraagStore(),
     alerts: new MemoryAlertStore(),
-    approvals: new MemoryApprovalStore(audit),
+    approvals,
     audit,
     bronHealth: new MemoryBronHealthStore(),
     exportAttempts,
@@ -45,7 +46,7 @@ export const createMemorySliceAStores = (): SliceAStores & {
     operatorRuns: new MemoryOperatorRunStore(),
     rawPayloads: new MemoryRawPayloadStore(),
     savedSearches: new MemorySavedSearchStore(audit),
-    snapshots: new MemoryQuerySnapshotStore(),
+    snapshots: new MemoryQuerySnapshotStore(approvals, exportAttempts),
   };
 };
 
