@@ -34,9 +34,9 @@ An exit trap captures `.artifacts/docker-smoke/containers.txt` and
 --remove-orphans`. A cleanup failure fails an otherwise successful smoke. The
 CI job uploads those files on success and failure with seven-day retention.
 
-The first successful remote evidence is [PR #157](https://github.com/RyanLisse/catapulze-job-intelligence/pull/157)
+The first successful remote evidence is [PR #157](https://github.com/ryanlissedev/rsp-job-intelligence/pull/157)
 at exact head `6bc25541743781fcb93442f30191ddb6847fc107`. In [CI run
-33927344487](https://github.com/RyanLisse/catapulze-job-intelligence/actions/runs/33927344487),
+33927344487](https://github.com/ryanlissedev/rsp-job-intelligence/actions/runs/33927344487),
 the `application-image-smoke` job completed successfully in 2m56s; its `Build
 and smoke application images` step took 2m50s.
 

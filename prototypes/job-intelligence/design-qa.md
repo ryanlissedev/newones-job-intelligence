@@ -4,7 +4,7 @@ final result: passed
 
 ## Visuele grondslag
 
-- Source: `/Users/ryan.lisse@blinqx.tech/.codex/generated_images/01a0b91f-571a-7590-8591-7a0aca91c900/exec-84645729-80d8-4341-83fe-3adc90492598.png`
+- Source: `exec-84645729-80d8-4341-83fe-3adc90492598.png`
 - Eerste capture: `/tmp/ji-prototype-proof/desktop.png`
 - Hercontrole: `/tmp/ji-prototype-proof/desktop-final.png`
 - Overdracht: `/tmp/ji-prototype-proof/desktop-handoff.png`

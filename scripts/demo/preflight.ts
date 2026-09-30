@@ -38,14 +38,24 @@ export interface DemoPreflightDependencies {
   readonly fetcher?: (input: string, init?: RequestInit) => Promise<Response>;
 }
 
-const DEFAULT_API_URL = "https://api.23-88-60-222.sslip.io";
-const DEFAULT_APP_URL = "https://app.23-88-60-222.sslip.io";
+const requireDemoEnv = (
+  environment: Readonly<Record<string, string | undefined>>,
+  name: "JI_DEMO_API_URL" | "JI_DEMO_APP_URL"
+): string => {
+  const value = environment[name]?.trim();
+  if (!value) {
+    throw new Error(
+      `${name} is required (point it at the demo environment origin).`
+    );
+  }
+  return value.replace(/\/$/u, "");
+};
 
 export const resolveDemoTargets = (
   environment: Readonly<Record<string, string | undefined>> = process.env
 ): DemoPreflightTargets => ({
-  apiUrl: (environment.JI_DEMO_API_URL ?? DEFAULT_API_URL).replace(/\/$/u, ""),
-  appUrl: (environment.JI_DEMO_APP_URL ?? DEFAULT_APP_URL).replace(/\/$/u, ""),
+  apiUrl: requireDemoEnv(environment, "JI_DEMO_API_URL"),
+  appUrl: requireDemoEnv(environment, "JI_DEMO_APP_URL"),
 });
 
 /**

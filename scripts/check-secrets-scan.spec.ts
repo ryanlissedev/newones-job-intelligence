@@ -75,6 +75,50 @@ describe("check-secrets-scan", () => {
     ).toEqual([]);
   });
 
+  it("catches scrubbed infrastructure identifiers", () => {
+    const cases: readonly { fragments: string[]; label: string }[] = [
+      { fragments: ["23.88", ".60.222"], label: "Hetzner production IP" },
+      { fragments: ["23-88", "-60-222"], label: "Hetzner sslip hostname" },
+      {
+        fragments: ["proj_", "xgtjezribvfwcmqktcli"],
+        label: "Trigger.dev project ref",
+      },
+      { fragments: ["164", "361997"], label: "Hetzner server id" },
+      { fragments: ["11", "557985"], label: "Hetzner firewall id" },
+      {
+        fragments: ["ubuntu-8gb-", "nbg1-1"],
+        label: "Hetzner server name",
+      },
+      { fragments: ["catapulze.exe", ".xyz"], label: "exe.dev test host" },
+      {
+        fragments: ["Catapulze", " Development"],
+        label: "1Password vault name",
+      },
+      { fragments: ["ep-holy", "-dream"], label: "Neon endpoint id" },
+      { fragments: ["ryanlisse", ".com"], label: "owner email domain" },
+      { fragments: ["ryan.lisse@", "blinqx"], label: "local path owner" },
+    ];
+
+    for (const { fragments, label } of cases) {
+      const candidate = fragments.join("");
+      expect(collectSecretViolations("fixture.md", candidate)).toEqual([
+        `fixture.md contains a scrubbed identifier: ${label}`,
+      ]);
+      expect(
+        collectSecretViolations("fixture.md", candidate).join("\n")
+      ).not.toContain(candidate);
+    }
+  });
+
+  it("accepts the scrub placeholders", () => {
+    expect(
+      collectSecretViolations(
+        "fixture.md",
+        "<hetzner-ip> api.203-0-113-10.sslip.io .203-0-113-10.sslip.io"
+      )
+    ).toEqual([]);
+  });
+
   it("does not treat .env.example placeholders as secrets", () => {
     const serverExample = readFileSync(
       path.join(repoRoot, "apps/server/.env.example"),

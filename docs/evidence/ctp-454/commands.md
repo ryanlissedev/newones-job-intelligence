@@ -1,6 +1,6 @@
 # CTP-454 measurement commands
 
-Testhost: `catapulze` (`catapulze.exe.xyz`)  
+Testhost: `catapulze` (`<exe-dev-host>`)  
 Worktree: `/home/exedev/src/wt-ctp-454-live`  
 Branch: `ryan/ctp-454-live-measurement`
 

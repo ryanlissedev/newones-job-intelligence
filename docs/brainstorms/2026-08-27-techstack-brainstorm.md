@@ -81,7 +81,7 @@ JI-DAT-01 75-velds model is doel, geen P0-gate (model groeit uit de slice).
 ## Open vragen ten tijde van de brainstorm
 
 - DEC-002 bronmatrix (bepaalt echt fetch-volume en Firecrawl/Browserbase-subset); DEC-006 Spott.io-contract.
-- Kosten zijn op 27 augustus op live pagina's geverifieerd (`COSTS.md`). De eerdere ramingen bevatten Neon; DEC-005 trekt die raming af, maar externe volumes en de uiteindelijke WAL/off-site-backupvoet moeten nog live worden geprijsd.
+- Kosten zijn op 27 augustus op live pagina's geverifieerd (de interne kostenkaart). De eerdere ramingen bevatten Neon; DEC-005 trekt die raming af, maar externe volumes en de uiteindelijke WAL/off-site-backupvoet moeten nog live worden geprijsd.
 
 ## DEC-005 operationele consequenties
 

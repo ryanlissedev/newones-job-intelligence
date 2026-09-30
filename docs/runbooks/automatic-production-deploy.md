@@ -153,8 +153,8 @@ printed):
 | `PRODUCTION_DEPLOY_TAILSCALE_ENABLED` | protected route switch; only the exact value `1` enables the ephemeral Tailscale step |
 | `TS_OAUTH_CLIENT_ID` | protected Tailscale OAuth client ID used only by the ephemeral-node action |
 | `TS_OAUTH_SECRET` | protected Tailscale OAuth client secret used only by the ephemeral-node action |
-| `PRODUCTION_API_URL` | public API origin; currently the `api.23-88-60-222.sslip.io` rehearsal origin |
-| `PRODUCTION_WEB_URL` | public web origin; currently the `app.23-88-60-222.sslip.io` rehearsal origin |
+| `PRODUCTION_API_URL` | public API origin; currently the `api.<hetzner-ip-dashed>.sslip.io` rehearsal origin |
+| `PRODUCTION_WEB_URL` | public web origin; currently the `app.<hetzner-ip-dashed>.sslip.io` rehearsal origin |
 | `PRODUCTION_PROJECTOR_SCHEMA_HASH` | expected search projector schema hash |
 | `PRODUCTION_PROJECTOR_RUNTIME_URL` | `${PRODUCTION_API_URL}/projector/runtime`; the API serves the projector's own runtime row (release SHA, container id, cycle count, heartbeat age) and answers 200 only while the heartbeat is under 60 seconds old |
 | `PRODUCTION_WEB_VERSION_URL` | `${PRODUCTION_WEB_URL}/version`; the web route handler echoes `APP_RELEASE_SHA`, else Coolify's `SOURCE_COMMIT`, and answers 503 without an identity |
@@ -227,7 +227,7 @@ setting `PRODUCTION_DEPLOY_TAILSCALE_ENABLED=1`:
   tag-owner chain that grants it. Do not grant this client `tag:catapulze-prod`
   or a wildcard tag. Reserve ownership of the deploy tag for this automation.
 - `COOLIFY_SSH_TAILSCALE_HOST`, normally the verified `catapulze-prod`
-  MagicDNS name or `100.97.7.79` address.
+  MagicDNS name or `<tailscale-ip>` address.
 - `COOLIFY_SSH_TAILSCALE_KNOWN_HOSTS`, captured from the same host and pinned
   to the verified SSH key. Its host field must match
   `COOLIFY_SSH_TAILSCALE_HOST`.

@@ -5,7 +5,7 @@
 - Datum: 2026-08-31
 - Herzien: 2026-08-31 (tweemaal) — zie "Revisie" en "Herziening 2" hieronder. Eerst is Optie C1 ongeldig gebleken; daarna is via [ADR-0006](ADR-0006-neon-as-system-of-record.md) Optie A gekozen. De Manticore-helft van de vraag blijft open.
 - Eigenaar: Job Intelligence platform
-- Gerelateerd: ADR-0004, DEC-005, RJC-373, [orchestration.md](../research/orchestration.md), [neon-trigger-verification-2026-08-31.md](../runbooks/neon-trigger-verification-2026-08-31.md)
+- Gerelateerd: ADR-0004, DEC-005, RJC-373, [orchestration.md](../research/orchestration.md), het verificatierunbook van 2026-08-31 (intern, niet in deze repo) (intern operator-document, niet in deze repo)
 
 ## Revisie (2026-08-31)
 
@@ -34,7 +34,7 @@ Het [slice-a-live-smoke-runbook](../runbooks/slice-a-live-smoke.md) (regel 70) n
 
 ## Reeds verzameld bewijs
 
-Het [Neon + Trigger.dev-verificatierunbook van 2026-08-31](../runbooks/neon-trigger-verification-2026-08-31.md) bewijst lokaal:
+Het Neon + Trigger.dev-verificatierunbook van 2026-08-31 (intern operator-document, niet in deze repo) bewijst lokaal:
 
 - de pipeline (poll → staging → curate → outbox → Manticore-drain) werkt end-to-end tegen Neon en is idempotent (TenderNed + Inhuurdesk tweemaal; `curated.aanvraag` stabiel op 4; Manticore bereikbaar met 223 documenten);
 - een lokale `trigger dev`-worker registreert alle vier de taken tegen Neon en de cron `schedule-slice-a-polls` vuurde tweemaal succesvol;
@@ -50,7 +50,7 @@ Elke optie moet beide diensten dekken: Postgres én Manticore.
 
 - **Werking:** Cloud-workers bereiken Neon per constructie via het publieke TLS-endpoint. Bewezen bereikbaar vanaf een lokale worker; cloud-worker→Neon is aannemelijk maar onbewezen.
 - **Manticore:** blijft onopgelost — er is dan alsnog een publieke Manticore-ingress, VPN of tunnel nodig. Optie A alleen is dus geen volledige oplossing.
-- **Kosten:** Neon €60 → 160 → 250/mnd ([COSTS.md](../COSTS.md) regel 16), naast de Hetzner-box die voor Manticore en de apps toch nodig blijft. [COSTS.md](../COSTS.md) regel 56 telt Neon juist als bespaarpost van de nieuwe SoR-raming.
+- **Kosten:** Neon €60 → 160 → 250/mnd (interne kostenkaart (intern operator-document, niet in deze repo) regel 16), naast de Hetzner-box die voor Manticore en de apps toch nodig blijft. interne kostenkaart (intern operator-document, niet in deze repo) regel 56 telt Neon juist als bespaarpost van de nieuwe SoR-raming.
 - **ADR-0004:** vereist amenderen of vervangen. De eigen escape-hatch-voorwaarden (ADR-0004, "Managed Postgres als escape hatch", regel 72–81) eisen *gemeten* bewijs dat de single-host envelope niet volstaat — HA, RTO/RPO, contentie of ops-last. **Geen van die voorwaarden is nu aangetoond**; bereikbaarheid voor een externe orchestrator staat niet in de lijst.
 - **Security:** publieke database-endpoint met TLS + credentials; groter aanvalsoppervlak dan private 5432.
 - **Bewijs dat beslist:** een gedeployde (niet-lokale) Trigger.dev-run die tegen Neon een volledige `poll-bron` schrijft én de Manticore-drain haalt via welke Manticore-ingress dan ook.
@@ -69,7 +69,7 @@ Twee varianten, oplopend in complexiteit:
 
 - **C1 — on-box workercontainer met uitgaande verbinding naar Trigger.dev Cloud.** Zoals `trigger dev` lokaal deed: de worker verbindt *uitgaand* met Cloud, taakcode draait on-box met privaat bereik naar 5432 en Manticore. Geen inkomende poorten, geen tunnel. **[HERZIEN 2026-08-31 — weerlegd]** Dit is geen ondersteund product: "Self-hosted workers" staat op Trigger.dev's eigen feedbackbord als open aanvraag, status "In Review", ~2 jaar oud, prijsmodel onbepaald ([feedback.trigger.dev/p/self-hosted-workers](https://feedback.trigger.dev/p/self-hosted-workers), T2). Concreet geblokkeerd door `MANAGED_WORKER_SECRET`, dat moet overeenkomen met een webapp-waarde die je op een gehoste (niet-zelf-beheerde) webapp niet kunt zetten ([trigger.dev/docs/self-hosting/env/supervisor](https://trigger.dev/docs/self-hosting/env/supervisor), T1). Zie de Revisie-sectie bovenaan voor de volledige onderbouwing. De genoemde open vraag is hiermee beantwoord: **nee, niet als ondersteund product.** Wat wél client-side mogelijk blijkt — de supervisor valideert `TRIGGER_API_URL` alleen als well-formed URL, zonder allowlist of host-check (DeepWiki-index van `triggerdotdev/trigger.dev`, T1-adjacent: echte broncode, AI-samengevat, geen officiële docs — geen URL beschikbaar) — verandert dit niet: token-uitgifte en -validatie zijn server-side, en dat is precies wat de "In Review"-aanvraag vraagt om te ontsluiten.
 - **C2 — tunnel-sidecar (WireGuard/Tailscale) vanuit de cloud-worker.** De hosted worker krijgt een netwerkpad het private net in. De tunnel-endpoint draait dan als container op de Hetzner-box; valt de tunnel weg, dan faalt elke run op DB-connect — een extra bewegend deel midden in het kritieke pad, met eigen sleutelbeheer. Of een sidecar überhaupt in Trigger.dev's hosted runtime kan draaien is eveneens onbevestigd.
-- **Kosten:** Trigger.dev Cloud-tarief blijft ([COSTS.md](../COSTS.md) regel 18: €16 → 62/mnd); C1 kost box-resources voor één workercontainer (veel minder dan optie B's volledige stack); C2 kost tunnelbeheer.
+- **Kosten:** Trigger.dev Cloud-tarief blijft (interne kostenkaart (intern operator-document, niet in deze repo) regel 18: €16 → 62/mnd); C1 kost box-resources voor één workercontainer (veel minder dan optie B's volledige stack); C2 kost tunnelbeheer.
 - **ADR-0004:** blijft volledig intact.
 - **Security:** C1 uitstekend (alleen uitgaand); C2 introduceert een tunnelsleutel als nieuw geheim en pad.
 - **Bewijs dat beslist:** C1 — een productieworker on-box die een door Cloud geplande run uitvoert met schrijfpad; C2 — idem door de tunnel, plus een gedocumenteerde faalmodus-test (tunnel down → run-gedrag).

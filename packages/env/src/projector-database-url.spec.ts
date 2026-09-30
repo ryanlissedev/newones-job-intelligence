@@ -9,7 +9,7 @@ import {
 describe("projector database URL", () => {
   it("accepts a direct Neon endpoint", () => {
     const directUrl =
-      "postgresql://ji_app:secret@ep-blue-tree.eu-central-1.aws.neon.tech/catapulze?sslmode=require";
+      "postgresql://ji_app:secret@ep-example-host.eu-central-1.aws.neon.tech/catapulze?sslmode=require";
 
     expect(parseProjectorDatabaseUrl(directUrl)).toBe(directUrl);
   });
@@ -25,7 +25,7 @@ describe("projector database URL", () => {
   it("rejects the current Neon -pooler hostname form", () => {
     expect(() =>
       parseProjectorDatabaseUrl(
-        "postgresql://ji_app:secret@ep-blue-tree-pooler.eu-central-1.aws.neon.tech/catapulze?sslmode=require"
+        "postgresql://ji_app:secret@ep-example-host-pooler.eu-central-1.aws.neon.tech/catapulze?sslmode=require"
       )
     ).toThrow(PROJECTOR_DATABASE_URL_DIRECT_MESSAGE);
   });
@@ -33,7 +33,7 @@ describe("projector database URL", () => {
   it("rejects the legacy Neon pooler label form", () => {
     expect(() =>
       parseProjectorDatabaseUrl(
-        "postgresql://ji_app:secret@ep-blue-tree.pooler.eu-central-1.aws.neon.tech/catapulze?sslmode=require"
+        "postgresql://ji_app:secret@ep-example-host.pooler.eu-central-1.aws.neon.tech/catapulze?sslmode=require"
       )
     ).toThrow(PROJECTOR_DATABASE_URL_DIRECT_MESSAGE);
   });
@@ -46,7 +46,9 @@ describe("projector database URL", () => {
 
   it("rejects non-Postgres URLs", () => {
     expect(() =>
-      parseProjectorDatabaseUrl("https://ep-blue-tree.eu.neon.tech/catapulze")
+      parseProjectorDatabaseUrl(
+        "https://ep-example-host.eu.neon.tech/catapulze"
+      )
     ).toThrow("postgres:// or postgresql://");
   });
 
@@ -54,7 +56,7 @@ describe("projector database URL", () => {
     const password = "super-secret-projector-password-xyzzy";
     try {
       parseProjectorDatabaseUrl(
-        `postgresql://ji_app:${password}@ep-blue-tree-pooler.eu-central-1.aws.neon.tech/catapulze`
+        `postgresql://ji_app:${password}@ep-example-host-pooler.eu-central-1.aws.neon.tech/catapulze`
       );
       throw new Error("expected throw");
     } catch (error) {

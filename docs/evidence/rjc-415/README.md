@@ -1,6 +1,6 @@
 # RJC-415 / D9 — Bron dashboard performance evidence
 
-The results below are the historical 2026-09-06 run on `catapulze.exe.xyz`.
+The results below are the historical 2026-09-06 run on `<exe-dev-host>`.
 Its overview benchmark composed reader calls and reported a fixed query count;
 it did not instrument the complete handler. The four-query claim below is therefore
 not evidence for the current dashboard.

@@ -14,7 +14,6 @@ Bouwdossier voor de eerste Catapulze Job Intelligence-slice: vacatures/aanvragen
 | [`docs/SOURCE_MATRIX.md`](docs/SOURCE_MATRIX.md) | Geverifieerde bronmatrix (DEC-002): ladder-indeling, wat nog geregeld moet worden |
 | [`docs/linear/`](docs/linear/README.md) | Linear roadmap import (Gate 0 + Slice A/B/C/Later). Slice A fully issued; later slices are containers |
 | [`docs/sources/tenderned.md`](docs/sources/tenderned.md) | Ingest-recept TenderNed (eerste nieuwe bron) |
-| [`docs/COSTS.md`](docs/COSTS.md) | Kostenkaart, live geverifieerd; P0 / jaar 1 / jaar 2 |
 | [`docs/REQUIREMENTS_V2.json`](docs/REQUIREMENTS_V2.json) | Requirements v2 (concept 26-08) + v1→v2-veldmapping |
 | [`docs/doelplaat/`](docs/doelplaat/) | Volledige export van de doelarchitectuur-artifact (model-JSON, spec v0.2, documenten, beslissingen) |
 | [`docs/research/`](docs/research/README.md) | Ruwe onderzoeksrapporten met bronnen en benchmarks |
@@ -27,7 +26,7 @@ Bun + TypeScript + Effect-TS + Drizzle · Postgres 16 on-box in Docker (zones st
 
 ## Status
 
-Discovery-consolidatie afgerond 27 augustus 2026. **DEC-005 is op 28 augustus 2026 definitief** (Postgres on-box; Motian-Neon read-only import). Na een tijdelijke Neon-SoR-fase (ADR-0006) keert productie terug on-box via **ADR-0011 / RJC-418** (Coolify Postgres + Trigger.dev static egress-IP allowlist), omdat Neon Free de 512 MB-limiet raakte. Open: Spott.io-contract (DEC-006), leveranciersaccounts en ToS-besluiten per bron (zie `SOURCE_MATRIX.md`), en de RJC-418-cutover zelf.
+Stand per 25 september 2026. Het bronnenregister telt 49 bronnen. Productie draait on-box Postgres en Manticore op Hetzner via Coolify. De on-box poller (`apps/worker/src/poller/main.ts`) bezit polling en curatie; de on-box projector drained de search-outbox. Trigger.dev blijft alleen voor de retained jobs uit `docs/runbooks/onbox-poller.md`. De Effect-migratie loopt onder ADR-0014 met de flow-status in `docs/effectts/migration-map.md`. Durable-ingest-bewijs is gemerged voor cohorten L3a t/m L3c (PR #429 t/m #431); L3d, L3e en L3f liggen open als PR #440, #439 en #441. Lopende programma's zijn CTP-613 (Effect-waves) en CTP-505 (ontbrekende bronnen). Gate-0-besluiten DEC-001, DEC-002, DEC-003, DEC-007 en DEC-008 zijn nog open (Linear CTP-317, CTP-318, CTP-319, CTP-323, CTP-324). Deze repo is publiek op github.com/ryanlissedev/rsp-job-intelligence.
 
 De inhoud is gebaseerd op de Ryan/Robbie-call van 27 augustus 2026, het bestaande Lovable/Neon-prototype, de gedeelde analyses en publieke bronverificatie. Transcriptuitspraken zijn requirements-input, geen automatisch genomen architectuurbesluiten.
 

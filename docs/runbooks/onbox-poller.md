@@ -232,7 +232,7 @@ What this does **not** do, and what an operator still owns:
   them; run the projection repair for that `bron_id` and compare counts.
 - CTM and Flinter are inactive by the activation rule, not by a bug: their
   test imports yielded 6 and 19 distinct records against a minimum of 20
-  (`docs/runbooks/live-sources-status-2026-09-03.md`). `activateBron` refuses
+  (`de live-bronnenstatus van 2026-09-03 (intern, niet in deze repo)`). `activateBron` refuses
   them by design. Activating either needs a product decision to lower the
   threshold or an operator running a fresh test import that clears it; the
   code does not activate sources on its own.

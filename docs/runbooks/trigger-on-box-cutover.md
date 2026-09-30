@@ -56,7 +56,7 @@ everyone else.
 Inspect current rules (no secrets):
 
 ```bash
-hcloud firewall describe 11557985
+hcloud firewall describe <hetzner-firewall-id>
 # name: catapulze-prod
 ```
 
@@ -85,14 +85,14 @@ Official refs: [Static IPs changelog](https://trigger.dev/changelog/static-ips),
 For each Trigger static IPv4 `A.B.C.D`:
 
 ```bash
-hcloud firewall add-rule 11557985 \
+hcloud firewall add-rule <hetzner-firewall-id> \
   --direction in --protocol tcp --port 5432 \
   --source-ips A.B.C.D/32 \
   --description "Trigger.dev static egress (RJC-418)"
 ```
 
 Or edit via Console → Firewalls → `catapulze-prod` → inbound TCP 5432 from
-those `/32`s only. Re-run `hcloud firewall describe 11557985` and confirm
+those `/32`s only. Re-run `hcloud firewall describe <hetzner-firewall-id>` and confirm
 rule count matches the Regions list.
 
 ### 4) Flip Trigger prod `DATABASE_URL`
@@ -132,7 +132,7 @@ No Coolify env change in this step (already on-box).
 ## Done when
 
 - [ ] Trigger Regions static IPs recorded for the active prod region
-- [ ] `hcloud firewall describe 11557985` shows TCP 5432 only from those `/32`s
+- [ ] `hcloud firewall describe <hetzner-firewall-id>` shows TCP 5432 only from those `/32`s
 - [ ] Trigger prod `DATABASE_URL` is on-box `ji_app` (no Neon host)
 - [ ] `SEARCH_PROJECTOR=onbox`; no `MANTICORE_URL` on Trigger prod
 - [ ] At least one prod poll **succeeded** (a `poller_source` line without `errorName`)

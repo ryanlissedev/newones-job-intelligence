@@ -431,7 +431,7 @@
       <p class="lede">Eén schrijfpad via Neon, één zoekpad via Manticore 29, één tool-oppervlak voor recruiters en agents. Klik op een knoop voor detail; de gaps-strip benoemt wat nog open staat.</p>
       <div class="meta">
         <span>SoR: Neon Postgres (cloud)</span>
-        <span>Compute: Coolify op Hetzner · Tailscale 100.97.7.79</span>
+        <span>Compute: Coolify op Hetzner · Tailscale <tailscale-ip></span>
         <span>Zoeken: Manticore 29.0.2 + on-box projector</span>
         <span>Orkestratie: Trigger.dev Cloud</span>
         <span>Raw: Cloudflare R2</span>
@@ -466,7 +466,7 @@
         <article class="gap-card">
           <div class="id">DNS</div>
           <strong>Cutover open</strong>
-          <p><code>api/app.catapulze.com</code> wijst nog naar TransIP (80.69.67.21). Rehearsal liep op sslip.io; definitieve A-records + auth-URL's wachten op GO.</p>
+          <p><code>api/app.catapulze.com</code> wijst nog naar TransIP (<transip-ip>). Rehearsal liep op sslip.io; definitieve A-records + auth-URL's wachten op GO.</p>
         </article>
         <article class="gap-card">
           <div class="id">Curate</div>
@@ -563,7 +563,7 @@ flowchart TB
     U["Recruiter-browser"]
     TD["Trigger.dev Cloud"]
   end
-  subgraph tailscale["Tailscale 100.97.7.79"]
+  subgraph tailscale["Tailscale <tailscale-ip>"]
     subgraph hetzner["Hetzner CX43 · Coolify"]
       TR["Traefik TLS"]
       WEB["web :3001"]
@@ -763,9 +763,9 @@ flowchart LR
         {
           id: "hetzner",
           label: "Hetzner CX43",
-          hint: "nbg1 · 23.88.60.222 publiek",
+          hint: "nbg1 · <hetzner-ip> publiek",
           status: "live",
-          body: `<p>Server <code>ubuntu-8gb-nbg1-1</code> (ID 164361997). Firewall: 80/443 publiek; 22 tijdelijk operator-/32; Coolify 8000 dicht.</p>`,
+          body: `<p>Server <code><hetzner-server-name></code> (ID <hetzner-server-id>). Firewall: 80/443 publiek; 22 tijdelijk operator-/32; Coolify 8000 dicht.</p>`,
           refs: "docs/runbooks/hetzner-deploy.md §0.5",
         },
         {
@@ -779,10 +779,10 @@ flowchart LR
         {
           id: "tailscale",
           label: "Tailscale",
-          hint: "100.97.7.79 beheer",
+          hint: "<tailscale-ip> beheer",
           status: "partial",
           body: `<p>Duurzame SSH/beheer-route i.p.v. dynamische egress-/32. Cloud agents en operators via Tailscale + SSH naar runbooks.</p>`,
-          refs: "docs/handoffs/2026-09-03-production-cutover-handoff.md §5",
+          refs: "intern operator-document (productie-cutover-handoff) §5, niet in deze repo",
         },
         {
           id: "neon-deploy",
@@ -814,7 +814,7 @@ flowchart LR
           hint: "catapulze.com → Hetzner",
           status: "blocked",
           body: `<p><code>api.catapulze.com</code> en <code>app.catapulze.com</code> wijzen nog naar TransIP. Rehearsal op sslip.io met Let's Encrypt bewezen; echte cutover wacht op GO.</p>`,
-          refs: "docs/handoffs/2026-09-03-production-cutover-handoff.md §1 · hetzner-deploy.md §0.5.5",
+          refs: "intern operator-document (productie-cutover-handoff) §1, niet in deze repo · hetzner-deploy.md §0.5.5",
         },
         {
           id: "migrator",

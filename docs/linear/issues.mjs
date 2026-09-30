@@ -8,8 +8,8 @@
 
 export const PLAN_PATH =
   "docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md";
-export const PLAN_PR = "https://github.com/RyanLisse/catapulze-job-intelligence/pull/4";
-export const REPO = "https://github.com/RyanLisse/catapulze-job-intelligence";
+export const PLAN_PR = "https://github.com/ryanlissedev/rsp-job-intelligence/pull/4";
+export const REPO = "https://github.com/ryanlissedev/rsp-job-intelligence";
 
 export const catalog = {
   meta: {
@@ -266,7 +266,7 @@ Known: product is Spott.io (not “Spot”). Exact API/MCP, write scopes, and un
         readyWhen: "Maandbudget en alarmeringsdrempels zijn bekend.",
         notes: `This is a **product decision**, not an engineering task.
 
-See \`docs/COSTS.md\` for the live cost card. Slice A can proceed with Trigger.dev Cloud + Upstash defaults; hard monthly caps wait on this decision.`,
+See \`de interne kostenkaart\` for the live cost card. Slice A can proceed with Trigger.dev Cloud + Upstash defaults; hard monthly caps wait on this decision.`,
       }),
     },
     {

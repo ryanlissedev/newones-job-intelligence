@@ -53,7 +53,7 @@ After activation, scheduled polls (`run_kind=poll`) may run; the on-box poller e
 2. POST `/v1/aanvragen/search` with an empty or keyword body (see `tests/e2e/read-path.spec.ts`).
 3. Confirm curated aanvragen from the smoke run appear in hits.
 
-## Trigger.dev (project `proj_xgtjezribvfwcmqktcli`)
+## Trigger.dev (project `<trigger-project-ref>`)
 
 - `schedule-enrich-incomplete`: cron `5 * * * *` Europe/Amsterdam, triggers `enrich-incomplete` with dryRun defaults (see `docs/runbooks/enrichment-schedule.md`).
 - Polling is no longer here: `schedule-slice-a-polls` and `poll-bron` were deleted with the move to the on-box poller ([onbox-poller.md](./onbox-poller.md)), which reads each bron's own `curated.bron.interval`.

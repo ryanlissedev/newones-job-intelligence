@@ -211,4 +211,4 @@ merge.
 - Gate phases: download artifact `ci-performance-<run>-<attempt>` and
   aggregate `durationMs` per `label`, or read the new `gate: phase '<label>'
   took Ns` log lines.
-- Run volume: `gh api 'repos/RyanLisse/catapulze-job-intelligence/actions/runs?created=>2026-08-01&per_page=1' --jq .total_count`.
+- Run volume: `gh api 'repos/ryanlissedev/rsp-job-intelligence/actions/runs?created=>2026-08-01&per_page=1' --jq .total_count`.

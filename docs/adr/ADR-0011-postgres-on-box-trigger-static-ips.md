@@ -45,7 +45,7 @@ markeerde: Trigger.dev static IPs (paid plans).
 1. Coolify Postgres-resource (PG major gelijk aan huidige Neon) in project
    `catapulze-ji`, volume op NVMe, Coolify-geplande backups naar Cloudflare R2.
 2. Trigger.dev static IPs inschakelen; IPs als bron in firewall
-   `catapulze-prod` (11557985) op TCP 5432.
+   `catapulze-prod` (<hetzner-firewall-id>) op TCP 5432.
 3. Rollen conform ADR-0006’s least-privilege-contract
    (`tools/postgres/neon-roles.sql` / equivalent): `ji_migrator`, `ji_app`,
    `ji_readonly`; alleen migrator krijgt `MIGRATION_DATABASE_URL`.

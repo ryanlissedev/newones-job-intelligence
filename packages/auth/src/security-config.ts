@@ -60,7 +60,7 @@ const isLoopbackHost = (hostname: string): boolean =>
  * BETTER_AUTH_URL (api host) and CORS_ORIGIN (app host). Returns null when
  * hosts are loopback, identical, or lack a shared multi-label parent — so
  * local/dev stays host-only while demo sslip siblings (app.* + api.*) share
- * `.23-88-60-222.sslip.io`.
+ * `.203-0-113-10.sslip.io`.
  */
 export const resolveCrossSubDomainCookieDomain = (
   betterAuthUrl: string,
@@ -90,7 +90,7 @@ export const resolveCrossSubDomainCookieDomain = (
     commonSuffixLength += 1;
   }
 
-  // Require a real parent (e.g. example.com / 23-88-60-222.sslip.io), not a
+  // Require a real parent (e.g. example.com / 203-0-113-10.sslip.io), not a
   // bare TLD, and a distinguishing left-side label on each host.
   if (commonSuffixLength < 2) {
     return null;

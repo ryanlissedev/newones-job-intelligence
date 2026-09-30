@@ -5,6 +5,37 @@ import path from "node:path";
 const AWS_ACCESS_KEY = /AKIA[0-9A-Z]{16}/gu;
 const GITHUB_PAT = /ghp_[A-Za-z0-9]{36}/gu;
 const OPENAI_LIVE = /sk-live-[A-Za-z0-9]{20,}/gu;
+const SENSITIVE_LITERALS: readonly {
+  label: string;
+  literal: string;
+}[] = [
+  { label: "Hetzner production IP", literal: ["23.88", ".60.222"].join("") },
+  {
+    label: "Hetzner sslip hostname",
+    literal: ["23-88", "-60-222"].join(""),
+  },
+  {
+    label: "Trigger.dev project ref",
+    literal: ["proj_", "xgtjezribvfwcmqktcli"].join(""),
+  },
+  { label: "Hetzner server id", literal: ["164", "361997"].join("") },
+  { label: "Hetzner firewall id", literal: ["11", "557985"].join("") },
+  {
+    label: "Hetzner server name",
+    literal: ["ubuntu-8gb-", "nbg1-1"].join(""),
+  },
+  {
+    label: "exe.dev test host",
+    literal: ["catapulze.exe", ".xyz"].join(""),
+  },
+  {
+    label: "1Password vault name",
+    literal: ["Catapulze", " Development"].join(""),
+  },
+  { label: "Neon endpoint id", literal: ["ep-holy", "-dream"].join("") },
+  { label: "owner email domain", literal: ["ryanlisse", ".com"].join("") },
+  { label: "local path owner", literal: ["ryan.lisse@", "blinqx"].join("") },
+];
 const MAX_SCAN_FILE_BYTES = 10 * 1024 * 1024;
 export const MATERIALIZED_INPUT_MANIFEST = ".crabbox-input-manifest.sha256";
 const REPOSITORY_LOCAL_GIT_VARIABLES = [
@@ -85,6 +116,11 @@ export const collectSecretViolations = (
     violations.push(`${filePath} looks like a live OpenAI key`);
   }
   OPENAI_LIVE.lastIndex = 0;
+  for (const { label, literal } of SENSITIVE_LITERALS) {
+    if (source.includes(literal)) {
+      violations.push(`${filePath} contains a scrubbed identifier: ${label}`);
+    }
+  }
   return violations;
 };
 

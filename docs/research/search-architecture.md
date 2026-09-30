@@ -45,4 +45,4 @@ motian: `src/lib/upstash.ts` (`cachedQuery` TTL-cache) + stub `@upstash/ratelimi
 
 Loont alleen ín de engine (Tantivy) en marginaal bij batch-normalisatie; beide koop je via Manticore/ParadeDB. Bun 1.3 ~77k req/s vs Go fasthttp ~68k op hello-world (https://github.com/peterbe/go-bun-compare) — zinloos zonder echte I/O. Bottlenecks zijn de sites en Postgres, niet de runtime.
 
-Niet geverifieerd: search-benchmark-game/SeekStorm tabellen (PNG/JS), Hetzner-prijzen (later wél, zie COSTS.md), ParadeDB stemmer-pagina (404), LanceDB prefix-semantiek, exacte Manticore-ms op 2,5M.
+Niet geverifieerd: search-benchmark-game/SeekStorm tabellen (PNG/JS), Hetzner-prijzen (later wél, zie interne kostenkaart), ParadeDB stemmer-pagina (404), LanceDB prefix-semantiek, exacte Manticore-ms op 2,5M.

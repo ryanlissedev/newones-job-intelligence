@@ -1,7 +1,7 @@
 # NL egress for geo-blocked sources (CTP-602)
 
 Some Dutch boards answer non-Dutch egress IPs with a hard block. Verified
-2026-09-16 from both the production box IP and `catapulze.exe.xyz` (fra):
+2026-09-16 from both the production box IP and `<exe-dev-host>` (fra):
 
 | Source | Block observed |
 |---|---|
@@ -58,7 +58,7 @@ Order follows [hetzner-deploy.md](hetzner-deploy.md) →
    and out of this document.
 2. **Ship the code** through the manual release lane (blockedReleasePath:
    `apps/worker/`, `packages/connectors/`, `packages/env/` all qualify).
-3. **Set the env on the poller** — Coolify on the box (`ssh catapulze-hetzner`,
+3. **Set the env on the poller** — Coolify on the box (`ssh <hetzner-alias>`,
    Coolify on port 8000), `poller` application → Environment Variables:
    - `EGRESS_PROXY_URL=<the proxy endpoint>`
    - `EGRESS_PROXY_SOURCES=rabobank,intermediair,planet-interim,techniekwerkt`

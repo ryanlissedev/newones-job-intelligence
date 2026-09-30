@@ -5,7 +5,7 @@ Eigenaren: Robbie (product/toegang), Ryan (architectuur/uitvoering)
 
 Deze brief maakt drie statussen apart zichtbaar:
 
-- **Besloten:** RJC-418 kiest een dedicated Postgres-resource on-box in Coolify als productie-SoR. Open PR [#149](https://github.com/RyanLisse/catapulze-job-intelligence/pull/149) legt dit vast in ADR-0011 en werkt de bestaande hosting-ADRs bij.
+- **Besloten:** RJC-418 kiest een dedicated Postgres-resource on-box in Coolify als productie-SoR. Open PR [#149](https://github.com/ryanlissedev/rsp-job-intelligence/pull/149) legt dit vast in ADR-0011 en werkt de bestaande hosting-ADRs bij.
 - **Geïmplementeerd op `main`:** Postgres/Drizzle is de bron van waarheid in de applicatiecode; Manticore is de afgeleide zoekindex achter `SearchAdapter`. [ADR-0007](adr/ADR-0007-search-platform-state-2026-09-01.md) beschrijft die zoekarchitectuur.
 - **Nog niet als productie bewezen:** de RJC-418-cutover, firewall-allowlist, dump/restore, R2-restoretest, `/readyz`, projector-drain en Trigger.dev-productierun zijn nog open. Deze brief claimt geen uitgevoerde cutover of actuele productieconfiguratie.
 
@@ -245,7 +245,7 @@ De besluitvolgorde is inmiddels verder gegaan dan de discoveryversie van deze br
 
 1. DEC-005 / RJC-321 koos oorspronkelijk een dedicated PostgreSQL 16 on-box.
 2. [ADR-0006](adr/ADR-0006-neon-as-system-of-record.md) verving dat productiedeel tijdelijk door een eigen Catapulze-Neon-instance. Die tekst is historische besluitcontext, niet de huidige keuze.
-3. RJC-418 kiest sinds 4 september 2026 opnieuw Postgres on-box in Coolify, nu met Trigger.dev static egress-IP-allowlisting. Open PR [#149](https://github.com/RyanLisse/catapulze-job-intelligence/pull/149) legt dit vast als ADR-0011 en markeert ADR-0006 als vervangen.
+3. RJC-418 kiest sinds 4 september 2026 opnieuw Postgres on-box in Coolify, nu met Trigger.dev static egress-IP-allowlisting. Open PR [#149](https://github.com/ryanlissedev/rsp-job-intelligence/pull/149) legt dit vast als ADR-0011 en markeert ADR-0006 als vervangen.
 
 Het huidige besluit is daarmee helder, maar de uitvoering is nog open. De productie-SoR is pas omgezet na het dump/restorepad, de firewall- en rolconfiguratie, de R2-restoretest, een groene `/readyz`, projectorachterstand nul en een geslaagde Trigger.dev-productierun. De Motian/Lovable-Neon-database blijft uitsluitend een read-only migratiebron.
 
@@ -294,4 +294,4 @@ De selectievolgorde blijft: officiële API/feed → publiek structured endpoint 
 - [ADR-0003 — Performancebudgets en regressiebeleid](adr/ADR-0003-performance-budgets-and-regression-policy.md), geaccepteerde meet- en gategrens voor search.
 - [ADR-0007 — Zoekplatform-staat 2026-09-01](adr/ADR-0007-search-platform-state-2026-09-01.md), actuele code-backed searcharchitectuur op de herijkte `main`-basis.
 - [ADR-0009 — Manticore 29 hybrid search candidate](adr/ADR-0009-manticore-29-hybrid.md), Proposed; geen bewijs van productieacceptatie.
-- [RJC-418 / PR #149](https://github.com/RyanLisse/catapulze-job-intelligence/pull/149), geaccepteerd hostingbesluit en nog open uitvoerings-/evidencegrens.
+- [RJC-418 / PR #149](https://github.com/ryanlissedev/rsp-job-intelligence/pull/149), geaccepteerd hostingbesluit en nog open uitvoerings-/evidencegrens.

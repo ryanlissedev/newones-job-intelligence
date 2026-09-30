@@ -9,7 +9,7 @@
  * Env:
  *   LINEAR_API_KEY or LINEAR_API_TOKEN  required for apply
  *   LINEAR_TEAM_ID / LINEAR_TEAM_KEY / LINEAR_TEAM_NAME  optional overrides
- *   LINEAR_ASSIGN_IF_RYAN=1  assign to viewer only if email is ryan@ryanlisse.com
+ *   LINEAR_ASSIGN_IF_RYAN=1  assign to viewer only if email matches LINEAR_OWNER_EMAIL
  */
 
 import { writeFileSync } from "node:fs";
@@ -19,7 +19,7 @@ import { catalog, issuesInCreateOrder } from "./issues.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const API = "https://api.linear.app/graphql";
-const RYAN_EMAIL = "ryan@ryanlisse.com";
+const RYAN_EMAIL = process.env.LINEAR_OWNER_EMAIL ?? "";
 const CATALOG_MARKER_PREFIX = "catapulze-linear-catalog-id";
 
 const args = new Set(process.argv.slice(2));

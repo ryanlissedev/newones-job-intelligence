@@ -1,5 +1,7 @@
 # Linear setup — Job Intelligence
 
+> Historical import pack of 2026-08-27. This directory documents how the Job Intelligence board was created; it is not kept in sync. For current issue state, priorities and statuses, see the live Linear project.
+
 The live Linear workspace is available and DEC-005 is recorded as `RJC-321` (`Done`). This directory remains the reproducible source/import pack for the Job Intelligence board; U10 (`RJC-347`) deliberately remains open.
 
 **Answer to “should we create all slices?”:** yes — as **roadmap containers**. Only **Slice A** is fully issued with acceptance criteria. Slice B/C are placeholder epics; Candidate Intelligence and Company OS are epic stubs with no build children.
@@ -20,7 +22,7 @@ Labels: `slice-a`, `slice-b`, `slice-c`, `gate-0`, `later`, `blocked`.
 
 Statuses: Slice B/C/Later → **Backlog**. Slice A **U1–U3** → **Todo** if the team has an active cycle, otherwise **Backlog**. Remaining Slice A units → **Backlog**.
 
-Assignees: none, unless you run the apply script as Ryan Lisse (`ryan@ryanlisse.com`) with `LINEAR_ASSIGN_IF_RYAN=1`.
+Assignees: none, unless you run the apply script as Ryan Lisse (`<owner-email>`) with `LINEAR_ASSIGN_IF_RYAN=1`.
 
 ## Files
 
@@ -45,7 +47,7 @@ node docs/linear/apply.mjs
 Optional env:
 
 - `LINEAR_TEAM_NAME=Catapulze` / `LINEAR_TEAM_KEY=CAT` / `LINEAR_TEAM_ID=...`
-- `LINEAR_ASSIGN_IF_RYAN=1` — assign only if the key’s user email is `ryan@ryanlisse.com`
+- `LINEAR_ASSIGN_IF_RYAN=1` — assign only if the key’s user email is `<owner-email>`
 - `--dry-run` — resolve team/project, print creates, write nothing
 
 The script reconciles deterministically by configured Linear identifier, stable catalog marker, catalog-id title and finally exact title. Updates retain the catalog marker, so issue renames do not create duplicates.
@@ -67,7 +69,7 @@ node docs/linear/apply.mjs --dump-json --dump-csv
 
 ## Exact issue list (32)
 
-Plan for Slice A units: [`docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`](../plans/2026-08-27-2022-feat-slice-a-read-path-plan.md) · [PR #4](https://github.com/RyanLisse/catapulze-job-intelligence/pull/4)
+Plan for Slice A units: [`docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`](../plans/2026-08-27-2022-feat-slice-a-read-path-plan.md) · [PR #4](https://github.com/ryanlissedev/rsp-job-intelligence/pull/4)
 
 ### Gate 0 — product decisions (not engineering)
 

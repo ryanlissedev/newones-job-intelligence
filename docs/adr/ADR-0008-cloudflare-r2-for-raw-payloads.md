@@ -3,7 +3,7 @@
 - Status: Accepted
 - Datum: 2026-09-01
 - Eigenaar: Job Intelligence platform (besluit: Ryan, 2026-09-01)
-- Gerelateerd: ADR-0006, ADR-0007, RJC-386, [COSTS.md](../COSTS.md), [raw-object-storage.md](../runbooks/raw-object-storage.md), [hetzner-deploy.md](../runbooks/hetzner-deploy.md), [replay-and-backfill.md](../runbooks/replay-and-backfill.md)
+- Gerelateerd: ADR-0006, ADR-0007, RJC-386, interne kostenkaart (intern operator-document, niet in deze repo), [raw-object-storage.md](../runbooks/raw-object-storage.md), [hetzner-deploy.md](../runbooks/hetzner-deploy.md), [replay-and-backfill.md](../runbooks/replay-and-backfill.md)
 
 ## Besluit
 
@@ -54,7 +54,7 @@ uitsluitend in endpoint en credentials. De keuze is puur configuratie.
    $4,50/miljoen, Class B (reads) $0,36/miljoen, met een gratis tier van
    10 GB-maand, 1M Class A en 10M Class B
    ([R2 pricing](https://developers.cloudflare.com/r2/pricing/), gelezen
-   2026-09-01). Ruwe orde van grootte bij de jaar-1-aannames uit COSTS.md
+   2026-09-01). Ruwe orde van grootte bij de jaar-1-aannames uit interne kostenkaart
    (45–90 GB raw, ~1–1,2M fetches/maand, en onze client schrijft body +
    metadata als twee objecten): opslag ≈ $1,20/mnd na de gratis 10 GB,
    writes ≈ $6/mnd na de gratis 1M — samen grofweg **$7/maand**. Dat is
@@ -64,10 +64,10 @@ uitsluitend in endpoint en credentials. De keuze is puur configuratie.
    andere provider de rekening onvoorspelbaar maakt.
 
 4. **Schijfruimte is de schaarste op de box.** De CCX33-kandidaat heeft
-   240 GB NVMe totaal (COSTS.md), voor OS + de Manticore-index (corpus
+   240 GB NVMe totaal (interne kostenkaart), voor OS + de Manticore-index (corpus
    geprojecteerd op 7,5M docs na 12 maanden) + al het overige. MinIO's
    "gratis" opslag betaalt dus in de schaarste grondstof van de box en
-   concurreert met Manticore om dezelfde NVMe-I/O. COSTS.md scenario (c)
+   concurreert met Manticore om dezelfde NVMe-I/O. interne kostenkaart scenario (c)
    plant om verwante redenen al een aparte AX42-searchbox in jaar 2 — de
    box vollopen met raw payloads versnelt dat moment zonder iets op te
    leveren.

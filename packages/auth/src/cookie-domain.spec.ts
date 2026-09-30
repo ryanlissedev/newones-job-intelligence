@@ -6,10 +6,10 @@ describe("resolveCrossSubDomainCookieDomain", () => {
   it("derives the shared sslip parent for demo app + api hosts", () => {
     expect(
       resolveCrossSubDomainCookieDomain(
-        "https://api.23-88-60-222.sslip.io",
-        "https://app.23-88-60-222.sslip.io"
+        "https://api.203-0-113-10.sslip.io",
+        "https://app.203-0-113-10.sslip.io"
       )
-    ).toBe(".23-88-60-222.sslip.io");
+    ).toBe(".203-0-113-10.sslip.io");
   });
 
   it("derives a conventional sibling-subdomain parent", () => {

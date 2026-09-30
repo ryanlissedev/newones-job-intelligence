@@ -9,7 +9,7 @@ Hold the eight Gate 0 product decisions (DEC-001..008) as a visible decision log
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)",Backlog,High,gate-0,Job Intelligence,Gate 0,,,epic,GATE-0
@@ -34,7 +34,7 @@ Ideal State Criteria: `docs/BUILD_BRIEF.md` §2 (criteria 1–5, 7–10 for Slic
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)",Backlog,High,gate-0,Job Intelligence,Gate 0,GATE-0,,decision,DEC-001
@@ -59,7 +59,7 @@ This is a **product decision**, not an engineering task.
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)",Backlog,High,gate-0,Job Intelligence,Gate 0,GATE-0,,decision,DEC-002
@@ -82,7 +82,7 @@ Plan default (KTD3/KTD8): 75-field model is the target schema, not a Slice A com
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)",Backlog,High,gate-0,Job Intelligence,Gate 0,GATE-0,,decision,DEC-003
@@ -105,7 +105,7 @@ Plan default: Boolean over titel + volledige beschrijving; `AND` `OR` `NOT` pare
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)",Backlog,High,gate-0,Job Intelligence,Gate 0,GATE-0,,decision,DEC-004
@@ -141,7 +141,7 @@ This decision does not prove implementation or production readiness; that eviden
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)",Done,High,gate-0,Job Intelligence,Gate 0,GATE-0,,decision,DEC-005
@@ -166,7 +166,7 @@ Known: product is Spott.io (not “Spot”). Exact API/MCP, write scopes, and un
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)",Backlog,Medium,gate-0,Job Intelligence,Gate 0,GATE-0,,decision,DEC-006
@@ -185,11 +185,11 @@ Maandbudget en alarmeringsdrempels zijn bekend.
 ## Notes
 This is a **product decision**, not an engineering task.
 
-See `docs/COSTS.md` for the live cost card. Slice A can proceed with Trigger.dev Cloud + Upstash defaults; hard monthly caps wait on this decision.
+See `de interne kostenkaart` for the live cost card. Slice A can proceed with Trigger.dev Cloud + Upstash defaults; hard monthly caps wait on this decision.
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)",Backlog,Medium,gate-0,Job Intelligence,Gate 0,GATE-0,,decision,DEC-007
@@ -212,7 +212,7 @@ Plan conservative default (A3): Slice A drops contact fields on normalise; raw p
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)",Backlog,High,gate-0,Job Intelligence,Gate 0,GATE-0,,decision,DEC-008
@@ -233,7 +233,7 @@ SC1–SC6 in the plan. No Spott write path is callable. A green read path does n
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)",Backlog,High,slice-a,Job Intelligence,Slice A,,,epic,SLICE-A
@@ -258,7 +258,7 @@ Implementation-ready Slice A unit. Keep this U-ID in the title.
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)
@@ -286,7 +286,7 @@ Implementation-ready Slice A unit. Keep this U-ID in the title.
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)
@@ -316,7 +316,7 @@ Implementation-ready Slice A unit. Keep this U-ID in the title.
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)
@@ -345,7 +345,7 @@ Implementation-ready Slice A unit. Keep this U-ID in the title.
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)
@@ -374,7 +374,7 @@ Implementation-ready Slice A unit. Keep this U-ID in the title.
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)
@@ -404,7 +404,7 @@ Implementation-ready Slice A unit. Keep this U-ID in the title.
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)
@@ -434,7 +434,7 @@ Implementation-ready Slice A unit. Keep this U-ID in the title.
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)
@@ -464,7 +464,7 @@ Implementation-ready Slice A unit. Keep this U-ID in the title.
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)
@@ -491,7 +491,7 @@ Implementation-ready Slice A unit. Keep this U-ID in the title.
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)
@@ -520,7 +520,7 @@ Implementation-ready Slice A unit. Keep this U-ID in the title.
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)
@@ -545,7 +545,7 @@ DEC-006 (vendor, URL, API, sandbox, write scope, unique ID).
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)",Backlog,Medium,"slice-b, blocked",Job Intelligence,Slice B,,DEC-006,epic,SLICE-B
@@ -566,7 +566,7 @@ See Linear blocked-by relations on this issue (DEC-006 for all Slice B work).
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)",Backlog,Medium,"slice-b, blocked",Job Intelligence,Slice B,SLICE-B,DEC-006,placeholder,SB-API
@@ -587,7 +587,7 @@ See Linear blocked-by relations on this issue (DEC-006 for all Slice B work).
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)",Backlog,Medium,"slice-b, blocked",Job Intelligence,Slice B,SLICE-B,"DEC-006, U7",placeholder,SB-APPROVAL
@@ -608,7 +608,7 @@ See Linear blocked-by relations on this issue (DEC-006 for all Slice B work).
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)",Backlog,Medium,"slice-b, blocked",Job Intelligence,Slice B,SLICE-B,"DEC-006, SB-API, SB-APPROVAL",placeholder,SB-EXPORT
@@ -629,7 +629,7 @@ See Linear blocked-by relations on this issue (DEC-006 for all Slice B work).
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)",Backlog,Medium,"slice-b, blocked",Job Intelligence,Slice B,SLICE-B,"DEC-006, SB-EXPORT",placeholder,SB-RECEIPTS
@@ -650,7 +650,7 @@ Per-source tickets, Randstad Enterprise connector, Indeed (JI-007), Magnit/Circl
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)",Backlog,Low,slice-c,Job Intelligence,Slice C,,SLICE-A,epic,SLICE-C
@@ -675,7 +675,7 @@ See Linear blocked-by relations on this issue (DEC-006 for all Slice B work).
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)",Backlog,Low,slice-c,Job Intelligence,Slice C,SLICE-C,"SLICE-A, DEC-002",placeholder,SC-SOURCES
@@ -696,7 +696,7 @@ See Linear blocked-by relations on this issue (DEC-006 for all Slice B work).
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)",Backlog,Low,slice-c,Job Intelligence,Slice C,SLICE-C,U8,placeholder,SC-ALERTS
@@ -717,7 +717,7 @@ See Linear blocked-by relations on this issue (DEC-006 for all Slice B work).
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)",Backlog,Low,slice-c,Job Intelligence,Slice C,SLICE-C,U8,placeholder,SC-REPLAY
@@ -738,7 +738,7 @@ See Linear blocked-by relations on this issue (DEC-006 for all Slice B work).
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)",Backlog,Low,slice-c,Job Intelligence,Slice C,SLICE-C,"U6, U8",placeholder,SC-LOAD
@@ -759,7 +759,7 @@ Roadmap stub only — **zero** child build issues in this import.
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)",Backlog,Low,later,Job Intelligence,Later,,,epic,LATER-CI
@@ -777,7 +777,7 @@ Roadmap stub only — **zero** child build issues in this import.
 
 ## Links
 - Plan: `docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`
-- GitHub PR: https://github.com/RyanLisse/catapulze-job-intelligence/pull/4
+- GitHub PR: https://github.com/ryanlissedev/rsp-job-intelligence/pull/4
 - Backlog: `docs/IMPLEMENTATION_BACKLOG.md`
 - Fasering: `docs/BUILD_BRIEF.md` §10
 - Bronmatrix: `docs/SOURCE_MATRIX.md` (do **not** explode into per-source issues)",Backlog,Low,later,Job Intelligence,Later,,,epic,LATER-OS

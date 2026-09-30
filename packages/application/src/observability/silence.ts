@@ -2,7 +2,7 @@ import type { ConnectorRunMetrics } from "@ji/connectors";
 
 export const SOURCE_SILENCE_RUNBOOK_PATH = "docs/runbooks/source-silence.md";
 
-export const DEFAULT_SILENCE_OWNER = "operator@catapulze.nl";
+export const DEFAULT_SILENCE_OWNER = "operator@catapulze.invalid";
 
 export const DEFAULT_VOLUME_DROP_THRESHOLD = 0.5;
 

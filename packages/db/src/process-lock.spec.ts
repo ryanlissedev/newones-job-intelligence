@@ -75,7 +75,7 @@ describe("acquireAdvisoryLock (RJC-387)", () => {
   it("rejects a known Neon pooler URL before opening the lock connection", async () => {
     await expect(
       acquireAdvisoryLock(
-        "postgresql://ji_app:secret@ep-blue-tree-pooler.eu-central-1.aws.neon.tech/catapulze?sslmode=require",
+        "postgresql://ji_app:secret@ep-example-host-pooler.eu-central-1.aws.neon.tech/catapulze?sslmode=require",
         900_000_001,
         "PROJECTOR_DATABASE_URL"
       )

@@ -2,6 +2,16 @@
 
 De volgorde hieronder maximaliseert een werkende verticale slice. `P0` is nodig voor de eerste gecontroleerde read path en sluit ook de database-production-readiness gate. `P1` voegt de bredere Spot/Spott-export en operationele workflows toe. Taken met `DEC` zijn echte productbesluiten en geen engineering-invulwerk.
 
+## Status per 2026-09-25
+
+- **Gate 0:** deels open. DEC-005 is done (RJC-321/ADR-0011); DEC-001, DEC-002, DEC-003, DEC-007 en DEC-008 zijn open als Linear CTP-317, CTP-318, CTP-319, CTP-323 en CTP-324. DEC-004 en DEC-006: onbekend, niet geverifieerd.
+- **Epic A:** grotendeels gedaan. Kernmodel, bronnenregister (49 bronnen), connectorcontract en durable ingest zijn bewezen via cohorten L3a-L3c (PR #429-#431); L3d-L3f liggen open (PR #440, #439, #441). JI-005 (Neon-backfill) en JI-019 (leveranciersspike): onbekend, niet geverifieerd.
+- **Epic B:** gedaan voor de read path. Boolean-parser, SearchAdapter op Manticore, jobs-UI en immutable snapshots draaien. JI-016 (200k-benchmarkgate): onbekend, niet geverifieerd.
+- **Epic C:** deels gedaan. Het approval/export-contract en de eerste approval/export-UI zijn gesneden (CTP-652); de Spott-export faalt bewust dicht zolang geen productieclient is gekoppeld (DEC-006 open).
+- **Epic D:** deels gedaan. Bronhealth, anomaliedetectie en runbooks bestaan; de volle AC-dekking van JI-033 t/m JI-036 en het restore-bewijs uit JI-037 zijn onbekend, niet geverifieerd.
+- **Epic E:** deels gedaan. Rollen/capabilities, append-only audit events en repo-secret-scanning bestaan; retentie en verwijdering (JI-043) zijn onbekend, niet geverifieerd.
+- **Epic F:** deels gedaan. Connector-contractspecs en fixture-replay draaien; de benchmarkgate en de sandbox-effecttest (JI-016, JI-053) zijn onbekend, niet geverifieerd.
+
 ## Gate 0 — besluiten en toegang
 
 | ID | Prio | Taak | Eigenaar | Klaar wanneer |

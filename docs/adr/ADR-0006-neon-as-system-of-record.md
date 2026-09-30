@@ -3,7 +3,7 @@
 - Status: **Superseded by [ADR-0011](ADR-0011-postgres-on-box-trigger-static-ips.md)** (2026-09-04)
 - Datum: 2026-08-31
 - Eigenaar: Job Intelligence platform (besluit: Ryan, 2026-08-31)
-- Gerelateerd: ADR-0004, ADR-0005, ADR-0011, DEC-005, RJC-371, RJC-373, RJC-418, [COSTS.md](../COSTS.md), [neon-trigger-verification-2026-08-31.md](../runbooks/neon-trigger-verification-2026-08-31.md)
+- Gerelateerd: ADR-0004, ADR-0005, ADR-0011, DEC-005, RJC-371, RJC-373, RJC-418, interne kostenkaart (intern operator-document, niet in deze repo), het verificatierunbook van 2026-08-31 (intern, niet in deze repo) (intern operator-document, niet in deze repo)
 
 > **Superseded-notitie (2026-09-04).** Ryan koos opnieuw voor Postgres on-box in
 > Coolify nadat Neon Free de 512 MB-limiet raakte (RJC-404) en Trigger.dev static
@@ -28,7 +28,7 @@ Een gedeployde Trigger.dev Cloud-worker draait buiten onze box, zonder vastgeleg
 
 Neon lost de kern op: een publiek TLS-endpoint dat cloud-workers per constructie kunnen bereiken. Daarmee wordt ADR-0005's **optie A** de gekozen route en is de cloud-migratie niet langer geblokkeerd op orchestratie (ADR-0005, "Gevolgen", eerste punt).
 
-Het besluit steunt op reeds verzameld, lokaal bewijs uit het [Neon + Trigger.dev-verificatierunbook van 2026-08-31](../runbooks/neon-trigger-verification-2026-08-31.md):
+Het besluit steunt op reeds verzameld, lokaal bewijs uit het Neon + Trigger.dev-verificatierunbook van 2026-08-31 (intern operator-document, niet in deze repo):
 
 - de volledige pipeline (poll → staging → curate → outbox → Manticore-drain) draait end-to-end tegen Neon en is idempotent op herhaalde runs (Lane A: `curated.aanvraag` stabiel op 4 na twee runs; Manticore-index bereikbaar met 223 documenten);
 - een lokale Trigger.dev-worker registreert alle vier de taken tegen Neon; de cron `schedule-slice-a-polls` vuurde tweemaal succesvol met live Neon-queries (Lane B);
@@ -39,8 +39,8 @@ Het besluit steunt op reeds verzameld, lokaal bewijs uit het [Neon + Trigger.dev
 Eerlijk benoemd, want dit zijn de kosten van de omkering:
 
 1. **On-box-controle over de productiedatabase.** ADR-0004 regel 18–28 gaf ons eigenaarschap over volume, WAL-archivering, rollen, monitoring en het restorepad. Bij Neon liggen storage, failover en PITR bij de provider; wij houden alleen rollen, schema en query-gedrag.
-2. **De "5432 blijft privé"-houding is voor het SoR een gepasseerd station.** De productie-database wordt bereikt over Neons publieke, TLS-verplichte pooled endpoint (`*.pooler.*.aws.neon.tech`, `sslmode=require`; runbook, sectie "What this does NOT prove"), niet over een private 5432 op onze box. Het aanvalsoppervlak verschuift van netwerkisolatie naar credential- en TLS-hygiëne — precies het punt dat ADR-0005 bij optie A als securitynadeel noteerde. Voor diensten die wél op de box blijven (Manticore, Redis) blijft de private-poortregel gelden ([robbie-access-handoff.md](../runbooks/robbie-access-handoff.md) regel 52).
-3. **Kosten.** Neon Launch is in [COSTS.md](../COSTS.md) regel 16 geraamd op **€60 → 160 → 250/mnd** (P0 → jaar 1), naast de Hetzner-box die voor Manticore en de apps nodig blijft. COSTS.md regel 56 telde Neon juist als bespaarpost van de nieuwe SoR-raming; die post keert nu terug en de scenario-totalen (COSTS.md regel 44–50, al gemarkeerd "opnieuw te herleiden" na de CCX33-correctie) moeten óók hiervoor worden herrekend. Daar staat tegenover dat de on-box-posten uit COSTS.md regel 56 (beschermd extern volume, continue WAL/off-site-back-up, restore-tests, monitoring) voor het SoR vervallen; die verrekening is nog niet gemaakt.
+2. **De "5432 blijft privé"-houding is voor het SoR een gepasseerd station.** De productie-database wordt bereikt over Neons publieke, TLS-verplichte pooled endpoint (`*.pooler.*.aws.neon.tech`, `sslmode=require`; runbook, sectie "What this does NOT prove"), niet over een private 5432 op onze box. Het aanvalsoppervlak verschuift van netwerkisolatie naar credential- en TLS-hygiëne — precies het punt dat ADR-0005 bij optie A als securitynadeel noteerde. Voor diensten die wél op de box blijven (Manticore, Redis) blijft de private-poortregel gelden (de operator-access-handoff (intern, niet in deze repo) (intern operator-document, niet in deze repo) regel 52).
+3. **Kosten.** Neon Launch is in interne kostenkaart (intern operator-document, niet in deze repo) regel 16 geraamd op **€60 → 160 → 250/mnd** (P0 → jaar 1), naast de Hetzner-box die voor Manticore en de apps nodig blijft. interne kostenkaart regel 56 telde Neon juist als bespaarpost van de nieuwe SoR-raming; die post keert nu terug en de scenario-totalen (interne kostenkaart regel 44–50, al gemarkeerd "opnieuw te herleiden" na de CCX33-correctie) moeten óók hiervoor worden herrekend. Daar staat tegenover dat de on-box-posten uit interne kostenkaart regel 56 (beschermd extern volume, continue WAL/off-site-back-up, restore-tests, monitoring) voor het SoR vervallen; die verrekening is nog niet gemaakt.
 4. **Lock-in.** De runtime gebruikt bewust `postgres-js` via Drizzle zonder Neon-specifieke driver ([slice-a-plan](../plans/2026-08-27-2022-feat-slice-a-read-path-plan.md) regel 372), dus de SQL-laag blijft portable. Operationele afhankelijkheden (PITR, branching, pooler-gedrag, prijsmodel per CU-uur) zijn wél Neon-specifiek. Een gekwantificeerde exit-kostenraming bestaat niet in de repo — **niet gesourced; op te stellen vóór jaar-1-schaal.**
 
 ## Nieuwe verplichtingen
@@ -56,7 +56,7 @@ Eerlijk benoemd, want dit zijn de kosten van de omkering:
 - **Cloud-worker → Neon is aannemelijk maar onbewezen.** Al het bewijs is lokaal; het runbook stelt expliciet dat een gedeployde Trigger.dev-worker niet is getest ("What this does NOT prove"). Het beslissende bewijs uit ADR-0005 optie A blijft staan: een gedeployde run met volledig schrijfpad tegen Neon.
 - **Manticore is met dit besluit níet opgelost.** ADR-0005 optie A zegt het letterlijk: een cloud-worker moet ook Manticore bereiken, en die staat privé. Er is een aparte keuze nodig (publieke ingress met auth, tunnel, of de drain on-box laten draaien); dit ADR neemt die keuze niet.
 - **RJC-373: er bestaat nergens een `TRIGGER_SECRET_KEY`**, dus taken zijn niet programmatisch te triggeren en gedeployd bewijs is geblokkeerd tot die sleutel er is (ADR-0005, "Gevolgen").
-- **De COSTS.md-totalen moeten worden herrekend** met Neon terug in de raming (zie "Wat dit besluit opgeeft", punt 3) en getoetst aan JI-NFR-06 (infra fase 1 < €300/mnd, COSTS.md regel 50).
+- **De interne kostenkaart-totalen moeten worden herrekend** met Neon terug in de raming (zie "Wat dit besluit opgeeft", punt 3) en getoetst aan JI-NFR-06 (infra fase 1 < €300/mnd, interne kostenkaart regel 50).
 
 ## Gevolgen
 

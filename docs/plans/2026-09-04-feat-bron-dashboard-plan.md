@@ -3,7 +3,7 @@ title: Brondashboard - inzichten per bron en totaal - Plan
 type: feat
 date: 2026-09-04
 origin: docs/IMPLEMENTATION_BACKLOG.md (JI-030, JI-032), docs/AGENT_NATIVE_ARCHITECTURE.md (c/bi)
-reference: RyanLisse/motian `app/scraper` (commit 17c76bb) en https://motian.vercel.app/scraper
+reference: ryanlissedev/motian `app/scraper` (commit 17c76bb) en https://motian.vercel.app/scraper
 artifact_contract: ce-unified-plan/v1
 artifact_readiness: implementation-ready
 execution: code
@@ -89,7 +89,7 @@ Status = critical als één critical, anders warning als één warning, anders g
 | UI-primitieven | ⚠️ `card`, `skeleton`, `tooltip`, `button`; geen `table`, `badge`, `tabs` | `packages/ui/src/components` |
 | Rolgating in web | ❌ alleen "ingelogd" (`/dashboard`); rollen bestaan server-side (`recruiter/operator/admin/approver`) | `apps/server/src/capabilities/auth.ts` |
 | Marts-schema | ⚠️ gedeclareerd, nul tabellen | `packages/db/src/schema/schemas.ts:5` |
-| Legacy Motian-bronrijen | ⚠️ 7 rijen (`…0030`–`…0036`) met dezelfde `naam` als live bronnen | `docs/runbooks/live-sources-status-2026-09-03.md` |
+| Legacy Motian-bronrijen | ⚠️ 7 rijen (`…0030`–`…0036`) met dezelfde `naam` als live bronnen | `de live-bronnenstatus van 2026-09-03 (intern, niet in deze repo)` |
 
 **Conclusie:** de data is rijker dan bij Motian (ongewijzigd apart, faalenvelope, lifecycle), maar niets ervan is via API of UI zichtbaar. Het werk is een read model + capabilities + één pagina, niet nieuwe instrumentatie.
 
@@ -228,7 +228,7 @@ Elke unit is een verticale slice met TDD en één PR. Volgorde is afhankelijkhei
 
 **D9**
 - [ ] Meting met `packages/performance` op een fixture van 50k `scrape_run`-rijen; p95 servertijd < 1 s, elke query < 300 ms.
-- [ ] Bewijs in `.artifacts/performance/` en een regel in `docs/COSTS.md` of perf-ADR.
+- [ ] Bewijs in `.artifacts/performance/` en een regel in `de interne kostenkaart` of perf-ADR.
 - [ ] Pas als budget faalt: Trigger-taak `refresh-bron-dashboard` (na `schedule-slice-a-polls`) die `marts.bron_run_stats_snapshot` vult; cache-guard met `!= null` (Motian-les 1).
 
 **D10**

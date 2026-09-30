@@ -10,7 +10,7 @@ een `<TBD: …>` is een echte open beslissing, geen placeholder om in te
 vullen.
 
 > **Status (live geverifieerd 2026-09-03):** productie draait op Hetzner-server
-> `164361997`, naam `ubuntu-8gb-nbg1-1`, IP `23.88.60.222`, type CX43 in
+> `<hetzner-server-id>`, naam `<hetzner-server-name>`, IP `<hetzner-ip>`, type CX43 in
 > Neurenberg (`nbg1`) en Ubuntu 26.04. De server is in-place met
 > `hcloud server change-type` omgezet van CPX32 naar CX43. De applicatie is via
 > tijdelijke `sslip.io`-hostnamen gerehearsed; de definitieve DNS-cutover en de
@@ -113,7 +113,7 @@ One-shot na Coolify on-box: [trigger-on-box-cutover.md](trigger-on-box-cutover.m
 | `NODE_ENV` | productie: `production` | de filesystem-weigering van de gewone poll-worker staat anders uit; de productiebackfill blijft apart fail-closed via execution mode | deploy-configuratie |
 | `TENDER_NED_TEST_IMPORT_DAYS` | nee (default 14, bereik 1–90) | — | operator, alleen voor test-imports |
 | Per-bron live-vlaggen (`TENDER_NED_LIVE`, `INHUURDESK_LIVE`, …) | per bron | bron draait op fixtures i.p.v. live HTTP (`process.env[source.liveEnv] === "1"` in `apps/worker/src/poll-bron-run.ts`; namen in `packages/application/src/sources/*.ts`; de `poller`-app heeft dezelfde twaalf vlaggen nodig, zie `docs/runbooks/onbox-poller.md`) | operator, per bron-activatiebesluit |
-| `TRIGGER_PROJECT_REF` | nee (default in `trigger.config.ts`) | — | Trigger.dev-project |
+| `TRIGGER_PROJECT_REF` | ja (`trigger.config.ts` weigert te laden zonder) | — | Trigger.dev-project |
 | `TRIGGER_SECRET_KEY` | voor programmatisch triggeren/deployen | productieconfiguratie is onbewezen/open (RJC-373); gedeployd bewijs ontbreekt | `<TBD: Ryan/Trigger.dev-account>` |
 
 ### Projector (on-box proces)
@@ -210,13 +210,13 @@ de daarbij genoemde releasestap, maar blokkeren het hostherstel zelf niet.
    writers zijn gepauzeerd, de finale preflight gelijk blijft, een verse
    rollbackbranch inclusief queryability is gevalideerd en de operator pas
    daarna expliciet GO geeft voor exact die evidence.
-4. Deploymethode op de box: Coolify draait op `ubuntu-8gb-nbg1-1`. Gebruik
+4. Deploymethode op de box: Coolify draait op `<hetzner-server-name>`. Gebruik
    [coolify-local.md](coolify-local.md) en stap 0.5 hieronder als herstel- en
    validatiepad; voer provisioningstappen niet blind opnieuw uit.
 
 ### Stap 0.5 — Host-provisioning en herstelpad voor de host die stap 1 aanneemt
 
-> ⚠️ **INSPECTEER VÓÓR MUTATIE.** Server `164361997` en Coolify zijn op
+> ⚠️ **INSPECTEER VÓÓR MUTATIE.** Server `<hetzner-server-id>` en Coolify zijn op
 > 2026-09-03 live geverifieerd. De opdrachten hieronder blijven een herstel- of
 > rebuildpad, geen instructie om bestaande infrastructuur zonder inspectie
 > opnieuw aan te maken. Console- en credentialtoegang uit stap 0 zijn vereist
@@ -226,8 +226,8 @@ de daarbij genoemde releasestap, maar blokkeren het hostherstel zelf niet.
 
 #### 0.5.1 Bestaande server controleren of vervanging bestellen
 
-De productiehost is Hetzner-server `164361997`, naam
-`ubuntu-8gb-nbg1-1`, publiek IPv4 `23.88.60.222`: **CX43**, Ubuntu 26.04,
+De productiehost is Hetzner-server `<hetzner-server-id>`, naam
+`<hetzner-server-name>`, publiek IPv4 `<hetzner-ip>`: **CX43**, Ubuntu 26.04,
 in Neurenberg (`nbg1`). Op 2026-09-03 is deze host in-place met
 `hcloud server change-type` omgezet van CPX32 naar CX43. De toen geverifieerde
 maandprijzen in `nbg1` waren €19,35 voor CX43 en €42,94 voor CPX32. Geef bij
@@ -265,19 +265,19 @@ voor OpenSSH daarom expliciet met:
 ```bash
 umask 077
 trap 'rm -f <tijdelijk-keypad>' EXIT
-op read "op://Catapulze Development/Hetzner_catapulze/private key?ssh-format=openssh" > <tijdelijk-keypad>
+op read "op://<vault>/<item-ssh-key>/private key?ssh-format=openssh" > <tijdelijk-keypad>
 ```
 
 De restrictieve `umask` geldt vóórdat shell-redirection het bestand aanmaakt;
 de trap verwijdert het na de sessie. Zonder `?ssh-format=openssh` weigert
 `ssh-keygen` de sleutel met `invalid format`. Log of commit de sleutel nooit.
 
-Het SSH-item heet `Hetzner_catapulze` in de vault `Catapulze Development` en
+Het SSH-item heet `<item-ssh-key>` in de vault `<vault>` en
 het veld heet `private key`. De overige productiewaarden staan in dezelfde
-vault op het item `Job Intelligence production`, als velden en niet als losse
+vault op het item `<item-ji-production>`, als velden en niet als losse
 items. De bevestigde velden zijn `DATABASE_URL`, `R2_ACCESS_KEY_ID`,
 `R2_SECRET_ACCESS_KEY` en `R2_S3_API_ENDPOINT`, dus bijvoorbeeld
-`op://Catapulze Development/Job Intelligence production/DATABASE_URL`. Neem
+`op://<vault>/<item-ji-production>/DATABASE_URL`. Neem
 geen andere veldnaam aan zonder het item eerst te lezen.
 
 #### 0.5.2 Firewall — 80/443 publiek; 22 tijdelijk bron-IP-beperkt
@@ -294,7 +294,7 @@ interfaces** — zonder host-firewall staan die twee direct aan het
 internet, vóór de Coolify-proxy en zonder TLS. De firewall is dus geen
 tweede laag maar de enige laag voor die poorten.
 
-Primair de **Hetzner Cloud Firewall** (productie: ID `11557985`; buiten de
+Primair de **Hetzner Cloud Firewall** (productie: ID `<hetzner-firewall-id>`; buiten de
 host, altijd corrigeerbaar
 via de Console — een foute regel sluit je dus niet definitief buiten, het
 lockout-risico van een verkeerde `ufw`-regel op de host zelf vervalt).
@@ -311,8 +311,8 @@ firewallregels; roteer niet meteen sleutels en open poort 22 nooit wereldwijd:
 
 ```bash
 curl https://api.ipify.org
-hcloud firewall describe 11557985
-hcloud firewall add-rule 11557985 --direction in --protocol tcp \
+hcloud firewall describe <hetzner-firewall-id>
+hcloud firewall add-rule <hetzner-firewall-id> --direction in --protocol tcp \
   --port 22 --source-ips <operator-egress-ip>/32
 ```
 
@@ -352,7 +352,7 @@ nooit aan in je enige werkende sessie.
 
 #### 0.5.4 Docker + Coolify
 
-Coolify draait op `ubuntu-8gb-nbg1-1`. Gebruik de officiële
+Coolify draait op `<hetzner-server-name>`. Gebruik de officiële
 installer alleen als inspectie uitwijst dat herstel of herinstallatie nodig is
 (bron: coolify.io/docs/get-started/installation, gecheckt 2026-09-01; geen
 versienummer gepind in de docs zelf):
@@ -390,7 +390,7 @@ $u->tokens()->create([
 ```
 
 De bearerwaarde is `<id>|<plain>`. Sla die alleen op als `COOLIFY_API_KEY` in
-de 1Password-vault `Catapulze Development`. Zet daarna via
+de 1Password-vault `<vault>`. Zet daarna via
 `InstanceSettings::is_api_enabled` de API bewust aan — standaard staat die
 uit — en sluit open registratie met `is_registration_enabled=false`.
 
@@ -433,7 +433,7 @@ Coolify-docs bij uitvoering in plaats van een hier verzonnen click-path.
 
 Repetitieer vóór de echte DNS-cutover dezelfde route met tijdelijke hostnamen.
 Op 2026-09-03 is Let's Encrypt end-to-end bewezen op
-`api.23-88-60-222.sslip.io` en `app.23-88-60-222.sslip.io`. Zet de bijbehorende
+`api.<hetzner-ip-dashed>.sslip.io` en `app.<hetzner-ip-dashed>.sslip.io`. Zet de bijbehorende
 auth-, CORS- en publieke webvariabelen tijdens de repetitie consistent op deze
 hostnamen; pas na geslaagde TLS-, login-, API- en dashboardchecks de echte
 DNS-records en waarden aan.
@@ -938,7 +938,7 @@ vallen allemaal buiten het mandaat van dit runbook:
 | Blocker | Blokkeert | Wie |
 |---|---|---|
 | Hersteltoegang: Hetzner Console en benodigde SSH-/Coolify-credentials via 1Password beschikbaar maken | Stap 0.5 | Ryan |
-| `ubuntu-8gb-nbg1-1`: vóór de volgende deploy bootstatus, SSH-bereikbaarheid en Coolify-status opnieuw bewijzen | Stap 1 en alles daarna; stap 0.5 is juist het herstelpad | Ryan |
+| `<hetzner-server-name>`: vóór de volgende deploy bootstatus, SSH-bereikbaarheid en Coolify-status opnieuw bewijzen | Stap 1 en alles daarna; stap 0.5 is juist het herstelpad | Ryan |
 | RJC-402: actuele Neon-journal en `0012`–`0014`-objecten live read-only vergelijken met de exacte `DEPLOY_SHA`; de echte pending set op een verse snapshot rehearsen; daarna writers freezen, finale preflight herhalen en de verse rollbackbranch inclusief parent/`created_at`/queryability valideren; pas op die complete evidence definitief GO geven | Stap 3 en de server-go/no-go totdat de actuele status bekend is | Ryan |
 | RJC-371: rotatie gelekte Neon-credential | Stap 2/4 — ADR-0006 is "pas operationeel gedekt als de rotatie is afgerond" | Ryan |
 | RJC-373: productieconfiguratie van `TRIGGER_SECRET_KEY` verifiëren of zo nodig inrichten | Stap 9 (worker-deploy en gedeployd bewijs) | Ryan / Trigger.dev-account |

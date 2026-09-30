@@ -1,6 +1,6 @@
 # Hostingkostenvergelijking — Catapulze (Job Intelligence PoC → multi-platform)
 
-Peildatum voor alle prijzen: **2026-08-31** (tenzij anders vermeld). Wisselkoers: **€1 = $1.1699** (ECB-referentiekoers, 21 augustus 2026, https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/eurofxref-graph-usd.en.html) → **$1 = €0.855**. Noot: `docs/COSTS.md` gebruikt 0,92; dat overschat USD-geprijsde posten met ~8%.
+Peildatum voor alle prijzen: **2026-08-31** (tenzij anders vermeld). Wisselkoers: **€1 = $1.1699** (ECB-referentiekoers, 21 augustus 2026, https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/eurofxref-graph-usd.en.html) → **$1 = €0.855**. Noot: `de interne kostenkaart` gebruikt 0,92; dat overschat USD-geprijsde posten met ~8%.
 
 Alle prijzen zijn exclusief btw. Alles met **[est]** is een afgeleid bedrag met formule; alles met **[3rd-party]** kon niet van de leverancierspagina worden gelezen en citeert de best beschikbare bron.
 
@@ -10,8 +10,8 @@ Alle prijzen zijn exclusief btw. Alles met **[est]** is een afgeleid bedrag met 
 - `docs/runbooks/postgres-on-box.md`: production gate = wal-g continuous WAL to a separate S3-compatible off-site bucket, daily base backup, 7-day PITR, restore drill RPO ≤ 1 h / RTO ≤ 4 h, monthly drill in P0. Start budget on a **32 GB / 8 vCPU** host: Postgres 8 GB reserved (12–14 GB / 4 vCPU cap), Manticore 8 GB / 2–2.5 vCPU, app+workers 4 GB, ≥ 6 GB page cache.
 - `docs/adr/ADR-0004`: Postgres 16 on-box in Docker is the decision; managed Postgres is an explicit escape hatch only when HA, RTO/RPO, or contention evidence demands it. **Achterhaald op 2026-08-31:** [ADR-0006](../adr/ADR-0006-neon-as-system-of-record.md) kiest Neon als production SoR; de on-box-Postgres-aannames in dit rapport (incl. de aanbeveling "compose lokaal → Coolify op Hetzner" met Postgres op de box) gelden alleen nog voor Manticore/apps, niet voor de database.
 - `docs/runbooks/coolify-local.md`: Coolify apps `server` (Dockerfile, /readyz) + `web`, Postgres 16 service, one-shot migrator job.
-- `docs/COSTS.md`: P0 = 200k aanvragen/mnd, year-1 ceiling 600k/mnd, ~1–1.2 M fetches/mnd, corpus 7.5 M docs after 12 months; Trigger.dev Cloud, Upstash, Firecrawl etc. are constant across hosting options and excluded below.
-- **Correctie op `docs/COSTS.md`:** de regel "Hetzner Cloud CCX33 … €43,49/mnd" is onjuist. €43.49 is **CCX13 (2 dedicated vCPU / 8 GB)**; **CCX33 (8 vCPU / 32 GB) is €138.99** (Hetzner price API, zie hieronder). Het P0-infrabedrag van €210 en de toets aan de NFR "< €300" waren op de verkeerde box gebaseerd.
+- `de interne kostenkaart`: P0 = 200k aanvragen/mnd, year-1 ceiling 600k/mnd, ~1–1.2 M fetches/mnd, corpus 7.5 M docs after 12 months; Trigger.dev Cloud, Upstash, Firecrawl etc. are constant across hosting options and excluded below.
+- **Correctie op `de interne kostenkaart`:** de regel "Hetzner Cloud CCX33 … €43,49/mnd" is onjuist. €43.49 is **CCX13 (2 dedicated vCPU / 8 GB)**; **CCX33 (8 vCPU / 32 GB) is €138.99** (Hetzner price API, zie hieronder). Het P0-infrabedrag van €210 en de toets aan de NFR "< €300" waren op de verkeerde box gebaseerd.
 
 ## Bronnen
 

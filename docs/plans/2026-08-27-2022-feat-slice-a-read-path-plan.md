@@ -633,7 +633,7 @@ Implementer may adjust layout; unit file lists stay authoritative.
 | Existing 242k backfill quality | Import rejects visible; do not block live TenderNed/Inhuurdesk on perfect v1 mapping |
 | Indeed expected by stakeholders | Explicitly out; JI-007 remains a product conversation |
 | Raw HTML/PDF contains incidental PII | Preview-gated `read_raw`; recruiter role; retention job (A3); no contact columns in curated |
-| Manticore working set vs 32 GB box | P0 corpus is 200k, not 7.5M; compose + CCX33 sizing from `docs/COSTS.md`; rebuild from Postgres if the RT index is lost |
+| Manticore working set vs 32 GB box | P0 corpus is 200k, not 7.5M; compose + CCX33 sizing from `de interne kostenkaart`; rebuild from Postgres if the RT index is lost |
 | Registry UI-action list drifts from `apps/web` | `check-capability-coverage` fails closed; U9 cannot add a click without a registry id |
 
 **Dependencies:** bun toolchain; Postgres 16 host and protected external volume; off-site WAL target; Motian-Neon read-only credentials for import; Trigger.dev account for scheduled polls; object storage credentials; no Spott sandbox.

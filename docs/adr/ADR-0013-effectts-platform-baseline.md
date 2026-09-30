@@ -41,7 +41,7 @@ Bronnen (officieel / verifieerbaar):
 
 | Veld | Waarde voor CTP-454 baseline |
 | --- | --- |
-| Testhost | `catapulze` (exe.dev VM `catapulze.exe.xyz`), Linux x86_64, 2 vCPU, ~7.7 GiB RAM |
+| Testhost | `catapulze` (exe.dev VM `<exe-dev-host>`), Linux x86_64, 2 vCPU, ~7.7 GiB RAM |
 | Head | volledige 40-hex SHA van de gemeten commit; dirty/clean verplicht |
 | Cache cohorts | aparte `cold` en `warm` cohorts; nooit samenvoegen |
 | Concurrency | max 2 Bun testworkers; geen watch |
