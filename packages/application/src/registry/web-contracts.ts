@@ -19,6 +19,16 @@ import type {
   searchAanvragenInputSchema,
   searchAanvragenOutputSchema,
 } from "./capability-io";
+import type {
+  commitExportOutputSchema,
+  getExportStatusOutputSchema,
+} from "./handlers/export-handlers";
+import type {
+  approvalViewSchema,
+  getSnapshotApprovalOutputSchema,
+  getSnapshotOutputSchema,
+  snapshotViewSchema,
+} from "./handlers/index";
 import type { SchemaType } from "./schema-helpers";
 import type { MarkeringReadback } from "./schemas";
 
@@ -80,3 +90,27 @@ export type SearchAanvragenOutput = SchemaType<
 
 /** Markering readback DTO shared by get/markeer capabilities. */
 export type MarkeringView = MarkeringReadback;
+
+// CTP-652: snapshot/approval/export wire DTOs for the approval screen. The
+// imports above are type-only, so no handler runtime reaches the browser
+// bundle — the schemas' decoded shapes are the SoT.
+
+/** create_snapshot output — the fresh immutable snapshot view. */
+export type SnapshotView = SchemaType<typeof snapshotViewSchema>;
+
+/** get_snapshot output — detail view with digests and approval summary. */
+export type SnapshotDetailView = SchemaType<typeof getSnapshotOutputSchema>;
+
+/** approve_snapshot output — the written approval + audit event id. */
+export type ApprovalView = SchemaType<typeof approvalViewSchema>;
+
+/** get_snapshot_approval output — approval plus server-computed validity. */
+export type SnapshotApprovalView = SchemaType<
+  typeof getSnapshotApprovalOutputSchema
+>;
+
+/** commit_export output — per-aanvraag results and the summary counts. */
+export type CommitExportResult = SchemaType<typeof commitExportOutputSchema>;
+
+/** get_export_status output — attempts with receipts and readback status. */
+export type ExportStatusView = SchemaType<typeof getExportStatusOutputSchema>;

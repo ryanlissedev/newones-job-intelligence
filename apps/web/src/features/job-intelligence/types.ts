@@ -5,7 +5,16 @@ import {
   SEARCH_SCOPES,
   SEARCH_SORT_OPTIONS,
 } from "./contracts";
-import type { MarkeringStatus, SearchScope, SearchSort } from "./contracts";
+import type {
+  ApprovalView,
+  CommitExportResult,
+  ExportStatusView,
+  MarkeringStatus,
+  SearchScope,
+  SearchSort,
+  SnapshotApprovalView,
+  SnapshotDetailView,
+} from "./contracts";
 
 export const JOB_MARKERING_STATUSES = MARKERING_STATUSES;
 export const JOB_SEARCH_SCOPES = SEARCH_SCOPES;
@@ -344,6 +353,19 @@ export interface JobIntelligenceActions {
     readonly reden?: string | null;
     readonly status: JobMarkeringStatus;
   }) => Promise<JobMarkering>;
+  // CTP-652: snapshot approval/export screen actions.
+  readonly getSnapshot: (id: string) => Promise<SnapshotDetailView>;
+  /** Resolves null when the API answers APPROVAL_NOT_FOUND. */
+  readonly getSnapshotApproval: (
+    id: string
+  ) => Promise<SnapshotApprovalView | null>;
+  readonly approveSnapshot: (input: {
+    readonly expiresAt: string;
+    readonly id: string;
+    readonly motivatie: string;
+  }) => Promise<ApprovalView>;
+  readonly commitExport: (snapshotId: string) => Promise<CommitExportResult>;
+  readonly getExportStatus: (snapshotId: string) => Promise<ExportStatusView>;
 }
 
 export const DEFAULT_JOB_SEARCH_STATE: JobSearchState = {

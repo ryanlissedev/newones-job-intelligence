@@ -24,6 +24,24 @@ describe("web-contracts SoT surface (CTP-475)", () => {
     }
   });
 
+  it("parses the fail-closed export envelope the API actually sends", () => {
+    const parsed = restCapabilityFailureSchema.safeParse({
+      error: {
+        code: "CAPABILITY_DISABLED",
+        message:
+          "Export is unavailable until a production export provider is connected",
+        requestId: "71e46045-7292-4e6b-a6ab-4a63392a2d48",
+      },
+      ok: false,
+    });
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.error.message).toBe(
+        "Export is unavailable until a production export provider is connected"
+      );
+    }
+  });
+
   it("rejects a failure body without message", () => {
     const parsed = restCapabilityFailureSchema.safeParse({
       error: { code: "X" },

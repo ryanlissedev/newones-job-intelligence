@@ -1,7 +1,16 @@
+import type {
+  ApprovalView,
+  CommitExportResult,
+  ExportStatusView,
+  SnapshotApprovalView,
+  SnapshotDetailView,
+} from "./contracts";
 import { sourceLabel } from "./presentation";
+import { CapabilityRequestError } from "./rest/capability-client";
 import { searchJobs } from "./search-state";
 import type {
   JobDataAdapter,
+  JobIntelligenceActions,
   JobListing,
   JobSourceOption,
   JobSourceRecord,
@@ -532,4 +541,342 @@ export const fixtureJobDataAdapter: JobDataAdapter = {
     Promise.resolve(JOB_FIXTURES.find((job) => job.id === id) ?? null),
   listSources: () => Promise.resolve(fixtureSourceOptions()),
   search: (request) => Promise.resolve(searchJobs(JOB_FIXTURES, request)),
+};
+
+// --- CTP-652 fixture-mode snapshot/approval/export state -------------------
+// In-module state (not persisted): the fixture snapshot page is reachable via
+// the "Bekijk snapshot" link after Snapshot maken, and one pre-seeded approved
+// snapshot exists for direct visits.
+
+export const FIXTURE_SNAPSHOT_ID =
+  "00000000-0000-4000-8000-00000000f001" as const;
+
+const FIXTURE_ACTOR = "fixture-user";
+
+const fixtureDigest = (seed: string): string =>
+  seed
+    .padEnd(64, "0")
+    .slice(0, 64)
+    .replaceAll(/[^a-f0-9]/giu, "a")
+    .toLowerCase();
+
+interface FixtureSnapshotState {
+  readonly createdAt: string;
+  readonly resultIds: readonly string[];
+  readonly savedSearchId: string | null;
+  readonly scope: "active" | "all";
+}
+
+interface FixtureApprovalState {
+  readonly actorId: string;
+  readonly createdAt: string;
+  readonly expiresAt: string;
+  readonly id: string;
+  readonly motivatie: string;
+}
+
+interface FixtureExportAttempt {
+  readonly canonicalVacancyId: string;
+  readonly createdAt: string;
+  readonly errorMessage: string | null;
+  readonly externalId: string | null;
+  readonly id: string;
+  readonly idempotencyKey: string;
+  readonly receiptId: string | null;
+  readonly status: "created" | "failed" | "skipped";
+}
+
+const fixtureSnapshots = new Map<string, FixtureSnapshotState>();
+const fixtureApprovals = new Map<string, FixtureApprovalState>();
+const fixtureExportAttempts = new Map<string, FixtureExportAttempt[]>();
+
+let fixtureSnapshotCounter = 1;
+let fixtureAttemptCounter = 1;
+
+const seedFixtureSnapshot = (): void => {
+  fixtureSnapshots.set(FIXTURE_SNAPSHOT_ID, {
+    createdAt: "2026-09-25T08:30:00.000Z",
+    resultIds: [
+      JOB_FIXTURES[0]?.id ?? "job-001",
+      JOB_FIXTURES[1]?.id ?? "job-002",
+    ],
+    savedSearchId: null,
+    scope: "active",
+  });
+  fixtureApprovals.set(FIXTURE_SNAPSHOT_ID, {
+    actorId: FIXTURE_ACTOR,
+    createdAt: "2026-09-25T08:35:00.000Z",
+    expiresAt: "2999-01-01T00:00:00.000Z",
+    id: "approval-fixture-001",
+    motivatie: "Goedgekeurd voor demo-export (fixture).",
+  });
+  fixtureExportAttempts.set(FIXTURE_SNAPSHOT_ID, [
+    {
+      canonicalVacancyId: JOB_FIXTURES[0]?.id ?? "job-001",
+      createdAt: "2026-09-25T08:40:00.000Z",
+      errorMessage: null,
+      externalId: "spott-fixture-1",
+      id: "attempt-fixture-001",
+      idempotencyKey: "fixture-export-1",
+      receiptId: "receipt-fixture-1",
+      status: "created",
+    },
+  ]);
+};
+
+seedFixtureSnapshot();
+
+const toFixtureSnapshotDetail = (
+  id: string,
+  state: FixtureSnapshotState
+): SnapshotDetailView => {
+  const approval = fixtureApprovals.get(id);
+  const expired = approval
+    ? Date.parse(approval.expiresAt) <= Date.now()
+    : false;
+  return {
+    approval: approval
+      ? {
+          actorId: approval.actorId,
+          createdAt: approval.createdAt,
+          expiresAt: approval.expiresAt,
+          id: approval.id,
+          status: expired ? ("expired" as const) : ("approved" as const),
+        }
+      : null,
+    createdAt: state.createdAt,
+    freshness: {
+      searchAppliedSequence: "1",
+      searchGeneration: 1,
+    },
+    id,
+    provenance: {
+      parserVersion: "fixture-1",
+      schemaVersion: "slice-a-v1",
+    },
+    queryDigest: fixtureDigest(`query-${id}`),
+    resultIds: [...state.resultIds],
+    savedSearchId: state.savedSearchId,
+    scope: state.scope,
+    selectionDigest: fixtureDigest(`selection-${id}`),
+  };
+};
+
+const toFixtureApprovalView = (
+  snapshotId: string,
+  approval: FixtureApprovalState,
+  snapshotResultIds: readonly string[]
+): SnapshotApprovalView => ({
+  actorId: approval.actorId,
+  createdAt: approval.createdAt,
+  expiresAt: approval.expiresAt,
+  id: approval.id,
+  motivatie: approval.motivatie,
+  resultIds: [...snapshotResultIds],
+  snapshotId,
+  valid: Date.parse(approval.expiresAt) > Date.now(),
+});
+
+const fixtureAttemptReadbackStatus = (
+  status: FixtureExportAttempt["status"]
+): "attempted" | "failed" => (status === "failed" ? "failed" : "attempted");
+
+const toFixtureExportStatus = (snapshotId: string): ExportStatusView => {
+  const attempts = fixtureExportAttempts.get(snapshotId) ?? [];
+  const views = attempts.map((attempt) => ({
+    canonicalVacancyId: attempt.canonicalVacancyId,
+    createdAt: attempt.createdAt,
+    errorMessage: attempt.errorMessage,
+    externalId: attempt.externalId,
+    id: attempt.id,
+    idempotencyKey: attempt.idempotencyKey,
+    receipt: attempt.receiptId
+      ? { id: attempt.receiptId, responseHash: fixtureDigest(attempt.id) }
+      : null,
+    status: fixtureAttemptReadbackStatus(attempt.status),
+  }));
+  let status: ExportStatusView["status"] = "attempted";
+  if (views.length === 0) {
+    status = "no_attempt";
+  } else if (views.every((attempt) => attempt.status === "failed")) {
+    status = "failed";
+  }
+  return {
+    attempts: views,
+    liveConfirmationAvailable: false,
+    snapshotId,
+    status,
+  };
+};
+
+const fixtureFailure = (
+  status: number,
+  code: string,
+  message: string,
+  details: Record<string, string>
+): CapabilityRequestError =>
+  new CapabilityRequestError(status, {
+    error: { code, details, message },
+  });
+
+const fixtureNotFound = (kind: string, id: string): CapabilityRequestError =>
+  fixtureFailure(404, "NOT_FOUND", `${kind} not found`, { id });
+
+const approveFixtureSnapshot = ({
+  expiresAt,
+  id,
+  motivatie,
+}: {
+  readonly expiresAt: string;
+  readonly id: string;
+  readonly motivatie: string;
+}): Promise<ApprovalView> => {
+  const snapshot = fixtureSnapshots.get(id);
+  if (!snapshot) {
+    return Promise.reject(fixtureNotFound("QuerySnapshot", id));
+  }
+  if (fixtureApprovals.get(id)) {
+    return Promise.reject(
+      fixtureFailure(
+        400,
+        "ALREADY_APPROVED",
+        "This snapshot already has an approval record",
+        { id }
+      )
+    );
+  }
+  const approval: FixtureApprovalState = {
+    actorId: FIXTURE_ACTOR,
+    createdAt: new Date().toISOString(),
+    expiresAt,
+    id: `approval-fixture-${fixtureApprovals.size + 1}`,
+    motivatie,
+  };
+  fixtureApprovals.set(id, approval);
+  return Promise.resolve({
+    actorId: approval.actorId,
+    auditEventId: `audit-${approval.id}`,
+    createdAt: approval.createdAt,
+    expiresAt: approval.expiresAt,
+    id: approval.id,
+    motivatie: approval.motivatie,
+    resultIds: [...snapshot.resultIds],
+    snapshotId: id,
+  });
+};
+
+const commitFixtureExport = (
+  snapshotId: string
+): Promise<CommitExportResult> => {
+  const snapshot = fixtureSnapshots.get(snapshotId);
+  if (!snapshot) {
+    return Promise.reject(fixtureNotFound("QuerySnapshot", snapshotId));
+  }
+  const approval = fixtureApprovals.get(snapshotId);
+  if (!approval || Date.parse(approval.expiresAt) <= Date.now()) {
+    return Promise.reject(
+      fixtureFailure(
+        400,
+        "APPROVAL_NOT_FOUND",
+        "Snapshot approval is missing or expired",
+        { id: snapshotId }
+      )
+    );
+  }
+  const results = snapshot.resultIds.map((canonicalVacancyId) => {
+    const attemptId = `attempt-fixture-${fixtureAttemptCounter}`;
+    fixtureAttemptCounter += 1;
+    const attempt: FixtureExportAttempt = {
+      canonicalVacancyId,
+      createdAt: new Date().toISOString(),
+      errorMessage: null,
+      externalId: `spott-fixture-${fixtureAttemptCounter}`,
+      id: attemptId,
+      idempotencyKey: `fixture-export-${fixtureAttemptCounter}`,
+      receiptId: `receipt-${attemptId}`,
+      status: "created",
+    };
+    const list = fixtureExportAttempts.get(snapshotId) ?? [];
+    fixtureExportAttempts.set(snapshotId, [...list, attempt]);
+    return {
+      canonicalVacancyId,
+      externalId: attempt.externalId,
+      idempotencyKey: attempt.idempotencyKey,
+      receiptId: attempt.receiptId ?? "",
+      status: "created" as const,
+    };
+  });
+  return Promise.resolve({
+    approvalId: approval.id,
+    auditEventId: `audit-export-${snapshotId}`,
+    results,
+    snapshotId,
+    summary: {
+      created: results.length,
+      failed: 0,
+      skipped: 0,
+    },
+  });
+};
+
+const createFixtureSnapshot = ({
+  selectedIds,
+  scope,
+}: {
+  readonly filters: unknown;
+  readonly query: string;
+  readonly scope: "active" | "all";
+  readonly selectedIds: readonly string[];
+}): Promise<{ readonly id: string; readonly resultCount: number }> => {
+  const id = `00000000-0000-4000-8000-00000000f${String(fixtureSnapshotCounter + 1).padStart(3, "0")}`;
+  fixtureSnapshotCounter += 1;
+  fixtureSnapshots.set(id, {
+    createdAt: new Date().toISOString(),
+    resultIds: [...selectedIds],
+    savedSearchId: null,
+    scope,
+  });
+  return Promise.resolve({ id, resultCount: selectedIds.length });
+};
+
+export const fixtureJobActions: JobIntelligenceActions = {
+  approveSnapshot: approveFixtureSnapshot,
+  commitExport: commitFixtureExport,
+  createSavedSearch: ({ naam }) =>
+    Promise.resolve({ id: `saved-fixture-${naam}`, naam }),
+  createSnapshot: createFixtureSnapshot,
+  deleteSavedSearch: () => Promise.resolve(),
+  getExportStatus: (snapshotId) => {
+    if (!fixtureSnapshots.has(snapshotId)) {
+      return Promise.reject(fixtureNotFound("QuerySnapshot", snapshotId));
+    }
+    return Promise.resolve(toFixtureExportStatus(snapshotId));
+  },
+  getSnapshot: (id) => {
+    const snapshot = fixtureSnapshots.get(id);
+    if (!snapshot) {
+      return Promise.reject(fixtureNotFound("QuerySnapshot", id));
+    }
+    return Promise.resolve(toFixtureSnapshotDetail(id, snapshot));
+  },
+  getSnapshotApproval: (id) => {
+    const snapshot = fixtureSnapshots.get(id);
+    if (!snapshot) {
+      return Promise.reject(fixtureNotFound("QuerySnapshot", id));
+    }
+    const approval = fixtureApprovals.get(id);
+    if (!approval) {
+      return Promise.resolve(null);
+    }
+    return Promise.resolve(
+      toFixtureApprovalView(id, approval, snapshot.resultIds)
+    );
+  },
+  listSavedSearches: () => Promise.resolve([]),
+  markeerAanvraag: ({ status }) =>
+    Promise.resolve({
+      reden: null,
+      status,
+      updatedAt: new Date().toISOString(),
+    }),
 };

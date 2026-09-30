@@ -31,7 +31,10 @@ interface JobSearchMutationsInput {
   readonly setMarkeringSyncState?: Dispatch<SetStateAction<MarkeringSyncState>>;
   readonly setSavedSearchMessage: Dispatch<SetStateAction<string | null>>;
   readonly setSnapshotMessage: Dispatch<SetStateAction<string | null>>;
-  readonly onSnapshotCreated?: () => void;
+  readonly onSnapshotCreated?: (snapshot: {
+    readonly id: string;
+    readonly resultCount: number;
+  }) => void;
 }
 
 type MarkSelectedJobInput = Pick<
@@ -155,7 +158,7 @@ export const createJobSearchMutations = ({
       setSnapshotMessage(
         `Snapshot aangemaakt (${snapshot.resultCount} geselecteerde opdrachten).`
       );
-      onSnapshotCreated?.();
+      onSnapshotCreated?.(snapshot);
     } catch {
       setSnapshotMessage(
         "Snapshot mislukt. Controleer je sessie en probeer opnieuw."

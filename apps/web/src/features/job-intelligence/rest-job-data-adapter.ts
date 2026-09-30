@@ -1,7 +1,15 @@
 import { env } from "@ji/env/web";
 
 import { syntaxErrorDetailsSchema } from "./contracts";
-import type { AanvraagVersieView } from "./contracts";
+import type {
+  AanvraagVersieView,
+  ApprovalView,
+  CommitExportResult,
+  ExportStatusView,
+  SnapshotApprovalView,
+  SnapshotDetailView,
+  SnapshotView,
+} from "./contracts";
 import { describeApiSyntaxError } from "./presentation";
 import { mapAanvraagToJobListing } from "./rest/aanvraag-mapping";
 import type { AanvraagPreview } from "./rest/aanvraag-mapping";
@@ -72,11 +80,6 @@ interface SavedSearchResponseBody {
   readonly naam: string;
   readonly queryText?: string;
   readonly updatedAt?: string;
-}
-
-interface SnapshotResponseBody {
-  readonly id: string;
-  readonly resultIds: readonly string[];
 }
 
 interface MarkeerResponseBody {
@@ -496,6 +499,13 @@ export const createRestJobIntelligence = ({
   };
 
   const actions: JobIntelligenceActions = {
+    approveSnapshot: ({ expiresAt, id, motivatie }) =>
+      client.post<ApprovalView>(`/v1/snapshots/${id}/approval`, {
+        expiresAt,
+        motivatie,
+      }),
+    commitExport: (snapshotId) =>
+      client.post<CommitExportResult>("/v1/exports", { snapshotId }),
     createSavedSearch: async ({ filters, naam, query }) => {
       const bronCatalog = await loadBronCatalog();
       const saved = await client.post<SavedSearchResponseBody>(
@@ -506,7 +516,7 @@ export const createRestJobIntelligence = ({
     },
     createSnapshot: async ({ filters, query, scope, selectedIds }) => {
       const bronCatalog = await loadBronCatalog();
-      const snapshot = await client.post<SnapshotResponseBody>(
+      const snapshot = await client.post<SnapshotView>(
         "/v1/snapshots",
         buildSnapshotBody({ bronCatalog, filters, query, scope, selectedIds })
       );
@@ -516,6 +526,26 @@ export const createRestJobIntelligence = ({
       await client.delete<{ readonly id: string; readonly removed: true }>(
         `/v1/saved-searches/${id}`
       );
+    },
+    getExportStatus: (snapshotId) =>
+      client.get<ExportStatusView>(`/v1/exports/${snapshotId}`),
+    getSnapshot: (id) => client.get<SnapshotDetailView>(`/v1/snapshots/${id}`),
+    getSnapshotApproval: async (id) => {
+      try {
+        return await client.get<SnapshotApprovalView>(
+          `/v1/snapshots/${id}/approval`
+        );
+      } catch (error) {
+        // APPROVAL_NOT_FOUND is the only domain "empty" answer; every other
+        // failure propagates so the screen can render it verbatim.
+        if (
+          error instanceof CapabilityRequestError &&
+          error.body.error.code === "APPROVAL_NOT_FOUND"
+        ) {
+          return null;
+        }
+        throw error;
+      }
     },
     listSavedSearches: async () => {
       const bronCatalog = await loadBronCatalog();

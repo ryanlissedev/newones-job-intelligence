@@ -25,9 +25,18 @@ const captureConcreteState =
 const baseActions = (
   createSavedSearch: JobIntelligenceActions["createSavedSearch"]
 ): JobIntelligenceActions => ({
+  approveSnapshot: () =>
+    Promise.reject(new Error("approveSnapshot not used in this spec")),
+  commitExport: () =>
+    Promise.reject(new Error("commitExport not used in this spec")),
   createSavedSearch,
   createSnapshot: () => Promise.resolve({ id: "snapshot-1", resultCount: 1 }),
   deleteSavedSearch: () => Promise.resolve(),
+  getExportStatus: () =>
+    Promise.reject(new Error("getExportStatus not used in this spec")),
+  getSnapshot: () =>
+    Promise.reject(new Error("getSnapshot not used in this spec")),
+  getSnapshotApproval: () => Promise.resolve(null),
   listSavedSearches: () => Promise.resolve([]),
   markeerAanvraag: () => Promise.resolve({ reden: null, status: "relevant" }),
 });
@@ -221,7 +230,7 @@ describe("job-search mutation server truth", () => {
     );
     let snapshotInput: readonly string[] = [];
     let snapshotMessage: string | null = null;
-    let snapshotCreated = false;
+    let snapshotCreated: { id: string; resultCount: number } | null = null;
     const mutations = createJobSearchMutations({
       actions: {
         ...baseActions(() => Promise.resolve({ id: "saved-1", naam: "Azure" })),
@@ -234,8 +243,8 @@ describe("job-search mutation server truth", () => {
       filters: DEFAULT_JOB_SEARCH_STATE.filters,
       getSelectedJobId: () => null,
       ...markeringMutationState(),
-      onSnapshotCreated: () => {
-        snapshotCreated = true;
+      onSnapshotCreated: (snapshot) => {
+        snapshotCreated = snapshot;
       },
       query: "Azure",
       resultsComplete: true,
@@ -253,7 +262,9 @@ describe("job-search mutation server truth", () => {
     await mutations.createSnapshot();
 
     expect(snapshotInput).toEqual(selectedIds);
-    expect(snapshotCreated).toBe(true);
+    // CTP-652: the callback carries the snapshot id so the toolbar can link
+    // "Bekijk snapshot" to /snapshots/<id>.
+    expect(snapshotCreated).toEqual({ id: "snapshot-1", resultCount: 2 });
     expect(snapshotMessage).toBe(
       "Snapshot aangemaakt (2 geselecteerde opdrachten)."
     );

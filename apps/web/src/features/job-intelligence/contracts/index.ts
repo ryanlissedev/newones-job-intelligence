@@ -35,6 +35,9 @@ export {
   syntaxErrorDetailsSchema,
   type AanvraagVersieView,
   type AanvraagLifecycle,
+  type ApprovalView,
+  type CommitExportResult,
+  type ExportStatusView,
   type MarkeringReadback,
   type MarkeringStatus,
   type MarkeringView,
@@ -45,4 +48,7 @@ export {
   type SearchFilters,
   type SearchScope,
   type SearchSort,
+  type SnapshotApprovalView,
+  type SnapshotDetailView,
+  type SnapshotView,
 } from "@ji/application/registry/web-contracts";

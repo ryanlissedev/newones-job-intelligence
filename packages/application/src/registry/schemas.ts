@@ -166,7 +166,11 @@ export const restCapabilityFailureSchema = toCapabilitySchema(
       code: Schema.String,
       details: optionalField(Schema.Unknown),
       message: Schema.String,
+      // The REST transport stamps every failure with its request id.
+      requestId: optionalField(Schema.String),
     }),
+    // Invocation failures serialize as `{ error, ok: false }`.
+    ok: optionalField(Schema.Literal(false)),
   })
 );
 

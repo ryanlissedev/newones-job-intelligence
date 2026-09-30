@@ -1,6 +1,7 @@
 "use client";
 
 import { Bookmark, Camera, Database, FlaskConical } from "lucide-react";
+import Link from "next/link";
 
 import { runAsync } from "./run-async";
 import type {
@@ -65,6 +66,8 @@ interface JobSearchToolbarProps {
   readonly previewStatus: JobSearchState["previewStatus"];
   readonly savedSearchMessage: string | null;
   readonly selectionCount: number;
+  /** CTP-652: id of the snapshot just created → "Bekijk snapshot" action. */
+  readonly snapshotId?: string | null;
   readonly snapshotMessage: string | null;
 }
 
@@ -80,6 +83,7 @@ export const JobSearchToolbar = ({
   previewStatus,
   savedSearchMessage,
   selectionCount,
+  snapshotId,
   snapshotMessage,
 }: JobSearchToolbarProps) => (
   <div className="flex flex-wrap items-end justify-between gap-3">
@@ -157,6 +161,17 @@ export const JobSearchToolbar = ({
     {snapshotMessage ? (
       <p className="w-full text-xs text-muted-foreground" role="status">
         {snapshotMessage}
+        {snapshotId ? (
+          <>
+            {" "}
+            <Link
+              className="font-medium text-primary underline underline-offset-2"
+              href={`/snapshots/${snapshotId}`}
+            >
+              Bekijk snapshot
+            </Link>
+          </>
+        ) : null}
       </p>
     ) : null}
   </div>

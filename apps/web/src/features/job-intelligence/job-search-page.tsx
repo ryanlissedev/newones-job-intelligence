@@ -181,6 +181,8 @@ interface MutableValue<Value> {
   current: Value;
 }
 
+const readValue = <Value,>(ref: MutableValue<Value>): Value => ref.current;
+
 const useApplyMarkeringReadback = (
   selectedJobIdRef: MutableValue<string | null>,
   lastAppliedMarkering: MutableValue<MarkeringReadbackState>,
@@ -446,6 +448,9 @@ const JobSearchPageContent = ({
     null
   );
   const [snapshotMessage, setSnapshotMessage] = useState<string | null>(null);
+  const [createdSnapshotId, setCreatedSnapshotId] = useState<string | null>(
+    null
+  );
   const [isSavingSearch, setIsSavingSearch] = useState(false);
   const [isCreatingSnapshot, setIsCreatingSnapshot] = useState(false);
   const [isSelectingAll, setIsSelectingAll] = useState(false);
@@ -744,9 +749,12 @@ const JobSearchPageContent = ({
         applyMarkeringReadback(resourceId, markering, "mutation");
       },
       filters: state.filters,
-      getSelectedJobId: () => selectedJobIdRef.current,
+      getSelectedJobId: () => readValue(selectedJobIdRef),
       markeringMutationsInFlight,
-      onSnapshotCreated: clearSelection,
+      onSnapshotCreated: (snapshot) => {
+        clearSelection();
+        setCreatedSnapshotId(snapshot.id);
+      },
       query: state.query,
       resultsComplete: canCreateSnapshot,
       scope: state.scope,
@@ -863,6 +871,7 @@ const JobSearchPageContent = ({
         }}
         previewStatus={state.previewStatus}
         savedSearchMessage={savedSearchMessage}
+        snapshotId={createdSnapshotId}
         snapshotMessage={snapshotMessage}
         selectionCount={selectedIds.size}
       />
