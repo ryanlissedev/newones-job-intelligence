@@ -208,8 +208,11 @@ services:
   # `-f docker-compose.yml -f docker-compose.backup.yml`), silently changing
   # an already-working, unrelated feature. Kept fully independent instead.
   raw-storage-minio:
-    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z-cpuv1@sha256:13582eff79c6605a2d315bdd0e70164142ea7e98fc8411e9e10d089502a6d883
+    image: cgr.dev/chainguard/minio@sha256:bd014394a80898e68c149f2311fdf8d5a2c2f3bb2c33b9327ae6d02b4b065ae1
     profiles: ["storage"]
+    # Runs as root so MinIO can write the Docker-created named volume; local/CI
+    # fixture only (production raw storage is R2).
+    user: "0:0"
     command: server /data --console-address ":9001"
     ports:
       - target: 9000
@@ -225,6 +228,9 @@ services:
       # real bucket — see apps/server/.env.example and apps/worker/.env.example.
       MINIO_ROOT_USER: ${RAW_STORAGE_MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${RAW_STORAGE_MINIO_ROOT_PASSWORD:-minioadmin}
+      # Lets the `mc ready local` healthcheck resolve alias `local` without a
+      # config file (the chainguard image ships mc but no curl).
+      MC_HOST_local: http://${RAW_STORAGE_MINIO_ROOT_USER:-minioadmin}:${RAW_STORAGE_MINIO_ROOT_PASSWORD:-minioadmin}@127.0.0.1:9000
     volumes:
       - raw_storage_minio_data:/data
     healthcheck:
@@ -360,7 +366,7 @@ services:
   # One-shot bucket bootstrap: creates the configured local bucket and exits.
   # Re-running `up --profile storage` is idempotent (`mc mb --ignore-existing`).
   raw-storage-minio-init:
-    image: quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z-cpuv1@sha256:95b5f3f7969a5c5a9f3a700ba72d5c84172819e13385aaf916e237cf111ab868
+    image: cgr.dev/chainguard/minio@sha256:bd014394a80898e68c149f2311fdf8d5a2c2f3bb2c33b9327ae6d02b4b065ae1
     profiles: ["storage"]
     depends_on:
       raw-storage-minio:

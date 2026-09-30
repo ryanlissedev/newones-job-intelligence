@@ -155,7 +155,7 @@ export const createSliceACapabilityCatalog = (deps: SliceAHandlerDeps) => {
   });
 
   const searchAanvragen = defineCapability({
-    authorization: { permission: ROLE_RECRUITER },
+    authorization: { permission: PERM_SLICE_READ },
     bindings: dualBindings("POST", "/v1/aanvragen/search", "search_aanvragen"),
     effect: "read",
     failureSchema: domainFailureSchema,
@@ -183,7 +183,7 @@ export const createSliceACapabilityCatalog = (deps: SliceAHandlerDeps) => {
   const batchGetAanvragen = defineCapability({
     // Recruiter, the stricter of the two per-id capabilities this batches
     // (get_aanvraag: slice-a:read, list_versies: recruiter).
-    authorization: { permission: ROLE_RECRUITER },
+    authorization: { permission: PERM_SLICE_READ },
     bindings: dualBindings(
       "POST",
       "/v1/aanvragen/batch",
@@ -201,7 +201,7 @@ export const createSliceACapabilityCatalog = (deps: SliceAHandlerDeps) => {
   });
 
   const listVersies = defineCapability({
-    authorization: { permission: ROLE_RECRUITER },
+    authorization: { permission: PERM_SLICE_READ },
     bindings: dualBindings("GET", "/v1/aanvragen/{id}/versies", "list_versies"),
     effect: "read",
     failureSchema: domainFailureSchema,
@@ -230,7 +230,7 @@ export const createSliceACapabilityCatalog = (deps: SliceAHandlerDeps) => {
   });
 
   const evaluateSourcingAssessment = defineCapability({
-    authorization: { permission: ROLE_RECRUITER },
+    authorization: { permission: PERM_SLICE_READ },
     bindings: dualBindings(
       "POST",
       "/v1/sourcing/assessment",
@@ -248,7 +248,7 @@ export const createSliceACapabilityCatalog = (deps: SliceAHandlerDeps) => {
   });
 
   const listBronnen = defineCapability({
-    authorization: { permission: ROLE_RECRUITER },
+    authorization: { permission: PERM_SLICE_READ },
     bindings: dualBindings("GET", "/v1/bronnen", "list_bronnen"),
     effect: "read",
     failureSchema: domainFailureSchema,
@@ -261,7 +261,7 @@ export const createSliceACapabilityCatalog = (deps: SliceAHandlerDeps) => {
   });
 
   const getBron = defineCapability({
-    authorization: { permission: ROLE_RECRUITER },
+    authorization: { permission: PERM_SLICE_READ },
     bindings: dualBindings("GET", "/v1/bronnen/{id}", "get_bron"),
     effect: "read",
     failureSchema: domainFailureSchema,
@@ -287,7 +287,7 @@ export const createSliceACapabilityCatalog = (deps: SliceAHandlerDeps) => {
   });
 
   const listSavedSearches = defineCapability({
-    authorization: { permission: ROLE_RECRUITER },
+    authorization: { permission: PERM_SLICE_READ },
     bindings: dualBindings("GET", "/v1/saved-searches", "list_saved_searches"),
     effect: "read",
     failureSchema: domainFailureSchema,
@@ -300,7 +300,7 @@ export const createSliceACapabilityCatalog = (deps: SliceAHandlerDeps) => {
   });
 
   const getSavedSearch = defineCapability({
-    authorization: { permission: ROLE_RECRUITER },
+    authorization: { permission: PERM_SLICE_READ },
     bindings: dualBindings(
       "GET",
       "/v1/saved-searches/{id}",
@@ -364,7 +364,7 @@ export const createSliceACapabilityCatalog = (deps: SliceAHandlerDeps) => {
   });
 
   const getSnapshot = defineCapability({
-    authorization: { permission: ROLE_RECRUITER },
+    authorization: { permission: PERM_SLICE_READ },
     bindings: dualBindings("GET", "/v1/snapshots/{id}", "get_snapshot"),
     effect: "read",
     failureSchema: domainFailureSchema,
@@ -476,7 +476,7 @@ export const createSliceACapabilityCatalog = (deps: SliceAHandlerDeps) => {
   });
 
   const getMarkering = defineCapability({
-    authorization: { permission: ROLE_RECRUITER },
+    authorization: { permission: PERM_SLICE_READ },
     bindings: dualBindings(
       "GET",
       "/v1/aanvragen/{id}/markering",

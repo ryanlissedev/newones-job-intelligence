@@ -8,11 +8,17 @@
 
 services:
   minio:
-    image: quay.io/minio/minio:RELEASE.2024-12-18T13-15-44Z@sha256:1dce27c494a16bae114774f1cec295493f3613142713130c2d22dd5696be6ad3
+    image: cgr.dev/chainguard/minio@sha256:bd014394a80898e68c149f2311fdf8d5a2c2f3bb2c33b9327ae6d02b4b065ae1
+    # Runs as root so MinIO can write the Docker-created named volume;
+    # local/CI fixture only (production raw storage is R2).
+    user: "0:0"
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: ${WALG_S3_ACCESS_KEY:-walg_local}
       MINIO_ROOT_PASSWORD: ${WALG_S3_SECRET_KEY:-walg_local_secret}
+      # Lets the `mc ready local` healthcheck resolve alias `local` without a
+      # config file (the chainguard image ships mc but no curl).
+      MC_HOST_local: http://${WALG_S3_ACCESS_KEY:-walg_local}:${WALG_S3_SECRET_KEY:-walg_local_secret}@127.0.0.1:9000
     ports:
       - target: 9000
         published: "${MINIO_API_PORT:-9000}"
@@ -21,7 +27,7 @@ services:
     volumes:
       - minio_backup_data:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://127.0.0.1:9000/minio/health/live"]
+      test: ["CMD", "mc", "ready", "local"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -31,7 +37,7 @@ services:
     restart: unless-stopped
 
   minio-init:
-    image: quay.io/minio/mc:RELEASE.2024-11-21T17-21-54Z@sha256:993e8c454a7ec632923f7e3e61adf1d473261da6354cefd641aedd33a2cfe112
+    image: cgr.dev/chainguard/minio@sha256:bd014394a80898e68c149f2311fdf8d5a2c2f3bb2c33b9327ae6d02b4b065ae1
     depends_on:
       minio:
         condition: service_healthy
