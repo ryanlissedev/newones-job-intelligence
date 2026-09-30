@@ -76,7 +76,7 @@ const approveSnapshot = async (
   });
   const result = await invoker(
     {
-      expiresAt: "2026-09-30T00:00:00.000Z",
+      expiresAt: "2027-12-31T00:00:00.000Z",
       id: snapshotId,
       motivatie: "Handmatig gecontroleerd",
     },
