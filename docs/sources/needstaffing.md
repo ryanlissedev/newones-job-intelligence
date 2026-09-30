@@ -51,3 +51,64 @@ De detailpagina publiceert een echte, per-opdracht sluitingsmoment: het "Deadlin
 ## Known-hash short-circuit (RJC-357 / RJC-401)
 
 `listingHashCoversDetail: false` — de fetch parset de detail-HTML en de normaliser leest daaruit velden (titel, beschrijving, tarief) die op de detailpagina kunnen wijzigen terwijl de listing-rij (en dus de listing-hash) gelijk blijft. Geen `knownHashes`-store doorgegeven (afgedwongen in `sources.spec.ts`).
+
+## Durable cohort (CTP-640, bewezen 2026-09-25)
+
+Need Staffing IT is bewezen op het duurzame ingestpad (`curated.durable_job`
++ `POLLER_DURABLE_BRONNEN`) als onderdeel van de L3d mixed-adapter-cohort
+(Harvey Nash + Hays + Need Staffing IT + Onefellow). De connector en
+source-definitie zijn ongewijzigd — de migratie is een bewijslast, geen
+codewijziging.
+
+**Live-probe 2026-09-25:** `https://www.needstaffing.nl/Opdrachten?PageNumber=1&SortOrder=NewestFirst`
+→ 200, ~87 KB HTML-listing.
+
+**Resume-contract** (`packages/connectors/src/needstaffing/durable-cohort-l3d.spec.ts`,
+7 specs): dit is een van de twee cohortleden mét een echte pagina-cursor —
+`{page}` op `/Opdrachten?PageNumber=N+1`, gedreven door `hasNextPage` (cap
+20). Een duurzame herval HERVAT op de gecommitte pagina: pagina's achter
+de cursor worden nooit herlezen en hun items niet opnieuw opgehaald —
+exact-één draait daar op de cursor, niet op de replay key. Een head-insert
+op een al-gelezen pagina is onzichtbaar voor de herval (read-pages blind
+spot; herstelt op de volgende verse poll), en een herval rapporteert
+`complete: false, reason: "resumed"` zodat de missed-poll-reconcile hem
+overslaat. `knownHashes` wordt bewust níét doorgegeven
+(`listingHashCoversDetail: false`): een listing-hash-skip zou detail-only
+wijzigingen op `/Opdrachten/{id}` bevriezen. Cap-overschrijding markeert
+`truncated`, nooit stilletjes compleet.
+
+**Fixture-corpus (eerlijk):** de committed listing-fixtures zijn echte
+opnamen — `listing-page-0.json` (1 kaart) en `listing-live-2026-09-16.json`
+(20 kaarten), met 21 detail-fixtures (`detail-15520` … `detail-15601`). De
+integratiespec servert een gescript twee-pagina-corpus uit de echte live
+fixture-items (15574 op pagina 0, 15601 op pagina 1), beide detail-backed,
+zodat de `{page:1}`-checkpoint een echte mid-listing-herval afdwingt. Geen
+opgenomen reject-fixture.
+
+**End-to-end op de echte pipeline** (fixture-client, `ji_test_iso_*`-Postgres,
+`apps/worker/src/poller/l3d-cohort.integration.spec.ts` — 5 specs per bron,
+groen): offer → `runDurableBronJobConsumer` → `runBronIngestPipeline` →
+observaties, `source_record`s, curated `aanvraag`-rijen en `outbox_event`s;
+herhaalde run → `unchanged`; gewijzigde detail-titel → `changed` → nieuwe
+`aanvraag_versie` + bijgewerkte curated rij; gefaalde page-1-listing-read →
+run `failed` (`DISCOVER_FAILED`) mét gecommitte cursor `{page:1}` → herval
+via `reopenFailed` (fence +1) hervat op pagina 1 zonder page 0 te herlezen;
+abort mid-item op pagina 1 → `failed` (`RAW_STORE_WRITE_FAILED`, CTP-490)
+met dezelfde gecommitte cursor → retake hervat mid-listing, exact-één.
+
+**UI-bewijs (geseedde stack):** wegwerp-DB `ji_ctp640_visual_l3d` (door deze
+lane aangemaakt), aanvragen gesaaid via het echte duurzame pad met
+Manticore-drain (`SEARCH_PROJECTOR=worker`), API `localhost:3000` + web
+`localhost:3001` zonder `NEXT_PUBLIC_USE_FIXTURES`: `/jobs` toont de
+Bron-facet met alle vier de bronnen incl. tellen. De opnames zijn ouder
+dan hun sluitingsdatum, dus de pipeline zette de 20 rijen terecht op
+`closed`; voor de capture zijn de geseedde curated rijen op `active` met
+een toekomstige sluitingsdatum gezet en opnieuw geprojecteerd — fixtures
+ongewijzigd, alleen weergavestaat. Captures: `/tmp/ctp640-visual/` (H.264
+MP4 + PNG, geopend en in frame bevestigd).
+
+**Canary en rollback:** `POLLER_DURABLE_BRONNEN` per bron toevoegen, één
+tegelijk, ná de L3a/L3b/L3c-cohorten. Rollback = slug uit de vlag halen;
+in-flight jobs lopen leeg, geen dubbele scheduling. `NEEDSTAFFING_LIVE`
+blijft uit — dit bewijs is fixture-only. Operator-canary en release-gate
+blijven open.
