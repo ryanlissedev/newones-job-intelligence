@@ -47,7 +47,7 @@ const seedApprovedSnapshot = async (
   const written = await stores.approvals.createWithAudit(
     {
       actorId: "approver-1",
-      expiresAt: new Date("2026-09-30T00:00:00.000Z"),
+      expiresAt: new Date("2027-12-31T00:00:00.000Z"),
       motivatie: "Gecontroleerd",
       resultIds: [...snapshot.resultIds],
       scopeId,
