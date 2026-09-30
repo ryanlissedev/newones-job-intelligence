@@ -47,3 +47,10 @@ De fixture → connector → normalise → curate-assertie staat niet in deze
 source-test: curatie gebruikt `createBronRuntimeClient` en vereist live
 Postgres; daarvoor zouden `apps/worker/src/curation-recovery.spec.ts` en
 infra-scope moeten wijzigen, buiten deze lane.
+
+## Voorwaarden
+
+- robots.txt: www.randstad.nl: HTTP 200, geen Disallow op connectorpaden (/, /vacatures/741140/, /vacatures/749250/, /vacatures/752363/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: niet gevonden
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)

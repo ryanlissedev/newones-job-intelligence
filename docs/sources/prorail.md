@@ -41,3 +41,10 @@ De connector leest `pagination.page`, `pagination.pageSize` en
 `robots.txt`: alleen `/EPiServer/CMS/` en `/Util/` disallowed; sitemap gepubliceerd. Disclaimer bevat een standaard IE-clausule ("alleen voor niet-commerciële privédoeleinden") zonder expliciete scraping-clausule → `voorwaardenStatus: te_toetsen`, `crawlDelayMs` 2000. `listingHashCoversDetail: false`.
 
 Fixtures: `tools/fixtures/record.ts` met extra strips `prorail-accordion`, `section.vacancy-faq`, `a[href^="mailto:"]` (recruiterblokken); daarna is de sleutel `applicationContact` mechanisch uit de JobPosting-JSON-LD verwijderd.
+
+## Voorwaarden
+
+- robots.txt: www.prorail.nl: HTTP 200, geen Disallow op connectorpaden (/nl/api/v1/, /, /vacatures/functie/, /vacatures/verkeersleiding/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: zie "Robots, voorwaarden en fixtures" hierboven
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)

@@ -41,6 +41,13 @@ Elke `<entry>` bevat standaard Atom-velden (`id`, `title`, `published`, `author>
 - `robots.txt` blokkeert de feed-URL niet.
 - Activeer deze bron pas nadat een mens de voorwaardenstatus expliciet op `toegestaan` heeft gezet.
 
+## Voorwaarden
+
+- robots.txt: eu.eu-supply.com: HTTP 200, geen Disallow op connectorpaden (/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: zie "Licentie en voorwaarden" hierboven
+- Besluit: `toegestaan`
+- Besluitnemer en datum: Ryan (operatorbesluit 2026-09-03, live testimport productie)
+
 ## Overlap met TenderNed (uit SOURCE_MATRIX)
 
 Cross-check 2026-08-27 in `docs/SOURCE_MATRIX.md`: 5/5 boven-drempel Mercell/CTM-aankondigingen (AAO/VAK) stonden dezelfde dag ook op TenderNed. CTM/Mercell voegt dus vooral waarde toe voor:

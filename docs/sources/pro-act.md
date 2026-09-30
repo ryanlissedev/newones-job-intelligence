@@ -34,6 +34,13 @@ Status: **connector gebouwd** (`packages/connectors/src/json-ld/configs/pro-act.
 - `robots.txt` (live capture 2026-09-21, `/tmp/w9-jsonld-evidence/`): `https://pro-act.nl/robots.txt` → 200; de `User-agent: *`-groep is leeg en `Crawl-delay: 10` + `Disallow: /wp-admin/` staan in de `User-agent: Googlebot`-groep, met een sitemapverwijzing naar `sitemap_index.xml`. De geadministreerde `crawlDelayMs: 10_000` blijft daarom de conservative keuze. `https://www.pro-act.nl/robots.txt` → 404 — de www-host dient alleen als redirect naar de canonieke www-loze host.
 - Een gebruikslicentie of bruikbare ToS-uitkomst staat niet in de probe. Houd `voorwaarden_status: te_toetsen` vóór activatie.
 
+## Voorwaarden
+
+- robots.txt: pro-act.nl: HTTP 200, geen Disallow op connectorpaden (/, /vacatures/iso-8783/, /vacatures/senior-azure-operations-engineer-8793/), Crawl-delay 10, geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: zie "Licentie en voorwaarden" hierboven
+- Besluit: `toegestaan`
+- Besluitnemer en datum: Ryan (operatorbesluit 2026-09-03, live testimport productie)
+
 ## Risico's
 
 1. `employmentType=FULL_TIME` is onbetrouwbaar voor interim-opdrachten.

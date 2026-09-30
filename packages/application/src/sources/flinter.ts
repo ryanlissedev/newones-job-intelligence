@@ -31,7 +31,9 @@ export const flinter = {
     // permanent-employment/malformed items, so 19 persisted observations is
     // a full catalog (see docs/sources/flinter.md).
     minimumTestImportObservations: 10,
-    voorwaardenStatus: "te_toetsen",
+    // Operatorbesluit 2026-09-03 (live testimport productie); bewijs in
+    // docs/sources/flinter.md "Voorwaarden" + robots-probe scripts/probe-source-voorwaarden.ts.
+    voorwaardenStatus: "toegestaan",
   },
   slug: "flinter",
 } satisfies SourceDefinition<"flinter">;

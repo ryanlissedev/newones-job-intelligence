@@ -58,3 +58,10 @@ Inhuurdesk is bewezen op het duurzame ingestpad (`curated.durable_job` + `POLLER
 **End-to-end op de echte pipeline** (fixture-client, `ji_test_iso_*`-Postgres): offer → `runDurableBronJobConsumer` → `runBronIngestPipeline` → observaties, `source_record`s en curated `aanvraag`-rijen; gefaalde run → herval (`reopenFailed`, fence +1) → resume vanaf checkpoint; abort mid-item → run `failed` (persistence-abort is nooit "benign", CTP-490) → retake leest de staart alsnog — geen verlies, exact-één. Bewijs: `apps/worker/src/poller/feed-cohort.integration.spec.ts` (6 specs, groen), meegecommit als test-only bewijs — `apps/worker` viel buiten de lane-owned paths, dus deze lane raakt daar bewust geen productiecode, alleen deze spec.
 
 **Canary en rollback:** eerst `POLLER_DURABLE_BRONNEN=tenderned`, dan `,inhuurdesk` toevoegen — één bron tegelijk. Rollback = slug uit de vlag halen; in-flight jobs lopen leeg, er ontstaat geen dubbele scheduling (`main.ts` returnt voor de inline poll). Geen dataverlies geclaimd buiten het bovenstaande bewijs.
+
+## Voorwaarden
+
+- robots.txt: www.inhuurdesk.nl: HTTP 200, geen Disallow op connectorpaden (/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: niet gevonden
+- Besluit: `toegestaan`
+- Besluitnemer en datum: Ryan (operatorbesluit 2026-09-03, live testimport productie)

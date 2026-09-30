@@ -42,6 +42,13 @@ Consultantnaam, consultant-e-mail en consultantcategorie worden niet genormalise
 - `robots.txt` staat alles toe, noemt de sitemap en heeft geen crawl-delay.
 - Een gebruikslicentie of bruikbare ToS-uitkomst staat niet in de probe. Houd `voorwaarden_status: te_toetsen` vóór activatie.
 
+## Voorwaarden
+
+- robots.txt: www.harveynash.nl: HTTP 200, geen Disallow op connectorpaden (/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: zie "Licentie en voorwaarden" hierboven
+- Besluit: `toegestaan`
+- Besluitnemer en datum: Ryan (operatorbesluit 2026-09-03, live testimport productie)
+
 ## Risico's
 
 1. Het private endpoint kan zonder aankondiging wijzigen of verdwijnen.

@@ -25,7 +25,9 @@ export const harveynash = {
   seed: {
     crawlDelayMs: 1500,
     methode: "json-api",
-    voorwaardenStatus: "te_toetsen",
+    // Operatorbesluit 2026-09-03 (live testimport productie); bewijs in
+    // docs/sources/harveynash.md "Voorwaarden" + robots-probe scripts/probe-source-voorwaarden.ts.
+    voorwaardenStatus: "toegestaan",
   },
   slug: "harveynash",
 } satisfies SourceDefinition<"harveynash">;

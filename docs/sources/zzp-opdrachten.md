@@ -78,6 +78,13 @@ bouwprojectmanager `2026-09-16T20:13:08.775Z`, woonfraude `2026-09-16T20:13:25.6
 `listingHashCoversDetail: false`: sitemapmetadata bevat alleen URL/lastmod en
 niet de JobPosting-body. Known hashes worden daarom niet doorgegeven.
 
+## Voorwaarden
+
+- robots.txt: www.zzp-opdrachten.nl: HTTP 200, geen Disallow op connectorpaden (/, /vacatures/vacature-bouwprojectmanager-708001/, /vacatures/vacature-jurist-707983/, /vacatures/vacature-woonfraude-specialist-710585/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: niet gevonden
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)
+
 ## Canary en release
 
 De gebatchte discovery activeert pas in productie zodra de duurzame poller de

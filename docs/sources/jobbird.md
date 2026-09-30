@@ -45,3 +45,10 @@ Fixture-captures: listing `2026-09-16T20:17:34.127Z`, inkoper
 
 `listingHashCoversDetail: false`: listingmetadata dekt de detail-JobPosting
 niet. Known hashes worden daarom niet doorgegeven.
+
+## Voorwaarden
+
+- robots.txt: www.jobbird.com: HTTP 200, geen Disallow op connectorpaden (/nl/dienstverband/, /nl/vacature/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: niet gevonden
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)

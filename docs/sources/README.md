@@ -9,6 +9,7 @@ Every ingestable bron is one entry in the source registry: `packages/application
 3. Definition: `packages/application/src/sources/<slug>.ts` exporting a `SourceDefinition` (`slug`, `naam`, `bronId`, `liveEnv`, `seed`, `createConnector`, `normalise`). Copy `inhuurdesk.ts` as the template. `naam` is free-form display text ("Need Staffing IT" is fine); the bron row has no slug column, so `resolveSourceByNaam` matches a row's `naam` case-insensitively against this field — keep it unique across sources.
 4. Registry: add `<slug>,` to `SOURCES` in `packages/application/src/sources/index.ts`. Keys are sorted at runtime, so order does not matter.
 5. Env: add the `liveEnv` name (e.g. `NEEDSTAFFING_LIVE=`) to `apps/worker/.env.example` next to `TENDER_NED_LIVE` / `INHUURDESK_LIVE`. The smoke script loads `apps/server/.env` then `apps/worker/.env` (see `docs/runbooks/slice-a-live-smoke.md`); leaving the flag unset keeps the connector on fixtures.
+6. Voorwaarden: `docs/sources/<slug>.md` must carry a `## Voorwaarden` section (robots.txt probe, ToS, `Besluit`, besluitnemer) — `voorwaarden.spec.ts` asserts the `- Besluit:` value equals `seed.voorwaardenStatus`, so the doc and the seed can never drift.
 
 The smoke seed writes `mappingRef = fixtures/connectors/<slug>/mapping.json` on the bron row. That path is a reference only — nothing reads it today, and no source ships one yet.
 

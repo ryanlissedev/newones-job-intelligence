@@ -47,3 +47,10 @@ staan.
 De fixture → connector → normalise → curate-assertie staat niet in deze
 source-test: curatie vereist live Postgres via `createBronRuntimeClient` en
 zou bestanden onder `apps/worker`/infra nodig hebben, buiten deze lane.
+
+## Voorwaarden
+
+- robots.txt: werkenbij.rijkswaterstaat.nl: HTTP 200, geen Disallow op connectorpaden (/, /vacatures/adviseur-assetmanagement-rivierbodem/, /vacatures/adviseur-waterveiligheid/, /vacatures/jurist-handhaving/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: niet gevonden
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)

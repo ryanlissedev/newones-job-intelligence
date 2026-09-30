@@ -43,6 +43,13 @@ op deze steekproef; niet gemapt.
 - `robots.txt` staat listing en details toe, schrijft `Crawl-delay: 5` voor en sluit `/opdrachten/*or-`, `*?order=` en `*?_sft_` uit.
 - Een gebruikslicentie of bruikbare ToS-uitkomst staat niet in de probe. Houd `voorwaarden_status: te_toetsen` vóór activatie.
 
+## Voorwaarden
+
+- robots.txt: www.bluetrail.nl: HTTP 200, geen Disallow op connectorpaden (/, /opdrachten/Interim/adviseur-privacy-ibd/, /opdrachten/Interim/adviseur-security-privacy/, /opdrachten/Interim/architect-ict-en-informatielandschap/, /opdrachten/Interim/ciam-tester/, /opdrachten/Interim/ontwikkelmanager/, /opdrachten/Interim/systeembeheerder/, /opdrachten/Interim/teamlead-procesbeschrijver-sr/), Crawl-delay 5, geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: zie "Licentie en voorwaarden" hierboven
+- Besluit: `toegestaan`
+- Besluitnemer en datum: Ryan (operatorbesluit 2026-09-03, live testimport productie)
+
 ## Risico's
 
 1. `baseSalary` is onbetrouwbaar en mag niet als tarief worden genormaliseerd.
@@ -72,7 +79,6 @@ Bestaande rijen:
 
 - `opdrachtgever_naam` herstelt bij de eerstvolgende poll. De eindklant wordt in de connector uit de beschrijving gehaald, en `parserVersion` `bluetrail/v3` verandert de hash van elke rij, zodat curate de nieuwe draftwaarde overneemt. Opdrachten die al uit de sitemap verdwenen zijn houden de bemiddelaar. `renormalise-from-raw` helpt hier niet: de opgeslagen raw bevat de eindklant nog niet. Bekende beperking: curate behoudt de bestaande `dedup_groep_id`, dus zo'n rij blijft gegroepeerd onder de bemiddelaar; cross-source dedup met dezelfde opdracht elders pakt alleen nieuwe rijen.
 - Het opvultarief herstelt niet vanzelf, want een onbekende draftwaarde overschrijft niets. `bun run backfill:renormalise-from-raw --bron bluetrail` wist alleen BlueTrail-rijen met exact min = max = 100, eenheid uur, zonder tarief-verrijking in `curated.aanvraag_enrichment`, én een draft zonder tarief (CTP-603). De kopie in `bron_specifiek` gaat mee.
-
 
 ## Durable JSON-LD-cohort (CTP-630, bewezen 2026-09-21)
 

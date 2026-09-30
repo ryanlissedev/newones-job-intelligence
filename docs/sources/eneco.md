@@ -38,3 +38,10 @@ Eneco is bewezen op het duurzame ingestpad (`curated.durable_job` + `POLLER_DURA
 **UI-bewijs (geseedde stack):** wegwerp-DB `ji_ctp637_visual_l3a` (aangemaakt én gedropt door deze lane), gesaaid via het echte duurzame pad met Manticore-drain, API :3000 + web :3001 zonder fixtures: `/jobs` toont in de Bron-facet `Eneco 3`; `?source=eneco` rendert 3 rijen. Captures: `/tmp/ctp637-visual/`.
 
 **Canary en rollback:** `POLLER_DURABLE_BRONNEN` per bron toevoegen, één tegelijk, ná de CTP-630-cohort. Rollback = slug uit de vlag halen; in-flight jobs lopen leeg, geen dubbele scheduling. `ENECO_LIVE` blijft uit — fixture-only bewijs. Operator-canary en release-gate blijven open.
+
+## Voorwaarden
+
+- robots.txt: www.werkenbijeneco.nl: HTTP 200, geen Disallow op connectorpaden (/, /vacatures/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: niet gevonden
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)

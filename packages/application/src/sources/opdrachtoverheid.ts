@@ -31,7 +31,9 @@ export const opdrachtoverheid = {
   seed: {
     crawlDelayMs: 1000,
     methode: "json-api",
-    voorwaardenStatus: "te_toetsen",
+    // Operatorbesluit 2026-09-03 (live testimport productie); bewijs in
+    // docs/sources/opdrachtoverheid.md "Voorwaarden" + robots-probe scripts/probe-source-voorwaarden.ts.
+    voorwaardenStatus: "toegestaan",
   },
   slug: "opdrachtoverheid",
 } satisfies SourceDefinition<"opdrachtoverheid">;

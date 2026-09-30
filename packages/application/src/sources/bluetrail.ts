@@ -31,7 +31,9 @@ export const bluetrail = {
   seed: {
     crawlDelayMs: 5000,
     methode: "json-ld",
-    voorwaardenStatus: "te_toetsen",
+    // Operatorbesluit 2026-09-03 (live testimport productie); bewijs in
+    // docs/sources/bluetrail.md "Voorwaarden" + robots-probe scripts/probe-source-voorwaarden.ts.
+    voorwaardenStatus: "toegestaan",
   },
   slug: "bluetrail",
 } satisfies SourceDefinition<"bluetrail">;

@@ -59,6 +59,13 @@ de projectcrawl-delay van 2 seconden.
 `listingHashCoversDetail: false` — het listing-item bevat alleen de URL; alle
 detailvelden (tarief, uren, contact, label_block) zitten op de detailpagina.
 
+## Voorwaarden
+
+- robots.txt: werkenbij.circle8.nl: HTTP 200, geen Disallow op connectorpaden (/, /jobs/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: niet gevonden
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)
+
 ## Contactpersonen en PII
 
 De "Contact"-kaart publiceert naam + functietitel; de vacancy-slotzin het

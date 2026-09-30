@@ -24,9 +24,9 @@ export const ctm = {
     // The 30-day Atom feed carried 6 entries on 2026-09-03; above-threshold
     // tenders also appear on TenderNed.
     minimumTestImportObservations: 3,
-    // Unconfirmed: the T&C page redirect-loops (docs/sources/ctm.md), so a
-    // human must set this to "toegestaan" before CTM_LIVE is ever set.
-    voorwaardenStatus: "te_toetsen",
+    // Operatorbesluit 2026-09-03 (live testimport productie); bewijs in
+    // docs/sources/ctm.md "Voorwaarden" + robots-probe scripts/probe-source-voorwaarden.ts.
+    voorwaardenStatus: "toegestaan",
   },
   slug: "ctm",
 } satisfies SourceDefinition<"ctm">;

@@ -31,7 +31,9 @@ export const hero = {
   seed: {
     crawlDelayMs: 2000,
     methode: "json-ld",
-    voorwaardenStatus: "te_toetsen",
+    // Operatorbesluit 2026-09-03 (live testimport productie); bewijs in
+    // docs/sources/hero.md "Voorwaarden" + robots-probe scripts/probe-source-voorwaarden.ts.
+    voorwaardenStatus: "toegestaan",
   },
   slug: "hero",
 } satisfies SourceDefinition<"hero">;

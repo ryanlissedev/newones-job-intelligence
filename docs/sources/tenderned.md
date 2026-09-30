@@ -55,6 +55,13 @@ Status: **klaar om te bouwen** — eerste nieuwe bron; rung 1 (officiële API, C
 - data.overheid.nl `package_show` (id `aankondigingen-van-overheidsopdrachten---tenderned`): `license_id` = `creativecommons.org/publicdomain/zero/1.0/deed.nl`, `license_title` **CC-0 (1.0)**. Noot: "deze Webservice [kan] zonder voorafgaande kennisgeving gewijzigd worden"; er is ook een geauthenticeerde XML-API (credentials via functioneelbeheer@tenderned.nl, swagger op `/info/swagger/`).
 - Gebruiksvoorwaarden (rev. 19-11-2025): "Alle aankondigingen op het aankondigingenplatform zijn openbaar" en "De openbare gegevens … zijn ook beschikbaar als dataset." §16 legt IE-rechten op databestanden bij de Staat — lichte spanning met CC-0; geen rate-limit- of attributieclausule. Geen blokkade voor activering; noteer in het bronregister als `voorwaarden_status: toegestaan (CC-0, §16 genoteerd)`.
 
+## Voorwaarden
+
+- robots.txt: www.tenderned.nl: HTTP 200, geen Disallow op connectorpaden (/papi/tenderned-rs-tns/v2/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: zie "Licentie en voorwaarden" hierboven
+- Besluit: `toegestaan`
+- Besluitnemer en datum: Ryan (operatorbesluit 2026-09-03, live testimport productie)
+
 ## Risico's
 
 1. API "kan zonder kennisgeving wijzigen" → JSON-schema-check in staging (JI-KWA-01).

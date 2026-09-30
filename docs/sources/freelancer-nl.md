@@ -50,6 +50,13 @@ de expliciete HTML DOM-velden; hij gebruikt geen JSON-LD-paden.
 - De bronregistratie gebruikt `crawlDelayMs: 2000` en live requests sturen een
   identificerende, bescheiden User-Agent.
 
+## Voorwaarden
+
+- robots.txt: freelancer.nl: HTTP 200, geen Disallow op connectorpaden (/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: zie "Robots, voorwaarden en politeness" hierboven
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)
+
 ## Known-hash short-circuit
 
 `listingHashCoversDetail: false`. Een listing-hash kan de detailbeschrijving,

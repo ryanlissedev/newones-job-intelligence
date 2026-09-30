@@ -39,3 +39,10 @@ false` en worden known hashes niet doorgestuurd. `crawlDelayMs` is 2000 en
 HTTP-opnames; strips zijn uitsluitend mechanisch (scripts behalve
 `ld+json`/`vike_pageContext`, style, svg, nav) en contact-e-mail/telefoon is
 geredacteerd.
+
+## Voorwaarden
+
+- robots.txt: media.techniekwerkt.nl: HTTP 200, geen Disallow op connectorpaden (/sitemaps/, /nl/vacature/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: niet gevonden
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)

@@ -47,9 +47,10 @@ export const mercell = {
     crawlDelayMs: 1000,
     methode: "json-api",
     // s2c.mercell.com robots.txt is `Disallow: /` for the whole site while the
-    // JSON API is technically open; the owner waived ToS for this POC
-    // (CTP-570). Decision recorded in docs/sources/mercell.md.
-    voorwaardenStatus: "toegestaan",
+    // JSON API is technically open; the owner waived ToS for the POC only
+    // (CTP-570) — a policy decision for Robbie is still open, so the seed is
+    // `te_toetsen` again. Decision recorded in docs/sources/mercell.md.
+    voorwaardenStatus: "te_toetsen",
   },
   slug: "mercell",
 } satisfies SourceDefinition<"mercell">;

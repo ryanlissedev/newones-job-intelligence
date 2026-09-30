@@ -29,3 +29,10 @@ toegang toe en de disclaimer bevat geen scraping-clausule. De drie vastgelegde
 detailpagina's zijn echte HTTP-opnames; XML/HTML-strips zijn uitsluitend
 mechanisch uitgevoerd. Recruitercontactblokken zijn uit de fixtures verwijderd;
 de JobPosting-beschrijvingen zelf bevatten in deze samples geen recruitercontact.
+
+## Voorwaarden
+
+- robots.txt: werkenbij.enexis.nl: HTTP 200, geen Disallow op connectorpaden (/, /vacatures/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: niet gevonden
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)

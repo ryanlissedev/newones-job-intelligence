@@ -25,7 +25,9 @@ export const needstaffing = {
   seed: {
     crawlDelayMs: 2000,
     methode: "html",
-    voorwaardenStatus: "te_toetsen",
+    // Operatorbesluit 2026-09-03 (live testimport productie); bewijs in
+    // docs/sources/needstaffing.md "Voorwaarden" + robots-probe scripts/probe-source-voorwaarden.ts.
+    voorwaardenStatus: "toegestaan",
   },
   slug: "needstaffing",
 } satisfies SourceDefinition<"needstaffing">;

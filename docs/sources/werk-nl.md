@@ -106,6 +106,13 @@ bewezen; **productie-GO is een aparte juridische beslissing** — daarom
 `te_toetsen` en geen `toegestaan`. Zie `inventory/boards-route-wave2.md`
 (art. 9/13 citaten) en `inventory/browser-poc-wave.md` (technisch bewijs).
 
+## Voorwaarden
+
+- robots.txt: www.werk.nl: HTTP 200, geen Disallow op connectorpaden (/werkzoekenden/mijn-werkmap/kia/publiek/zoekenvacatures/, /nl/vacatures/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: zie "Juridisch" hierboven
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)
+
 ## Operatie
 
 Een volledige sweep = ~240k details + ~12k listingpagina's. `crawlDelayMs`

@@ -50,3 +50,10 @@ crawlt geen filters. De seed gebruikt een crawl delay van 2000 ms.
 `listingHashCoversDetail: false`: sitemapmetadata beschrijft de URL-entry en
 niet de JobPosting-body. Known hashes worden daarom niet naar de connector
 doorgegeven, zodat wijzigingen op detailpagina's niet worden overgeslagen.
+
+## Voorwaarden
+
+- robots.txt: werkenbij.tbi.nl: HTTP 200, geen Disallow op connectorpaden (/, /vacatures/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: niet gevonden
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)

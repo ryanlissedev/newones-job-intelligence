@@ -38,3 +38,10 @@ CMS-paden (`/Admin/`, `/bin/` e.a.). De vijf vastgelegde detailpagina's zijn
 echte HTTP-opnames; strips zijn mechanisch (`--no-defaults`, alleen scripts
 zonder `data:`-src plus style/svg/nav/footer) en contact-telefoonnummers zijn
 geredacteerd.
+
+## Voorwaarden
+
+- robots.txt: www.werkenbijessent.nl: HTTP 200, geen Disallow op connectorpaden (/, /nl/vacatures/customer-services/, /nl/vacatures/engineering/, /nl/vacatures/vacatures/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: niet gevonden
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)

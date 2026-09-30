@@ -46,6 +46,13 @@ bevat geen crawlverbod voor opdrachten. De AVG-geautomatiseerde-besluitvorming-
 tekst is geen crawlverbod; `voorwaardenStatus` blijft **`te_toetsen`** vóór
 activatie.
 
+## Voorwaarden
+
+- robots.txt: tenmonks.nl: HTTP 200, geen Disallow op connectorpaden (/, /opdrachten/34350/data-analist/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: zie "Robots en voorwaarden" hierboven
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)
+
 ## Overlap, deduplicatie en known hashes
 
 TenMonks is geen **ALIAS** van Opdrachtoverheid; het is een peer broker naast

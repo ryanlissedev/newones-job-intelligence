@@ -34,3 +34,10 @@ false` en worden known hashes niet doorgestuurd. `crawlDelayMs` is 2000 en
 expliciet en disallowed alleen `*qtvc=`-queryvarianten. De drie vastgelegde
 detailpagina's zijn echte HTTP-opnames; strips zijn mechanisch (defaults +
 `img`, dat ~250KB base64-JPEG's droeg) en contact-e-mails zijn geredacteerd.
+
+## Voorwaarden
+
+- robots.txt: careers.tennet.eu: HTTP 200, geen Disallow op connectorpaden (/nl_NL/careers/, /nl_NL/careers/JobDetail/Operating-Engineer-Electrical-Auxiliary-Automation-Expat-EU-Resident-Malaysia-Johor-Bahru/, /nl_NL/careers/JobDetail/Power-System-EMT-Specialist/, /nl_NL/careers/JobDetail/Toezichthouder-Transmission-Lines-Brabant/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: niet gevonden
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)

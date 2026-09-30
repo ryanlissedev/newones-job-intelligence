@@ -66,3 +66,10 @@ beperking via robots) → `voorwaardenStatus: te_toetsen`, `crawlDelayMs` 2000,
 
 Fixtures: `tools/fixtures/record.ts`, standaardstrips. Op de detailpagina's
 staan recruiter-contactgegevens; e-mail is mechanisch geredigeerd.
+
+## Voorwaarden
+
+- robots.txt: planetinterim.nl: HTTP 200, geen Disallow op connectorpaden (/, /beleidsadviseur-informatisering-ciso-bu/538233/p13/, /data-regisseur-bi-specialist/538587/p13/, /informatiemanager-crisisbeheersing/538704/p13/), geprobed 2026-09-25
+- ToS/gebruiksvoorwaarden: zie "Robots, voorwaarden en fixtures" hierboven
+- Besluit: `te_toetsen`
+- Besluitnemer en datum: open voor Robbie (geen besluit vastgelegd)
