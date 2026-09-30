@@ -54,6 +54,16 @@ export {
 } from "./silence";
 export { createSilenceAlertWriter } from "./writer";
 export {
+  AlertDeliveryError,
+  createStderrAlertSink,
+  createWebhookAlertSink,
+  deliverOpenedAlert,
+  toAlertNotification,
+  type AlertNotification,
+  type AlertSink,
+} from "./alert-sink";
+export { createAlertEscalator } from "./escalation";
+export {
   buildSilenceDedupeKeyEffect,
   deriveBronHealthEffect,
   deriveBronHealthOverviewEffect,

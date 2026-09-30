@@ -17,6 +17,9 @@ import {
   buildDiscoveryFloorMessage,
   buildSilenceDedupeKey,
   createSilenceAlertWriter,
+  createStderrAlertSink,
+  createWebhookAlertSink,
+  deliverOpenedAlert,
   evaluateDiscoveryFloor,
   observeConnectorRunSilence,
 } from "@ji/application/observability";
@@ -57,7 +60,11 @@ import type { BronId, ScrapeRunId } from "@ji/domain";
 import { ManticoreSearchEngine } from "@ji/search";
 import { and, eq } from "drizzle-orm";
 
-import { readSearchProjectorMode, requireManticoreUrl } from "./poll-bron-env";
+import {
+  readAlertWebhookUrl,
+  readSearchProjectorMode,
+  requireManticoreUrl,
+} from "./poll-bron-env";
 import { withAbortFinalization } from "./poller/abort-finalization";
 import { redactErrorMessage } from "./poller/source-log";
 import { reportTelemetryCallback } from "./poller/telemetry-callback";
@@ -683,6 +690,13 @@ export const handleSilenceAndHealth = async (
   const lastSuccessAt = baseline.length > 0 ? (baseline[0]?.at ?? null) : null;
   const bronNaam = await resolveBronNaam(pollResult, runtime);
 
+  // CTP-653: resolve the delivery channel BEFORE the transaction — a
+  // malformed URL fails the run loudly — but deliver only AFTER commit
+  // (below). A webhook POST inside `withSourceHealthTransaction` would run
+  // under the source-health row lock and could page the operator about an
+  // alert row that rolled back.
+  const alertWebhookUrl = readAlertWebhookUrl();
+
   const result = await runtime.withSourceHealthTransaction(
     async ({ alerts: transactionAlerts, bronHealth: transactionHealth }) => {
       // Hold the source health row lock across the ownership gate, alert
@@ -727,6 +741,28 @@ export const handleSilenceAndHealth = async (
       pollResult.metrics,
       pollResult
     );
+  }
+
+  // Post-commit delivery: the transaction resolved, so the alert row exists.
+  // Re-read it through the non-transactional store — never deliver the
+  // in-transaction snapshot.
+  if (result.created && result.alertId) {
+    const alert = await runtime.alerts?.getById(result.alertId);
+    if (alert) {
+      const sink = alertWebhookUrl
+        ? createWebhookAlertSink({ url: alertWebhookUrl })
+        : createStderrAlertSink();
+      await deliverOpenedAlert(sink, alert);
+    } else {
+      process.stderr.write(
+        `${JSON.stringify({
+          alertId: result.alertId,
+          bronId: pollResult.bronId,
+          bronSlug: pollResult.bronSlug,
+          event: "alert_unrouted",
+        })}\n`
+      );
+    }
   }
 
   return {

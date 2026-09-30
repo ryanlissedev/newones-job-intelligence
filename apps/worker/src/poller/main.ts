@@ -1,15 +1,5 @@
 import { hostname } from "node:os";
 
-import {
-  describeEgressConfig,
-  RunAlreadyInProgressError,
-} from "@ji/connectors";
-import { abandonStaleRuns } from "@ji/db/abandon-stale-runs";
-import { curateScrapeRun } from "@ji/db/curate-scrape-run";
-import { writeHeartbeat } from "@ji/db/process-heartbeat";
-import { waitForAdvisoryLock } from "@ji/db/process-lock";
-import { pruneProcessedOutboxEvents } from "@ji/db/prune-outbox-events";
-import type { BronId, ScrapeRunId } from "@ji/domain";
 /**
  * On-box poll and curate process (runbook: docs/runbooks/onbox-poller.md).
  *
@@ -22,8 +12,26 @@ import type { BronId, ScrapeRunId } from "@ji/domain";
  * 900 s task ceiling to hit. Draining the search outbox stays with the on-box
  * projector (SEARCH_PROJECTOR is pinned to onbox).
  */
+import {
+  createAlertEscalator,
+  createWebhookAlertSink,
+} from "@ji/application/observability";
+import {
+  describeEgressConfig,
+  RunAlreadyInProgressError,
+} from "@ji/connectors";
+import { abandonStaleRuns } from "@ji/db/abandon-stale-runs";
+import { curateScrapeRun } from "@ji/db/curate-scrape-run";
+import { writeHeartbeat } from "@ji/db/process-heartbeat";
+import { waitForAdvisoryLock } from "@ji/db/process-lock";
+import { pruneProcessedOutboxEvents } from "@ji/db/prune-outbox-events";
+import type { BronId, ScrapeRunId } from "@ji/domain";
 import { getPollerEnv } from "@ji/env/poller";
 
+import {
+  readAlertEscalationHours,
+  readAlertWebhookUrl,
+} from "../poll-bron-env";
 import { createPollBronRuntime, runBronIngestPipeline } from "../poll-bron-run";
 import type { PollBronRuntime } from "../poll-bron-run";
 import type { SliceABronSlug } from "../slice-a-bronnen";
@@ -406,6 +414,18 @@ const main = async (): Promise<void> => {
         const ingestQueue = queueTablePresent
           ? await createBronIngestQueue(pollerEnv.DATABASE_URL)
           : undefined;
+        // CTP-653: escalation only runs when a real operator channel is
+        // configured; without ALERT_WEBHOOK_URL the stderr sink would just
+        // repeat the same alert_unrouted line every tick.
+        const alertWebhookUrl = readAlertWebhookUrl();
+        const alertEscalator =
+          alertWebhookUrl !== null && activeRuntime.alerts !== undefined
+            ? createAlertEscalator({
+                afterMs: readAlertEscalationHours() * 3_600_000,
+                alerts: activeRuntime.alerts,
+                sink: createWebhookAlertSink({ url: alertWebhookUrl }),
+              })
+            : null;
         let lastMaintenanceAt = 0;
         let lastEvaluatedAt = Date.now();
         try {
@@ -494,6 +514,26 @@ const main = async (): Promise<void> => {
                     ),
                   }
                 );
+                // CTP-653: re-notify open alerts older than
+                // ALERT_ESCALATION_HOURS. A failure is logged, never fatal —
+                // the escalator retries on the next tick.
+                if (alertEscalator) {
+                  try {
+                    const { escalated } = await alertEscalator.run();
+                    if (escalated.length > 0) {
+                      logLine(process.stdout, "poller_alerts_escalated", {
+                        count: escalated.length,
+                      });
+                    }
+                  } catch (error) {
+                    logLine(process.stderr, "poller_alert_escalation_failed", {
+                      message: redactErrorMessage(
+                        error instanceof Error ? error.message : String(error)
+                      ),
+                    });
+                  }
+                }
+
                 if (prunedOutbox > 0) {
                   logLine(process.stdout, "poller_outbox_pruned", {
                     count: prunedOutbox,

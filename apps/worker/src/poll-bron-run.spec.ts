@@ -129,7 +129,11 @@ describe("poll-bron runtime guards", () => {
 });
 
 const withEnvVar = async (
-  key: "SEARCH_PROJECTOR" | "MANTICORE_URL",
+  key:
+    | "SEARCH_PROJECTOR"
+    | "MANTICORE_URL"
+    | "ALERT_WEBHOOK_URL"
+    | "ALERT_ESCALATION_HOURS",
   value: string | undefined,
   run: () => Promise<void> | void
 ): Promise<void> => {
@@ -171,6 +175,43 @@ describe("SEARCH_PROJECTOR mode (RJC-387)", () => {
       expect(() => readSearchProjectorMode()).toThrow(
         'SEARCH_PROJECTOR must be "worker" or "onbox"'
       );
+    });
+  });
+
+  it("readAlertWebhookUrl returns null when unset and validates https (CTP-653)", async () => {
+    const { readAlertWebhookUrl } = await import("./poll-bron-env");
+    await withEnvVar("ALERT_WEBHOOK_URL", undefined, () => {
+      expect(readAlertWebhookUrl()).toBeNull();
+    });
+    await withEnvVar("ALERT_WEBHOOK_URL", "http://hooks.example.test/x", () => {
+      expect(() => readAlertWebhookUrl()).toThrow(
+        "ALERT_WEBHOOK_URL must be an https URL"
+      );
+    });
+    await withEnvVar("ALERT_WEBHOOK_URL", "http://localhost:8787/hook", () => {
+      expect(readAlertWebhookUrl()).toBe("http://localhost:8787/hook");
+    });
+    await withEnvVar(
+      "ALERT_WEBHOOK_URL",
+      "https://hooks.example.test/x",
+      () => {
+        expect(readAlertWebhookUrl()).toBe("https://hooks.example.test/x");
+      }
+    );
+  });
+
+  it("readAlertEscalationHours defaults to 4 and rejects non-positive values (CTP-653)", async () => {
+    const { readAlertEscalationHours } = await import("./poll-bron-env");
+    await withEnvVar("ALERT_ESCALATION_HOURS", undefined, () => {
+      expect(readAlertEscalationHours()).toBe(4);
+    });
+    await withEnvVar("ALERT_ESCALATION_HOURS", "0", () => {
+      expect(() => readAlertEscalationHours()).toThrow(
+        "ALERT_ESCALATION_HOURS must be a positive number"
+      );
+    });
+    await withEnvVar("ALERT_ESCALATION_HOURS", "12", () => {
+      expect(readAlertEscalationHours()).toBe(12);
     });
   });
 
@@ -899,7 +940,11 @@ describe("runBronIngestPipeline silence evaluation (RJC-409)", () => {
     writtenRecords: 0,
   };
 
-  const silenceRuntime = (alerts: AlertStore, bronHealth: BronHealthStore) => ({
+  const silenceRuntime = (
+    alerts: AlertStore,
+    bronHealth: BronHealthStore,
+    transaction?: PollBronRuntime["withSourceHealthTransaction"]
+  ) => ({
     alerts,
     bronHealth,
     bronPersistence: {
@@ -949,7 +994,93 @@ describe("runBronIngestPipeline silence evaluation (RJC-409)", () => {
     get runLifecycleStore(): never {
       return unusedSilenceProp("runLifecycleStore");
     },
-    withSourceHealthTransaction: ownedHealthTransaction(alerts, bronHealth),
+    withSourceHealthTransaction:
+      transaction ?? ownedHealthTransaction(alerts, bronHealth),
+  });
+
+  it("delivers the opened alert only after the health transaction commits", async () => {
+    const { MemoryAlertStore, MemoryBronHealthStore } =
+      await import("@ji/application/registry");
+    const { handleSilenceAndHealth } = await import("./poll-bron-run");
+
+    const alerts = new MemoryAlertStore();
+    const bronHealth = new MemoryBronHealthStore();
+    const calls: string[] = [];
+
+    const base = ownedHealthTransaction(alerts, bronHealth);
+    const runtime = silenceRuntime(alerts, bronHealth, async (operation) => {
+      calls.push("tx-begin");
+      const result = await base(operation);
+      calls.push("tx-commit");
+      return result;
+    });
+
+    const realFetch = globalThis.fetch;
+    // Object.assign keeps Bun's fetch statics on the recording stub, so the
+    // assignment stays type-correct without an assertion.
+    globalThis.fetch = Object.assign(() => {
+      calls.push("deliver");
+      return Promise.resolve(new Response("ok"));
+    }, realFetch);
+    try {
+      await withEnvVar(
+        "ALERT_WEBHOOK_URL",
+        "https://hooks.example.test/x",
+        async () => {
+          const result = await handleSilenceAndHealth(
+            silentPollResult,
+            runtime,
+            "poll"
+          );
+          expect(result?.created).toBe(true);
+        }
+      );
+    } finally {
+      globalThis.fetch = realFetch;
+    }
+
+    expect(calls).toEqual(["tx-begin", "tx-commit", "deliver"]);
+  });
+
+  it("never delivers when the health transaction throws", async () => {
+    const { MemoryAlertStore, MemoryBronHealthStore } =
+      await import("@ji/application/registry");
+    const { handleSilenceAndHealth } = await import("./poll-bron-run");
+
+    const alerts = new MemoryAlertStore();
+    const bronHealth = new MemoryBronHealthStore();
+    const calls: string[] = [];
+
+    // Simulates a rollback: the callback ran (alert row written inside the
+    // tx) but ownership was lost before commit.
+    const runtime = silenceRuntime(alerts, bronHealth, async (operation) => {
+      calls.push("tx-body");
+      await ownedHealthTransaction(alerts, bronHealth)(operation);
+      calls.push("tx-rollback");
+      throw new Error("ownership lost — transaction rolled back");
+    });
+
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = Object.assign(() => {
+      calls.push("deliver");
+      return Promise.resolve(new Response("ok"));
+    }, realFetch);
+    try {
+      await withEnvVar(
+        "ALERT_WEBHOOK_URL",
+        "https://hooks.example.test/x",
+        async () => {
+          await expect(
+            handleSilenceAndHealth(silentPollResult, runtime, "poll")
+          ).rejects.toThrow("rolled back");
+        }
+      );
+    } finally {
+      globalThis.fetch = realFetch;
+    }
+
+    expect(calls).toEqual(["tx-body", "tx-rollback"]);
+    expect(calls.includes("deliver")).toBe(false);
   });
 
   it("auto-resolves an open silence alert when a later poll has activity", async () => {

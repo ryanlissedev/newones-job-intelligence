@@ -36,3 +36,4 @@ De doorslaggevende redenen voor dedicated tabellen zijn:
 - `PostgresBronHealthStore` en `PostgresAlertStore` implementeren de store-interfaces direct tegen de Drizzle-schema-entiteiten.
 - `curated.audit_event` behoudt zijn zuivere rol als onveranderlijk auditlogboek.
 - `VOLATILE_STORE_ALLOWLIST` in `apps/server/src/assert-production-persistence.ts` verliest `alerts` en `bronHealth`, waardoor `assertProductionPersistence` groen blijft voor alle productiestores behalve het bewust in-memory gehouden `operatorRuns`.
+- CTP-653: de escalator houdt zijn escalated-id's proces-lokaal bij; een poller-restart kan een nog-open alert éénmalig opnieuw escaleren. Omdat `curated.alert` naast `acked_at` geen muteerbare kolom heeft, is een persistente `escalated_at` de follow-up als herescalatie bij restart een probleem wordt.
