@@ -85,6 +85,12 @@ zijn ongewijzigd — de migratie is een bewijslast, geen codewijziging.
 `https://eu.eu-supply.com/ctm/rss/Rss.ashx?days=30&b=CTMSOLUTION` → 200,
 ~8,7 KB Atom-feed; het `days=30`-venster bevatte 5 `<entry>`-elementen.
 
+**Activatie-drempel (CTP-649):** de 30-daagse Atom-feed droeg 6 entries op
+2026-09-03 — de default van 20 distincte observaties is onhaalbaar klein voor
+deze bron. De seed zet daarom `minimumTestImportObservations: 3`; tenders
+boven de CTM-drempel verschijnen ook op TenderNed, dus de dekking hangt niet
+op deze bron alleen.
+
 **Resume-contract** (`packages/connectors/src/ctm/durable-cohort-l3c.spec.ts`,
 8 specs): discovery is één volledige feed-window-read — `discover()` geeft
 alle entries terug met `hasMore: false` en een gevuld-maar-inert

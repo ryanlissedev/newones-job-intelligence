@@ -1601,6 +1601,65 @@ describe("durable bron runtime adapters", () => {
     }
   });
 
+  it("honours a per-source activation threshold below the default", async () => {
+    if (!available) {
+      expect(available).toBe(false);
+      return;
+    }
+    const client = postgres(applicationUrl, { max: 1 });
+    const database = drizzle(client, { schema });
+    const repository = new PostgresBronPersistence(database);
+    const bronId = crypto.randomUUID();
+    const testImportRunId = crypto.randomUUID();
+    const zeroRunId = crypto.randomUUID();
+    try {
+      await database.insert(bron).values({
+        categorie: "test",
+        id: bronId,
+        naam: `Small catalog ${bronId}`,
+        status: "deferred",
+        voorwaardenStatus: "toegestaan",
+      });
+      await database.insert(scrapeRun).values([
+        {
+          bronId,
+          geindigd: new Date(),
+          id: testImportRunId,
+          runKind: "test",
+          status: "succeeded",
+        },
+        {
+          bronId,
+          geindigd: new Date(),
+          id: zeroRunId,
+          runKind: "test",
+          status: "succeeded",
+        },
+      ]);
+      await persistActivationObservations(database, bronId, testImportRunId, 5);
+      await expect(
+        repository.activate({ bronId, testImportRunId })
+      ).rejects.toThrow("distinct persisted source records");
+      await expect(
+        repository.activate({
+          bronId,
+          minimumTestImportObservations: 5,
+          testImportRunId,
+        })
+      ).resolves.toMatchObject({ actief: true, status: "ready" });
+      await expect(
+        repository.activate({
+          bronId,
+          minimumTestImportObservations: 0,
+          testImportRunId: zeroRunId,
+        })
+      ).rejects.toThrow("positive integer");
+    } finally {
+      await database.delete(bron).where(eq(bron.id, bronId));
+      await client.end({ timeout: 5 });
+    }
+  });
+
   it("lists persisted operator state without exposing opaque secret references", async () => {
     if (!available) {
       expect(available).toBe(false);

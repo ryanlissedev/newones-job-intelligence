@@ -46,6 +46,13 @@ export interface SourceDefinition<Slug extends string = string> {
   seed: {
     crawlDelayMs: number;
     methode: string;
+    /**
+     * Overrides the activation guard's minimum distinct test-import
+     * observations for sources whose whole catalog is smaller than the
+     * default. It still guards against a zero/near-zero schema-drift
+     * import; never set it above the default.
+     */
+    minimumTestImportObservations?: number;
     voorwaardenStatus: VoorwaardenStatus;
   };
   slug: Slug;

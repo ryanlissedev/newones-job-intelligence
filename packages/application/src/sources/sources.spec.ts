@@ -1,6 +1,9 @@
 import { describe, expect, it } from "bun:test";
 
-import type { CreateSourceConnectorInput } from "./definition";
+import type {
+  CreateSourceConnectorInput,
+  SourceDefinition,
+} from "./definition";
 import {
   findSourceByNaam,
   resolveSourceByNaam,
@@ -52,6 +55,25 @@ describe("source registry", () => {
   it("gives every source a unique slug", () => {
     const slugs = Object.keys(SOURCES);
     expect(new Set(slugs).size).toBe(slugs.length);
+  });
+
+  it("keeps every activation-threshold override a positive integer below the default", () => {
+    for (const [slug, source] of Object.entries(SOURCES)) {
+      // SAFETY: SOURCES entries satisfy SourceDefinition via `satisfies`; the
+      // inferred literal seed shape drops the optional field when unset.
+      const minimum = (source.seed as SourceDefinition<string>["seed"])
+        .minimumTestImportObservations;
+      if (minimum === undefined) {
+        continue;
+      }
+      // 20 mirrors DEFAULT_MINIMUM_TEST_IMPORT_OBSERVATIONS in
+      // packages/db/src/bron-runtime.ts (@ji/db's env validation makes it
+      // unimportable here without a DATABASE_URL).
+      expect(
+        Number.isInteger(minimum) && minimum >= 1 && minimum < 20,
+        `${slug} seed.minimumTestImportObservations`
+      ).toBe(true);
+    }
   });
 });
 

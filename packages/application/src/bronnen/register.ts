@@ -33,6 +33,7 @@ export interface BronPersistence {
 export interface ActivateBronPersistenceInput {
   bronId: BronId;
   testImportRunId: string;
+  minimumTestImportObservations?: number;
 }
 
 const OPAQUE_SECRET_REF = /^(?:op|vault|trigger):\/\/[^\s/]+(?:\/[^\s]*)?$/u;
@@ -150,7 +151,11 @@ export type ActivateBronRegisterResult =
 
 export const activateBron = async (
   persistence: BronPersistence,
-  input: { bronId: BronId; testImportRunId: string }
+  input: {
+    bronId: BronId;
+    testImportRunId: string;
+    minimumTestImportObservations?: number;
+  }
 ): Promise<ActivateBronRegisterResult> => {
   const record = await persistence.findById(input.bronId);
   if (!record) {
@@ -167,6 +172,7 @@ export const activateBron = async (
     ok: true,
     record: await persistence.activate({
       bronId: input.bronId,
+      minimumTestImportObservations: input.minimumTestImportObservations,
       testImportRunId: input.testImportRunId,
     }),
   };

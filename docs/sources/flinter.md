@@ -53,6 +53,12 @@ Flinter is bewezen op het duurzame ingestpad (`curated.durable_job` +
 (CTM + Flinter + Freelancer.nl + Haert). De connector en source-definitie
 zijn ongewijzigd — de migratie is een bewijslast, geen codewijziging.
 
+**Activatie-drempel (CTP-649):** Flinter publiceert ~20 opdrachten en de
+connector weigert perm-/malformed items, dus een volledige test-import kan
+onder de default van 20 distincte observaties blijven. De seed zet daarom
+`minimumTestImportObservations: 10` — het schema-drift-gardrail blijft, alleen
+lager afgestemd op de echte catalogusgrootte.
+
 **Live-probe 2026-09-21:** `https://www.flinter.nl/opdrachten` → 200,
 ~117 KB SSR-listing; live telde de pagina 18 kaarten, de committed fixture
 bewaart er 2.

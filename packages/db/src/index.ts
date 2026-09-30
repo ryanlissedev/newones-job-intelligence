@@ -123,6 +123,7 @@ export {
   type RunMotianV1BackfillOptions,
 } from "./backfill-runner";
 export {
+  DEFAULT_MINIMUM_TEST_IMPORT_OBSERVATIONS,
   PostgresBronPersistence,
   PostgresObservationRecorder,
   PostgresRunStore,

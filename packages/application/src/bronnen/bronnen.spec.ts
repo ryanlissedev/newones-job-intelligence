@@ -203,11 +203,13 @@ describe("bron register", () => {
     };
     const result = await activateBron(persistence, {
       bronId: created.record.bronId,
+      minimumTestImportObservations: 5,
       testImportRunId: "test-run-1",
     });
     expect(result.ok).toBe(true);
     expect(activationInput).toEqual({
       bronId: created.record.bronId,
+      minimumTestImportObservations: 5,
       testImportRunId: "test-run-1",
     });
   });

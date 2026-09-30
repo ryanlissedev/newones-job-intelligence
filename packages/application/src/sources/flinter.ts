@@ -27,6 +27,10 @@ export const flinter = {
     // far less often than the JSON/XHR sources.
     crawlDelayMs: 3000,
     methode: "html",
+    // The site publishes ~20 items and the connector rejects
+    // permanent-employment/malformed items, so 19 persisted observations is
+    // a full catalog (see docs/sources/flinter.md).
+    minimumTestImportObservations: 10,
     voorwaardenStatus: "te_toetsen",
   },
   slug: "flinter",

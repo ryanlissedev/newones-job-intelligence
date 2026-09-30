@@ -46,9 +46,10 @@ export type BronRuntimeDatabase = PostgresJsDatabase<typeof schema>;
 export interface ActivateBronInput {
   bronId: BronId;
   testImportRunId: string;
+  minimumTestImportObservations?: number;
 }
 
-const MINIMUM_TEST_IMPORT_OBSERVATIONS = 20;
+export const DEFAULT_MINIMUM_TEST_IMPORT_OBSERVATIONS = 20;
 const HISTORICAL_POINTER_PAYLOAD_SCHEMA = z.object({
   observedAt: z.iso.datetime({ offset: true }),
   rawPayloadRef: z.string().trim().min(1),
@@ -274,7 +275,15 @@ export class PostgresBronPersistence implements BronPersistence {
   }
 
   activate(input: ActivateBronInput): Promise<BronRegisterRecord> {
+    const minimum =
+      input.minimumTestImportObservations ??
+      DEFAULT_MINIMUM_TEST_IMPORT_OBSERVATIONS;
     return this.database.transaction(async (tx) => {
+      if (!(Number.isInteger(minimum) && minimum >= 1)) {
+        throw new Error(
+          "minimumTestImportObservations must be a positive integer"
+        );
+      }
       const [testRun] = await tx
         .select({ id: scrapeRun.id })
         .from(scrapeRun)
@@ -301,10 +310,10 @@ export class PostgresBronPersistence implements BronPersistence {
             eq(aanvraagObservation.scrapeRunId, input.testImportRunId)
           )
         )
-        .limit(MINIMUM_TEST_IMPORT_OBSERVATIONS);
-      if (testObservations.length < MINIMUM_TEST_IMPORT_OBSERVATIONS) {
+        .limit(minimum);
+      if (testObservations.length < minimum) {
         throw new Error(
-          `A succeeded test-import with at least ${MINIMUM_TEST_IMPORT_OBSERVATIONS} distinct persisted source records is required for activation`
+          `A succeeded test-import with at least ${minimum} distinct persisted source records is required for activation`
         );
       }
 

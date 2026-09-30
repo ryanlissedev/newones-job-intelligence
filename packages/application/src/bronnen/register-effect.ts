@@ -48,7 +48,11 @@ export const mapPublicBronnenEffect = (
 /** Same Result wire as native `activateBron` (ok/reason); port throws → UseCaseFault. */
 export const activateBronEffect = (
   persistence: BronPersistence,
-  input: { bronId: BronId; testImportRunId: string }
+  input: {
+    bronId: BronId;
+    testImportRunId: string;
+    minimumTestImportObservations?: number;
+  }
 ): Effect.Effect<ActivateBronRegisterResult, UseCaseFault> =>
   Effect.tryPromise({
     catch: (cause) => mapUnknownToUseCaseFault(cause),
@@ -71,7 +75,11 @@ export const runCreateBron = (
 
 export const runActivateBron = (
   persistence: BronPersistence,
-  input: { bronId: BronId; testImportRunId: string },
+  input: {
+    bronId: BronId;
+    testImportRunId: string;
+    minimumTestImportObservations?: number;
+  },
   options?: RunUseCaseOptions
 ): Promise<ActivateBronRegisterResult> =>
   runUseCasePromise(activateBronEffect(persistence, input), options);

@@ -19,7 +19,7 @@ Leave `TENDER_NED_LIVE` and `INHUURDESK_LIVE` unset. Connectors read repo fixtur
 bun apps/worker/scripts/poll-bron-smoke.ts --bron all --test-import
 ```
 
-Expect small fixture counts (TenderNed 1, Inhuurdesk 2). Activation (`--activate`) will fail until a run persists ≥20 distinct source records.
+Expect small fixture counts (TenderNed 1, Inhuurdesk 2). Activation (`--activate`) fails until a run persists at least the source's activation threshold of distinct source records (default 20; `seed.minimumTestImportObservations` may lower it per source).
 
 ## Live smoke
 

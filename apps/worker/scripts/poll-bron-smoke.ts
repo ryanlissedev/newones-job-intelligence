@@ -115,6 +115,8 @@ const main = async (): Promise<void> => {
       if (activate) {
         const activation = await activateBron(runtime.bronPersistence, {
           bronId: definition.bronId,
+          minimumTestImportObservations:
+            definition.seed.minimumTestImportObservations,
           testImportRunId: scrapeRunId,
         });
         console.log(

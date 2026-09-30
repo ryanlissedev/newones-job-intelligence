@@ -21,6 +21,9 @@ export const ctm = {
   seed: {
     crawlDelayMs: 1500,
     methode: "feed",
+    // The 30-day Atom feed carried 6 entries on 2026-09-03; above-threshold
+    // tenders also appear on TenderNed.
+    minimumTestImportObservations: 3,
     // Unconfirmed: the T&C page redirect-loops (docs/sources/ctm.md), so a
     // human must set this to "toegestaan" before CTM_LIVE is ever set.
     voorwaardenStatus: "te_toetsen",
