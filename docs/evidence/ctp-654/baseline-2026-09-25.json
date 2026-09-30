@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "requirement": "AE9 / R21 / JI-037",
+  "environment": "ci-isolated-minio-fixture",
+  "composeProject": "catapulze-restore-drill",
+  "gitSha": "6ef83ea1b68048af9dfc06ebffa315875b2879d7",
+  "sourceVolume": "catapulze-postgres-restore-src",
+  "restoreVolume": "catapulze-postgres-restore-target",
+  "restorePort": 55432,
+  "backupName": "base_00000001000000000000000C",
+  "recoveryPointLsn": "0/D000000",
+  "durationMs": 29000,
+  "rtoMs": 9000,
+  "rpoObservedSeconds": 0,
+  "thresholds": { "maxRtoSeconds": 7200, "maxRpoSeconds": 900 },
+  "breached": [],
+  "markerTable": "u10_restore_marker",
+  "markerValue": "restore-drill-1790629289",
+  "result": "pass"
+}

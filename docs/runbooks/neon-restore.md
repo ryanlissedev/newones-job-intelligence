@@ -22,7 +22,7 @@ model this generalises from Docker to Neon).
 | Postgres (Neon) | This runbook | PITR branch restore (operator) + off-provider `pg_dump` (rehearsed here) |
 | Manticore | Not this runbook | Fully derived/rebuildable from Neon's outbox via reindex — see [search-projector.md](search-projector.md) and [search-schema-migration.md](search-schema-migration.md). Losing it is an outage, not data loss: `bun run search:new-generation` + reindex rebuilds it from Postgres. |
 | Raw connector payloads (S3/filesystem) | Not this runbook | Own lifecycle in the object store — see [raw-object-storage.md](raw-object-storage.md). Not covered by a Postgres dump; a raw payload loss does not lose curated data, only the ability to re-derive it from the original source response. |
-| The CI `postgres-restore-drill` job | [postgres-restore-v1.md](postgres-restore-v1.md) | Proves the local/CI Docker + wal-g path only. It says nothing about Neon and is not superseded by this runbook — keep running both. |
+| The CI `postgres-restore-drill` job | [postgres-restore-v1.md](postgres-restore-v1.md) | Proves the local/CI Docker + wal-g path only and enforces the numeric RPO/RTO grens from [ADR-0017](../adr/ADR-0017-rpo-rto-herstelgrens.md). It says nothing about Neon and is not superseded by this runbook — keep running both. |
 
 ## 1. PITR / branch restore (Neon-native) — NOT rehearsed this session
 

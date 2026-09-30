@@ -29,6 +29,7 @@ Deze map bevat de canonieke architectuurbesluiten die meerdere packages, uitvoer
 | [ADR-0014](ADR-0014-effectts-project-wide-adoption.md) | Accepted | Projectbrede EffectTS-adoptie, Effect Schema-eigenaarschap en fasering (CTP-456) |
 | [ADR-0015](ADR-0015-platform-integration-contracts.md) | Proposed | Modulegrenzen, scoped identities en versioned integratiecontracten (CTP-452) |
 | [ADR-0016](ADR-0016-candidate-intelligence-module-contract.md) | Proposed; startgate-items pending-owner-acceptance | Candidate Intelligence-modulecontract en toetsbare CI0-startgate (CTP-636, parent CTP-345) |
+| [ADR-0017](ADR-0017-rpo-rto-herstelgrens.md) | Proposed; grens pending-owner-acceptance | Numerieke RPO/RTO-grens voor JI-productie en een restore-drill die er hard op faalt (CTP-654, parent CTP-340) |
 
 ## Runbooks
 
