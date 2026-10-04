@@ -108,3 +108,4 @@ apps/*/.data/
 /demos/**/*.mp4
 /demos/**/*.webm
 /demos/**/*.meta.txt
+.e2e/
