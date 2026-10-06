@@ -6,7 +6,7 @@ import type {
   ConnectorDiscoverResult,
   DiscoverItem,
 } from "../contract";
-import { NotFoundFault } from "../effect-runtime";
+import { NotFoundFault, Server5xxFault } from "../effect-runtime";
 import { shouldSkipFetch } from "../known-hash";
 import type { KnownHashStore } from "../known-hash";
 import { hashContent } from "../object-store";
@@ -20,6 +20,15 @@ import type {
   JsonLdDiscoveryUrl,
   JsonLdFetchedPayload,
 } from "./types";
+
+/** The HTTP status of a 5xx detail failure, or null for any other error. */
+// oxlint-disable-next-line anti-slop/no-unknown-parameters -- catch-boundary classifier for whatever the client threw
+const serverErrorStatus = (error: unknown): number | null => {
+  if (error instanceof HttpStatusError || error instanceof Server5xxFault) {
+    return error.status >= 500 && error.status <= 599 ? error.status : null;
+  }
+  return null;
+};
 
 export interface JsonLdConnectorOptions {
   bronId: BronId;
@@ -234,6 +243,11 @@ export const createJsonLdConnector = (
     };
   };
 
+  const serverErrorPolicy = config.detailServerErrorPolicy;
+  let serverErrorRejections = 0;
+  // 5xx attempts per detail URL across the runner's retries of `fetch`.
+  const serverErrorAttempts = new Map<string, number>();
+
   return {
     bronId: options.bronId,
     discover: async (
@@ -290,6 +304,31 @@ export const createJsonLdConnector = (
         // A URL in the source's own sitemap can already be gone: reject that
         // item instead of failing the whole run (CTP-608: one dead
         // datajobs.nl detail URL was killing every 244-item poll).
+        // A sitemap URL whose page keeps failing with 5xx (Unica: one vacancy
+        // answers Laravel's "Server Error" on every request) is rejected
+        // after the retries above, up to a per-run ceiling; past it the
+        // source itself is down and the run fails.
+        // Earlier attempts rethrow, so the runner's retry policy repeats the
+        // fetch behind the crawl-delay limiter with its own backoff.
+        const status = serverErrorStatus(error);
+        const attempts =
+          status === null ? 0 : (serverErrorAttempts.get(entry.url) ?? 0) + 1;
+        if (status !== null) {
+          serverErrorAttempts.set(entry.url, attempts);
+        }
+        if (
+          serverErrorPolicy !== undefined &&
+          status !== null &&
+          attempts >= serverErrorPolicy.attempts &&
+          serverErrorRejections < serverErrorPolicy.maxRejectedPerRun
+        ) {
+          serverErrorRejections += 1;
+          return {
+            bronReferentie: item.bronReferentie,
+            reason: `detail page kept returning HTTP ${status} after ${attempts} attempts`,
+            status: "rejected" as const,
+          };
+        }
         const gone =
           (error instanceof HttpStatusError && error.status === 404) ||
           error instanceof NotFoundFault;
