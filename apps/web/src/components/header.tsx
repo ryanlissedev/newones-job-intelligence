@@ -46,7 +46,7 @@ const navigationItems = [
   {
     href: "/chat",
     icon: MessageSquare,
-    label: "Marktvragen",
+    label: "Assistent",
   },
 ] as const;
 

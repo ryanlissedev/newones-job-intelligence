@@ -6,7 +6,6 @@ import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
-import { CapabilityDiscovery } from "./capability-discovery";
 import { fixtureJobDataAdapter } from "./fixtures";
 import { JobActiveFilters } from "./job-active-filters";
 import { JobDetail } from "./job-detail";
@@ -37,7 +36,6 @@ import type {
   MarkeringReadbackState,
 } from "./markering-sync";
 import { validateBooleanPreview } from "./presentation";
-import type { CapabilityDiscoveryDocument } from "./rest-job-data-adapter";
 import {
   readStoredJobPageSize,
   readStoredResultsViewMode,
@@ -380,30 +378,16 @@ const JobResultsPanel = ({
 interface JobSearchPageProps {
   readonly actions?: JobIntelligenceActions;
   readonly adapter?: JobDataAdapter;
-  readonly loadCapabilityDiscovery?: () => Promise<CapabilityDiscoveryDocument>;
   readonly liveData?: boolean;
 }
-
-const CapabilityDiscoveryEntry = ({
-  load,
-}: {
-  readonly load?: () => Promise<CapabilityDiscoveryDocument>;
-}) =>
-  load ? (
-    <div className="flex justify-end">
-      <CapabilityDiscovery load={load} />
-    </div>
-  ) : null;
 
 const JobSearchPageContent = ({
   actions,
   adapter,
-  loadCapabilityDiscovery,
   liveData = false,
 }: {
   readonly actions?: JobIntelligenceActions;
   readonly adapter: JobDataAdapter;
-  readonly loadCapabilityDiscovery?: () => Promise<CapabilityDiscoveryDocument>;
   readonly liveData: boolean;
 }) => {
   const searchParams = useSearchParams();
@@ -850,7 +834,6 @@ const JobSearchPageContent = ({
       id="main-content"
       className="mx-auto w-full max-w-[1600px] space-y-5 px-4 py-6 sm:px-6 lg:px-8"
     >
-      <CapabilityDiscoveryEntry load={loadCapabilityDiscovery} />
       <JobSearchToolbar
         actions={actions}
         isCreatingSnapshot={isCreatingSnapshot}
@@ -1168,13 +1151,11 @@ const JobSearchPageContent = ({
 export const JobSearchPage = ({
   actions,
   adapter = fixtureJobDataAdapter,
-  loadCapabilityDiscovery,
   liveData = false,
 }: JobSearchPageProps) => (
   <JobSearchPageContent
     actions={actions}
     adapter={adapter}
-    loadCapabilityDiscovery={loadCapabilityDiscovery}
     liveData={liveData}
   />
 );

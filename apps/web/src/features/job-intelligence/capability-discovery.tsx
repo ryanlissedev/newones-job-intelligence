@@ -3,6 +3,7 @@
 import {
   Bot,
   CheckCircle2,
+  CircleHelp,
   CircleOff,
   FlaskConical,
   Loader2,
@@ -17,6 +18,7 @@ import type {
 import { runAsync } from "./run-async";
 
 interface CapabilityDiscoveryProps {
+  readonly compact?: boolean;
   readonly load: () => Promise<CapabilityDiscoveryDocument>;
 }
 
@@ -148,7 +150,10 @@ export const CapabilityMetadata = ({
   </dl>
 );
 
-export const CapabilityDiscovery = ({ load }: CapabilityDiscoveryProps) => {
+export const CapabilityDiscovery = ({
+  compact = false,
+  load,
+}: CapabilityDiscoveryProps) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [document, setDocument] = useState<CapabilityDiscoveryDocument | null>(
     null
@@ -184,10 +189,22 @@ export const CapabilityDiscovery = ({ load }: CapabilityDiscoveryProps) => {
       <button
         type="button"
         onClick={() => runAsync(open)}
-        className="inline-flex min-h-10 items-center gap-2 rounded-md border border-input bg-background px-3 text-sm font-medium outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+        aria-label="Mogelijkheden van de assistent"
+        title="Mogelijkheden (help / debug)"
+        className={
+          compact
+            ? "grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+            : "inline-flex min-h-10 items-center gap-2 rounded-md border border-input bg-background px-3 text-sm font-medium outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+        }
       >
-        <Bot aria-hidden="true" className="size-4" />
-        Wat kan de assistent?
+        {compact ? (
+          <CircleHelp aria-hidden="true" className="size-4" />
+        ) : (
+          <>
+            <Bot aria-hidden="true" className="size-4" />
+            <span>Mogelijkheden</span>
+          </>
+        )}
       </button>
       <dialog
         ref={dialogRef}
@@ -198,7 +215,7 @@ export const CapabilityDiscovery = ({ load }: CapabilityDiscoveryProps) => {
         <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-border bg-background p-5">
           <div>
             <h2 id="capability-title" className="text-xl font-semibold">
-              Wat kan de assistent?
+              Mogelijkheden
             </h2>
             <p
               id="capability-description"

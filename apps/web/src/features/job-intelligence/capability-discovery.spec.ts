@@ -29,7 +29,7 @@ describe("capability discovery entry point", () => {
       })
     );
 
-    expect(markup).toContain("Wat kan de assistent?");
+    expect(markup).toContain("Mogelijkheden");
     expect(markup).toContain("Mogelijkheden sluiten");
     expect(markup).toContain("dezelfde catalogus als REST en MCP");
   });
