@@ -8,8 +8,8 @@
 
 export const PLAN_PATH =
   "docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md";
-export const PLAN_PR = "https://github.com/ryanlissedev/rsp-job-intelligence/pull/4";
-export const REPO = "https://github.com/ryanlissedev/rsp-job-intelligence";
+export const PLAN_PR = "https://github.com/ryanlissedev/newones-job-intelligence/pull/4";
+export const REPO = "https://github.com/ryanlissedev/newones-job-intelligence";
 
 export const catalog = {
   meta: {
