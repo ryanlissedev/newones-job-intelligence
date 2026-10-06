@@ -153,8 +153,8 @@ printed):
 | `PRODUCTION_DEPLOY_TAILSCALE_ENABLED` | protected route switch; only the exact value `1` enables the ephemeral Tailscale step |
 | `TS_OAUTH_CLIENT_ID` | protected Tailscale OAuth client ID used only by the ephemeral-node action |
 | `TS_OAUTH_SECRET` | protected Tailscale OAuth client secret used only by the ephemeral-node action |
-| `PRODUCTION_API_URL` | public API origin; currently the `api.<hetzner-ip-dashed>.sslip.io` rehearsal origin |
-| `PRODUCTION_WEB_URL` | public web origin; currently the `app.<hetzner-ip-dashed>.sslip.io` rehearsal origin |
+| `PRODUCTION_API_URL` | public API origin; since the 2026-09-21 FQDN cutover the `ji-api-<suffix>.<hetzner-ip-dashed>.sslip.io` origin (the retired `api.<hetzner-ip-dashed>.sslip.io` rehearsal origin answers 503) |
+| `PRODUCTION_WEB_URL` | public web origin; since the 2026-09-21 FQDN cutover the `ji-web-<suffix>.<hetzner-ip-dashed>.sslip.io` origin (the retired `app.<hetzner-ip-dashed>.sslip.io` rehearsal origin answers 503) |
 | `PRODUCTION_PROJECTOR_SCHEMA_HASH` | expected search projector schema hash |
 | `PRODUCTION_PROJECTOR_RUNTIME_URL` | `${PRODUCTION_API_URL}/projector/runtime`; the API serves the projector's own runtime row (release SHA, container id, cycle count, heartbeat age) and answers 200 only while the heartbeat is under 60 seconds old |
 | `PRODUCTION_WEB_VERSION_URL` | `${PRODUCTION_WEB_URL}/version`; the web route handler echoes `APP_RELEASE_SHA`, else Coolify's `SOURCE_COMMIT`, and answers 503 without an identity |
