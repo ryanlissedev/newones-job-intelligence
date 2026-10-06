@@ -12,6 +12,8 @@ export default {
           },
           executable: "bun",
           log: ".e2e/logs/app.log",
+          // Local runs reuse a dev:web that is already up; CI ignores this.
+          reuseExisting: true,
           startupTimeout: 120_000,
         },
         url: "http://localhost:3001",
@@ -20,5 +22,6 @@ export default {
       name: "chromium",
     },
   ],
-  tests: "tests/**/*.e2e.ts",
+  // tests/live runs against a deployed origin via e2e.live.config.ts.
+  tests: ["tests/**/*.e2e.ts", "!tests/live/**"],
 } satisfies E2EConfig;
