@@ -6,11 +6,12 @@ import { promisify } from "node:util";
 const SHA_PATTERN = /^[a-f0-9]{40}$/u;
 const MAX_PAGES = 100;
 const MAX_COMPARISON_FILES = 300;
-// Each commit costs a PR lookup and each PR several more REST calls (files,
-// checks, workflow run). 150 commits keeps an ordinary release well inside
-// GITHUB_TOKEN's 1,000 REST requests per hour; GITHUB_REST_REQUEST_BUDGET
-// bounds what the cap cannot (paginated file lists of very large PRs).
-const MAX_RELEASE_COMMITS = 150;
+// Each commit costs a PR lookup and each PR about six more REST calls (files,
+// review check + its workflow run, CI smoke checks + their one workflow run,
+// reviewer permission). 100 commits stays inside GITHUB_REST_REQUEST_BUDGET
+// even when every commit is its own PR; the budget bounds what the cap cannot
+// (paginated file lists of very large PRs).
+const MAX_RELEASE_COMMITS = 100;
 // Every REST request (each pagination page included) is counted against this,
 // so a release that would exhaust the token blocks with an explicit
 // `github_request_budget_exceeded` instead of a rate-limit response mid-gate.
@@ -773,6 +774,8 @@ const requirePullRequestSmokes = async (
     `/repos/${repository}/commits/${headSha}/check-runs?per_page=100`,
     `PR #${pullRequestNumber} check runs`
   );
+  // The three smokes are jobs of one CI run; verify each run identity once.
+  const verifiedRuns = new Set<string>();
   for (const name of PULL_REQUEST_SMOKE_JOBS) {
     const context = `PR #${pullRequestNumber} ${name}`;
     // A re-run adds a newer check run with the same name; the newest decides.
@@ -795,6 +798,10 @@ const requirePullRequestSmokes = async (
         `${context} is not a successful or skipped completed check`
       );
     }
+    const runKey = latest.details_url ?? "";
+    if (runKey !== "" && verifiedRuns.has(runKey)) {
+      continue;
+    }
     await assertCheckWorkflowIdentity(
       github,
       repository,
@@ -803,6 +810,7 @@ const requirePullRequestSmokes = async (
       headSha,
       context
     );
+    verifiedRuns.add(runKey);
   }
 };
 

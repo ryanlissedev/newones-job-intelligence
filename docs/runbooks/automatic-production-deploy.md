@@ -179,7 +179,7 @@ The release diff (commit list and changed files) comes from the full
 --no-renames`, not from GitHub's compare API, which stops at 300 files and 250
 commits. GitHub's compare verdict (`status`, `ahead_by`, `behind_by`) must still
 agree with git, and the gate blocks with `comparison_unavailable`,
-`comparison_mismatch` or `comparison_truncated` (above 150 commits, the
+`comparison_mismatch` or `comparison_truncated` (above 100 commits, the
 `GITHUB_TOKEN` REST budget) instead of guessing. A rename reports both paths,
 so moving a file out of a manual-lane directory still routes to the manual lane. Every
 GitHub REST request the gate makes, pagination pages included, counts against a

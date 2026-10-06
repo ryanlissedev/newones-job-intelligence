@@ -895,6 +895,16 @@ describe("production release gate PR-head smokes (#433)", () => {
     ).resolves.toMatchObject({ reasons: [] });
   });
 
+  it("checks the shared CI run identity once per PR", async () => {
+    const harness = makeGateHarness({ mainSmokesSkipped: true });
+
+    await runReleaseGate(gateConfig(harness.fetchImpl));
+    const smokeRunLookups = harness.calls.filter((url) =>
+      /\/actions\/runs\/9[67]$/u.test(url)
+    );
+    expect(smokeRunLookups).toHaveLength(2);
+  });
+
   it("blocks a PR whose smoke failed", async () => {
     const harness = makeGateHarness({ prSmokeConclusion: "failure" });
 
@@ -996,7 +1006,7 @@ describe("production release gate git diff source", () => {
 
   it("fails closed above the REST-budget commit cap", async () => {
     const harness = makeGateHarness();
-    const commits = Array.from({ length: 151 }, (_, index) =>
+    const commits = Array.from({ length: 101 }, (_, index) =>
       index.toString(16).padStart(40, "0")
     );
 
