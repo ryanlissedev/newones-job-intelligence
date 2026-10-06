@@ -7,9 +7,15 @@ const SHA_PATTERN = /^[a-f0-9]{40}$/u;
 const MAX_PAGES = 100;
 const MAX_COMPARISON_FILES = 300;
 // Each commit costs a PR lookup and each PR several more REST calls (files,
-// checks, workflow run) against GITHUB_TOKEN's 1,000 requests per hour; 150
-// keeps a worst-case single-commit-PR release inside that budget.
+// checks, workflow run). 150 commits keeps an ordinary release well inside
+// GITHUB_TOKEN's 1,000 REST requests per hour; GITHUB_REST_REQUEST_BUDGET
+// bounds what the cap cannot (paginated file lists of very large PRs).
 const MAX_RELEASE_COMMITS = 150;
+// Every REST request (each pagination page included) is counted against this,
+// so a release that would exhaust the token blocks with an explicit
+// `github_request_budget_exceeded` instead of a rate-limit response mid-gate.
+// Kept under 1,000 to leave room for the deploy job's own calls.
+const GITHUB_REST_REQUEST_BUDGET = 900;
 const GIT_TIMEOUT_MS = 60_000;
 const GIT_MAX_BUFFER_BYTES = 64 * 1024 * 1024;
 const GITHUB_REQUEST_TIMEOUT_MS = 30_000;
@@ -59,6 +65,8 @@ export interface GateConfig {
   readonly fetchImpl?: FetchLike;
   readonly apiBaseUrl?: string;
   readonly reviewMode?: ReleaseGateReviewMode;
+  /** REST requests the gate may make; defaults to GITHUB_REST_REQUEST_BUDGET. */
+  readonly restRequestBudget?: number;
 }
 
 export interface GateResult {
@@ -274,9 +282,12 @@ class GitHubApi {
   private readonly fetchImpl: FetchLike;
   private readonly baseUrl: string;
   private readonly headers: Record<string, string>;
+  private readonly requestBudget: number;
+  private requests = 0;
 
   constructor(config: GateConfig) {
     this.fetchImpl = config.fetchImpl ?? fetch;
+    this.requestBudget = config.restRequestBudget ?? GITHUB_REST_REQUEST_BUDGET;
     this.baseUrl = (config.apiBaseUrl ?? "https://api.github.com").replace(
       /\/$/u,
       ""
@@ -288,10 +299,21 @@ class GitHubApi {
     };
   }
 
+  private spendRequest(context: string): void {
+    if (this.requests >= this.requestBudget) {
+      throw new GateError(
+        "github_request_budget_exceeded",
+        `${context} would exceed the gate's ${this.requestBudget} GitHub REST request budget; release in smaller batches`
+      );
+    }
+    this.requests += 1;
+  }
+
   async get(
     path: string,
     context = path
   ): Promise<{ readonly body: JsonValue; readonly response: Response }> {
+    this.spendRequest(context);
     const response = await this.fetchImpl(apiUrl(this.baseUrl, path), {
       headers: this.headers,
       signal: AbortSignal.timeout(GITHUB_REQUEST_TIMEOUT_MS),
@@ -309,6 +331,7 @@ class GitHubApi {
           `${context} exceeded the pagination limit`
         );
       }
+      this.spendRequest(context);
       const response = await this.fetchImpl(next, {
         headers: this.headers,
         signal: AbortSignal.timeout(GITHUB_REQUEST_TIMEOUT_MS),

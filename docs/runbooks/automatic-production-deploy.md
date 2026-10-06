@@ -181,7 +181,11 @@ commits. GitHub's compare verdict (`status`, `ahead_by`, `behind_by`) must still
 agree with git, and the gate blocks with `comparison_unavailable`,
 `comparison_mismatch` or `comparison_truncated` (above 150 commits, the
 `GITHUB_TOKEN` REST budget) instead of guessing. A rename reports both paths,
-so moving a file out of a manual-lane directory still routes to the manual lane.
+so moving a file out of a manual-lane directory still routes to the manual lane. Every
+GitHub REST request the gate makes, pagination pages included, counts against a
+budget of 900 (under `GITHUB_TOKEN`'s 1,000 per hour); a release that would
+exceed it blocks with `github_request_budget_exceeded` and ships in smaller
+batches.
 
 The candidate must have at least one merged PR whose merge commit is exactly
 the candidate SHA. Every associated merged PR is checked for an active

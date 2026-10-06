@@ -901,6 +901,30 @@ describe("production release gate git diff source", () => {
     ).rejects.toThrow("comparison_truncated");
   });
 
+  it("blocks explicitly before exceeding the GitHub REST request budget", async () => {
+    const harness = makeGateHarness({ truncatedComparison: true });
+
+    await expect(
+      runReleaseGate({
+        ...gateConfig(harness.fetchImpl),
+        diffSource: fakeDiffSource(),
+        restRequestBudget: 3,
+      })
+    ).rejects.toThrow("github_request_budget_exceeded");
+  });
+
+  it("passes a normal release well inside the default REST budget", async () => {
+    const harness = makeGateHarness({ truncatedComparison: true });
+
+    await expect(
+      runReleaseGate({
+        ...gateConfig(harness.fetchImpl),
+        diffSource: fakeDiffSource(),
+      })
+    ).resolves.toMatchObject({ reasons: [] });
+    expect(harness.calls.length).toBeLessThan(900);
+  });
+
   it("fails closed on an empty git commit list", async () => {
     const harness = makeGateHarness();
 
