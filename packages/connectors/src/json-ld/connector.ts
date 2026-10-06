@@ -6,10 +6,11 @@ import type {
   ConnectorDiscoverResult,
   DiscoverItem,
 } from "../contract";
-import { NotFoundFault } from "../effect-runtime";
+import { NotFoundFault, Server5xxFault } from "../effect-runtime";
 import { shouldSkipFetch } from "../known-hash";
 import type { KnownHashStore } from "../known-hash";
 import { hashContent } from "../object-store";
+import { sleep } from "../retry";
 import { createJsonLdClient, MissingDetailFixtureError } from "./client";
 import type { JsonLdClient } from "./client";
 import { applyExcludes, dedupeUrls } from "./discovery";
@@ -20,6 +21,15 @@ import type {
   JsonLdDiscoveryUrl,
   JsonLdFetchedPayload,
 } from "./types";
+
+/** The HTTP status of a 5xx detail failure, or null for any other error. */
+// oxlint-disable-next-line anti-slop/no-unknown-parameters -- catch-boundary classifier for whatever the client threw
+const serverErrorStatus = (error: unknown): number | null => {
+  if (error instanceof HttpStatusError || error instanceof Server5xxFault) {
+    return error.status >= 500 && error.status <= 599 ? error.status : null;
+  }
+  return null;
+};
 
 export interface JsonLdConnectorOptions {
   bronId: BronId;
@@ -234,6 +244,26 @@ export const createJsonLdConnector = (
     };
   };
 
+  const serverErrorPolicy = config.detailServerErrorPolicy;
+  let serverErrorRejections = 0;
+  const fetchDetail = async (url: string, signal?: AbortSignal) => {
+    const attempts = serverErrorPolicy?.attempts ?? 1;
+    let delayMs = serverErrorPolicy?.initialDelayMs ?? 0;
+    for (let attempt = 1; ; attempt += 1) {
+      try {
+        // oxlint-disable-next-line no-await-in-loop -- retries are deliberately sequential
+        return await client.fetchDetail(url, signal);
+      } catch (error) {
+        if (serverErrorStatus(error) === null || attempt >= attempts) {
+          throw error;
+        }
+      }
+      // oxlint-disable-next-line no-await-in-loop -- backoff between retries
+      await sleep(delayMs, signal);
+      delayMs *= 2;
+    }
+  };
+
   return {
     bronId: options.bronId,
     discover: async (
@@ -279,7 +309,7 @@ export const createJsonLdConnector = (
 
       let detail;
       try {
-        detail = await client.fetchDetail(entry.url, signal);
+        detail = await fetchDetail(entry.url, signal);
       } catch (error) {
         // Replay-scope skip: the audit scripts configure the fixture client
         // with `onMissingDetailFixture: "skip"` so discovered URLs without a
@@ -290,6 +320,23 @@ export const createJsonLdConnector = (
         // A URL in the source's own sitemap can already be gone: reject that
         // item instead of failing the whole run (CTP-608: one dead
         // datajobs.nl detail URL was killing every 244-item poll).
+        // A sitemap URL whose page keeps failing with 5xx (Unica: one vacancy
+        // answers Laravel's "Server Error" on every request) is rejected
+        // after the retries above, up to a per-run ceiling; past it the
+        // source itself is down and the run fails.
+        const status = serverErrorStatus(error);
+        if (
+          serverErrorPolicy !== undefined &&
+          status !== null &&
+          serverErrorRejections < serverErrorPolicy.maxRejectedPerRun
+        ) {
+          serverErrorRejections += 1;
+          return {
+            bronReferentie: item.bronReferentie,
+            reason: `detail page kept returning HTTP ${status} after ${serverErrorPolicy.attempts} attempts`,
+            status: "rejected" as const,
+          };
+        }
         const gone =
           (error instanceof HttpStatusError && error.status === 404) ||
           error instanceof NotFoundFault;

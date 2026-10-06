@@ -99,6 +99,19 @@ export interface JsonLdConnectorConfig {
    * JSON-LD. */
   detailSynthesizer?: (body: string, url: string) => DetailSynthesis | null;
   labelBlock?: Record<string, JsonLdLabelBlockField>;
+  /**
+   * Opt-in for a source whose sitemap lists detail pages that fail with HTTP
+   * 5xx. A 5xx detail fetch is retried with exponential backoff (`attempts`
+   * counts the first try, delays start at `initialDelayMs` and double). A page
+   * that still fails is rejected, so it stays observed and is never staled,
+   * instead of failing the whole run. More than `maxRejectedPerRun` such pages
+   * in one run is treated as an upstream outage and fails the run as before.
+   */
+  detailServerErrorPolicy?: {
+    attempts: number;
+    initialDelayMs: number;
+    maxRejectedPerRun: number;
+  };
   /** Fixture path for the sitemap/listing page when not running live. */
   listingFixturePath?: string;
   /** Fixture path per child sitemap URL (sitemap-index only), keyed by exact URL. */

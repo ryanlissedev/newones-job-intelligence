@@ -19,6 +19,14 @@ export const unicaConfig: JsonLdConnectorConfig = {
     "https://www.werkenbijunica.nl/vacatures/werkvoorbereider-warmtenetten-oosterhout-aqlgyyae65n4goyv":
       "unica/detail-werkvoorbereider-warmtenetten-oosterhout.json",
   },
+  // 6 Oct 2026: 1 of ~550 sitemap vacancies answers HTTP 500 on every
+  // request, which failed every Unica run. Retry 5xx (1 s, 2 s), then reject
+  // that page; more than 10 in one run means Unica itself is down.
+  detailServerErrorPolicy: {
+    attempts: 3,
+    initialDelayMs: 1000,
+    maxRejectedPerRun: 10,
+  },
   discovery: {
     kind: "sitemap",
     url: "https://www.werkenbijunica.nl/sitemap.xml",
