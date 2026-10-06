@@ -913,6 +913,18 @@ describe("production release gate git diff source", () => {
     ).rejects.toThrow("github_request_budget_exceeded");
   });
 
+  it("blocks explicitly before exceeding the GitHub GraphQL request budget", async () => {
+    const harness = makeGateHarness({ truncatedComparison: true });
+
+    await expect(
+      runReleaseGate({
+        ...gateConfig(harness.fetchImpl),
+        diffSource: fakeDiffSource(),
+        graphqlRequestBudget: 0,
+      })
+    ).rejects.toThrow("github_request_budget_exceeded");
+  });
+
   it("passes a normal release well inside the default REST budget", async () => {
     const harness = makeGateHarness({ truncatedComparison: true });
 

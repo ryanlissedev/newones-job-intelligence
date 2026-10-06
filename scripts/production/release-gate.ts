@@ -16,6 +16,9 @@ const MAX_RELEASE_COMMITS = 150;
 // `github_request_budget_exceeded` instead of a rate-limit response mid-gate.
 // Kept under 1,000 to leave room for the deploy job's own calls.
 const GITHUB_REST_REQUEST_BUDGET = 900;
+// The review-thread and review GraphQL pages draw on a separate 1,000
+// points-per-hour GITHUB_TOKEN limit; each query costs at least one point.
+const GITHUB_GRAPHQL_REQUEST_BUDGET = 900;
 const GIT_TIMEOUT_MS = 60_000;
 const GIT_MAX_BUFFER_BYTES = 64 * 1024 * 1024;
 const GITHUB_REQUEST_TIMEOUT_MS = 30_000;
@@ -67,6 +70,8 @@ export interface GateConfig {
   readonly reviewMode?: ReleaseGateReviewMode;
   /** REST requests the gate may make; defaults to GITHUB_REST_REQUEST_BUDGET. */
   readonly restRequestBudget?: number;
+  /** GraphQL queries the gate may make; defaults to GITHUB_GRAPHQL_REQUEST_BUDGET. */
+  readonly graphqlRequestBudget?: number;
 }
 
 export interface GateResult {
@@ -284,10 +289,26 @@ class GitHubApi {
   private readonly headers: Record<string, string>;
   private readonly requestBudget: number;
   private requests = 0;
+  private readonly graphqlRequestBudget: number;
+  private graphqlRequests = 0;
+  /** The fetch for GraphQL queries, counted against their own budget. */
+  readonly graphqlFetch: FetchLike;
 
   constructor(config: GateConfig) {
     this.fetchImpl = config.fetchImpl ?? fetch;
     this.requestBudget = config.restRequestBudget ?? GITHUB_REST_REQUEST_BUDGET;
+    this.graphqlRequestBudget =
+      config.graphqlRequestBudget ?? GITHUB_GRAPHQL_REQUEST_BUDGET;
+    this.graphqlFetch = async (input, init) => {
+      if (this.graphqlRequests >= this.graphqlRequestBudget) {
+        throw new GateError(
+          "github_request_budget_exceeded",
+          `review queries would exceed the gate's ${this.graphqlRequestBudget} GitHub GraphQL request budget; release in smaller batches`
+        );
+      }
+      this.graphqlRequests += 1;
+      return await this.fetchImpl(input, init);
+    };
     this.baseUrl = (config.apiBaseUrl ?? "https://api.github.com").replace(
       /\/$/u,
       ""
@@ -1449,7 +1470,7 @@ export const runReleaseGate = async (
       pullRequest.number,
       headSha,
       pullRequest.user?.login,
-      config.fetchImpl ?? fetch
+      github.graphqlFetch
     );
     assertCleanReview(review.decision, review.unresolved);
     if (reviewMode === "solo") {
