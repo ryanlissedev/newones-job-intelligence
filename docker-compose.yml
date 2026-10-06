@@ -310,11 +310,15 @@ services:
       # Per-bron live flags (packages/application/src/sources/*.ts `liveEnv`).
       # Unset means the connector reads a repo fixture; with NODE_ENV=production
       # the poller skips those sources rather than committing fixture data.
+      # Every flag is passed through with an EMPTY default so enabling a source
+      # stays an explicit host-env decision. Parked by policy (keep unset on
+      # production): CIRCLE8, INDEED, LINKEDIN, MERCELL, WERK_NL.
       ALLIANDER_LIVE: ${ALLIANDER_LIVE:-}
       ASML_LIVE: ${ASML_LIVE:-}
       BAM_LIVE: ${BAM_LIVE:-}
       BIJORANJE_LIVE: ${BIJORANJE_LIVE:-}
       BLUETRAIL_LIVE: ${BLUETRAIL_LIVE:-}
+      CIRCLE8_LIVE: ${CIRCLE8_LIVE:-}
       CTM_LIVE: ${CTM_LIVE:-}
       DATAJOBS_LIVE: ${DATAJOBS_LIVE:-}
       ENECO_LIVE: ${ENECO_LIVE:-}
@@ -323,13 +327,17 @@ services:
       FLINTER_LIVE: ${FLINTER_LIVE:-}
       FREELANCER_NL_LIVE: ${FREELANCER_NL_LIVE:-}
       GASUNIE_LIVE: ${GASUNIE_LIVE:-}
+      HAERT_LIVE: ${HAERT_LIVE:-}
       HARVEYNASH_LIVE: ${HARVEYNASH_LIVE:-}
       HAYS_LIVE: ${HAYS_LIVE:-}
       HEIJMANS_LIVE: ${HEIJMANS_LIVE:-}
       HERO_LIVE: ${HERO_LIVE:-}
+      INDEED_LIVE: ${INDEED_LIVE:-}
       INHUURDESK_LIVE: ${INHUURDESK_LIVE:-}
       INTERMEDIAIR_LIVE: ${INTERMEDIAIR_LIVE:-}
       JOBBIRD_LIVE: ${JOBBIRD_LIVE:-}
+      LINKEDIN_LIVE: ${LINKEDIN_LIVE:-}
+      MERCELL_LIVE: ${MERCELL_LIVE:-}
       NEEDSTAFFING_LIVE: ${NEEDSTAFFING_LIVE:-}
       NS_LIVE: ${NS_LIVE:-}
       ONEFELLOW_LIVE: ${ONEFELLOW_LIVE:-}
@@ -337,6 +345,7 @@ services:
       PLANET_INTERIM_LIVE: ${PLANET_INTERIM_LIVE:-}
       PROACT_LIVE: ${PROACT_LIVE:-}
       PRORAIL_LIVE: ${PRORAIL_LIVE:-}
+      PROUNITY_LIVE: ${PROUNITY_LIVE:-}
       RABOBANK_LIVE: ${RABOBANK_LIVE:-}
       RANDSTAD_LIVE: ${RANDSTAD_LIVE:-}
       RIJKSWATERSTAAT_LIVE: ${RIJKSWATERSTAAT_LIVE:-}
