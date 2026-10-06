@@ -29,14 +29,22 @@ jobs:
 
       - name: Install OpenWiki
         # mermaid + jsdom are optional; they add high-fidelity validation of Mermaid diagrams. Remove if your wiki has none.
-        run: npm install --global openwiki@0.4.3 mermaid@11.16.0 jsdom@29.1.1
+        run: npm install --global openwiki@0.7.0 mermaid@11.16.0 jsdom@29.1.1
 
       - name: Run OpenWiki
         run: openwiki code --update --print
         env:
           OPENWIKI_PROVIDER: openrouter
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          OPENWIKI_MODEL_ID: "z-ai/glm-5.2"
+          # Free OpenRouter model (no credits needed; the paid z-ai/glm-5.2 hit
+          # HTTP 402). Picked 6 Oct 2026 from /api/v1/models: tool calling,
+          # 262,144-token context, 235,929 max output, ~99.9 % endpoint uptime.
+          # Needs openwiki >= 0.5.2 (retries this slug's transient 404s and
+          # tolerates a repeated submit_plan). thinkingmachines/inkling:free is
+          # refused outside listed agent harnesses (HTTP 403). Free endpoints
+          # may log prompts; this repo is public. Free models are rate-limited
+          # per day; recheck the list if the slug disappears.
+          OPENWIKI_MODEL_ID: "nvidia/nemotron-3-super-120b-a12b:free"
           OPENWIKI_MAX_OUTPUT_TOKENS: "16384"
           # Required for the LangSmith connector's code-mode pull to authenticate.
           # For extra workspaces, add OPENWIKI_LANGSMITH_API_KEY_2, _3, ... as repo
