@@ -6,9 +6,7 @@ test("the public shell shows job intelligence navigation", async ({
   screen,
 }) => {
   await app.open("/login");
-  await expect(
-    screen.getByRole("link", "Catapulze Job Intelligence — overzicht")
-  ).toBeVisible();
+  await expect(screen.getByRole("link", "Newones — overzicht")).toBeVisible();
   await expect(screen.getByRole("navigation", "Hoofdnavigatie")).toBeVisible();
   await expect(screen.getByRole("link", "Overzicht")).toBeVisible();
 });

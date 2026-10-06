@@ -1,6 +1,6 @@
-# Catapulze Job Intelligence
+# Newones
 
-Bun monorepo for Catapulze Job Intelligence. Workspace packages use the `@ji` scope (Job Intelligence).
+Bun monorepo for **Newones** (job intelligence product for thenewones.nl). Workspace packages use the `@ji` scope (Job Intelligence). Runtime identifiers such as the Compose project / root package / MCP server name `catapulze-job-intelligence` stay until a later server-access rename.
 
 | Path                   | Role                                      |
 | ---------------------- | ----------------------------------------- |

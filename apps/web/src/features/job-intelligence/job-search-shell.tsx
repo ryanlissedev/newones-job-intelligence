@@ -49,7 +49,7 @@ export const JobSearchShell = () => {
           </h1>
           <p className="text-muted-foreground">
             De zoekresultaten en acties zijn alleen beschikbaar met een geldig
-            Catapulze-account.
+            Newones-account.
           </p>
           <Button render={<Link href="/login" />} nativeButton={false}>
             Inloggen

@@ -6,7 +6,7 @@ import { ExportsPageShell } from "@/features/job-intelligence/exports-list";
 export const metadata: Metadata = {
   description:
     "Overzicht van zoeksnapshots met hun goedkeuring- en exportstatus.",
-  title: "Exports · Catapulze Job Intelligence",
+  title: "Exports · Newones",
 };
 
 const ExportsPage = () => (
