@@ -67,24 +67,8 @@ export interface MarktvragenToolContext {
 
 type JsonSchemaInput = Parameters<typeof jsonSchema>[0];
 
-/** Narrow registry JSON Schema to the object-root shape AI SDK tools expect. */
-const asObjectSchema = (schema: JsonSchemaInput): JsonSchemaInput => {
-  const type =
-    typeof schema === "object" && schema !== null && "type" in schema
-      ? schema.type
-      : undefined;
-  if (type === "object" || (Array.isArray(type) && type.includes("object"))) {
-    return schema;
-  }
-  // AI SDK tools require an object root; wrap non-object schemas.
-  // SAFETY: wrapper is a plain JSON Schema object document.
-  return {
-    additionalProperties: false,
-    properties: { value: schema },
-    required: ["value"],
-    type: "object",
-  } as JsonSchemaInput;
-};
+/** MCP-bound capabilities are already object-root JSON Schema at catalog build. */
+const asObjectSchema = (schema: JsonSchemaInput): JsonSchemaInput => schema;
 
 export const createMarktvragenTools = (
   registry: MarktvragenRegistry,
