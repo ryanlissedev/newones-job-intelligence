@@ -26,7 +26,7 @@ const isJobQueryScope = (value: string): value is JobQueryScope =>
   JOB_QUERY_SCOPES.some((candidate) => candidate === value);
 
 const selectClass =
-  "min-h-11 rounded-md border border-input bg-background px-3 text-xs font-medium text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  "h-12 rounded-md border border-input bg-background px-3 text-xs font-medium text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 interface JobSearchQueryBarProps {
   readonly activeFilterCount: number;
@@ -75,7 +75,11 @@ export const JobSearchQueryBar = ({
   viewMode,
 }: JobSearchQueryBarProps) => (
   <div className="space-y-2">
-    <form role="search" onSubmit={onSubmit} className="flex flex-wrap gap-2">
+    <form
+      role="search"
+      onSubmit={onSubmit}
+      className="flex flex-wrap items-start gap-2"
+    >
       <div className="min-w-[240px] flex-1">
         <label htmlFor="job-query" className="sr-only">
           Zoek opdrachten met Boolean-logica
@@ -126,7 +130,7 @@ export const JobSearchQueryBar = ({
         ) : null}
       </div>
 
-      <label className="flex min-h-11 items-center gap-2 text-xs text-muted-foreground">
+      <label className="flex h-12 items-center gap-2 self-start text-xs text-muted-foreground">
         <span className="hidden sm:inline">Zoek in</span>
         <select
           aria-label="Zoekbereik titel of alles"
@@ -147,7 +151,7 @@ export const JobSearchQueryBar = ({
         </select>
       </label>
 
-      <label className="flex min-h-11 items-center gap-2 text-xs text-muted-foreground">
+      <label className="flex h-12 items-center gap-2 self-start text-xs text-muted-foreground">
         <span className="hidden sm:inline">Sorteren</span>
         <select
           aria-label="Resultaten sorteren"
@@ -170,7 +174,7 @@ export const JobSearchQueryBar = ({
 
       <button
         type="submit"
-        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground outline-none transition-colors hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="inline-flex h-12 shrink-0 items-center justify-center gap-2 self-start rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground outline-none transition-colors hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
         <Search aria-hidden="true" className="size-4" />
         Zoeken

@@ -1,6 +1,6 @@
 "use client";
 
-import { Bookmark, Camera, Database, FlaskConical } from "lucide-react";
+import { Bookmark, Camera, FlaskConical } from "lucide-react";
 import Link from "next/link";
 
 import { runAsync } from "./run-async";
@@ -59,7 +59,6 @@ interface JobSearchToolbarProps {
   readonly canCreateSnapshot: boolean;
   readonly isCreatingSnapshot: boolean;
   readonly isSavingSearch: boolean;
-  readonly liveData: boolean;
   readonly onCreateSnapshot: () => Promise<void>;
   readonly onPreviewStatusChange: (status: PreviewStatus) => void;
   readonly onSaveSearch: () => Promise<void>;
@@ -76,7 +75,6 @@ export const JobSearchToolbar = ({
   canCreateSnapshot,
   isCreatingSnapshot,
   isSavingSearch,
-  liveData,
   onCreateSnapshot,
   onPreviewStatusChange,
   onSaveSearch,
@@ -93,10 +91,6 @@ export const JobSearchToolbar = ({
       </h1>
       <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
         Boolean search met deelbare URL-state en zichtbare herkomst.
-      </p>
-      <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2.5 py-1 font-mono text-[10px] text-muted-foreground">
-        <Database aria-hidden="true" className="size-3" />
-        {liveData ? "Live · U7 REST" : "Previewdata · fixtures"}
       </p>
     </div>
 
