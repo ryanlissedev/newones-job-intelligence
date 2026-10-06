@@ -838,7 +838,6 @@ const JobSearchPageContent = ({
         actions={actions}
         isCreatingSnapshot={isCreatingSnapshot}
         isSavingSearch={isSavingSearch}
-        liveData={liveData}
         canCreateSnapshot={canCreateSnapshot}
         onCreateSnapshot={createSnapshot}
         onPreviewStatusChange={(previewStatus) =>
