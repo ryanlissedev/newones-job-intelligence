@@ -69,7 +69,7 @@ node docs/linear/apply.mjs --dump-json --dump-csv
 
 ## Exact issue list (32)
 
-Plan for Slice A units: [`docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`](../plans/2026-08-27-2022-feat-slice-a-read-path-plan.md) · [PR #4](https://github.com/ryanlissedev/rsp-job-intelligence/pull/4)
+Plan for Slice A units: [`docs/plans/2026-08-27-2022-feat-slice-a-read-path-plan.md`](../plans/2026-08-27-2022-feat-slice-a-read-path-plan.md) · [PR #4](https://github.com/ryanlissedev/newones-job-intelligence/pull/4)
 
 ### Gate 0 — product decisions (not engineering)
 
