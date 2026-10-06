@@ -25,6 +25,9 @@ export const randstad = {
   liveEnv: "RANDSTAD_LIVE",
   naam: "Randstad",
   normalise: normaliseJsonLdObservation,
+  // ~3,000 sitemap detail URLs (2,988 on 6 Oct 2026) × 2 s crawl delay is
+  // ~100 minutes, so the 1 hour poller default aborted every run.
+  runBudgetMs: 3 * 60 * 60 * 1000,
   seed: {
     crawlDelayMs: 2000,
     methode: "json-ld",
