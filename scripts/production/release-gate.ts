@@ -470,6 +470,11 @@ const checkSucceeded = (check: CheckRun, context: string): void => {
   }
 };
 
+// Per-job details URLs (`/actions/runs/42/job/201`) share their run ID.
+const workflowRunIdOf = (check: CheckRun): string | undefined =>
+  check.details_url?.match(/\/actions\/runs\/(?<runId>\d+)(?:\/|$)/u)?.groups
+    ?.runId;
+
 const assertCheckWorkflowIdentity = async (
   github: GitHubApi,
   repository: string,
@@ -478,9 +483,7 @@ const assertCheckWorkflowIdentity = async (
   expectedSha: string,
   context: string
 ): Promise<void> => {
-  const runIdText = check.details_url?.match(
-    /\/actions\/runs\/(?<runId>\d+)(?:\/|$)/u
-  )?.groups?.runId;
+  const runIdText = workflowRunIdOf(check);
   if (!runIdText) {
     throw new GateError(
       "untrusted_check",
@@ -774,7 +777,7 @@ const requirePullRequestSmokes = async (
     `/repos/${repository}/commits/${headSha}/check-runs?per_page=100`,
     `PR #${pullRequestNumber} check runs`
   );
-  // The three smokes are jobs of one CI run; verify each run identity once.
+  // The three smokes are jobs of one CI run; verify each run ID once.
   const verifiedRuns = new Set<string>();
   for (const name of PULL_REQUEST_SMOKE_JOBS) {
     const context = `PR #${pullRequestNumber} ${name}`;
@@ -798,8 +801,8 @@ const requirePullRequestSmokes = async (
         `${context} is not a successful or skipped completed check`
       );
     }
-    const runKey = latest.details_url ?? "";
-    if (runKey !== "" && verifiedRuns.has(runKey)) {
+    const runKey = workflowRunIdOf(latest);
+    if (runKey !== undefined && verifiedRuns.has(runKey)) {
       continue;
     }
     await assertCheckWorkflowIdentity(
@@ -810,7 +813,9 @@ const requirePullRequestSmokes = async (
       headSha,
       context
     );
-    verifiedRuns.add(runKey);
+    if (runKey !== undefined) {
+      verifiedRuns.add(runKey);
+    }
   }
 };
 

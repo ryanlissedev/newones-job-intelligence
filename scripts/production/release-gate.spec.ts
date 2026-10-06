@@ -315,7 +315,7 @@ const makeGateHarness = (options: GateHarnessOptions = {}) => {
                   {
                     app: { id: 15_368, slug: "github-actions" },
                     conclusion: "failure",
-                    details_url: `https://github.com/test/repo/actions/runs/${isFirst ? 97 : 96}`,
+                    details_url: `https://github.com/test/repo/actions/runs/${isFirst ? 97 : 96}/job/${100 + index}`,
                     head_sha: headSha,
                     id: 100 + index,
                     name,
@@ -326,7 +326,7 @@ const makeGateHarness = (options: GateHarnessOptions = {}) => {
             {
               app: { id: 15_368, slug: "github-actions" },
               conclusion: options.prSmokeConclusion ?? "success",
-              details_url: `https://github.com/test/repo/actions/runs/${isFirst ? 97 : 96}`,
+              details_url: `https://github.com/test/repo/actions/runs/${isFirst ? 97 : 96}/job/${200 + index}`,
               head_sha: headSha,
               id: 200 + index,
               name,
@@ -895,7 +895,7 @@ describe("production release gate PR-head smokes (#433)", () => {
     ).resolves.toMatchObject({ reasons: [] });
   });
 
-  it("checks the shared CI run identity once per PR", async () => {
+  it("checks the shared CI run identity once per PR across per-job URLs", async () => {
     const harness = makeGateHarness({ mainSmokesSkipped: true });
 
     await runReleaseGate(gateConfig(harness.fetchImpl));
