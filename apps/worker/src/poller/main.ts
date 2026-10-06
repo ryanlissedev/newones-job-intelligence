@@ -50,6 +50,7 @@ import {
 import { heartbeatFilePath, MAX_POLLER_HEARTBEAT_AGE_MS } from "./heartbeat";
 import { runWithPollerLiveness } from "./liveness";
 import { runContinuously } from "./pool";
+import { runBudgetForBron } from "./run-budget";
 import {
   createPollerRuntimeHealth,
   PollerRuntimeOwnershipLostError,
@@ -258,6 +259,13 @@ const main = async (): Promise<void> => {
   const concurrency = Number(pollerEnv.POLLER_CONCURRENCY);
   const abandonRunAfterMs = Number(pollerEnv.POLLER_ABANDON_RUN_AFTER_MS);
   const runBudgetMs = Number(pollerEnv.POLLER_RUN_BUDGET_MS);
+  // Randstad and Techniekwerkt need more than the default hour to walk their
+  // sitemaps at a 2 s crawl delay; each source may declare its own budget.
+  const runBudgetFor = (bronSlug: string): number =>
+    runBudgetForBron(bronSlug, {
+      abandonRunAfterMs,
+      defaultBudgetMs: runBudgetMs,
+    });
 
   const controller = new AbortController();
   let shutdownRequested = false;
@@ -585,7 +593,7 @@ const main = async (): Promise<void> => {
                 const log = await pollSource({
                   candidate,
                   curateBudgetMs,
-                  runBudgetMs,
+                  runBudgetMs: runBudgetFor(candidate.bronSlug),
                   runtime: activeRuntime,
                   signal: controller.signal,
                   telemetryLayer: activeRuntimeHealth.layer,
@@ -613,7 +621,7 @@ const main = async (): Promise<void> => {
                       bronId: job.bronId as BronId,
                       bronSlug: job.bronSlug as SliceABronSlug,
                       curateBudgetMs,
-                      runBudgetMs,
+                      runBudgetMs: runBudgetFor(job.bronSlug),
                       runtime: activeRuntime,
                       scrapeRunId: job.scrapeRunId as ScrapeRunId,
                       signal: controller.signal,

@@ -36,6 +36,16 @@ export interface SourceDefinition<Slug extends string = string> {
   listingHashCoversDetail: boolean;
   /** Env var name that switches the connector from fixtures to live HTTP. */
   liveEnv: string;
+  /**
+   * Wall clock for one connector run, for a source whose healthy run is known
+   * to outlast the poller-wide `POLLER_RUN_BUDGET_MS` (1 hour by default).
+   * Size it from catalog size × crawl delay with headroom, and record the
+   * arithmetic next to the value. The poller never lets it shrink the
+   * poller-wide budget, and caps it below `POLLER_ABANDON_RUN_AFTER_MS` so a
+   * live run closes its own row before the reaper does (see
+   * `apps/worker/src/poller/run-budget.ts`).
+   */
+  runBudgetMs?: number;
   naam: string;
   normalise: (
     body: Uint8Array,

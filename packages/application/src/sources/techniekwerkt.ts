@@ -27,6 +27,9 @@ export const techniekwerkt = {
   liveEnv: "TECHNIEKWERKT_LIVE",
   naam: "Techniekwerkt",
   normalise: normaliseJsonLdObservation,
+  // ~8,500 sitemap detail URLs (8,526 on 6 Oct 2026) × 2 s crawl delay is
+  // ~4.7 hours, so the 1 hour poller default aborted every run.
+  runBudgetMs: 5.5 * 60 * 60 * 1000,
   seed: {
     crawlDelayMs: 2000,
     methode: "json-ld",
