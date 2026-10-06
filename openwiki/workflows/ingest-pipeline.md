@@ -3,9 +3,6 @@ type: workflow
 title: Ingest Pipeline
 description: End-to-end flow that polls a bron, runs its connector discover/fetch, records raw observations, normalises them to the shared aanvraag shape, and curates SCD2 rows with outbox events from the on-box poller.
 tags: [ingest, poller, connector, normalise, curate, scd2, outbox, sources]
-verified:
-  - by: openwiki/0.4.3
-    at: 2026-09-14T14:34:20.891Z
 sources:
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md

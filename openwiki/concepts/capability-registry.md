@@ -3,9 +3,6 @@ type: architectural-concept
 title: Capability Registry
 description: The capability registry as the single application boundary that defines capabilities, binds them to REST, MCP, and UI transports, authorises each call, and keeps transport parity.
 tags: [capability-registry, registry, transport-parity, authorization, mcp, rest, agent-native]
-verified:
-  - by: openwiki/0.4.3
-    at: 2026-09-14T14:34:20.891Z
 sources:
   - id: openwiki-source-082025b8c988d94fe0369b28
     resource: repo://apps/server/src/capabilities/capability-availability.ts
@@ -42,6 +39,9 @@ sources:
   - id: openwiki-source-15662a88e3022caa61dc260d
     resource: repo://scripts/check-capability-registry.ts
 generated: { by: "openwiki/0.4.3", at: "2026-09-14T14:34:20.891Z" }
+verified:
+  - by: openwiki/0.7.0
+    at: 2026-10-06T08:52:28.787Z
 ---
 
 # Capability Registry

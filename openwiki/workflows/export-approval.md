@@ -2,9 +2,6 @@
 type: "Reference"
 title: "Export & Approval"
 openwiki_generated: true
-verified:
-  - by: openwiki/0.4.3
-    at: 2026-09-14T14:34:20.891Z
 sources:
   - id: openwiki-source-1e4ae844344034d9b31e6094
     resource: repo://apps/server/src/export/reconcile-spott-export.ts
@@ -37,6 +34,9 @@ sources:
   - id: openwiki-source-00816f778098498c26e02a7f
     resource: repo://packages/db/src/export-stores.ts
 generated: { by: "openwiki/0.4.3", at: "2026-09-14T14:34:20.891Z" }
+verified:
+  - by: openwiki/0.7.0
+    at: 2026-10-06T08:52:28.787Z
 ---
 
 

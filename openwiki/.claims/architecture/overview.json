@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:a459dea84002c85458e68573e00a414aa3b25ecd11864bd137f64aa650e08179",
+  "pageVersion": "sha256:458ea2c75e1db39ae45940367cdeb9b70905057d54eefb0e25cbd4d0a676cbe5",
   "claims": [
     {
       "id": "claim_8edd1029dc824192be1edda145a82f4a",
@@ -37,8 +37,8 @@
       "statement": "apps/server/src/index.ts is the Hono API entrypoint; it wires logger, CORS restricted to the allowed web origin, a JSON body limit on /v1/* and /mcp, the Better Auth handler at /api/auth/*, the tRPC server at /trpc/* with the appRouter and createContext, health/readiness routes, the capability discovery at /v1/capabilities, the REST handler at /v1/*, the MCP handler at POST /mcp, and binds the production Slice A registry built by createProductionSliceARegistry.",
       "evidence": [
         {
-          "resource": "repo://apps/server/src/index.ts#L1-L152",
-          "version": "repo-lines-v1:sha256:f2beadf33fd0de8652ac13359b3eb01c89304e489b1ac4356f6ef26133a31bd6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI3MTVmYTVhYThiNjdkMzNhM2Y5ZjE5ZmMzNDA2YTlmYjE5NmY1ZDFiYzA5ZDEwOGU1NzkzMDY0YWVjNzhiNmFiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI2OTk0ZWI0YWFkOWMyNzk1YzJmMmI4YjA1ZDJkNjhhZTUzY2VmZjUxNjlhZGM1NmQ2NTg0MjQ1ZTgyMWRjZjZlIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJkZmI1M2E4ZGQ4MTJjNjhkYTVlNjc3OGJiZGVlZDY4ZmM3NGVkYWU2NmI1MzEyMDFiMWQxMGM4ZDdmYjdkOWFiIn0"
+          "resource": "repo://apps/server/src/index.ts#L1-L170",
+          "version": "repo-lines-v1:sha256:748f1b91f5ff5af8095807ff72a96f766f36c1995897b1b8bf039e5ec63f12be:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI3MTVmYTVhYThiNjdkMzNhM2Y5ZjE5ZmMzNDA2YTlmYjE5NmY1ZDFiYzA5ZDEwOGU1NzkzMDY0YWVjNzhiNmFiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI2OTk0ZWI0YWFkOWMyNzk1YzJmMmI4YjA1ZDJkNjhhZTUzY2VmZjUxNjlhZGM1NmQ2NTg0MjQ1ZTgyMWRjZjZlIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJkZmI1M2E4ZGQ4MTJjNjhkYTVlNjc3OGJiZGVlZDY4ZmM3NGVkYWU2NmI1MzEyMDFiMWQxMGM4ZDdmYjdkOWFiIn0"
         }
       ]
     },
@@ -47,11 +47,11 @@
       "statement": "The server binds to the production Slice A registry produced by createProductionSliceARegistry, which is composed from env (DATABASE_URL, MANTICORE_URL, NODE_ENV, raw object store S3 settings, REDIS_URL) and yields the registry, entries, and deps used by the REST, MCP, and discovery handlers as well as the readiness checks.",
       "evidence": [
         {
-          "resource": "repo://apps/server/src/index.ts#L68-L79",
+          "resource": "repo://apps/server/src/index.ts#L71-L82",
           "version": "repo-lines-v1:sha256:9135228a953b7849044c8ba4f88c83a1c72b4f50030626773ec9291acad74506:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3MmVkYmVkMzY3YjcxMGFjZDkyNjBjZGU3OTU0MzhjNjM5MDEzZGU3MjA1N2Q4MTI4MmYzMjMzMTRkZTE4YzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhkYzE2NzllODc1ZGVlZTZmOTA3M2ZlNDQ1MTE3YTExM2JhMWFmM2Y5ZTFiYTA4MGFlMjBiYmY4M2I4OGFiNWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkzN2Q2ZDI3ZGI0MDM0NjZhODUzYzkxOWM4NGI0MDI1ZmFmM2VjZTZjNjdlNDI2NzhiZDU2OTM2NzQwZjhiMDkifQ"
         },
         {
-          "resource": "repo://apps/server/src/slice-a-registry.ts#L205-L210",
+          "resource": "repo://apps/server/src/slice-a-registry.ts#L225-L230",
           "version": "repo-lines-v1:sha256:34b20788632ed6acb748a0b352d902a73b8075e8453b57679b44a0deaadea76c:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2I4MWY5ZGNjMjNiYmQ0NzQ1YjFmMjhkMDg1MWMxODI4NGQ0NmY1M2RmNzM0NTU2ZTZlYzI5NTVhZjQyOGMxZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWExZDFhNjMzOTAyMjljNzk4MzQ3ZTgzYTA0MDU0NDFjOTQwMDAzNTI4NGFkMTY4YzFiZjZjZGYxZDcwYTM3MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzRhNzYwMjdkNjhlMzZkNGJhNzNiYTRlMmQ3NGM1NzMyMmMxNDAxZmNlODQ3M2E5YmMxZTFlYTI2YjdmZDY2MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
         }
       ]
@@ -61,7 +61,7 @@
       "statement": "On SIGINT or SIGTERM the server drains in-flight requests for up to 10 seconds (SHUTDOWN_DRAIN_TIMEOUT_MS), then closes the Slice A deps and the database, exiting with code 1 if the drain timed out and 0 otherwise; handleShutdown is idempotent via a singleton shutdownPromise.",
       "evidence": [
         {
-          "resource": "repo://apps/server/src/index.ts#L159-L184",
+          "resource": "repo://apps/server/src/index.ts#L177-L202",
           "version": "repo-lines-v1:sha256:d7b9fe44dbea9b3a1bdfc0ff63f38bded277ad16fa180328c035f85dd9868e2b:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM0NzkwMDdiNmJmNWYxOWZiYzA0OWQ1OGZiZjY0ODA0ZTM1ZWY3ZjQ2OGI5OGRiODY5MzhkZmM4NDkzNzI0NmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3NDgyZjAzMDFhNjJhNzkwMDU3ZWI4ODIyNzg5MGQzMmViNDg5NGNiMWM1ZjEwNWVkMzUwMmRjMDM1NWE2NGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA2NzFjMjUxOGI5M2VlODNiY2JhYWJjM2M1YmE4OGUzYjdjNjEzNWVlMjkyNDFjNWI0MDNmZmY2YWIzYTBmOWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
@@ -75,7 +75,7 @@
           "version": "repo-lines-v1:sha256:85abee705f7698a8135875679f82ae54925aac9fa8af84473326030d4b56c0c0:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjYzVhN2NjYWRkYjQ0NDZhZGI3ZWJkZGM5ZGViN2ZkN2M5ODZmYzllNGI2NzVjMjVjMjM4ZTk0MDAyNGM0ZDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4OWU2OGRiN2I0ZmUyMzYwZjY3NTI3ZTNlNmY1N2U3N2JiN2ZmZjQ3MjU4NmZjNzAzMzk5Y2IwNGUzNmE0OTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhNDMwYTgwOWE1NGNlNThiOGRlMTFmZDVkMWYxNWVlZDY0OWEzYzk1M2NjODBjZGVlMTlhYTg4ZDFmZGQ0NGIifQ"
         },
         {
-          "resource": "repo://apps/server/src/capabilities/rest.ts#L312-L329",
+          "resource": "repo://apps/server/src/capabilities/rest.ts#L325-L342",
           "version": "repo-lines-v1:sha256:3448eacf7bc9100cada792ee522b712ee9667b81dad97db4cf56b6bb487b39c9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkZDUxZGJlYzA5ZGU4ODUxMTgzNzIwZmMwYzEzNDhlZDE1OWZhODQzZjBjYmE4YTgxZjBjNmE5MjFjYzM2YWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzZWYwN2I4ZjU4MjU5NjdiZWIyMmQwZjliMmFkNjMwNjg3M2E4ZjAxZjYzNmEyN2U0MDFhMzZjNTlhYmU4OWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFjNWM5MTExODE1YjhmNjQyMTIzYTY1NjZiOGM0NWNlN2QzOTJkZGY4ZTgwNWZkNmE4Njg0ZjE3OWJjNmFkYWUifQ"
         }
       ]
@@ -109,12 +109,12 @@
       "statement": "createSessionPrincipalResolver maps a Better Auth session to an InvocationPrincipal by reading the user's role, checking it is one of the Slice A roles, verifying the session has not expired, and expanding permissions via permissionsForRole; the four roles are recruiter, operator, admin, and approver.",
       "evidence": [
         {
-          "resource": "repo://apps/server/src/capabilities/auth.ts#L1-L99",
-          "version": "repo-lines-v1:sha256:3d87bf08c6e138f6e745c60a541c0c3494cc159a115b6920121d1287e2beac21:eyJzZWxlY3RlZExpbmVDb3VudCI6OTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4MjAwOTY0YTk3ODYzNTUyMmIyYWIwOTBjNjUwNjVkOGVmOGU4NWM0NzMwYmIyZWIwNDYwZDM0YzY3N2RkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZTU3ODhkNWQ5ZDczZDI0YTgxZGJjMGE1YTc0YmZhODJjOWMzYjNhZjk5ZTUyYWY3OTZlOTBiNDY4YThhM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJkMDY5ZTdjNTRhNmMzNDhiZDZjYWZlNzI5OWM0MzBmZDAyZTFhNGQwNmEwMTdlMGI5M2IyYTQxNzdjMmI4ZmUifQ"
+          "resource": "repo://apps/server/src/capabilities/auth.ts#L1-L116",
+          "version": "repo-lines-v1:sha256:9708197fb0c3537f2f02dfdc7680364348b8c5f961c31a26a5c13e91fed74a9e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTE2LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlODIwMDk2NGE5Nzg2MzU1MjJiMmFiMDkwYzY1MDY1ZDhlZjhlODVjNDczMGJiMmViMDQ2MGQzNGM2NzdkZGJiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIyN2U1Nzg4ZDVkOWQ3M2QyNGE4MWRiYzBhNWE3NGJmYTgyYzljM2IzYWY5OWU1MmFmNzk2ZTkwYjQ2OGE4YTNkIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIyZDA2OWU3YzU0YTZjMzQ4YmQ2Y2FmZTcyOTljNDMwZmQwMmUxYTRkMDZhMDE3ZTBiOTNiMmE0MTc3YzJiOGZlIn0"
         },
         {
-          "resource": "repo://packages/application/src/registry/roles.ts#L1-L45",
-          "version": "repo-lines-v1:sha256:2358780801c4909f06084f42b81626b4881ce6001929f7d4d86217eb68c45b8d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiYzc5NmU5MTkxOGUxOTM1Yjc3MjNlMTM2MjdmYThiZTNmNDkzZTI4MWMxNGNkMTdkMjEwNDMyYzY4NGU4YTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJmZjc5ZWFmYmYzNjdhMmJiYjhjYWQ4NjY5NjE5MjY0NzExN2NkOTg1OTEwOTliZjU4OGExMTQxOWNhNDk1MTcifQ"
+          "resource": "repo://packages/application/src/registry/roles.ts#L1-L53",
+          "version": "repo-lines-v1:sha256:2281c68933a0335263f7e662fb1a63b1cff98a4c2c2f05778b1889fcf8ee7b3f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiYzc5NmU5MTkxOGUxOTM1Yjc3MjNlMTM2MjdmYThiZTNmNDkzZTI4MWMxNGNkMTdkMjEwNDMyYzY4NGU4YTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJmZjc5ZWFmYmYzNjdhMmJiYjhjYWQ4NjY5NjE5MjY0NzExN2NkOTg1OTEwOTliZjU4OGExMTQxOWNhNDk1MTcifQ"
         }
       ]
     },
@@ -145,8 +145,8 @@
           "version": "repo-lines-v1:sha256:a6e7b88fa6419fcb96d57fb1602bbdbdabcbecbd85b220b6d92a4d434d38a540:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYWNlNDI2YWYwOTc4YTVkYjZmMzljZGJlNjA3OTJhYmRlNjQ1YjlhNjJlMmM3YzQ5NDE4OWQzNmQ2MjIyMTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5YTQ4MjNkMDBiYzlhYjc4MzdmNTM3MTgzMGRlY2Q0MDM3ZDY1M2E5MmRjYzEzNmRjNGE4Y2FiZmFiNmZkNWUifQ"
         },
         {
-          "resource": "repo://packages/application/src/registry/index.ts#L1-L19",
-          "version": "repo-lines-v1:sha256:d66db1ca39f79deb19df080fb1ff30ee23d12fbff02e5fe1083f25abe4d54024:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBiZDcxOWVjNTg3NDNlNmZjNzVmZWJkMDJhNGZjYzdlNDQ1OWNkMzMzNzk0YTNhM2Q0NzQ0ZWEzM2RjMzk4NzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzNjU3ODhmYzY1MjhiMTU4MTJjNTBkYTg5YWM2ODg4Yzg4ZWNkMmY2OTBkNTNhNzgzOTA4ZDdhYmZkZDAyNWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://packages/application/src/registry/index.ts#L1-L21",
+          "version": "repo-lines-v1:sha256:c534b8974d8c52cfaa677111101b6ac7ec432ae235b6686f754b0eb6ec70ee68:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBiZDcxOWVjNTg3NDNlNmZjNzVmZWJkMDJhNGZjYzdlNDQ1OWNkMzMzNzk0YTNhM2Q0NzQ0ZWEzM2RjMzk4NzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzNjU3ODhmYzY1MjhiMTU4MTJjNTBkYTg5YWM2ODg4Yzg4ZWNkMmY2OTBkNTNhNzgzOTA4ZDdhYmZkZDAyNWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
@@ -155,12 +155,8 @@
       "statement": "Each capability is defined by defineCapability with an id, outcome, effect (read or internal-write), authorization.permission, bindings (transport/operation pairs, wired by dualBindings for REST + MCP), inputSchema/outputSchema/failureSchema (Effect Schema adapters whose safeParseAsync is the checked validation contract), and a handler receiving the parsed input and an authorized invocation context.",
       "evidence": [
         {
-          "resource": "repo://packages/application/src/registry/capabilities.ts#L121-L200",
-          "version": "repo-lines-v1:sha256:fee042f88a8e35e3e97be54ef7745f016d4cd2757b35ec89a01236a25266b88e:eyJzZWxlY3RlZExpbmVDb3VudCI6ODAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhNWViZTZhNjFiMGRjNjgxMzkwN2U5ODgzNGQ2ZmRjOWNhYWYzYWM0Mzk3ZmUyOGQ0NzA1ZDEyYjUxYTEzOTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZhZTM0YzhmMGU2YWMxZDk0Y2MwOWYzZjE5MjY4ZWQxZGI4YjJhYjk4ZDNjODlmMTVlYWRjNGY4YjIzYzcyODIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM3MGE2NjA5ZDVmYTM0MGRjNDJlNWEyYjM0NWJmMzBhYmNiMDEyMmI5ZDRlMTdjY2FjMDk4MzNmNDE2MDM3ZTMifQ"
-        },
-        {
-          "resource": "repo://packages/application/src/registry/capability.ts#L7-L100",
-          "version": "repo-lines-v1:sha256:02d7ce75cafdb60ae17b374bcd7b9af09c7455272c35ed06683c6d3c1a5b2676:eyJzZWxlY3RlZExpbmVDb3VudCI6OTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzODBhNzc0MDk0ZDY5NzJjMTJiNWE3MjJhYWFjMjU5NmE3NDE3NzE4YjNiYzA0OWQzMmZlNzE1MzRhZTBjNTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1Mjk2MTVlZTdhYmJhZDA3MzMyMzc5YTI3MGY4ODhiNDNhNDhkMzQzY2YwZTMwYmE4N2Y2MzZjZGVkM2Q2YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0NWQ2NWY0NTVhNzJmZWEyZmIwZWRkMDE3Y2Q1ODEyY2Y0MTFjZGYyYmE2ZTcxMzgwNmZmNDRhYWUzYmJjYTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY1MDJlNmE1MWJmMjRlYzhmODYxMDIzODA0NTBmNGU1MWE0ODM3ODU0YjkzZGIzOGM1MjYxOThkYzA3ZThhYWMifQ"
+          "resource": "repo://packages/application/src/registry/capability.ts#L66-L101",
+          "version": "repo-lines-v1:sha256:f5d8c307e92b0f81096c309bf95dc4c3a496a90b3b7f1df16f7ee57a99283e54:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4OGEyNTZiOWZjYWE1NDg1OGMyMjU1MzU1ZTBkM2MyMmZkZGZiNjdmNDZhYzM2OGJkMjgxM2ViMTNkMWE4ODUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1MDJlNmE1MWJmMjRlYzhmODYxMDIzODA0NTBmNGU1MWE0ODM3ODU0YjkzZGIzOGM1MjYxOThkYzA3ZThhYWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI5YWRjZmQ5ZjA0ZjQxYjlhZDQyMmI5YWJkZDc3ZGQ0YTU4MTk0YjA0YjJkYTkyNmUzNDY5ZTBkOTM4NWM4OTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
@@ -179,8 +175,8 @@
       "statement": "The Slice A capability catalog exposes capabilities including search_aanvragen, get_aanvraag, batch_get_aanvragen, list_versies, read_raw, list_bronnen, get_bron, saved-search CRUD, snapshot creation/approval/validate, export commit and status, markeer_aanvraag and markering read/clear, alert list/ack, start_run, start_test_import, dashboard overview, bron stats, scrape-run listing, and the sourcing assessment.",
       "evidence": [
         {
-          "resource": "repo://packages/application/src/registry/capabilities.ts#L121-L600",
-          "version": "repo-lines-v1:sha256:7fd2c92909b5ab875e8260009e08871591296835178300a527977dead68ded50:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI1YTVlYmU2YTYxYjBkYzY4MTM5MDdlOTg4MzRkNmZkYzljYWFmM2FjNDM5N2ZlMjhkNDcwNWQxMmI1MWExMzk5IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxODE2YWMyNDdmYzBkMjkwZmZhNDA5ZGYzZmMwMDZkN2U5N2RjMmQyMmY1M2MyMjdmMmNjMzg0OGUwNTAwODdkIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJmYWUzNGM4ZjBlNmFjMWQ5NGNjMDlmM2YxOTI2OGVkMWRiOGIyYWI5OGQzYzg5ZjE1ZWFkYzRmOGIyM2M3MjgyIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIxNDZmNjI3ZTA4YWYwMTVhYWM2NWY4ZDgwMWI2YTFlZGE4ZDFiNzI0ZmNmYjkyYWU5YjIzZmNiZGI2MDNmMWFkIn0"
+          "resource": "repo://packages/application/src/registry/capabilities.ts#L139-L635",
+          "version": "repo-lines-v1:sha256:1c4d8e0e948cf48687b62d9f83e87bc8ba1d6f60abe13276506377021732c232:eyJzZWxlY3RlZExpbmVDb3VudCI6NDk3LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI1YTVlYmU2YTYxYjBkYzY4MTM5MDdlOTg4MzRkNmZkYzljYWFmM2FjNDM5N2ZlMjhkNDcwNWQxMmI1MWExMzk5IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxODE2YWMyNDdmYzBkMjkwZmZhNDA5ZGYzZmMwMDZkN2U5N2RjMmQyMmY1M2MyMjdmMmNjMzg0OGUwNTAwODdkIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJmYWUzNGM4ZjBlNmFjMWQ5NGNjMDlmM2YxOTI2OGVkMWRiOGIyYWI5OGQzYzg5ZjE1ZWFkYzRmOGIyM2M3MjgyIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIxNDZmNjI3ZTA4YWYwMTVhYWM2NWY4ZDgwMWI2YTFlZGE4ZDFiNzI0ZmNmYjkyYWU5YjIzZmNiZGI2MDNmMWFkIn0"
         }
       ]
     },
@@ -189,12 +185,8 @@
       "statement": "apps/worker/src/poller/main.ts is the on-box poll and curate process; it waits for a singleton pg_advisory_lock (key 613_204_877) over POLLER_DATABASE_URL, then loops: abandon stale runs, load due poll candidates, partition by the live flag, and run each due source with bounded concurrency, draining the curation backlog with a per-source time budget.",
       "evidence": [
         {
-          "resource": "repo://apps/worker/src/poller/main.ts#L1-L100",
-          "version": "repo-lines-v1:sha256:ffa481a1158859a25ed90450ffc59029a2915222f3776efba6537c265c936aff:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJjNzhmNGU4ZTA2Nzc3MmExMGMxNmU3NDljNzIyZWEwM2I4NGVmOGNhNzM2MjlkN2U1ZTMzNzhkZTk5NjJlZTM3IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIyN2U1Nzg4ZDVkOWQ3M2QyNGE4MWRiYzBhNWE3NGJmYTgyYzljM2IzYWY5OWU1MmFmNzk2ZTkwYjQ2OGE4YTNkIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJkNWEwZThhMWQ4NWY3N2E1M2FlNTBkNTkyYjgwNjViZGE2NzBlMWQ3YzBkNDE0ZjZlZWZjYTQ3NmU0MmM1NGJkIn0"
-        },
-        {
-          "resource": "repo://apps/worker/src/poller/main.ts#L159-L296",
-          "version": "repo-lines-v1:sha256:90f3b6f1d7bc09fa871baa45b428d121a8b3c6cecfd6e7e8a96592afa3faa75f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTM4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI3NmIyMmMzZDFlOTAwM2YzZDhkODg0OWU4MWY1MGVjODZiZjY3MGI0ZmRkYTM3YTVlY2YyMDNlMjYxOTYzYTZjIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0ODkzZjQwZTM3ODFlYjg5NmM4MmQwNDZhMDgwNjdhMTFlMzVjZGYyZjFkZmFmMjZmZWE5MGI4ZGI2Njc2NDEzIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI3MjEyOWMyNzM1MmI0OTU1NDhiMDcxYWUzNGFiOTA4MTE3Mjg3MzQyOGY2Zjg3ZjU0YjU4MGU1MTUzYzlhYTAyIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIxNzUxNzRiMWRhZWRlOTQ3ZjNiOTUzNzIwNTQwMWM0OGUyNTYyMTUwZWFhM2M5YmNkYWJjNjYzZjk4ZjE1ZjMxIn0"
+          "resource": "repo://apps/worker/src/poller/main.ts#L1-L50",
+          "version": "repo-lines-v1:sha256:2989b645d396027f409150ced2743952e70e1c1acca84f183d023179569e9fe4:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2YTQ4NTE1N2VjZjJkNGM1YjI3ODY4ZTBkOTAwMGYyZWYyMDIyOWE1ZmQzZmZlNWM1NjA5ZDI1MzQ5YWI1NGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY4OTViODI2YmYxN2VmNmExMTEyNDU1ZmQ2NDA5MDQ1YmFkNDgwNDY1NzM4OWU5MjczZjdhNTMxYmE5NmM5MjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZkNDY0OWI4Yzc0NDY0YjBlODYwZmFmMTRlZDAzOTUyNjIzZGNhZDFiYWNkYzU3ZjhlNzkzYzcwN2M2OTdlMjEifQ"
         }
       ]
     },
@@ -227,7 +219,7 @@
       "statement": "The server exposes the projector's deploy readback at GET /projector/runtime via a PostgresSearchProjectorRuntimeStore, and the projector itself records container id, release SHA, and start time into that store so a deploy can confirm which container holds the lock.",
       "evidence": [
         {
-          "resource": "repo://apps/server/src/index.ts#L101-L109",
+          "resource": "repo://apps/server/src/index.ts#L104-L112",
           "version": "repo-lines-v1:sha256:cf7e93f54c9d413c0540adf83cd88951e61b643b077bdf314c3853b4fe4bfaea:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjMxYmQ0MjQzMmE2MjIyY2Q5NTE2YTIxZDc4ZjA5OWE3ZmVlOGUwMjExMzRkOTEwZTM4YzE1Yzc4Mjk1ODBhYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDk5NjdlYzFlZDM4MzZmOGViMTdhZmYxNzJiNWJmZWY3ZGU2MDQ4NWE0MzljNmNhMTFjNTkxZTE3NTU3MzlhZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTVjNjIwODc2YjBhNGVlNjY0NjA0N2E2NjllNTY0MmRhMWVmNzA2YzAzZTcyYzU1ZjUwYTIxNzYzODE3NjhjMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTJmNjY3ZjZlOWU2YmY2Mjg3NTZkMGFjZmY0MmZkYzMwNTJhOWViNzQ0ZjYyY2ZlYzhmMWJmZmM0MjdlOGE4NCJ9"
         },
         {
@@ -241,8 +233,8 @@
       "statement": "createProductionSliceARegistry composes Postgres-backed stores for aanvragen, alerts, approvals, audit, bron health, export attempts/effects, external crosswalk/receipts, markeringen, raw payloads, saved searches, snapshots, and the curate store, plus a ManticoreSearchEngine sharing one PostgresSearchVersionStore checkpoint with the projector's drainPostgresOutbox call (RJC-384), a Redis-backed result cache when REDIS_URL is set (else in-memory), and an S3 raw object store.",
       "evidence": [
         {
-          "resource": "repo://apps/server/src/slice-a-registry.ts#L82-L200",
-          "version": "repo-lines-v1:sha256:50fd70c9c074401648df0d333a8a4656764ea29f47e9e99f84c984e0bed6ee39:eyJzZWxlY3RlZExpbmVDb3VudCI6MTE5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI1MTIwZGM2NzA4N2ZiMGMwZTg3M2Y0YTFmZDRlM2FiYmE0NzAyNjA2MTBhNDFlYmUzNmQxNWYzNDExOWI1NmE5IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJlZWQ0M2I2Y2E3NDFmOWVkZWNhNGM1YjczNjBlZDA5Yzk5ZmFlZmIwZGU0MDIyZTY4OTVkNTY0ZTZmNmEyYjExIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJiMDgxODNmNzJjM2ZkY2U5YmVjZmRmNjQzYTY5YjkzODY3ODlkNjhlZmIwY2FjODg3MmI5NzdmMGJiMjA2MTJhIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJjY2U5NDVmNzFkMGQ3N2FlMjFjM2ZmNTBhNDIwNDNjMjhhODJlMDE4YWM4OWFiOGJhMjk1MGIxNmQ4ZTJmZDBjIn0"
+          "resource": "repo://apps/server/src/slice-a-registry.ts#L85-L220",
+          "version": "repo-lines-v1:sha256:3a1f119992a6e28acd2e0c46c22c4ed782d621d604d59b83abda3cfd0449e4c5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTM2LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI1MTIwZGM2NzA4N2ZiMGMwZTg3M2Y0YTFmZDRlM2FiYmE0NzAyNjA2MTBhNDFlYmUzNmQxNWYzNDExOWI1NmE5IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIyMzViYzk4YzY5ZGUxZWY2MGY1NzJmZmU5YmM4NGZiMjA4OTNhNGViOGY3ZGYzMzIxYjFhZjRjZmVlOTJmMGFhIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJiMDgxODNmNzJjM2ZkY2U5YmVjZmRmNjQzYTY5YjkzODY3ODlkNjhlZmIwY2FjODg3MmI5NzdmMGJiMjA2MTJhIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJjY2U5NDVmNzFkMGQ3N2FlMjFjM2ZmNTBhNDIwNDNjMjhhODJlMDE4YWM4OWFiOGJhMjk1MGIxNmQ4ZTJmZDBjIn0"
         }
       ]
     },
@@ -251,7 +243,7 @@
       "statement": "Production refuses to start if the raw object store resolves to the worker-local filesystem backend instead of S3, because the filesystem backend shares no filesystem with the server and would silently lose payloads and break replay.",
       "evidence": [
         {
-          "resource": "repo://apps/server/src/slice-a-registry.ts#L96-L106",
+          "resource": "repo://apps/server/src/slice-a-registry.ts#L99-L109",
           "version": "repo-lines-v1:sha256:71f3bd2a750c5389c0d717dad2c42dff6a640d43b7fbb25d7beaa63a131a2620:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwZTlhZjg3OWQ0YjcyYjkyMTA4NzMwZmY5YTQyMTdkNDA4NWQ0MTUzZDM5MzdlNzAzNDA3MzQ0ZTI5MzQ3NTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZTU3ODhkNWQ5ZDczZDI0YTgxZGJjMGE1YTc0YmZhODJjOWMzYjNhZjk5ZTUyYWY3OTZlOTBiNDY4YThhM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUyYTY4MWEzYjc1ZWE0YmI3ZDI2NDgwOWFjMTIzNWJlMmVkNTlmMzRmYjViM2JjMzM5Mzg1NTFiNDA5MWQ0MGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY4OTljMGNhMmMwMWRkNzA2M2RkYmZjNTlmY2U1Yzk1NjlhMzU4ZmZkMGMxNGFiNTMwNjAzZDk2NGY5MmJhYjkifQ"
         }
       ]
@@ -285,11 +277,11 @@
       "statement": "The server exposes GET /version returning the release SHA (env.APP_RELEASE_SHA, resolved from APP_RELEASE_SHA or Coolify's SOURCE_COMMIT) and the three transport paths all share the same capability registry built from the production Slice A registry.",
       "evidence": [
         {
-          "resource": "repo://apps/server/src/index.ts#L65-L66",
+          "resource": "repo://apps/server/src/index.ts#L68-L69",
           "version": "repo-lines-v1:sha256:ed2b7e99ccde41f76764fa5e2170d916bb6dd60d694c192c8a88db7f2815728e:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmMyNDBhMjRlOTY5Yjc0MjZkYzhmYzUwNzQwN2I5ZDkwMTIwYTRmYjNiMDZlYTE1NWNiNjU2ODQzODlkZTlkYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzMwYzQ5ZTRkNjIyYjE0NzkwNGYzYTE5Yjc2YjY5YmJiMGVjNDhhMmNlNTRkOWI0ODM2YTRmNTk0ZjRlNTQzYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmE4Yzg0YjRkMWExMWJhYTFiZTQ4OTI5MWNhODJhM2QzMjY4Y2VkOTM5YmNkMWI2ZWU5YzEzOGM2NmU1NjMwYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGIxZDk5ZDRhMzI0NDc4MzQ0MGRhMDA4ODI3ZTUwMjM4NTkzYWFjMzEzZDVkYTA4MWVmMzJkN2M0NjRiMTdhZCJ9"
         },
         {
-          "resource": "repo://packages/env/src/server.ts#L62-L69",
+          "resource": "repo://packages/env/src/server.ts#L70-L77",
           "version": "repo-lines-v1:sha256:38bc40e9e52f0201f3c67a3b2296532666fce1d7afa147a4005938abeb47b8c8:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTAwNjQxNDFkNmM4Mzk5M2I0MTJhZDcwNzdiMWEyMTA2NjlmMjgyMGVkMmUxNzlmN2Q1NTA4MTQzYjBlNWU0NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGQ1Y2QyZmI0ZjNkZjg4NDUxNTI1NWIzOTUyM2YyZjhiNTQ3MmJlZWE5ZjU2NmZmY2EyMDRkYjgwMjU2MTA0MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZGI5MzgxZWNkMDRmYmM2ZjM1ZTE2MmRjOTI1NTAwZDViZmQwNzA1YTFmNGYzNzIxNjIwNzEyYTNhNDEzZWVlMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjYxMjUzNDkxZTg2OTBjNmIwNTVlNTJmNWU5ZjdkZDRmY2QxZDI1ZDAxOWMzOTI2MGU4NjVmMmU2ZjYwZDc0MyJ9"
         }
       ]
@@ -309,8 +301,8 @@
       "statement": "SliceAHandlerDeps is the dependency interface for the capability handlers, carrying bronnen (getById/list), a SearchAdapter, the stores (SliceAStores), the trusted scopeId, optional scrapeRunReader/bronRunStatsReader/bronOverlapReader, sourcingAssessmentAuthority, the server-owned clock, capabilityAvailability, and the SpottWriteClient.",
       "evidence": [
         {
-          "resource": "repo://packages/application/src/registry/handlers/deps.ts#L1-L84",
-          "version": "repo-lines-v1:sha256:8687247a534c0be280b5f45071096be1d842fccfebba4726e5a06919a2122589:eyJzZWxlY3RlZExpbmVDb3VudCI6ODQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxNTI4OWI3MTNkMTc1YzY5Y2VlM2U3Nzc3MmY4ODdhYjk5OWYxMjg3MWZiYTRhMmFlZmMxOTFmNGQ1N2VkOTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://packages/application/src/registry/handlers/deps.ts#L1-L94",
+          "version": "repo-lines-v1:sha256:67672a51e228a91a032fec39c848ab148d8521fe0375378c88baa4e0df353a19:eyJzZWxlY3RlZExpbmVDb3VudCI6OTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxNTI4OWI3MTNkMTc1YzY5Y2VlM2U3Nzc3MmY4ODdhYjk5OWYxMjg3MWZiYTRhMmFlZmMxOTFmNGQ1N2VkOTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
@@ -329,8 +321,8 @@
       "statement": "The three runtime processes share the Postgres + Manticore state: the API server (apps/server/src/index.ts) serves the web app over tRPC/REST/MCP, the on-box poller (apps/worker/src/poller/main.ts) curates scrape runs, and the on-box search projector (apps/server/src/projector/main.ts) drains the outbox into Manticore; all three touch Postgres and the server/projector touch the loopback Manticore.",
       "evidence": [
         {
-          "resource": "repo://apps/server/src/index.ts#L1-L157",
-          "version": "repo-lines-v1:sha256:009ce1e16bff95d917236ab0094c2c050fd3ccbed2f35b4a4ad8e1628f92e6eb:eyJzZWxlY3RlZExpbmVDb3VudCI6MTU3LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI3MTVmYTVhYThiNjdkMzNhM2Y5ZjE5ZmMzNDA2YTlmYjE5NmY1ZDFiYzA5ZDEwOGU1NzkzMDY0YWVjNzhiNmFiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJmNmY1YjQwYjE1ODQ1N2QxNzg2NGYyMTc5MDc4NmRkNWEyZWNkYjY0YjY2YTY1MWY3ODhkNGUyNWNkMzMwM2QyIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJiMzY2YzY0YTkwNjIxOGM3Mjc5ZjkxMTg1NjExODY1ZDZlYTc0N2E5YjViYWIwMjIxMTA4MTI2Mzg0OGU2NjFkIn0"
+          "resource": "repo://apps/server/src/index.ts#L1-L50",
+          "version": "repo-lines-v1:sha256:2f6d083d5829c93eb352222b11ab1fa7f30d21afcc5a659fbb6551aa3b641941:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxNWZhNWFhOGI2N2QzM2EzZjlmMTlmYzM0MDZhOWZiMTk2ZjVkMWJjMDlkMTA4ZTU3OTMwNjRhZWM3OGI2YWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVjM2Y1N2QxYjNhNmQ2MGZlNDYzMjYwMmNhNWZjNmVkMjkyNTE2MmViZTdhYzcxMjI0YTgxMWQwOWIxZDIwZDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4ZTFkYmJiZGY3MDdiYmNjZWMwN2ExOTlmNTJiNDdiNDQwMzJiMDlmOWQ2MWI0YmQyNzg1YjEzOWNkMmZkMjIifQ"
         },
         {
           "resource": "repo://apps/server/src/projector/main.ts#L1-L21",
@@ -338,13 +330,13 @@
         },
         {
           "resource": "repo://apps/worker/src/poller/main.ts#L1-L18",
-          "version": "repo-lines-v1:sha256:db8ec7e6e5c349fb93c41370406aca25c196d0a60c81d66adaaa2e1d042cab55:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3OGY0ZThlMDY3NzcyYTEwYzE2ZTc0OWM3MjJlYTAzYjg0ZWY4Y2E3MzYyOWQ3ZTVlMzM3OGRlOTk2MmVlMzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk3MmE0MjkzODJiMmUxNDcxOGUwZTM3YjA1NzBhOGExNzAyOTkxZmNkODQ5OGNkODQwNjBhOGJmNGYwNTAxN2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYyOGEyODdmYjU1ZDMxNjQ0NmFhNjA2NDNmOWUyNDA5ZGI4NDY0NTNmMDRmYzYwNTA5NzA2MWIzMzQ1YWUwMTkifQ"
+          "version": "repo-lines-v1:sha256:8d94d68737a6d8b8320e1a211c76dc5bb64634bef37d06333d6e0294f4082487:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2YTQ4NTE1N2VjZjJkNGM1YjI3ODY4ZTBkOTAwMGYyZWYyMDIyOWE1ZmQzZmZlNWM1NjA5ZDI1MzQ5YWI1NGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyOTQ1ZTRmNjcxZjk1MjU0MTY3ZDhlOWQxMDY4MzVhN2I4NjFjZTBhNjZkNjkwOGI2YTYyZWMxY2MxM2MzNDUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYzMzFlNjMzMTNiYTg0NTExYTAwYjg1ZjllZWFiNDQ3NmIzYzllYzVhOTI5MWYzODIyMDE1YzU2MmNlN2Y1MzQifQ"
         }
       ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.4.3",
-    "at": "2026-09-14T14:34:20.891Z"
+    "by": "openwiki/0.7.0",
+    "at": "2026-10-06T08:52:28.787Z"
   }
 }

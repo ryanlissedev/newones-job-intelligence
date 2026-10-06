@@ -3,9 +3,6 @@ type: operations
 title: Deployment, Readiness & Runbooks
 description: Docker Compose topology, Postgres role separation and the on-box production baseline (DEC-005), health and readiness endpoints, per-process env contracts, and the runbook and ADR index.
 tags: [deployment, docker-compose, readiness, postgres, roles, env, runbooks, adr, dec-005]
-verified:
-  - by: openwiki/0.4.3
-    at: 2026-09-14T14:34:20.891Z
 sources:
   - id: openwiki-source-aafee8946dc0a62f4e802107
     resource: repo://apps/server/Dockerfile
@@ -55,7 +52,10 @@ sources:
     resource: repo://scripts/docker-compose-smoke.sh
   - id: openwiki-source-8e7d1f4c06ccf720a9ba1beb
     resource: repo://tools/postgres/init/10-bootstrap-roles.sh
-generated: { by: "openwiki/0.4.3", at: "2026-09-14T14:34:20.891Z" }
+generated: { by: "openwiki/0.7.0", at: "2026-10-06T08:52:28.787Z" }
+verified:
+  - by: openwiki/0.7.0
+    at: 2026-10-06T08:52:28.787Z
 ---
 
 # Deployment, Readiness & Runbooks
@@ -366,8 +366,13 @@ Operational detail lives in `docs/runbooks/` and architectural decisions in
 
 ### Related pages
 
+<!-- openwiki: broken internal link [/openwiki/architecture/overview.md] link "/openwiki/architecture/overview.md" is root-absolute, which no real consumer resolves against the repository root (not a coding agent reading the page, not GitHub's Markdown renderer, not a local viewer); use a path relative to this file instead. Fix the href or restore the target, then delete this comment. -->
 - [/openwiki/architecture/overview.md](/openwiki/architecture/overview.md) — monorepo layout, package layering, the three runtime processes, request flow.
+<!-- openwiki: broken internal link [/openwiki/architecture/data-model.md] link "/openwiki/architecture/data-model.md" is root-absolute, which no real consumer resolves against the repository root (not a coding agent reading the page, not GitHub's Markdown renderer, not a local viewer); use a path relative to this file instead. Fix the href or restore the target, then delete this comment. -->
 - [/openwiki/architecture/data-model.md](/openwiki/architecture/data-model.md) — Postgres zones, SCD2, outbox, search projection checkpoint.
+<!-- openwiki: broken internal link [/openwiki/operations/quality-gates.md] link "/openwiki/operations/quality-gates.md" is root-absolute, which no real consumer resolves against the repository root (not a coding agent reading the page, not GitHub's Markdown renderer, not a local viewer); use a path relative to this file instead. Fix the href or restore the target, then delete this comment. -->
 - [/openwiki/operations/quality-gates.md](/openwiki/operations/quality-gates.md) — the four quality verbs (`fix`, `check`, `gate`, `wiki`) and the pre-push gate.
+<!-- openwiki: broken internal link [/openwiki/workflows/ingest-pipeline.md] link "/openwiki/workflows/ingest-pipeline.md" is root-absolute, which no real consumer resolves against the repository root (not a coding agent reading the page, not GitHub's Markdown renderer, not a local viewer); use a path relative to this file instead. Fix the href or restore the target, then delete this comment. -->
 - [/openwiki/workflows/ingest-pipeline.md](/openwiki/workflows/ingest-pipeline.md) — poll → raw → normalise → curate → outbox.
+<!-- openwiki: broken internal link [/openwiki/workflows/search-projection.md] link "/openwiki/workflows/search-projection.md" is root-absolute, which no real consumer resolves against the repository root (not a coding agent reading the page, not GitHub's Markdown renderer, not a local viewer); use a path relative to this file instead. Fix the href or restore the target, then delete this comment. -->
 - [/openwiki/workflows/search-projection.md](/openwiki/workflows/search-projection.md) — outbox drain into Manticore, generation/checkpoint lifecycle.
