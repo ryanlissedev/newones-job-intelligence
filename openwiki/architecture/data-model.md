@@ -4,8 +4,8 @@ title: Data Model and Persistence
 description: Postgres schema zones, SCD2 versioning, the search outbox, and the Drizzle migration journal that govern the runtime database.
 tags: [data-model, postgres, persistence, scd2, outbox, migrations, drizzle]
 verified:
-  - by: openwiki/0.4.3
-    at: 2026-09-14T14:34:20.891Z
+  - by: openwiki/0.7.0
+    at: 2026-10-06T08:52:28.787Z
 sources:
   - id: openwiki-source-26b58fea466eaae99eaeeac4
     resource: repo://packages/db/src/bron-runtime.ts

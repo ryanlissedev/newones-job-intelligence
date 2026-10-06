@@ -3,9 +3,6 @@ type: onboarding
 title: Quickstart
 description: Onboarding entry point for the Catapulze Job Intelligence monorepo — repo identity, stack, local run steps, the three runtime processes, and the task-routing map into the rest of the wiki.
 tags: [onboarding, quickstart, monorepo, local-run, bun, task-map]
-verified:
-  - by: openwiki/0.4.3
-    at: 2026-09-14T14:34:20.891Z
 sources:
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md

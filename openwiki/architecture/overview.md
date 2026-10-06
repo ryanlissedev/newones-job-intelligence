@@ -3,9 +3,6 @@ type: architecture
 title: Architecture Overview
 description: Monorepo layout, package dependency layering, the three runtime processes, and how requests flow from the web app through the API server and capability registry to Postgres and Manticore.
 tags: [architecture, monorepo, layering, runtime-topology, capability-registry, trpc, mcp, rest, readiness]
-verified:
-  - by: openwiki/0.4.3
-    at: 2026-09-14T14:34:20.891Z
 sources:
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md
@@ -61,7 +58,10 @@ sources:
     resource: repo://packages/env/src/server.ts
   - id: openwiki-source-117965f66c1ab0fea66a42dc
     resource: repo://scripts/check-layering.ts
-generated: { by: "openwiki/0.4.3", at: "2026-09-14T14:34:20.891Z" }
+generated: { by: "openwiki/0.7.0", at: "2026-10-06T08:52:28.787Z" }
+verified:
+  - by: openwiki/0.7.0
+    at: 2026-10-06T08:52:28.787Z
 ---
 
 # Architecture Overview
@@ -405,13 +405,18 @@ deploy readback.
 
 ## Related pages
 
+<!-- openwiki: broken internal link [/openwiki/architecture/data-model.md] link "/openwiki/architecture/data-model.md" is root-absolute, which no real consumer resolves against the repository root (not a coding agent reading the page, not GitHub's Markdown renderer, not a local viewer); use a path relative to this file instead. Fix the href or restore the target, then delete this comment. -->
 - [Data Model and Persistence](/openwiki/architecture/data-model.md) — Postgres
   schema zones, SCD2 versioning, and the search outbox.
+<!-- openwiki: broken internal link [/openwiki/concepts/capability-registry.md] link "/openwiki/concepts/capability-registry.md" is root-absolute, which no real consumer resolves against the repository root (not a coding agent reading the page, not GitHub's Markdown renderer, not a local viewer); use a path relative to this file instead. Fix the href or restore the target, then delete this comment. -->
 - [Capability Registry](/openwiki/concepts/capability-registry.md) — the
   capability catalog, transports, and authorization model.
+<!-- openwiki: broken internal link [/openwiki/concepts/domain-model.md] link "/openwiki/concepts/domain-model.md" is root-absolute, which no real consumer resolves against the repository root (not a coding agent reading the page, not GitHub's Markdown renderer, not a local viewer); use a path relative to this file instead. Fix the href or restore the target, then delete this comment. -->
 - [Domain Model](/openwiki/concepts/domain-model.md) — domain types and the
   Boolean parser.
+<!-- openwiki: broken internal link [/openwiki/operations/deployment-and-readiness.md] link "/openwiki/operations/deployment-and-readiness.md" is root-absolute, which no real consumer resolves against the repository root (not a coding agent reading the page, not GitHub's Markdown renderer, not a local viewer); use a path relative to this file instead. Fix the href or restore the target, then delete this comment. -->
 - [Deployment and Readiness](/openwiki/operations/deployment-and-readiness.md)
   — component-wise readiness, advisory locks, and the runbooks.
+<!-- openwiki: broken internal link [/openwiki/workflows/ingest-pipeline.md] link "/openwiki/workflows/ingest-pipeline.md" is root-absolute, which no real consumer resolves against the repository root (not a coding agent reading the page, not GitHub's Markdown renderer, not a local viewer); use a path relative to this file instead. Fix the href or restore the target, then delete this comment. -->
 - [Ingest Pipeline](/openwiki/workflows/ingest-pipeline.md) — the poller and
   curation drain.

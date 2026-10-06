@@ -3,9 +3,6 @@ type: concept
 title: Domain Model
 description: Core domain concepts that govern the ingest pipeline — bron/aanvraag/source records, opaque ids, the Boolean query parser, aanvraag lifecycle states, and the UNKNOWN provenance discipline.
 tags: [domain-model, bron, aanvraag, lifecycle, boolean-parser, unknown, provenance, ids]
-verified:
-  - by: openwiki/0.4.3
-    at: 2026-09-14T14:34:20.891Z
 sources:
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md
@@ -42,6 +39,9 @@ sources:
   - id: openwiki-source-1b9d03437c0c98ab15cd2a42
     resource: repo://packages/search/src/manticore/emitter.ts
 generated: { by: "openwiki/0.4.3", at: "2026-09-14T14:34:20.891Z" }
+verified:
+  - by: openwiki/0.7.0
+    at: 2026-10-06T08:52:28.787Z
 ---
 
 # Domain Model

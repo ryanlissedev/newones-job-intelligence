@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:a179c5f9d52a230c2e668bcd45f93dd9895b3486f85ec29c7558ae8a417c32ac",
+  "pageVersion": "sha256:4381d4d01ea440c1c32d6e0dd74522237dc528d966c5686c9e43f5aedeff0195",
   "claims": [
     {
       "id": "claim_a95c7d05c757493abc2fb88abbb928a8",
       "statement": "A bron is an ingestable data source; each is assigned a globally unique BronId up front by a human, not auto-generated, because the id keys the known-hash store, observations, and seed rows so two sources sharing one cross-contaminate as soon as either goes live. Uniqueness across the SOURCES registry is asserted by sources.spec.ts.",
       "evidence": [
         {
-          "resource": "repo://packages/application/src/sources/registry.ts#L21-L35",
-          "version": "repo-lines-v1:sha256:aa7fb04c5edad31c9799bd93e73d45cd03e11a4df54d9da87d7217a9bbd8fba9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1NTFiZTBjMmE1MWJmMjI1MWU1NzYyMjU1MmNhMmZmMWRjZDY2ZDNlMmQ3MzY5YjIyNzU4ZDIxOTRlNjkxOWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1YTEwODExMjJiZGJkYzI0Y2RiYzE3YzIyOTBlYWFlNDJiZjY2M2Q1NjZiYWY0ODFhYjUwMmM4YTAwYjBiZTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5NjIyY2NhOTZiY2JmYzA4NWM1NTI1NTJkM2I4YWJiNmNiNjkxMGRhZTEyM2Y4NDdhMjUxN2JhN2M4N2FkZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE0MzQyNGJjODNlZjA0M2FiZDNiOGVlYjY5NDlhNzU4ODcwNTUyMTExMDYwMjFjNDgxZWQwMWZiY2UyMjE5ZTQifQ"
+          "resource": "repo://packages/application/src/sources/registry.ts#L58-L109",
+          "version": "repo-lines-v1:sha256:9ec0930db60050dfe4edc1cbe5198307f4f0463480c7569b982bbfb1023b4625:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1NTFiZTBjMmE1MWJmMjI1MWU1NzYyMjU1MmNhMmZmMWRjZDY2ZDNlMmQ3MzY5YjIyNzU4ZDIxOTRlNjkxOWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1YTEwODExMjJiZGJkYzI0Y2RiYzE3YzIyOTBlYWFlNDJiZjY2M2Q1NjZiYWY0ODFhYjUwMmM4YTAwYjBiZTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5NjIyY2NhOTZiY2JmYzA4NWM1NTI1NTJkM2I4YWJiNmNiNjkxMGRhZTEyM2Y4NDdhMjUxN2JhN2M4N2FkZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE0MzQyNGJjODNlZjA0M2FiZDNiOGVlYjY5NDlhNzU4ODcwNTUyMTExMDYwMjFjNDgxZWQwMWZiY2UyMjE5ZTQifQ"
         },
         {
-          "resource": "repo://packages/application/src/sources/sources.spec.ts#L39-L50",
+          "resource": "repo://packages/application/src/sources/sources.spec.ts#L42-L53",
           "version": "repo-lines-v1:sha256:ed5a64cda0013d186b071ec4396f8e960053e6fb9e1abf2313ba13994cb4b1fc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiZTgzNzc3MWNlOTQ2YzJlODJhZTgxZGNiMjgyOWE4Y2Y5YjZiMzUyNTM2YTVmY2ViNDZjZjcwZWVmNTcwOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNhM2U0NmY5NDI3NmI2ZjZmNGVkMWYwMmFmNzhiZWY2YTJlZTFjNDM5ZGQ1NTg0Yjk3Mzk0ODMxMzIxNGQyYjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY0NGU2NTdhZDQ0MTFkOWMzZDcxOWU0Zjg3NjIxNTZjNGI0OGZlZDZjNDU5NTRlOTYzMGQyNjk1ZTRiZjhmODIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYwNjQ1NzMyNDkyNmNlZDIyOTg4MzExYzQ4YzM4ZWUwODBmMzkyYzU1N2RiYTcyOGM0ZDYzNzhmYmRjMDA4M2IifQ"
         },
         {
@@ -71,8 +71,8 @@
       "statement": "An aanvraag is a normalised vacancy record derived from source observations, unique per (bron_id, bron_referentie). A NormalisedAanvraagDraft is the hand-off shape from a source normaliser into the curation pipeline; each field carries provenance (parserVersion, sourcePath), and fields the source genuinely does not publish carry the UNKNOWN sentinel rather than null.",
       "evidence": [
         {
-          "resource": "repo://packages/application/src/normalise/types.ts#L11-L71",
-          "version": "repo-lines-v1:sha256:9076ab4803e8899dad12310520faf40483b7bc924fed77556f795a7ee0bd6e89:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwMzA1NzAwMGQ1ZWNhZTJkYjNlZDUxNWM0MGE0ZTdmNDJlYmYwYzhmODA0OWViZmJiZTUwMmYxNWEyNTQ5OGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzOWM1MGMyZDBlZTdjZmI3MjJlZTIzNTZjN2U4YjkxODg3ZDMyZjg5YTJmM2I0OGEyMGIyM2I5OTY1ZTIxYzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFlNGM4NDZiY2ViYWZhMzkzZGYxYWEzMzEwODgzYWI4ZTlhYzZmOWFmZWNkOTcxNGY4ZTQ2ZDlmOWE2YjYxODYifQ"
+          "resource": "repo://packages/application/src/normalise/types.ts#L12-L83",
+          "version": "repo-lines-v1:sha256:e21c75aa7cb7b8316251a83f4549ba01f2dfa87d496e708dd4f3bace27f2dcc7:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwMzA1NzAwMGQ1ZWNhZTJkYjNlZDUxNWM0MGE0ZTdmNDJlYmYwYzhmODA0OWViZmJiZTUwMmYxNWEyNTQ5OGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzOWM1MGMyZDBlZTdjZmI3MjJlZTIzNTZjN2U4YjkxODg3ZDMyZjg5YTJmM2I0OGEyMGIyM2I5OTY1ZTIxYzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFlNGM4NDZiY2ViYWZhMzkzZGYxYWEzMzEwODgzYWI4ZTlhYzZmOWFmZWNkOTcxNGY4ZTQ2ZDlmOWE2YjYxODYifQ"
         }
       ]
     },
@@ -185,8 +185,8 @@
       "statement": "The search adapter consumes the BooleanNode AST produced by parseBooleanQuery: the Manticore emitter translates it to a match expression, the KNN builder turns it into vector search text, and ast-hash canonicalizes and hashes it for saved-search caching.",
       "evidence": [
         {
-          "resource": "repo://packages/search/src/adapter.ts#L1-L2",
-          "version": "repo-lines-v1:sha256:cfa561acb9e548e3352eb2516a0d144167efefae2acd7bed7cbc096b6afdbc93:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzY1MGY0Nzk4Y2ZlZjBmYzNiYTcwNjg1Yzg5YWI5YzY0ZGQ3MTgyYjc0ZTEyOGRkMDFjODg5ZTI1NDNhNWE1NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzc3YTc4OGQ3MWQzMTIxMWM1NDI0NDJmMWNiMjRjNzc2NjIxYjJlNGQ1NmQ2MGEwM2ZhYzQyZTZjNzk0ZTk4NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjEyZTVmZjdkY2QzM2VkMTg3YWUyNTQxNTFmMDE4OThiYTNmNTY5MWQ2MjRmZTRjZDNkNjdjYTY5YmI4NDJmNiJ9"
+          "resource": "repo://packages/search/src/adapter.ts#L1-L6",
+          "version": "repo-lines-v1:sha256:65ebe9e6cd2269960716d2cd44ae6dcf40676f765ba5d6f40b556c75192cddcf:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTgyMDA5NjRhOTc4NjM1NTIyYjJhYjA5MGM2NTA2NWQ4ZWY4ZTg1YzQ3MzBiYjJlYjA0NjBkMzRjNjc3ZGRiYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzc3YTc4OGQ3MWQzMTIxMWM1NDI0NDJmMWNiMjRjNzc2NjIxYjJlNGQ1NmQ2MGEwM2ZhYzQyZTZjNzk0ZTk4NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjEyZTVmZjdkY2QzM2VkMTg3YWUyNTQxNTFmMDE4OThiYTNmNTY5MWQ2MjRmZTRjZDNkNjdjYTY5YmI4NDJmNiJ9"
         },
         {
           "resource": "repo://packages/search/src/ast-hash.ts#L1-L18",
@@ -217,8 +217,8 @@
       "statement": "NormalisedAanvraagDraft uses UNKNOWN and CLEARED sentinels throughout: bronUrl, locatieTekst, opdrachtgeverNaam, and startDatum are string | typeof UNKNOWN; the NormalisedTarief subfields (eenheid, max, min) are TariefEenheid | typeof CLEARED | typeof UNKNOWN. This keeps the distinction between 'the source does not publish this' and 'the source published this and we cleared it' durable through the pipeline.",
       "evidence": [
         {
-          "resource": "repo://packages/application/src/normalise/types.ts#L43-L71",
-          "version": "repo-lines-v1:sha256:9332e174ac3d648e3dad6932e8427cdf1b57af18649a3787a8cb4497fe799957:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjYzZhOTE4M2ZjYWMxM2JhNDY3YjUxMWZmNGIxZTk0NTkyYmE2M2QwZjRjMmM1NDVmNzMwNjJjMmZhMmU5OWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI4MDdlMWVhMDU3MDhjMzQ1NGE3N2JhMTAzZDIzMGVjZjdjODJkZTgyNzBhNTk3NTdiYWQ5N2Y3YzFiNTZmMjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFlNGM4NDZiY2ViYWZhMzkzZGYxYWEzMzEwODgzYWI4ZTlhYzZmOWFmZWNkOTcxNGY4ZTQ2ZDlmOWE2YjYxODYifQ"
+          "resource": "repo://packages/application/src/normalise/types.ts#L45-L83",
+          "version": "repo-lines-v1:sha256:ae9a7a6876179cbbd7e2f6b3a316c50bd851b0b0b45e539a54e54031632d037c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0ODVkMjE0NTVmNTBhODUwNmVhN2IwNzE4MTUxNTJiNjI2OTc3Yjg5N2NmNTJkMTY1N2I3ZTE0ZTBiMDVlY2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI4MDdlMWVhMDU3MDhjMzQ1NGE3N2JhMTAzZDIzMGVjZjdjODJkZTgyNzBhNTk3NTdiYWQ5N2Y3YzFiNTZmMjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFlNGM4NDZiY2ViYWZhMzkzZGYxYWEzMzEwODgzYWI4ZTlhYzZmOWFmZWNkOTcxNGY4ZTQ2ZDlmOWE2YjYxODYifQ"
         }
       ]
     },
@@ -234,7 +234,7 @@
     }
   ],
   "verification": {
-    "by": "openwiki/0.4.3",
-    "at": "2026-09-14T14:34:20.891Z"
+    "by": "openwiki/0.7.0",
+    "at": "2026-10-06T08:52:28.787Z"
   }
 }

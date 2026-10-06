@@ -3,9 +3,6 @@ type: operations
 title: Quality Gates
 description: The pre-push gate and the guardrails that keep the monorepo safe — lint/format, layering, secrets, capability coverage, type-check, and Postgres-gated tests.
 tags: [quality, gate, lint, format, lefthook, ultracite, oxlint, oxfmt, qlty, layering, secrets, capability-coverage, typecheck, postgres, ci]
-verified:
-  - by: openwiki/0.4.3
-    at: 2026-09-14T14:34:20.891Z
 sources:
   - id: openwiki-source-1fe463fcf07912e5cdbb5a91
     resource: repo://.claude/settings.json
@@ -41,7 +38,10 @@ sources:
     resource: repo://tools/quality/load-compose-env.sh
   - id: openwiki-source-a154829d66d9c70b47a23508
     resource: repo://tools/quality/resolve-changed.sh
-generated: { by: "openwiki/0.4.3", at: "2026-09-14T14:34:20.891Z" }
+generated: { by: "openwiki/0.7.0", at: "2026-10-06T08:52:28.787Z" }
+verified:
+  - by: openwiki/0.7.0
+    at: 2026-10-06T08:52:28.787Z
 ---
 
 # Quality Gates
@@ -101,33 +101,25 @@ flowchart TD
 
 *Lefthook owns pre-commit (scoped format + lint) and pre-push (full gate); the Claude Stop hook re-runs the same gate.*
 
-Pre-commit runs three parallel jobs: a wiki-guard that refuses commits mixing
-`openwiki/` with non-wiki source; `ultracite fix` on staged
-`*.{ts,tsx,js,jsx,mjs,cjs,json,yml,yaml}` (excluding `docs/`, `openwiki/`, and the
-verify skill); and `qlty check` on staged YAML/sh and `.github/**`. Pre-push runs
-`gate.sh` as a **script job** rather than a command job, because lefthook skips
-command jobs with "no matching push files" and builds its push list without
-deletions — a deletion-only push once landed ungated (CTP-503).
-
 ## The full pre-push gate
 
 `tools/quality/gate.sh` is the full gate. Both the lefthook pre-push hook and the
 Claude Code Stop hook call it. It runs, in order:
 
-<!-- openwiki: mermaid parse failed and this diagram was converted to a text fence so it does not break rendering. Fix the diagram source and restore the mermaid fence. Parser error: Parse error on line 11: ...erformance"] PERF -> CIM["check-types: Expecting 'SEMI', 'NEWLINE', 'EOF', 'AMP', 'START_LINK', 'LINK', 'LINK_ID', got 'MINUS' -->
-```text
+```mermaid
 flowchart TD
   HOOKS{"core.hooksPath set?"} -->|yes| FAIL1["exit 1: run bun install / lefthook install"]
   HOOKS -->|no| UC["ultracite check (all)"]
   UC --> QLTYCHECK{"qlty CLI present?"}
   QLTYCHECK -->|no| FAIL2["exit 1: install Qlty"]
-  QLTYCHECK -->|yes| Q["qlty check --all --no-formatters"]
+  QLTYCHECK -->|yes| Q["qlty check --all --jobs $QLTY_JOBS --no-upgrade-check --no-progress --no-formatters"]
   Q --> TYPES["check-types (turbo)"]
-  TYPES --> BF["check-types:backfill"]
+  TYPES --> EFFECT["check-types:effect-e2e"]
+  EFFECT --> BF["check-types:backfill"]
   BF --> PROD["check-types:production"]
   PROD --> PERF["check-types:performance"]
-  PERF -> CIM["check-types:ci-metrics"]
-  CIM -> BENCH["check-types:benchmarks"]
+  PERF --> CIM["check-types:ci-metrics"]
+  CIM --> BENCH["check-types:benchmarks"]
   BENCH --> LAY["check-layering"]
   LAY --> SEC["check-secrets"]
   SEC --> MANT{"MANTICORE_URL set?"}
@@ -137,7 +129,8 @@ flowchart TD
   MIG --> TEST["bun test (REQUIRE_DATABASE_TESTS=1)"]
   TEST --> PCG["check:production-compose-guard"]
   PCG --> PCC["check:postgres-compose"]
-  PCC --> PASSED["gate: passed"]
+  PCC --> FC["check:field-coverage"]
+  FC --> PASSED["gate: passed"]
 ```
 
 *The gate phases in order, from format/lint through type-checks, layering, secrets, and Postgres-gated tests.*
@@ -178,8 +171,8 @@ Linting and formatting use **Ultracite** (Oxlint + Oxfmt) plus a vendored
 `tools/oxlint/anti-slop/`. Treat that copy as owned project tooling: change rules
 here, not via a published package. `oxfmt.config.ts` extends `ultracite/oxfmt`
 and ignores `docs/`, `openwiki/`, agent config dirs, `.github/`, and the
-anti-slop plugin itself. `oxlint.config.ts` extends `ultracite/oxlint/core` and
-`ultracite/oxlint/next`, loads the vendored `anti-slop` and `anti-slop-effect`
+anti-slop plugin itself. `oxlint.config.ts` extends `ultracite/oxlint/core`
+and `ultracite/oxlint/next`, loads the vendored `anti-slop` and `anti-slop-effect`
 plugins, and scopes the Effect-specific `anti-slop-effect` rules to the
 packages/apps with a direct `effect` dependency via overrides.
 

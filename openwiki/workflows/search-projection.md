@@ -3,9 +3,6 @@ type: workflow
 title: Search Projection
 description: How curated rows become searchable through outbox drain, the on-box projector, Manticore bulk writes, index versioning, partitioning, and the cached search read path.
 tags: [search, projection, manticore, outbox, index-versioning, caching]
-verified:
-  - by: openwiki/0.4.3
-    at: 2026-09-14T14:34:20.891Z
 sources:
   - id: openwiki-source-215e9a0f2a96760fa870980c
     resource: repo://apps/server/src/projector/loop.ts
@@ -42,6 +39,9 @@ sources:
   - id: openwiki-source-dc452812a52d8b3c753a1abe
     resource: repo://packages/search/src/version.ts
 generated: { by: "openwiki/0.4.3", at: "2026-09-14T14:34:20.891Z" }
+verified:
+  - by: openwiki/0.7.0
+    at: 2026-10-06T08:52:28.787Z
 ---
 
 # Search Projection

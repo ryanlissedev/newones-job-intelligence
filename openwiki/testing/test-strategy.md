@@ -3,9 +3,6 @@ type: testing-strategy
 title: Testing & Benchmarks
 description: How the test suite is layered — bun test without type-checking, Postgres-gated suites, migration-upgrade safety, transport parity, live-jobs E2E, and search/relevance benchmarks.
 tags: [testing, benchmarks, postgres, e2e, manticore, connectors, quality-gate]
-verified:
-  - by: openwiki/0.4.3
-    at: 2026-09-14T14:34:20.891Z
 sources:
   - id: openwiki-source-9f058f513c83187f2185fae4
     resource: repo://apps/server/src/capabilities/parity.spec.ts
