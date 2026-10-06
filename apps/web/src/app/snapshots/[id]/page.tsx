@@ -12,7 +12,7 @@ import { getServerAuthClient } from "@/lib/auth-server";
 export const metadata: Metadata = {
   description:
     "Immutable QuerySnapshot met goedkeuring en exportstatus naar Spott.",
-  title: "Snapshot · Catapulze Job Intelligence",
+  title: "Snapshot · Newones",
 };
 
 /**

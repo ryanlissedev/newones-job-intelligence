@@ -29,7 +29,7 @@ const monoFont = IBM_Plex_Mono({
 export const metadata: Metadata = {
   description:
     "Doorzoek opdrachten uit meerdere bronnen met snelle Boolean search en volledige herkomstinformatie.",
-  title: "Catapulze Job Intelligence",
+  title: "Newones",
 };
 
 export default function RootLayout({

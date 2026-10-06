@@ -25,7 +25,7 @@ import { getServerAuthClient } from "@/lib/auth-server";
 
 export const metadata: Metadata = {
   description: "Detail van één scrape-run.",
-  title: "Run-detail · Bronnen · Catapulze Job Intelligence",
+  title: "Run-detail · Bronnen · Newones",
 };
 
 interface ScrapeRunDetail {

@@ -56,7 +56,7 @@ const main = async (): Promise<void> => {
     const { betterAuth } = authModule;
     const { drizzleAdapter } = adapter;
     const provisioner = betterAuth({
-      appName: "Catapulze Job Intelligence Auth Provisioner",
+      appName: "Newones Auth Provisioner",
       baseURL: env.BETTER_AUTH_URL,
       database: drizzleAdapter(db, {
         provider: "pg",

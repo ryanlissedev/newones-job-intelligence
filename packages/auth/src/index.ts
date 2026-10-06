@@ -48,7 +48,7 @@ export const createAuth = () => {
 
   return betterAuth({
     advanced,
-    appName: "Catapulze Job Intelligence",
+    appName: "Newones",
     baseURL: env.BETTER_AUTH_URL,
     database: drizzleAdapter(db, {
       provider: "pg",

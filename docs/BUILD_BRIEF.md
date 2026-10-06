@@ -1,4 +1,4 @@
-# Catapulze Job Intelligence — bouwbrief
+# Newones — bouwbrief
 
 Status: discovery-consolidatie, architectuurstatus herijkt op `main@2049008` op 5 september 2026<br>
 Eigenaren: Robbie (product/toegang), Ryan (architectuur/uitvoering)

@@ -45,7 +45,7 @@ import { getServerAuthClient } from "@/lib/auth-server";
 
 export const metadata: Metadata = {
   description: "Filterbare scrape-runs voor operators.",
-  title: "Scrape-runs · Bronnen · Catapulze Job Intelligence",
+  title: "Scrape-runs · Bronnen · Newones",
 };
 
 interface PublicBronView {

@@ -7,7 +7,7 @@ import { JobLoadingState } from "@/features/job-intelligence/job-search-states";
 export const metadata: Metadata = {
   description:
     "Doorzoek opdrachten met Boolean-logica, filters en volledige herkomstinformatie.",
-  title: "Opdrachten zoeken · Catapulze Job Intelligence",
+  title: "Opdrachten zoeken · Newones",
 };
 
 const JobsPage = () => (

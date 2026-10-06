@@ -84,7 +84,7 @@ const Header = () => {
       </Suspense>
       <div className="mx-auto flex min-h-16 w-full max-w-[1600px] items-center gap-2 px-3 sm:gap-6 sm:px-6">
         <Link
-          aria-label="Catapulze Job Intelligence — overzicht"
+          aria-label="Newones — overzicht"
           className="flex min-h-11 items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
           href="/"
         >
@@ -95,7 +95,7 @@ const Header = () => {
             Job Intelligence
           </span>
           <span className="hidden font-mono text-[10px] tracking-[0.16em] text-muted-foreground uppercase sm:inline">
-            Catapulze
+            Newones
           </span>
         </Link>
 

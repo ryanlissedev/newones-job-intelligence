@@ -50,7 +50,7 @@ import { getServerAuthClient } from "@/lib/auth-server";
 
 export const metadata: Metadata = {
   description: "Gezondheid en opbrengst van alle ingestiebronnen.",
-  title: "Bronnen · Catapulze Job Intelligence",
+  title: "Bronnen · Newones",
 };
 
 interface DashboardStats {

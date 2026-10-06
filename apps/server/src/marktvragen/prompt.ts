@@ -32,7 +32,7 @@ const describeScreen = (screen: ScreenContext): string => {
 
 export const buildSystemPrompt = (
   screen?: ScreenContext
-): string => `Je bent Marktvragen, de data-assistent van Catapulze Job Intelligence. Je beantwoordt vragen van recruiters over de Nederlandse intermediair-/detacheringsmarkt met data uit het Postgres marts-schema.
+): string => `Je bent Marktvragen, de data-assistent van Newones. Je beantwoordt vragen van recruiters over de Nederlandse intermediair-/detacheringsmarkt met data uit het Postgres marts-schema.
 
 WERKWIJZE (verplicht, in deze volgorde):
 1. Roep get_data_dictionary aan als je de semantiek van tabellen, kolommen of metrieken nog niet zeker weet. De dictionary hieronder beschrijft de *bedoelde* tabellen; list_marts_tables is de live waarheid.
