@@ -114,6 +114,7 @@ interface PullRequest {
 }
 
 interface CheckRun {
+  readonly id?: number;
   readonly name?: string;
   readonly workflow_name?: string | null;
   readonly head_sha?: string;
@@ -748,6 +749,61 @@ const requireBrowserEvidence = async (
     headSha,
     `PR #${pullRequest.number} Browser evidence`
   );
+};
+
+/**
+ * Since #433 the heavy CI smokes run on pull requests only; a main push skips
+ * them by design. Their evidence therefore comes from each released PR's
+ * head: the latest run of each must be a completed `success`, or `skipped`
+ * (CI skips them when the PR changed no code), from `ci.yml` at that head.
+ */
+const PULL_REQUEST_SMOKE_JOBS = [
+  "application-image-smoke",
+  "mcp-edge-smoke",
+  "postgres-restore-drill",
+] as const;
+
+const requirePullRequestSmokes = async (
+  github: GitHubApi,
+  repository: string,
+  pullRequestNumber: number,
+  headSha: string
+): Promise<void> => {
+  const checks = await github.all<CheckRun>(
+    `/repos/${repository}/commits/${headSha}/check-runs?per_page=100`,
+    `PR #${pullRequestNumber} check runs`
+  );
+  for (const name of PULL_REQUEST_SMOKE_JOBS) {
+    const context = `PR #${pullRequestNumber} ${name}`;
+    // A re-run adds a newer check run with the same name; the newest decides.
+    const [latest] = checks
+      .filter((check) => check.name === name && check.head_sha === headSha)
+      .toSorted((left, right) => (right.id ?? 0) - (left.id ?? 0));
+    if (latest === undefined) {
+      throw new GateError(
+        "required_check_missing",
+        `${context} has no check run on the PR head`
+      );
+    }
+    checkAppIdentity(latest, context);
+    if (
+      latest.status !== "completed" ||
+      (latest.conclusion !== "success" && latest.conclusion !== "skipped")
+    ) {
+      throw new GateError(
+        "required_check_failed",
+        `${context} is not a successful or skipped completed check`
+      );
+    }
+    await assertCheckWorkflowIdentity(
+      github,
+      repository,
+      latest,
+      ".github/workflows/ci.yml",
+      headSha,
+      context
+    );
+  }
 };
 
 const requireClaudeReviewCheck = async (
@@ -1473,6 +1529,12 @@ export const runReleaseGate = async (
       github.graphqlFetch
     );
     assertCleanReview(review.decision, review.unresolved);
+    await requirePullRequestSmokes(
+      github,
+      config.repository,
+      pullRequest.number,
+      headSha
+    );
     if (reviewMode === "solo") {
       await requireClaudeReviewCheck(
         github,
@@ -1527,14 +1589,9 @@ export const runReleaseGate = async (
     config.repository,
     ".github/workflows/ci.yml",
     candidateSha,
-    [
-      "changes",
-      "verify",
-      "build",
-      "application-image-smoke",
-      "mcp-edge-smoke",
-      "postgres-restore-drill",
-    ]
+    // The heavy smokes are skipped on main pushes (#433); see
+    // requirePullRequestSmokes for where their evidence comes from.
+    ["changes", "verify", "build"]
   );
   verifiedWorkflows.add(".github/workflows/ci.yml");
   if (browserEvidenceRequired && !browserEvidenceChecked) {

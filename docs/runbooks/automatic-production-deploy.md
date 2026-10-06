@@ -199,9 +199,13 @@ untrusted approver, or malformed pagination blocks the release in either mode.
 The evidence output records the mode it ran under as `reviewMode`.
 
 The gate requires trusted GitHub Actions runs for the exact SHA and exact
-workflow/job identity: `CI` jobs `changes`, `verify`, `build`,
-`application-image-smoke`, `mcp-edge-smoke`, and `postgres-restore-drill`, plus
-React Doctor when the candidate changes the web surface. UI changes in
+workflow/job identity: `CI` jobs `changes`, `verify` and `build` on the
+candidate's main push, plus React Doctor when the candidate changes the web
+surface. Since #433 a main push skips `application-image-smoke`,
+`mcp-edge-smoke` and `postgres-restore-drill`, so the gate takes those from
+each released PR's head instead: the newest check run of each must be a
+completed `success` (or `skipped`, which CI does for a PR that changed no code)
+from `ci.yml` at that head. UI changes in
 `apps/web`, `packages/ui`, or `e2e` require one successful `Browser evidence`
 check from `Search audit evidence` on the exact PR head SHA. Check runs are
 accepted only when their GitHub Actions app identity is present.
