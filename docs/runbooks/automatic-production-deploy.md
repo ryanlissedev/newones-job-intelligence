@@ -179,7 +179,7 @@ The release diff (commit list and changed files) comes from the full
 --no-renames`, not from GitHub's compare API, which stops at 300 files and 250
 commits. GitHub's compare verdict (`status`, `ahead_by`, `behind_by`) must still
 agree with git, and the gate blocks with `comparison_unavailable`,
-`comparison_mismatch` or `comparison_truncated` (above 150 commits, the
+`comparison_mismatch` or `comparison_truncated` (above 100 commits, the
 `GITHUB_TOKEN` REST budget) instead of guessing. A rename reports both paths,
 so moving a file out of a manual-lane directory still routes to the manual lane. Every
 GitHub REST request the gate makes, pagination pages included, counts against a
@@ -199,9 +199,13 @@ untrusted approver, or malformed pagination blocks the release in either mode.
 The evidence output records the mode it ran under as `reviewMode`.
 
 The gate requires trusted GitHub Actions runs for the exact SHA and exact
-workflow/job identity: `CI` jobs `changes`, `verify`, `build`,
-`application-image-smoke`, `mcp-edge-smoke`, and `postgres-restore-drill`, plus
-React Doctor when the candidate changes the web surface. UI changes in
+workflow/job identity: `CI` jobs `changes`, `verify` and `build` on the
+candidate's main push, plus React Doctor when the candidate changes the web
+surface. Since #433 a main push skips `application-image-smoke`,
+`mcp-edge-smoke` and `postgres-restore-drill`, so the gate takes those from
+each released PR's head instead: the newest check run of each must be a
+completed `success` (or `skipped`, which CI does for a PR that changed no code)
+from `ci.yml` at that head. UI changes in
 `apps/web`, `packages/ui`, or `e2e` require one successful `Browser evidence`
 check from `Search audit evidence` on the exact PR head SHA. Check runs are
 accepted only when their GitHub Actions app identity is present.

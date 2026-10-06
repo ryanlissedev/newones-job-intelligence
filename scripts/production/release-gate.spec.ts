@@ -182,7 +182,18 @@ interface ProductionDeploymentRecord {
   readonly payload?: unknown;
 }
 
+const PR_SMOKES: readonly string[] = [
+  "application-image-smoke",
+  "mcp-edge-smoke",
+  "postgres-restore-drill",
+];
+
 interface GateHarnessOptions {
+  readonly mainSmokesSkipped?: boolean;
+  readonly missingPrSmokes?: boolean;
+  readonly prSmokeConclusion?: string;
+  readonly prSmokeRerun?: boolean;
+  readonly prSmokeWrongWorkflow?: boolean;
   readonly blockedFile?: string;
   readonly truncatedComparison?: boolean;
   readonly changesRequested?: boolean;
@@ -294,9 +305,37 @@ const makeGateHarness = (options: GateHarnessOptions = {}) => {
       return gateJson({ permission: "push" });
     }
     if (url.includes("/commits/") && url.includes("/check-runs")) {
+      const isFirst = url.includes(firstHeadSha);
+      const headSha = isFirst ? firstHeadSha : secondHeadSha;
+      const smokes = options.missingPrSmokes
+        ? []
+        : PR_SMOKES.flatMap((name, index) => [
+            ...(options.prSmokeRerun
+              ? [
+                  {
+                    app: { id: 15_368, slug: "github-actions" },
+                    conclusion: "failure",
+                    details_url: `https://github.com/test/repo/actions/runs/${isFirst ? 97 : 96}/job/${100 + index}`,
+                    head_sha: headSha,
+                    id: 100 + index,
+                    name,
+                    status: "completed",
+                  },
+                ]
+              : []),
+            {
+              app: { id: 15_368, slug: "github-actions" },
+              conclusion: options.prSmokeConclusion ?? "success",
+              details_url: `https://github.com/test/repo/actions/runs/${isFirst ? 97 : 96}/job/${200 + index}`,
+              head_sha: headSha,
+              id: 200 + index,
+              name,
+              status: "completed",
+            },
+          ]);
       if (options.missingFormalReview) {
-        const isFirst = url.includes(firstHeadSha);
         return gateJson([
+          ...smokes,
           {
             app: { id: 15_368, slug: "github-actions" },
             conclusion: "success",
@@ -309,7 +348,7 @@ const makeGateHarness = (options: GateHarnessOptions = {}) => {
           },
         ]);
       }
-      return gateJson([]);
+      return gateJson(smokes);
     }
     if (url.includes("/actions/workflows/") && url.includes("/runs")) {
       const { latestCiFailed } = options;
@@ -361,7 +400,11 @@ const makeGateHarness = (options: GateHarnessOptions = {}) => {
           "mcp-edge-smoke",
           "postgres-restore-drill",
         ].map((name) => ({
-          conclusion: "success",
+          // Since #433 a main push skips the heavy smokes.
+          conclusion:
+            options.mainSmokesSkipped && PR_SMOKES.includes(name)
+              ? "skipped"
+              : "success",
           head_sha: releaseCandidateSha,
           name,
           status: "completed",
@@ -386,6 +429,17 @@ const makeGateHarness = (options: GateHarnessOptions = {}) => {
           workflow_name: "CI",
         }))
       );
+    }
+    const smokeRun = /\/actions\/runs\/(?<id>9[67])$/u.exec(url);
+    if (smokeRun?.groups?.id) {
+      return gateJson({
+        conclusion: "success",
+        head_sha: smokeRun.groups.id === "97" ? firstHeadSha : secondHeadSha,
+        path: options.prSmokeWrongWorkflow
+          ? ".github/workflows/react-doctor.yml"
+          : workflowPath,
+        status: "completed",
+      });
     }
     if (url.includes("/actions/runs/99")) {
       return gateJson({
@@ -813,6 +867,69 @@ const fakeDiffSource = (
   };
 };
 
+describe("production release gate PR-head smokes (#433)", () => {
+  it("passes when main skipped the heavy smokes and every PR head ran them", async () => {
+    const harness = makeGateHarness({ mainSmokesSkipped: true });
+
+    await expect(
+      runReleaseGate(gateConfig(harness.fetchImpl))
+    ).resolves.toMatchObject({ reasons: [] });
+  });
+
+  it("accepts smokes CI skipped on a PR that changed no code", async () => {
+    const harness = makeGateHarness({
+      mainSmokesSkipped: true,
+      prSmokeConclusion: "skipped",
+    });
+
+    await expect(
+      runReleaseGate(gateConfig(harness.fetchImpl))
+    ).resolves.toMatchObject({ reasons: [] });
+  });
+
+  it("takes the newest re-run of a PR smoke", async () => {
+    const harness = makeGateHarness({ prSmokeRerun: true });
+
+    await expect(
+      runReleaseGate(gateConfig(harness.fetchImpl))
+    ).resolves.toMatchObject({ reasons: [] });
+  });
+
+  it("checks the shared CI run identity once per PR across per-job URLs", async () => {
+    const harness = makeGateHarness({ mainSmokesSkipped: true });
+
+    await runReleaseGate(gateConfig(harness.fetchImpl));
+    const smokeRunLookups = harness.calls.filter((url) =>
+      /\/actions\/runs\/9[67]$/u.test(url)
+    );
+    expect(smokeRunLookups).toHaveLength(2);
+  });
+
+  it("blocks a PR whose smoke failed", async () => {
+    const harness = makeGateHarness({ prSmokeConclusion: "failure" });
+
+    await expect(runReleaseGate(gateConfig(harness.fetchImpl))).rejects.toThrow(
+      "required_check_failed"
+    );
+  });
+
+  it("blocks a PR head without smoke check runs", async () => {
+    const harness = makeGateHarness({ missingPrSmokes: true });
+
+    await expect(runReleaseGate(gateConfig(harness.fetchImpl))).rejects.toThrow(
+      "required_check_missing"
+    );
+  });
+
+  it("blocks a PR smoke that another workflow produced", async () => {
+    const harness = makeGateHarness({ prSmokeWrongWorkflow: true });
+
+    await expect(runReleaseGate(gateConfig(harness.fetchImpl))).rejects.toThrow(
+      "untrusted_check"
+    );
+  });
+});
+
 describe("production release gate git diff source", () => {
   it("passes a release whose GitHub comparison hit the 300-file limit", async () => {
     const harness = makeGateHarness({ truncatedComparison: true });
@@ -889,7 +1006,7 @@ describe("production release gate git diff source", () => {
 
   it("fails closed above the REST-budget commit cap", async () => {
     const harness = makeGateHarness();
-    const commits = Array.from({ length: 151 }, (_, index) =>
+    const commits = Array.from({ length: 101 }, (_, index) =>
       index.toString(16).padStart(40, "0")
     );
 
