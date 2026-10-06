@@ -92,9 +92,21 @@ finalize step then writes that JSON to the `production` environment variable
 it does not exist yet. Rotation runs only after the ledger status is recorded
 as `success`, so a failed or rolled-back release leaves the previous baseline
 untouched and the next run still compares against the last release that
-actually reached production. The job needs `actions: write` for this one call.
-If rotation fails the job fails even though the deployment succeeded, because
-an unrotated baseline blocks the next release.
+actually reached production. The write happens in its own step, `Rotate
+production release baseline`, with the `PRODUCTION_VARIABLES_TOKEN` secret:
+`GITHUB_TOKEN` cannot write Actions variables at any permission level (the
+first automatic release, run 37431986942, failed there with HTTP 403 after a
+successful deployment). That step also writes the new baseline JSON to the run
+summary. If rotation fails the job fails even though the deployment succeeded,
+because an unrotated baseline blocks the next release; the operator then sets
+the variable by hand to the JSON from that run summary:
+`gh variable set PRODUCTION_LAST_DEPLOYED_RELEASE_JSON --env production --body '<json>'`.
+
+`PRODUCTION_VARIABLES_TOKEN` is a fine-grained personal access token (or a
+GitHub App installation token) stored as a `production` environment secret.
+Scope it to this repository only, with repository permissions `Variables: Read
+and write` and `Environments: Read and write` and nothing else, and give it an
+expiry with a rotation reminder.
 
 ## Review modes
 
@@ -159,6 +171,7 @@ printed):
 | `PRODUCTION_PROJECTOR_RUNTIME_URL` | `${PRODUCTION_API_URL}/projector/runtime`; the API serves the projector's own runtime row (release SHA, container id, cycle count, heartbeat age) and answers 200 only while the heartbeat is under 60 seconds old |
 | `PRODUCTION_WEB_VERSION_URL` | `${PRODUCTION_WEB_URL}/version`; the web route handler echoes `APP_RELEASE_SHA`, else Coolify's `SOURCE_COMMIT`, and answers 503 without an identity |
 | `PRODUCTION_LAST_DEPLOYED_RELEASE_JSON` | protected, verified complete-release ledger baseline with release id, SHA, and server/web/projector SHAs |
+| `PRODUCTION_VARIABLES_TOKEN` | protected secret; fine-grained token limited to this repository with `Variables` and `Environments` read/write, used only by the baseline rotation step |
 
 The complete-release baseline is required. The gate and driver independently
 read back its GitHub `production` deployment and successful status, then compare

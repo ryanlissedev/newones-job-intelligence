@@ -212,7 +212,32 @@ jobs:
             echo 'production deploy outcome file is missing; baseline not rotated' >&2
             exit 1
           fi
+
+      # GITHUB_TOKEN cannot write Actions variables at any permission level
+      # (run 37431986942 got HTTP 403 here), so rotation uses a dedicated
+      # fine-grained token that can only write this repository's variables.
+      - name: Rotate production release baseline
+        env:
+          GH_TOKEN: ${{ secrets.PRODUCTION_VARIABLES_TOKEN }}
+          OUTCOME_FILE: ${{ runner.temp }}/production-deploy-outcome.json
+        run: |
+          set -euo pipefail
           baseline="$(jq -ce '.nextReleaseBaseline' "${OUTCOME_FILE}")"
+          # The baseline holds only SHAs and the ledger id. Recording it in the
+          # summary lets an operator rotate by hand from this run's own output.
+          {
+            echo '### Next release baseline'
+            echo
+            echo '```json'
+            printf '%s\n' "${baseline}"
+            echo '```'
+          } >> "${GITHUB_STEP_SUMMARY}"
+          if [[ -z "${GH_TOKEN}" ]]; then
+            printf '::error::%s %s\n' \
+              'PRODUCTION_VARIABLES_TOKEN is not set: the deployment succeeded but the baseline was not rotated.' \
+              'Set PRODUCTION_LAST_DEPLOYED_RELEASE_JSON (production environment) to the JSON in this run summary.'
+            exit 1
+          fi
           variables_path="/repos/${GITHUB_REPOSITORY}/environments/production/variables"
           patch_error="$(mktemp)"
           trap 'rm -f "${patch_error}"' EXIT
