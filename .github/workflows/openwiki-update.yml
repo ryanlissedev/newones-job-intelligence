@@ -36,7 +36,11 @@ jobs:
         env:
           OPENWIKI_PROVIDER: openrouter
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          OPENWIKI_MODEL_ID: "z-ai/glm-5.2"
+          # Free OpenRouter model (no credits needed; the paid z-ai/glm-5.2 hit
+          # HTTP 402). Picked 6 Oct 2026 from /api/v1/models: tool calling,
+          # 262,144-token context, 235,929 max output, ~99.9 % endpoint uptime.
+          # Free models are rate-limited per day; recheck the list if it 404s.
+          OPENWIKI_MODEL_ID: "nvidia/nemotron-3-super-120b-a12b:free"
           OPENWIKI_MAX_OUTPUT_TOKENS: "16384"
           # Required for the LangSmith connector's code-mode pull to authenticate.
           # For extra workspaces, add OPENWIKI_LANGSMITH_API_KEY_2, _3, ... as repo
