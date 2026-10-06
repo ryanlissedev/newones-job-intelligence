@@ -20,7 +20,7 @@ const HEALTHY_URL =
   "https://www.werkenbijunica.nl/vacatures/accountmanager-venray-aqkcmj2yd4e-nszi";
 const FLAKY_URL =
   "https://www.werkenbijunica.nl/vacatures/energie-manager-moordrecht-aqkwugvvvcgghbf0";
-// The URL that answered HTTP 500 on every request on 6 Oct 2026.
+// One of the URLs that answered HTTP 500 on every request on 6 Oct 2026.
 const BROKEN_URL =
   "https://www.werkenbijunica.nl/vacatures/technisch-administratief-medewerker-goes-amstgehjgo1zm6l";
 
@@ -179,11 +179,11 @@ describe("Unica detail pages answering HTTP 5xx", () => {
     await expect(client.fetchListing()).rejects.toThrow("status 500");
   });
 
-  it("ships Unica with 1 s / 2 s backoff and a 10-page outage ceiling", () => {
+  it("ships Unica with 1 s / 2 s backoff and a 100-page outage ceiling", () => {
     expect(unicaConfig.detailServerErrorPolicy).toEqual({
       attempts: 3,
       initialDelayMs: 1000,
-      maxRejectedPerRun: 10,
+      maxRejectedPerRun: 100,
     });
   });
 });

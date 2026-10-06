@@ -11,17 +11,18 @@ Status: **probe afgerond; connector toegevoegd** — adapter-categorie `json-ld`
 
 ## HTTP 5xx op detailpagina's
 
-Op 6 oktober 2026 gaf één vacature uit de Unica-sitemap
-(`/vacatures/technisch-administratief-medewerker-goes-amstgehjgo1zm6l`) bij
-elk verzoek HTTP 500 (Laravel "Server Error"); de andere ~550 gaven 200. Omdat
-alleen 404 een item afkeurde, liet die ene pagina elke Unica-run falen met
+Op 6 oktober 2026 gaf ongeveer 4 % van de vacatures uit de Unica-sitemap (17
+van de eerste 407 geprobeerde, onder meer
+`/vacatures/technisch-administratief-medewerker-goes-amstgehjgo1zm6l`) bij elk
+verzoek HTTP 500 (Laravel "Server Error"); de rest gaf 200. Omdat alleen 404
+een item afkeurde, liet elk van die pagina's de hele Unica-run falen met
 `ConnectorRunFailure` ("Connector fetch failed").
 
 `unicaConfig.detailServerErrorPolicy` probeert een 5xx op een detailpagina drie
 keer (wachttijd 1 s, daarna 2 s). Blijft de pagina falen, dan wordt het item
 afgekeurd (`rejected`) en loopt de run door; het blijft in
 `observedBronReferenties`, dus missed-poll-reconciliatie markeert het niet als
-verdwenen. Vallen er in één run meer dan 10 pagina's zo af, dan ligt Unica zelf
+verdwenen. Vallen er in één run meer dan 100 pagina's (~18 % van de catalogus) zo af, dan ligt Unica zelf
 plat en faalt de run zoals voorheen. Een 5xx op de sitemap faalt de run altijd.
 Bewijs: `packages/connectors/src/json-ld/unica-server-error.spec.ts`.
 
