@@ -1,9 +1,26 @@
 /* oxlint-disable eslint/max-classes-per-file, eslint/no-await-in-loop, eslint/complexity, unicorn/no-array-sort, anti-slop/no-chained-type-assertions, anti-slop/no-runtime-typeof, anti-slop/no-unknown-parameters, anti-slop/no-unknown-returns, anti-slop/no-unsafe-dictionary-type, anti-slop/require-safety-comment-for-type-assertion -- This read-only gate parses several external GitHub REST and GraphQL response shapes at its I/O boundary. Its awaits are deliberately serial for pagination, review evidence, and main-ref rechecks. */
+import { execFile } from "node:child_process";
 import { exit } from "node:process";
+import { promisify } from "node:util";
 
 const SHA_PATTERN = /^[a-f0-9]{40}$/u;
 const MAX_PAGES = 100;
 const MAX_COMPARISON_FILES = 300;
+// Each commit costs a PR lookup and each PR several more REST calls (files,
+// checks, workflow run). 150 commits keeps an ordinary release well inside
+// GITHUB_TOKEN's 1,000 REST requests per hour; GITHUB_REST_REQUEST_BUDGET
+// bounds what the cap cannot (paginated file lists of very large PRs).
+const MAX_RELEASE_COMMITS = 150;
+// Every REST request (each pagination page included) is counted against this,
+// so a release that would exhaust the token blocks with an explicit
+// `github_request_budget_exceeded` instead of a rate-limit response mid-gate.
+// Kept under 1,000 to leave room for the deploy job's own calls.
+const GITHUB_REST_REQUEST_BUDGET = 900;
+// The review-thread and review GraphQL pages draw on a separate 1,000
+// points-per-hour GITHUB_TOKEN limit; each query costs at least one point.
+const GITHUB_GRAPHQL_REQUEST_BUDGET = 900;
+const GIT_TIMEOUT_MS = 60_000;
+const GIT_MAX_BUFFER_BYTES = 64 * 1024 * 1024;
 const GITHUB_REQUEST_TIMEOUT_MS = 30_000;
 const GITHUB_ACTIONS_APP_ID = 15_368;
 const GITHUB_ACTIONS_APP_SLUG = "github-actions";
@@ -25,14 +42,36 @@ export type FetchLike = (
 
 export type ReleaseGateReviewMode = "trusted-approver" | "solo";
 
+/**
+ * Reads the release diff from a full local checkout instead of GitHub's
+ * compare API, whose file list stops at 300 entries and whose commit list
+ * stops at 250. Every method must reject (never guess) when git cannot answer.
+ */
+export interface ReleaseDiffSource {
+  readonly isAncestor: (
+    ancestor: string,
+    descendant: string
+  ) => Promise<boolean>;
+  readonly commitShas: (from: string, to: string) => Promise<readonly string[]>;
+  readonly changedFiles: (
+    from: string,
+    to: string
+  ) => Promise<readonly string[]>;
+}
+
 export interface GateConfig {
   readonly candidateSha: string;
+  readonly diffSource?: ReleaseDiffSource;
   readonly repository: string;
   readonly token: string;
   readonly lastDeployedSha?: string;
   readonly fetchImpl?: FetchLike;
   readonly apiBaseUrl?: string;
   readonly reviewMode?: ReleaseGateReviewMode;
+  /** REST requests the gate may make; defaults to GITHUB_REST_REQUEST_BUDGET. */
+  readonly restRequestBudget?: number;
+  /** GraphQL queries the gate may make; defaults to GITHUB_GRAPHQL_REQUEST_BUDGET. */
+  readonly graphqlRequestBudget?: number;
 }
 
 export interface GateResult {
@@ -248,9 +287,28 @@ class GitHubApi {
   private readonly fetchImpl: FetchLike;
   private readonly baseUrl: string;
   private readonly headers: Record<string, string>;
+  private readonly requestBudget: number;
+  private requests = 0;
+  private readonly graphqlRequestBudget: number;
+  private graphqlRequests = 0;
+  /** The fetch for GraphQL queries, counted against their own budget. */
+  readonly graphqlFetch: FetchLike;
 
   constructor(config: GateConfig) {
     this.fetchImpl = config.fetchImpl ?? fetch;
+    this.requestBudget = config.restRequestBudget ?? GITHUB_REST_REQUEST_BUDGET;
+    this.graphqlRequestBudget =
+      config.graphqlRequestBudget ?? GITHUB_GRAPHQL_REQUEST_BUDGET;
+    this.graphqlFetch = async (input, init) => {
+      if (this.graphqlRequests >= this.graphqlRequestBudget) {
+        throw new GateError(
+          "github_request_budget_exceeded",
+          `review queries would exceed the gate's ${this.graphqlRequestBudget} GitHub GraphQL request budget; release in smaller batches`
+        );
+      }
+      this.graphqlRequests += 1;
+      return await this.fetchImpl(input, init);
+    };
     this.baseUrl = (config.apiBaseUrl ?? "https://api.github.com").replace(
       /\/$/u,
       ""
@@ -262,10 +320,21 @@ class GitHubApi {
     };
   }
 
+  private spendRequest(context: string): void {
+    if (this.requests >= this.requestBudget) {
+      throw new GateError(
+        "github_request_budget_exceeded",
+        `${context} would exceed the gate's ${this.requestBudget} GitHub REST request budget; release in smaller batches`
+      );
+    }
+    this.requests += 1;
+  }
+
   async get(
     path: string,
     context = path
   ): Promise<{ readonly body: JsonValue; readonly response: Response }> {
+    this.spendRequest(context);
     const response = await this.fetchImpl(apiUrl(this.baseUrl, path), {
       headers: this.headers,
       signal: AbortSignal.timeout(GITHUB_REQUEST_TIMEOUT_MS),
@@ -283,6 +352,7 @@ class GitHubApi {
           `${context} exceeded the pagination limit`
         );
       }
+      this.spendRequest(context);
       const response = await this.fetchImpl(next, {
         headers: this.headers,
         signal: AbortSignal.timeout(GITHUB_REQUEST_TIMEOUT_MS),
@@ -733,6 +803,178 @@ const normalizeFiles = (
   return result as string[];
 };
 
+interface ReleaseDiff {
+  readonly commitShas: readonly string[];
+  readonly files: readonly string[];
+}
+
+const releaseDiffFromComparison = (comparison: Comparison): ReleaseDiff => {
+  const files = normalizeFiles(
+    comparison.files ?? [],
+    "release comparison files"
+  );
+  if (
+    !comparison.commits ||
+    comparison.commits.length === 0 ||
+    comparison.commits.length >= 250
+  ) {
+    throw new GateError(
+      "comparison_truncated",
+      "release comparison did not expose a complete commit list"
+    );
+  }
+  const commitShas = comparison.commits.map((commit) =>
+    requireSha(commit.sha, "release comparison commit SHA")
+  );
+  if (files.length >= MAX_COMPARISON_FILES) {
+    throw new GateError(
+      "comparison_truncated",
+      "release comparison reached GitHub's file limit"
+    );
+  }
+  assertStrictReleaseAncestry(
+    comparison.status,
+    comparison.ahead_by,
+    comparison.behind_by
+  );
+  return { commitShas, files };
+};
+
+const releaseDiffFromGit = async (
+  source: ReleaseDiffSource,
+  previousSha: string,
+  candidateSha: string,
+  comparison: Comparison
+): Promise<ReleaseDiff> => {
+  // GitHub's ancestry verdict and the local checkout must agree; either
+  // side alone is not trusted to widen the release.
+  assertStrictReleaseAncestry(
+    comparison.status,
+    comparison.ahead_by,
+    comparison.behind_by
+  );
+  let ancestor: boolean;
+  let commitShas: readonly string[];
+  let files: readonly string[];
+  try {
+    ancestor = await source.isAncestor(previousSha, candidateSha);
+    commitShas = await source.commitShas(previousSha, candidateSha);
+    files = await source.changedFiles(previousSha, candidateSha);
+  } catch {
+    throw new GateError(
+      "comparison_unavailable",
+      "the local git checkout could not compute the release diff"
+    );
+  }
+  if (!ancestor) {
+    throw new GateError(
+      "invalid_release_ancestry",
+      "candidate is not a strict descendant of the actual deployed SHA"
+    );
+  }
+  if (commitShas.length === 0 || commitShas.length > MAX_RELEASE_COMMITS) {
+    throw new GateError(
+      "comparison_truncated",
+      `release diff must contain between 1 and ${MAX_RELEASE_COMMITS} commits`
+    );
+  }
+  for (const commitSha of commitShas) {
+    requireSha(commitSha, "release diff commit SHA");
+  }
+  if (comparison.ahead_by !== commitShas.length) {
+    throw new GateError(
+      "comparison_mismatch",
+      "GitHub and the local checkout disagree on the release commit count"
+    );
+  }
+  if (!commitShas.includes(candidateSha)) {
+    throw new GateError(
+      "comparison_mismatch",
+      "the local release diff does not contain the candidate commit"
+    );
+  }
+  if (files.some((file) => file.length === 0)) {
+    throw new GateError(
+      "malformed_response",
+      "release diff contains an empty path"
+    );
+  }
+  return { commitShas, files };
+};
+
+const execFileAsync = promisify(execFile);
+
+const runGit = async (
+  cwd: string,
+  args: readonly string[]
+): Promise<string> => {
+  const { stdout } = await execFileAsync("git", [...args], {
+    cwd,
+    encoding: "utf-8",
+    maxBuffer: GIT_MAX_BUFFER_BYTES,
+    timeout: GIT_TIMEOUT_MS,
+  });
+  return stdout;
+};
+
+/** rev-list prints one bare SHA per line; SHAs are never quoted. */
+const splitShaLines = (output: string): readonly string[] =>
+  output.split("\n").filter((entry) => entry.length > 0);
+
+/** Splits `-z` output: raw paths, never quoted or escaped by git. */
+const splitNul = (output: string): readonly string[] =>
+  output.split("\0").filter((entry) => entry.length > 0);
+
+/**
+ * A diff source over a full clone (`actions/checkout` with `fetch-depth: 0`).
+ * Renames are disabled so a moved file reports both its old and new path to
+ * the manual-lane path filter.
+ */
+export const gitReleaseDiffSource = (cwd: string): ReleaseDiffSource => {
+  const requireCommit = async (sha: string): Promise<string> => {
+    const valid = requireSha(sha, "git release diff SHA");
+    await runGit(cwd, ["cat-file", "-e", `${valid}^{commit}`]);
+    return valid;
+  };
+  return {
+    changedFiles: async (from, to) =>
+      splitNul(
+        await runGit(cwd, [
+          "diff",
+          "--name-only",
+          "-z",
+          "--no-renames",
+          "--no-ext-diff",
+          await requireCommit(from),
+          await requireCommit(to),
+        ])
+      ),
+    commitShas: async (from, to) =>
+      splitShaLines(
+        await runGit(cwd, [
+          "rev-list",
+          `${await requireCommit(from)}..${await requireCommit(to)}`,
+        ])
+      ),
+    isAncestor: async (ancestor, descendant) => {
+      const older = await requireCommit(ancestor);
+      const newer = await requireCommit(descendant);
+      if (older === newer) {
+        return false;
+      }
+      try {
+        await runGit(cwd, ["merge-base", "--is-ancestor", older, newer]);
+        return true;
+      } catch (error) {
+        if ((error as { code?: unknown }).code === 1) {
+          return false;
+        }
+        throw error;
+      }
+    },
+  };
+};
+
 export const blockedReleasePath = (file: string): boolean =>
   file.startsWith("packages/db/src/migrations/") ||
   file.startsWith("packages/db/src/schema/") ||
@@ -1151,34 +1393,15 @@ export const runReleaseGate = async (
     comparisonResponse.body,
     "release comparison"
   ) as unknown as Comparison;
-  const comparisonFiles = normalizeFiles(
-    comparison.files ?? [],
-    "release comparison files"
-  );
-  if (
-    !comparison.commits ||
-    comparison.commits.length === 0 ||
-    comparison.commits.length >= 250
-  ) {
-    throw new GateError(
-      "comparison_truncated",
-      "release comparison did not expose a complete commit list"
-    );
-  }
-  const comparisonCommitShas = comparison.commits.map((commit) =>
-    requireSha(commit.sha, "release comparison commit SHA")
-  );
-  if (comparisonFiles.length >= MAX_COMPARISON_FILES) {
-    throw new GateError(
-      "comparison_truncated",
-      "release comparison reached GitHub's file limit"
-    );
-  }
-  assertStrictReleaseAncestry(
-    comparison.status,
-    comparison.ahead_by,
-    comparison.behind_by
-  );
+  const { commitShas: comparisonCommitShas, files: comparisonFiles } =
+    config.diffSource
+      ? await releaseDiffFromGit(
+          config.diffSource,
+          previousSha,
+          candidateSha,
+          comparison
+        )
+      : releaseDiffFromComparison(comparison);
   const blockedFiles = comparisonFiles.filter(blockedReleasePath);
   if (blockedFiles.length > 0) {
     throw new GateError(
@@ -1247,7 +1470,7 @@ export const runReleaseGate = async (
       pullRequest.number,
       headSha,
       pullRequest.user?.login,
-      config.fetchImpl ?? fetch
+      github.graphqlFetch
     );
     assertCleanReview(review.decision, review.unresolved);
     if (reviewMode === "solo") {
@@ -1415,6 +1638,9 @@ const main = async (): Promise<void> => {
   try {
     const result = await runReleaseGate({
       candidateSha: process.env.CANDIDATE_SHA ?? process.env.GITHUB_SHA ?? "",
+      diffSource: gitReleaseDiffSource(
+        process.env.RELEASE_GATE_GIT_DIR ?? process.cwd()
+      ),
       lastDeployedSha: process.env.PRODUCTION_LAST_DEPLOYED_SHA,
       repository: process.env.GITHUB_REPOSITORY ?? "",
       reviewMode: parseReviewMode(process.env.RELEASE_GATE_REVIEW_MODE),
