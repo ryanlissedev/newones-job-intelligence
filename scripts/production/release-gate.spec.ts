@@ -887,6 +887,20 @@ describe("production release gate git diff source", () => {
     ).rejects.toThrow("comparison_mismatch");
   });
 
+  it("fails closed above the REST-budget commit cap", async () => {
+    const harness = makeGateHarness();
+    const commits = Array.from({ length: 151 }, (_, index) =>
+      index.toString(16).padStart(40, "0")
+    );
+
+    await expect(
+      runReleaseGate({
+        ...gateConfig(harness.fetchImpl),
+        diffSource: fakeDiffSource({ commits }),
+      })
+    ).rejects.toThrow("comparison_truncated");
+  });
+
   it("fails closed on an empty git commit list", async () => {
     const harness = makeGateHarness();
 
@@ -939,15 +953,20 @@ describe("gitReleaseDiffSource over a real repository", () => {
       mkdirSync(path.join(cwd, "src"), { recursive: true });
       git(cwd, "mv", "packages/connectors/src/old.ts", "src/new.ts");
       git(cwd, "commit", "-q", "-m", "move");
+      // A quote and a tab make plain `--name-only` output quote the path.
+      const tricky = 'packages/connectors/src/we"ird\tname.ts';
+      commitFile(cwd, tricky, "export {};\n");
       const head = git(cwd, "rev-parse", "HEAD");
 
       const source = gitReleaseDiffSource(cwd);
       const files = await source.changedFiles(base, head);
-      expect(files.length).toBe(322);
+      expect(files.length).toBe(323);
       expect(files).toContain("packages/connectors/src/old.ts");
       expect(files).toContain("src/new.ts");
+      expect(files).toContain(tricky);
+      expect(files.filter(blockedReleasePath)).toContain(tricky);
       const commits = await source.commitShas(base, head);
-      expect(commits.length).toBe(2);
+      expect(commits.length).toBe(3);
       expect(await source.isAncestor(base, head)).toBe(true);
       expect(await source.isAncestor(head, base)).toBe(false);
       expect(await source.isAncestor(head, head)).toBe(false);

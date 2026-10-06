@@ -6,7 +6,10 @@ import { promisify } from "node:util";
 const SHA_PATTERN = /^[a-f0-9]{40}$/u;
 const MAX_PAGES = 100;
 const MAX_COMPARISON_FILES = 300;
-const MAX_RELEASE_COMMITS = 1000;
+// Each commit costs a PR lookup and each PR several more REST calls (files,
+// checks, workflow run) against GITHUB_TOKEN's 1,000 requests per hour; 150
+// keeps a worst-case single-commit-PR release inside that budget.
+const MAX_RELEASE_COMMITS = 150;
 const GIT_TIMEOUT_MS = 60_000;
 const GIT_MAX_BUFFER_BYTES = 64 * 1024 * 1024;
 const GITHUB_REQUEST_TIMEOUT_MS = 30_000;
@@ -870,11 +873,13 @@ const runGit = async (
   return stdout;
 };
 
-const splitLines = (output: string): readonly string[] =>
-  output
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
+/** rev-list prints one bare SHA per line; SHAs are never quoted. */
+const splitShaLines = (output: string): readonly string[] =>
+  output.split("\n").filter((entry) => entry.length > 0);
+
+/** Splits `-z` output: raw paths, never quoted or escaped by git. */
+const splitNul = (output: string): readonly string[] =>
+  output.split("\0").filter((entry) => entry.length > 0);
 
 /**
  * A diff source over a full clone (`actions/checkout` with `fetch-depth: 0`).
@@ -889,12 +894,11 @@ export const gitReleaseDiffSource = (cwd: string): ReleaseDiffSource => {
   };
   return {
     changedFiles: async (from, to) =>
-      splitLines(
+      splitNul(
         await runGit(cwd, [
-          "-c",
-          "core.quotePath=false",
           "diff",
           "--name-only",
+          "-z",
           "--no-renames",
           "--no-ext-diff",
           await requireCommit(from),
@@ -902,7 +906,7 @@ export const gitReleaseDiffSource = (cwd: string): ReleaseDiffSource => {
         ])
       ),
     commitShas: async (from, to) =>
-      splitLines(
+      splitShaLines(
         await runGit(cwd, [
           "rev-list",
           `${await requireCommit(from)}..${await requireCommit(to)}`,
