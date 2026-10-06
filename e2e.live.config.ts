@@ -4,12 +4,16 @@ import type { E2EConfig } from "e2e";
 /**
  * Read-only smoke flows against a deployed web origin. The origin comes from
  * `E2E_LIVE_WEB_URL` and never from git: the secret scan blocks production
- * hostnames in the repo. Every flow here is anonymous and only reads pages.
+ * hostnames in the repo. Every flow here is anonymous, only reads pages and
+ * asserts public chrome (hero, login wall, access denial), never vacancy data,
+ * like `e2e:live:jobs:anonymous`. No video or trace is configured: captures
+ * of a deployed origin are not PR evidence (AGENTS.md, Visual evidence), which
+ * comes from seeded or fixture data.
  */
 const liveWebUrl = process.env.E2E_LIVE_WEB_URL;
 if (liveWebUrl === undefined || liveWebUrl === "") {
   throw new Error(
-    "E2E_LIVE_WEB_URL must name the deployed web origin, e.g. the PRODUCTION_WEB_URL environment variable"
+    "E2E_LIVE_WEB_URL must name the deployed web origin to smoke-test with anonymous, read-only flows"
   );
 }
 
@@ -22,5 +26,4 @@ export default {
     },
   ],
   tests: "tests/live/**/*.e2e.ts",
-  video: "on",
 } satisfies E2EConfig;
