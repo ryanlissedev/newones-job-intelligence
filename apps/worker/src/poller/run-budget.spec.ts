@@ -126,11 +126,32 @@ const retryPolicy = {
   multiplier: 1,
 };
 
-/** The recorded Randstad sitemap (5 URLs) at a scaled-down crawl delay. */
-const FIXTURE_CRAWL_DELAY_MS = 40;
-
+/**
+ * Runs the recorded Randstad sitemap (5 URLs) at its real 2 s crawl delay on a
+ * virtual clock: the limiter's waits advance time instead of sleeping, and the
+ * run signal aborts once virtual time passes the budget, exactly as
+ * `AbortSignal.timeout(budget)` does in the poller. Deterministic under load.
+ */
 const runRandstadFixture = (budgetMs: number) => {
   const bronId = "00000000-0000-4000-8000-000000000019";
+  const definition: SourceDefinition = SOURCES.randstad;
+  const budget = new AbortController();
+  let virtualNow = 0;
+  const limiter = new CrawlDelayLimiter({
+    crawlDelayMs: definition.seed.crawlDelayMs,
+    now: () => virtualNow,
+    wait: (milliseconds, signal) => {
+      virtualNow += milliseconds;
+      if (virtualNow > budgetMs && !budget.signal.aborted) {
+        budget.abort(new DOMException("run budget elapsed", "TimeoutError"));
+      }
+      return signal?.aborted
+        ? Promise.reject(
+            new DOMException("The operation was aborted", "AbortError")
+          )
+        : Promise.resolve();
+    },
+  });
   return runConnector({
     bronId,
     bronSlug: randstadConfig.slug,
@@ -144,7 +165,7 @@ const runRandstadFixture = (budgetMs: number) => {
       }),
       config: randstadConfig,
     }),
-    limiter: new CrawlDelayLimiter({ crawlDelayMs: FIXTURE_CRAWL_DELAY_MS }),
+    limiter,
     objectStore: new InMemoryObjectStore(),
     observationRecorder: new InMemoryObservationRecorder(),
     rawRetentionDays: 90,
@@ -152,30 +173,27 @@ const runRandstadFixture = (budgetMs: number) => {
     runKind: "test",
     runLifecycleStore: new InMemoryRunLifecycleStore(),
     scrapeRunId: `run-randstad-budget-${budgetMs}`,
-    signal: AbortSignal.timeout(budgetMs),
+    signal: budget.signal,
     startedAt: new Date("2026-10-06T08:00:00.000Z"),
   });
 };
 
 describe("Randstad fixture crawl against its budget", () => {
   it("aborts part-way when the budget is shorter than the crawl", async () => {
-    // Under one crawl-delay slot per URL: the production failure in miniature.
-    const result = await runRandstadFixture(FIXTURE_CRAWL_DELAY_MS * 2);
+    // 5 URLs at 2 s need ~10 s; 3 s is the production failure in miniature.
+    const result = await runRandstadFixture(3000);
     expect(result.completeness).toEqual({ complete: false, reason: "aborted" });
   });
 
-  it("completes when the budget covers corpus × crawl delay", async () => {
+  it("completes inside the budget the poller resolves for Randstad", async () => {
     const listing = await createJsonLdClient({
       config: randstadConfig,
       liveEnabled: false,
     }).fetchListing();
-    const fixtureUrls = listing.length;
-    const budgetMs = resolveRunBudgetMs(
-      fixtureUrls * FIXTURE_CRAWL_DELAY_MS * 20,
-      { abandonRunAfterMs: HOUR_MS, defaultBudgetMs: FIXTURE_CRAWL_DELAY_MS }
+    const result = await runRandstadFixture(
+      runBudgetForBron("randstad", productionLimits)
     );
-    const result = await runRandstadFixture(budgetMs);
-    expect(result.completeness?.complete ?? true).toBe(true);
-    expect(result.metrics.found).toBe(fixtureUrls);
+    expect(result.completeness).toEqual({ complete: true });
+    expect(result.metrics.found).toBe(listing.length);
   });
 });
