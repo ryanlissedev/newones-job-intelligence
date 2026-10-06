@@ -10,7 +10,6 @@ import { NotFoundFault, Server5xxFault } from "../effect-runtime";
 import { shouldSkipFetch } from "../known-hash";
 import type { KnownHashStore } from "../known-hash";
 import { hashContent } from "../object-store";
-import { sleep } from "../retry";
 import { createJsonLdClient, MissingDetailFixtureError } from "./client";
 import type { JsonLdClient } from "./client";
 import { applyExcludes, dedupeUrls } from "./discovery";
@@ -246,23 +245,8 @@ export const createJsonLdConnector = (
 
   const serverErrorPolicy = config.detailServerErrorPolicy;
   let serverErrorRejections = 0;
-  const fetchDetail = async (url: string, signal?: AbortSignal) => {
-    const attempts = serverErrorPolicy?.attempts ?? 1;
-    let delayMs = serverErrorPolicy?.initialDelayMs ?? 0;
-    for (let attempt = 1; ; attempt += 1) {
-      try {
-        // oxlint-disable-next-line no-await-in-loop -- retries are deliberately sequential
-        return await client.fetchDetail(url, signal);
-      } catch (error) {
-        if (serverErrorStatus(error) === null || attempt >= attempts) {
-          throw error;
-        }
-      }
-      // oxlint-disable-next-line no-await-in-loop -- backoff between retries
-      await sleep(delayMs, signal);
-      delayMs *= 2;
-    }
-  };
+  // 5xx attempts per detail URL across the runner's retries of `fetch`.
+  const serverErrorAttempts = new Map<string, number>();
 
   return {
     bronId: options.bronId,
@@ -309,7 +293,7 @@ export const createJsonLdConnector = (
 
       let detail;
       try {
-        detail = await fetchDetail(entry.url, signal);
+        detail = await client.fetchDetail(entry.url, signal);
       } catch (error) {
         // Replay-scope skip: the audit scripts configure the fixture client
         // with `onMissingDetailFixture: "skip"` so discovered URLs without a
@@ -324,16 +308,24 @@ export const createJsonLdConnector = (
         // answers Laravel's "Server Error" on every request) is rejected
         // after the retries above, up to a per-run ceiling; past it the
         // source itself is down and the run fails.
+        // Earlier attempts rethrow, so the runner's retry policy repeats the
+        // fetch behind the crawl-delay limiter with its own backoff.
         const status = serverErrorStatus(error);
+        const attempts =
+          status === null ? 0 : (serverErrorAttempts.get(entry.url) ?? 0) + 1;
+        if (status !== null) {
+          serverErrorAttempts.set(entry.url, attempts);
+        }
         if (
           serverErrorPolicy !== undefined &&
           status !== null &&
+          attempts >= serverErrorPolicy.attempts &&
           serverErrorRejections < serverErrorPolicy.maxRejectedPerRun
         ) {
           serverErrorRejections += 1;
           return {
             bronReferentie: item.bronReferentie,
-            reason: `detail page kept returning HTTP ${status} after ${serverErrorPolicy.attempts} attempts`,
+            reason: `detail page kept returning HTTP ${status} after ${attempts} attempts`,
             status: "rejected" as const,
           };
         }

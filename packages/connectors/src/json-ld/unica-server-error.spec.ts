@@ -1,12 +1,12 @@
 import { describe, expect, it } from "bun:test";
 
 import {
-  CrawlDelayLimiter,
   InMemoryObjectStore,
   InMemoryObservationRecorder,
   InMemoryRunLifecycleStore,
   runConnector,
 } from "@ji/connectors";
+import type { RequestLimiter } from "@ji/connectors";
 
 import { loadConnectorFixture } from "../fixtures/load";
 import { createJsonLdClient } from "./client";
@@ -78,7 +78,7 @@ const scriptedUpstream = async (script: UpstreamScript) => {
   return { fetchImpl: asFetch(respond), requests };
 };
 
-const noBackoff = (
+const policy = (
   overrides: Partial<
     NonNullable<JsonLdConnectorConfig["detailServerErrorPolicy"]>
   > = {}
@@ -86,7 +86,6 @@ const noBackoff = (
   ...unicaConfig,
   detailServerErrorPolicy: {
     attempts: 3,
-    initialDelayMs: 0,
     maxRejectedPerRun: 10,
     ...overrides,
   },
@@ -97,6 +96,14 @@ const runUnica = async (
   script: UpstreamScript
 ) => {
   const upstream = await scriptedUpstream(script);
+  // Counts every slot taken, so a retry that skipped the crawl delay shows.
+  const limiter = {
+    acquire() {
+      limiter.acquired += 1;
+      return Promise.resolve();
+    },
+    acquired: 0,
+  } satisfies RequestLimiter & { acquired: number };
   const run = runConnector({
     bronId: UNICA_BRON_ID,
     bronSlug: "unica",
@@ -110,45 +117,50 @@ const runUnica = async (
       }),
       config,
     }),
-    limiter: new CrawlDelayLimiter({ crawlDelayMs: 0 }),
+    limiter,
     objectStore: new InMemoryObjectStore(),
     observationRecorder: new InMemoryObservationRecorder(),
     rawRetentionDays: 90,
+    // The worker's production policy shape (3 attempts), without the waits.
     retryPolicy: {
       initialDelayMs: 0,
       jitter: (delayMs: number) => delayMs,
-      maxAttempts: 1,
+      maxAttempts: 3,
       maxDelayMs: 0,
-      multiplier: 1,
+      multiplier: 2,
     },
     runKind: "test",
     runLifecycleStore: new InMemoryRunLifecycleStore(),
     scrapeRunId: "run-unica-5xx",
     startedAt: new Date("2026-10-06T08:00:00.000Z"),
   });
-  return { requests: upstream.requests, run };
+  return { limiter, requests: upstream.requests, run };
 };
 
 describe("Unica detail pages answering HTTP 5xx", () => {
-  it("retries a transient 500 with backoff and keeps the vacancy", async () => {
-    const { requests, run } = await runUnica(noBackoff(), {
+  it("retries a transient 500 behind the limiter and keeps the vacancy", async () => {
+    const { limiter, requests, run } = await runUnica(policy(), {
       failuresBefore200: { [FLAKY_URL]: 2 },
       urls: [HEALTHY_URL, FLAKY_URL],
     });
     const result = await run;
     expect(result.metrics).toMatchObject({ new: 2, rejected: 0 });
     expect(requests.filter((url) => url === FLAKY_URL)).toHaveLength(3);
+    // Every request, retries included, took a crawl-delay slot.
+    expect(limiter.acquired).toBe(requests.length);
   });
 
   it("rejects a page that keeps answering 500 instead of failing the run", async () => {
-    const { requests, run } = await runUnica(noBackoff(), {
+    const { limiter, requests, run } = await runUnica(policy(), {
       failuresBefore200: { [BROKEN_URL]: Number.POSITIVE_INFINITY },
       urls: [HEALTHY_URL, BROKEN_URL, FLAKY_URL],
     });
     const result = await run;
     expect(result.completeness).toEqual({ complete: true });
     expect(result.metrics).toMatchObject({ found: 3, new: 2, rejected: 1 });
+    // Exactly the policy's 3 attempts, not 3 per runner retry.
     expect(requests.filter((url) => url === BROKEN_URL)).toHaveLength(3);
+    expect(limiter.acquired).toBe(requests.length);
     // Still listed by the source, so missed-poll reconciliation keeps it.
     expect(result.observedBronReferenties).toContain(
       "vacatures/technisch-administratief-medewerker-goes-amstgehjgo1zm6l"
@@ -156,7 +168,7 @@ describe("Unica detail pages answering HTTP 5xx", () => {
   });
 
   it("fails the run once more pages fail than an outage ceiling allows", async () => {
-    const { run } = await runUnica(noBackoff({ maxRejectedPerRun: 1 }), {
+    const { run } = await runUnica(policy({ maxRejectedPerRun: 1 }), {
       failuresBefore200: {
         [BROKEN_URL]: Number.POSITIVE_INFINITY,
         [FLAKY_URL]: Number.POSITIVE_INFINITY,
@@ -168,7 +180,7 @@ describe("Unica detail pages answering HTTP 5xx", () => {
   });
 
   it("still fails the run when the sitemap itself answers 500", async () => {
-    const config = noBackoff();
+    const config = policy();
     const client = createJsonLdClient({
       config,
       fetchImpl: asFetch(() =>
@@ -179,10 +191,9 @@ describe("Unica detail pages answering HTTP 5xx", () => {
     await expect(client.fetchListing()).rejects.toThrow("status 500");
   });
 
-  it("ships Unica with 1 s / 2 s backoff and a 100-page outage ceiling", () => {
+  it("ships Unica with 3 attempts and a 100-page outage ceiling", () => {
     expect(unicaConfig.detailServerErrorPolicy).toEqual({
       attempts: 3,
-      initialDelayMs: 1000,
       maxRejectedPerRun: 100,
     });
   });
