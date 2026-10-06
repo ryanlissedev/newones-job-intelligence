@@ -4,7 +4,7 @@ import type {
   SliceACapabilityCatalog,
 } from "@ji/application/registry";
 import { jsonSchema, tool } from "ai";
-import type { ToolSet } from "ai";
+import type { Tool, ToolSet } from "ai";
 
 /**
  * AI SDK toolset over the Slice A capability registry. Every MCP-bound
@@ -65,21 +65,25 @@ export interface MarktvragenToolContext {
   readonly onRevoked: () => void;
 }
 
+type JsonSchemaInput = Parameters<typeof jsonSchema>[0];
+
 /** Narrow registry JSON Schema to the object-root shape AI SDK tools expect. */
-const asObjectSchema = (
-  schema: Readonly<Record<string, unknown>>
-): Parameters<typeof jsonSchema>[0] => {
-  const type = schema.type;
+const asObjectSchema = (schema: JsonSchemaInput): JsonSchemaInput => {
+  const type =
+    typeof schema === "object" && schema !== null && "type" in schema
+      ? schema.type
+      : undefined;
   if (type === "object" || (Array.isArray(type) && type.includes("object"))) {
-    return schema as Parameters<typeof jsonSchema>[0];
+    return schema;
   }
   // AI SDK tools require an object root; wrap non-object schemas.
+  // SAFETY: wrapper is a plain JSON Schema object document.
   return {
-    type: "object",
+    additionalProperties: false,
     properties: { value: schema },
     required: ["value"],
-    additionalProperties: false,
-  } as Parameters<typeof jsonSchema>[0];
+    type: "object",
+  } as JsonSchemaInput;
 };
 
 export const createMarktvragenTools = (
@@ -117,7 +121,7 @@ export const createMarktvragenTools = (
       );
     };
 
-  const tools: ToolSet = {};
+  const tools: Record<string, Tool> = {};
 
   for (const descriptor of registry.catalog) {
     const mcpBinding = descriptor.bindings.find(
@@ -136,7 +140,13 @@ export const createMarktvragenTools = (
     tools[mcpBinding.operation] = tool({
       description: descriptor.outcome,
       execute: guarded(invoke),
-      inputSchema: jsonSchema(asObjectSchema(descriptor.inputJsonSchema)),
+      inputSchema: jsonSchema(
+        asObjectSchema(
+          // SAFETY: registry descriptors expose JSON Schema object documents
+          // validated at catalog construction for MCP bindings.
+          descriptor.inputJsonSchema as JsonSchemaInput
+        )
+      ),
     });
   }
 
@@ -144,4 +154,3 @@ export const createMarktvragenTools = (
 };
 
 export type MarktvragenTools = ToolSet;
-

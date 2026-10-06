@@ -58,4 +58,3 @@ ${
     ? `\nHUIDIG SCHERM VAN DE GEBRUIKER (context, geen autorisatie):\n${describeScreen(screen)}\nVerwijs bij "deze bron"/"dit dashboard"/"deze zoekopdracht" naar deze context.`
     : ""
 }`;
-

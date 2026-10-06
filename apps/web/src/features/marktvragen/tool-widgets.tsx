@@ -320,7 +320,6 @@ const DictionaryWidget = ({ part }: { readonly part: ToolPartLike }) => {
   );
 };
 
-
 const GenericJsonWidget = ({ part }: { readonly part: ToolPartLike }) => {
   const name = toolName(part);
   let body = "";

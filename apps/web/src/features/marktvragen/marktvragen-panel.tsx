@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@ji/ui/components/button";
 import { fixturesEnabled } from "@ji/env/web";
+import { Button } from "@ji/ui/components/button";
 import { isToolUIPart } from "ai";
 import { Bot, MessageSquare, SendHorizonal, Square, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -10,6 +10,7 @@ import type { FormEvent } from "react";
 import { CapabilityDiscovery } from "@/features/job-intelligence/capability-discovery";
 import { loadFixtureCapabilityDiscovery } from "@/features/job-intelligence/capability-discovery-fixture";
 import { createRestJobIntelligence } from "@/features/job-intelligence/rest-job-data-adapter";
+import { runAsync } from "@/features/job-intelligence/run-async";
 
 import { useMarktvragenChat } from "./marktvragen-chat-context";
 import { MarktvragenToolPart } from "./tool-widgets";
@@ -111,7 +112,9 @@ export const MarktvragenComposer = () => {
       return;
     }
     setDraft("");
-    void sendMessage(text);
+    runAsync(async () => {
+      await sendMessage(text);
+    });
   };
 
   return (
@@ -123,7 +126,11 @@ export const MarktvragenComposer = () => {
               className="rounded-full border border-border bg-background px-2.5 py-1 text-left text-[11px] text-muted-foreground outline-none transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
               disabled={!enabled}
               key={chip}
-              onClick={() => void sendMessage(chip)}
+              onClick={() => {
+                runAsync(async () => {
+                  await sendMessage(chip);
+                });
+              }}
               type="button"
             >
               {chip}
@@ -131,10 +138,7 @@ export const MarktvragenComposer = () => {
           ))}
         </div>
       ) : null}
-      <form
-        className="flex items-end gap-2 px-3 py-3"
-        onSubmit={onSubmit}
-      >
+      <form className="flex items-end gap-2 px-3 py-3" onSubmit={onSubmit}>
         <label className="sr-only" htmlFor="assistent-input">
           Vraag aan de assistent
         </label>

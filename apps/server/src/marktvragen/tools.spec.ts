@@ -11,9 +11,11 @@ describe("createMarktvragenTools", () => {
   it("exposes every MCP-bound Slice A capability (full operator surface)", () => {
     const { registry } = createTestSliceARegistry(TEST_DEPLOYMENT_SCOPE_ID);
     const tools = createMarktvragenTools(registry, {
-      onRevoked: () => undefined,
+      onRevoked: () => {
+        /* no-op */
+      },
       requestIdPrefix: "test",
-      resolvePrincipal: async () => null,
+      resolvePrincipal: () => Promise.resolve(null),
       signal: new AbortController().signal,
     });
 
@@ -24,7 +26,7 @@ describe("createMarktvragenTools", () => {
     );
 
     expect(mcpOperations.length).toBeGreaterThan(4);
-    expect(Object.keys(tools).sort()).toEqual([...mcpOperations].sort());
+    expect(Object.keys(tools).toSorted()).toEqual(mcpOperations.toSorted());
     expect(tools).toHaveProperty("query_marts");
     expect(tools).toHaveProperty("get_operator_context");
     expect(tools).toHaveProperty("search_aanvragen");

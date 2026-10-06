@@ -3,7 +3,8 @@ import type { Page } from "@playwright/test";
 
 const VERIFY_EMAIL = "marktvragen-verify@example.invalid";
 const VERIFY_PASSWORD = "Marktvragen-pass-8!";
-const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL ?? "http://localhost:3000";
+const SERVER_URL =
+  process.env.NEXT_PUBLIC_SERVER_URL ?? "http://localhost:3000";
 
 const signIn = async (page: Page) => {
   const response = await page.request.post(
@@ -49,8 +50,8 @@ test.describe("Assistent chat", () => {
       page.getByRole("button", { name: "Verstuur vraag" })
     ).toBeVisible();
     await page.screenshot({
-      path: "shots/assistant-chat-page.png",
       fullPage: true,
+      path: "shots/assistant-chat-page.png",
     });
   });
 
@@ -61,6 +62,8 @@ test.describe("Assistent chat", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await page.getByRole("link", { name: "Assistent" }).click();
     await expect(page).toHaveURL(/\/chat/u);
-    await expect(page.getByRole("heading", { name: "Assistent" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Assistent" })
+    ).toBeVisible();
   });
 });
