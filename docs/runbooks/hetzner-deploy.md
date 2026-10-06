@@ -433,7 +433,10 @@ Coolify-docs bij uitvoering in plaats van een hier verzonnen click-path.
 
 Repetitieer vóór de echte DNS-cutover dezelfde route met tijdelijke hostnamen.
 Op 2026-09-03 is Let's Encrypt end-to-end bewezen op
-`api.<hetzner-ip-dashed>.sslip.io` en `app.<hetzner-ip-dashed>.sslip.io`. Zet de bijbehorende
+`api.<hetzner-ip-dashed>.sslip.io` en `app.<hetzner-ip-dashed>.sslip.io`. Die
+rehearsal-hostnamen zijn sinds de FQDN-cutover van 2026-09-21 buiten gebruik
+(503); productie draait op `ji-api-<suffix>.<hetzner-ip-dashed>.sslip.io` en
+`ji-web-<suffix>.<hetzner-ip-dashed>.sslip.io`. Zet de bijbehorende
 auth-, CORS- en publieke webvariabelen tijdens de repetitie consistent op deze
 hostnamen; pas na geslaagde TLS-, login-, API- en dashboardchecks de echte
 DNS-records en waarden aan.
