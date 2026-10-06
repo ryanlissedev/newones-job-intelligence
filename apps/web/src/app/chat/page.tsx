@@ -22,11 +22,11 @@ export default async function ChatPage() {
   return (
     <main className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col px-4 py-6 sm:px-6">
       <h1 className="font-display text-2xl font-semibold tracking-tight">
-        Marktvragen
+        Assistent
       </h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Stel vragen over de marktdata; de agent schrijft en valideert SQL op het
-        marts-schema.
+        Chat met de operatorassistent: zoeken, bronnen, snapshots, exports en
+        marktdata — dezelfde capabilities als REST en MCP.
       </p>
       <div className="mt-4 flex min-h-0 flex-1 flex-col rounded-lg border border-border bg-card">
         <MarktvragenMessages />

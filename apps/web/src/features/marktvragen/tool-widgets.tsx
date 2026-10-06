@@ -320,6 +320,23 @@ const DictionaryWidget = ({ part }: { readonly part: ToolPartLike }) => {
   );
 };
 
+const GenericJsonWidget = ({ part }: { readonly part: ToolPartLike }) => {
+  const name = toolName(part);
+  let body = "";
+  try {
+    body = JSON.stringify(part.output, null, 2);
+  } catch {
+    body = String(part.output);
+  }
+  return (
+    <ToolShell title={name}>
+      <pre className="max-h-64 overflow-auto rounded-md border border-border bg-muted/40 px-2.5 py-2 font-mono text-[11px] leading-relaxed whitespace-pre-wrap">
+        {body}
+      </pre>
+    </ToolShell>
+  );
+};
+
 export const MarktvragenToolPart = ({
   part,
 }: {
@@ -351,7 +368,7 @@ export const MarktvragenToolPart = ({
       return <DictionaryWidget part={part} />;
     }
     default: {
-      return null;
+      return <GenericJsonWidget part={part} />;
     }
   }
 };

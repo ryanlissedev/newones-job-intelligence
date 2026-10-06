@@ -7,7 +7,6 @@ import { useEffect, useMemo, useState } from "react";
 
 import { authClient } from "@/lib/auth-client";
 
-import { loadFixtureCapabilityDiscovery } from "./capability-discovery-fixture";
 import { fixtureJobActions, fixtureJobDataAdapter } from "./fixtures";
 import { JobSearchPage } from "./job-search-page";
 import { createRestJobIntelligence } from "./rest-job-data-adapter";
@@ -28,7 +27,6 @@ export const JobSearchShell = () => {
       <JobSearchPage
         actions={fixtureJobActions}
         adapter={fixtureJobDataAdapter}
-        loadCapabilityDiscovery={loadFixtureCapabilityDiscovery}
       />
     );
   }
@@ -64,11 +62,6 @@ export const JobSearchShell = () => {
   }
 
   return (
-    <JobSearchPage
-      actions={wiring.actions}
-      adapter={wiring.adapter}
-      loadCapabilityDiscovery={wiring.loadCapabilityDiscovery}
-      liveData
-    />
+    <JobSearchPage actions={wiring.actions} adapter={wiring.adapter} liveData />
   );
 };

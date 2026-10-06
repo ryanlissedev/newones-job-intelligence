@@ -110,7 +110,7 @@ export const createMarktvragenChatHandler =
         c,
         503,
         "CHAT_NOT_CONFIGURED",
-        "Marktvragen-chat is niet geconfigureerd"
+        "Assistent-chat is niet geconfigureerd"
       );
     }
 
@@ -136,7 +136,7 @@ export const createMarktvragenChatHandler =
       onFinish: () => {
         void scope.close("finished");
       },
-      stopWhen: stepCountIs(10),
+      stopWhen: stepCountIs(20),
       system: buildSystemPrompt(parsed.data.screen),
       tools: createMarktvragenTools(deps.registry, {
         onRevoked: () => {
