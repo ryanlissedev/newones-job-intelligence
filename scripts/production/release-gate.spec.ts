@@ -1,5 +1,9 @@
 /* oxlint-disable eslint/complexity, eslint/require-await, eslint/no-nested-ternary, unicorn/no-nested-ternary, anti-slop/no-unknown-parameters, anti-slop/require-safety-comment-for-type-assertion -- These stateful protocol fixtures intentionally centralize REST and GraphQL response branches to exercise fail-closed release behavior. */
 import { describe, expect, it } from "bun:test";
+import { execFileSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 
 import {
   assertCleanReview,
@@ -7,6 +11,7 @@ import {
   assertStrictReleaseAncestry,
   assertTrustedCheck,
   blockedReleasePath,
+  gitReleaseDiffSource,
   isReleaseLedgerEntry,
   parseReviewMode,
   runReleaseGate,
@@ -15,6 +20,7 @@ import {
 import type {
   FetchInput,
   FetchLike,
+  ReleaseDiffSource,
   ReleaseGateReviewMode,
 } from "./release-gate";
 
@@ -178,6 +184,7 @@ interface ProductionDeploymentRecord {
 
 interface GateHarnessOptions {
   readonly blockedFile?: string;
+  readonly truncatedComparison?: boolean;
   readonly changesRequested?: boolean;
   readonly claudeReviewWrongWorkflow?: boolean;
   readonly productionDeployments?: readonly ProductionDeploymentRecord[];
@@ -240,9 +247,10 @@ const makeGateHarness = (options: GateHarnessOptions = {}) => {
         ahead_by: 2,
         behind_by: 0,
         commits: [{ sha: releaseCandidateSha }, { sha: secondCommitSha }],
-        files: [options.blockedFile ?? "packages/domain/src/value.ts"].map(
-          (filename) => ({ filename })
-        ),
+        files: (options.truncatedComparison
+          ? Array.from({ length: 300 }, (_, index) => `docs/file-${index}.md`)
+          : [options.blockedFile ?? "packages/domain/src/value.ts"]
+        ).map((filename) => ({ filename })),
         status: "ahead",
       });
     }
@@ -781,5 +789,173 @@ describe("production release gate integrations", () => {
         ".github/workflows/ci.yml"
       ).map((run) => run.id)
     ).toEqual([2]);
+  });
+});
+
+const fakeDiffSource = (
+  overrides: Partial<{
+    readonly ancestor: boolean;
+    readonly commits: readonly string[];
+    readonly files: readonly string[];
+    readonly fail: boolean;
+  }> = {}
+): ReleaseDiffSource => {
+  const answer = <T>(value: T): Promise<T> =>
+    overrides.fail === true
+      ? Promise.reject(new Error("fatal: bad object"))
+      : Promise.resolve(value);
+  return {
+    changedFiles: () =>
+      answer(overrides.files ?? ["packages/domain/src/value.ts"]),
+    commitShas: () =>
+      answer(overrides.commits ?? [releaseCandidateSha, secondCommitSha]),
+    isAncestor: () => answer(overrides.ancestor ?? true),
+  };
+};
+
+describe("production release gate git diff source", () => {
+  it("passes a release whose GitHub comparison hit the 300-file limit", async () => {
+    const harness = makeGateHarness({ truncatedComparison: true });
+
+    await expect(runReleaseGate(gateConfig(harness.fetchImpl))).rejects.toThrow(
+      "comparison_truncated"
+    );
+    await expect(
+      runReleaseGate({
+        ...gateConfig(harness.fetchImpl),
+        diffSource: fakeDiffSource(),
+      })
+    ).resolves.toMatchObject({ pullRequestNumbers: [1, 2] });
+  });
+
+  it("still routes manual-lane paths found by git away from the automatic lane", async () => {
+    const harness = makeGateHarness({ truncatedComparison: true });
+
+    await expect(
+      runReleaseGate({
+        ...gateConfig(harness.fetchImpl),
+        diffSource: fakeDiffSource({
+          files: ["docs/readme.md", "packages/connectors/src/unica.ts"],
+        }),
+      })
+    ).rejects.toThrow("migration_or_backfill_required");
+  });
+
+  it("fails closed when git cannot compute the diff", async () => {
+    const harness = makeGateHarness();
+
+    await expect(
+      runReleaseGate({
+        ...gateConfig(harness.fetchImpl),
+        diffSource: fakeDiffSource({ fail: true }),
+      })
+    ).rejects.toThrow("comparison_unavailable");
+  });
+
+  it("fails closed when git says the baseline is not an ancestor", async () => {
+    const harness = makeGateHarness();
+
+    await expect(
+      runReleaseGate({
+        ...gateConfig(harness.fetchImpl),
+        diffSource: fakeDiffSource({ ancestor: false }),
+      })
+    ).rejects.toThrow("invalid_release_ancestry");
+  });
+
+  it("fails closed when git and GitHub disagree on the commit count", async () => {
+    const harness = makeGateHarness();
+
+    await expect(
+      runReleaseGate({
+        ...gateConfig(harness.fetchImpl),
+        diffSource: fakeDiffSource({ commits: [releaseCandidateSha] }),
+      })
+    ).rejects.toThrow("comparison_mismatch");
+  });
+
+  it("fails closed when the git diff omits the candidate commit", async () => {
+    const harness = makeGateHarness();
+
+    await expect(
+      runReleaseGate({
+        ...gateConfig(harness.fetchImpl),
+        diffSource: fakeDiffSource({
+          commits: [secondCommitSha, firstHeadSha],
+        }),
+      })
+    ).rejects.toThrow("comparison_mismatch");
+  });
+
+  it("fails closed on an empty git commit list", async () => {
+    const harness = makeGateHarness();
+
+    await expect(
+      runReleaseGate({
+        ...gateConfig(harness.fetchImpl),
+        diffSource: fakeDiffSource({ commits: [] }),
+      })
+    ).rejects.toThrow("comparison_truncated");
+  });
+});
+
+const git = (cwd: string, ...args: string[]): string =>
+  execFileSync("git", args, {
+    cwd,
+    encoding: "utf-8",
+    env: {
+      ...process.env,
+      GIT_AUTHOR_EMAIL: "gate@test.invalid",
+      GIT_AUTHOR_NAME: "gate",
+      GIT_COMMITTER_EMAIL: "gate@test.invalid",
+      GIT_COMMITTER_NAME: "gate",
+    },
+  }).trim();
+
+const commitFile = (
+  cwd: string,
+  relativePath: string,
+  body: string
+): string => {
+  mkdirSync(path.join(cwd, relativePath, ".."), { recursive: true });
+  writeFileSync(path.join(cwd, relativePath), body);
+  git(cwd, "add", "-A");
+  git(cwd, "commit", "-q", "-m", relativePath);
+  return git(cwd, "rev-parse", "HEAD");
+};
+
+describe("gitReleaseDiffSource over a real repository", () => {
+  it("lists more than 300 files, every commit, and both sides of a rename", async () => {
+    const cwd = mkdtempSync(path.join(tmpdir(), "release-gate-git-"));
+    try {
+      git(cwd, "init", "-q", "-b", "main");
+      commitFile(cwd, "packages/connectors/src/old.ts", "export {};\n");
+      const base = git(cwd, "rev-parse", "HEAD");
+      for (let index = 0; index < 320; index += 1) {
+        writeFileSync(path.join(cwd, `bulk-${index}.md`), `${index}\n`);
+      }
+      git(cwd, "add", "-A");
+      git(cwd, "commit", "-q", "-m", "bulk");
+      mkdirSync(path.join(cwd, "src"), { recursive: true });
+      git(cwd, "mv", "packages/connectors/src/old.ts", "src/new.ts");
+      git(cwd, "commit", "-q", "-m", "move");
+      const head = git(cwd, "rev-parse", "HEAD");
+
+      const source = gitReleaseDiffSource(cwd);
+      const files = await source.changedFiles(base, head);
+      expect(files.length).toBe(322);
+      expect(files).toContain("packages/connectors/src/old.ts");
+      expect(files).toContain("src/new.ts");
+      const commits = await source.commitShas(base, head);
+      expect(commits.length).toBe(2);
+      expect(await source.isAncestor(base, head)).toBe(true);
+      expect(await source.isAncestor(head, base)).toBe(false);
+      expect(await source.isAncestor(head, head)).toBe(false);
+      await expect(
+        source.changedFiles(base, "0".repeat(40))
+      ).rejects.toBeDefined();
+    } finally {
+      rmSync(cwd, { force: true, recursive: true });
+    }
   });
 });
