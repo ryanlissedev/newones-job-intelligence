@@ -224,10 +224,11 @@ last (or only) page still saw every listed reference and counts misses as
 usual; a cut before the last page was discovered never stales a record it did
 not reach. The poller logs one `poller_source_incomplete` line with the reason.
 
-A budget-cut crawl also resumes on the next run. Each detail fetch stamps
-`staging.source_record.last_fetched_at` (migration 0032), and the next run
-fetches each page in this order: never-fetched references first, then records
-with an unknown fetch time, then oldest fetch first. Techniekwerkt, cut at
+A budget-cut crawl also resumes on the next run. Every processed reference
+(stored, skipped on a known listing hash, or rejected) is stamped in
+`staging.source_fetch_history` (migration 0032), and the next run fetches each
+page in this order: never-processed references first, then oldest first.
+Techniekwerkt, cut at
 5.5 h on 8 of 9 runs, therefore covers its whole sitemap over consecutive
 runs instead of re-fetching the same head every time.
 

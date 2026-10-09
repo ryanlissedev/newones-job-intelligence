@@ -17,7 +17,7 @@ import {
 } from "./bron-runtime";
 import { PostgresResumeOrderLookup } from "./resume-order-store";
 import * as schema from "./schema";
-import { bron, sourceRecord } from "./schema";
+import { bron, sourceFetchHistory } from "./schema";
 
 const migratorUrl =
   process.env.DATABASE_TEST_URL ??
@@ -55,7 +55,7 @@ const PAGE = ["J1", "J2", "J3", "J4", "J5", "J6"];
 describe
   .skipIf(!postgresAvailable)
   .serial(
-    "resumable fetch order on staging.source_record (migration 0032)",
+    "resumable fetch order on staging.source_fetch_history (migration 0032)",
     () => {
       let migratorClient: ReturnType<typeof postgres>;
       let client: ReturnType<typeof postgres>;
@@ -147,31 +147,41 @@ describe
 
       const lastFetchedAt = async (ref: string) => {
         const [row] = await database
-          .select({ lastFetchedAt: sourceRecord.lastFetchedAt })
-          .from(sourceRecord)
+          .select({ lastFetchedAt: sourceFetchHistory.lastFetchedAt })
+          .from(sourceFetchHistory)
           .where(
             and(
-              eq(sourceRecord.bronId, bronId),
-              eq(sourceRecord.bronReferentie, ref)
+              eq(sourceFetchHistory.bronId, bronId),
+              eq(sourceFetchHistory.bronReferentie, ref)
             )
           );
         return row?.lastFetchedAt;
       };
 
-      it("adds last_fetched_at as a nullable timestamptz without a default", async () => {
-        const [column] = await migratorClient<
+      it("creates source_fetch_history keyed on (bron_id, bron_referentie)", async () => {
+        const columns =
+          await migratorClient`SELECT column_name, data_type, is_nullable FROM information_schema.columns
+        WHERE table_schema = 'staging' AND table_name = 'source_fetch_history'
+        ORDER BY column_name`;
+        expect([...columns]).toEqual([
+          { column_name: "bron_id", data_type: "uuid", is_nullable: "NO" },
           {
-            column_default: string | null;
-            data_type: string;
-            is_nullable: string;
-          }[]
-        >`SELECT data_type, is_nullable, column_default FROM information_schema.columns
-        WHERE table_schema = 'staging' AND table_name = 'source_record' AND column_name = 'last_fetched_at'`;
-        expect(column).toEqual({
-          column_default: null,
-          data_type: "timestamp with time zone",
-          is_nullable: "YES",
-        });
+            column_name: "bron_referentie",
+            data_type: "text",
+            is_nullable: "NO",
+          },
+          {
+            column_name: "last_fetched_at",
+            data_type: "timestamp with time zone",
+            is_nullable: "NO",
+          },
+        ]);
+        const [primaryKey] = await migratorClient<{ definition: string }[]>`
+          SELECT pg_get_constraintdef(oid) AS definition FROM pg_constraint
+          WHERE conname = 'source_fetch_history_pkey'`;
+        expect(primaryKey?.definition).toBe(
+          "PRIMARY KEY (bron_id, bron_referentie)"
+        );
       });
 
       it("a budget-cut run stamps what it fetched; the next run starts with what it never reached", async () => {
@@ -181,24 +191,17 @@ describe
 
         expect(await pollRun(3)).toEqual(["J4", "J5", "J6"]);
 
-        // A record from before 0032 (unknown fetch time) goes before every
-        // record with a time; the rest follow oldest first.
-        await database
-          .update(sourceRecord)
-          .set({ lastFetchedAt: null })
-          .where(
-            and(
-              eq(sourceRecord.bronId, bronId),
-              eq(sourceRecord.bronReferentie, "J5")
-            )
-          );
+        // Every reference has a time now: oldest first, and a re-stamp moves
+        // a reference to the back.
+        const lookup = new PostgresResumeOrderLookup(database);
+        await lookup.markFetched(bronId, "J2");
         expect(await pollRun(null)).toEqual([
-          "J5",
           "J1",
-          "J2",
           "J3",
           "J4",
+          "J5",
           "J6",
+          "J2",
         ]);
       });
 
@@ -212,8 +215,8 @@ describe
         expect([...found.keys()].toSorted()).toEqual(PAGE);
         const [row] = await database
           .select({ count: sql<number>`count(*)::int` })
-          .from(sourceRecord)
-          .where(eq(sourceRecord.bronId, bronId));
+          .from(sourceFetchHistory)
+          .where(eq(sourceFetchHistory.bronId, bronId));
         expect(row?.count).toBe(PAGE.length);
       });
     }

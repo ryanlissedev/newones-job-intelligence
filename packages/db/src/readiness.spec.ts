@@ -12,7 +12,7 @@ describe("database readiness", () => {
   it("derives the current expected migration from the latest journal entry", () => {
     expect(migrationJournal.entries.at(-1)).toMatchObject({
       idx: 32,
-      tag: "0032_source_record_last_fetched_at",
+      tag: "0032_source_fetch_history",
       when: Number(expectedMigrationTimestamp),
     });
     expect(resolveExpectedMigrationTimestamp(migrationJournal)).toBe(

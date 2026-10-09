@@ -4,6 +4,7 @@ import {
   index,
   integer,
   jsonb,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -25,12 +26,6 @@ export const sourceRecord = stagingSchema.table(
       .defaultNow()
       .notNull(),
     id: uuid("id").defaultRandom().primaryKey(),
-    /**
-     * When this record's detail page was last fetched and recorded (0032).
-     * Orders the next run's fetches: never-fetched first, oldest next, so a
-     * budget-cut crawl resumes where it stopped. Null = unknown (older rows).
-     */
-    lastFetchedAt: timestamp("last_fetched_at", { withTimezone: true }),
     /** Run that last bumped `missed_polls` (RJC-397): the same run never bumps a row twice. */
     lastMissedScrapeRunId: uuid("last_missed_scrape_run_id").references(
       () => scrapeRun.id,
@@ -68,6 +63,31 @@ export const sourceRecord = stagingSchema.table(
     ),
     index("source_record_scrape_run_id_idx").on(table.scrapeRunId),
     check("source_record_missed_polls_check", sql`${table.missedPolls} >= 0`),
+  ]
+);
+
+/**
+ * When a run last processed each listed reference of a bron (0032): fetched,
+ * skipped on a known listing hash, or rejected. Orders the next run's
+ * fetches never-seen first, then oldest, so a budget-cut crawl resumes where
+ * it stopped. Separate from `source_record` because rejects have no record.
+ */
+export const sourceFetchHistory = stagingSchema.table(
+  "source_fetch_history",
+  {
+    bronId: uuid("bron_id")
+      .notNull()
+      .references(() => bron.id, { onDelete: "cascade" }),
+    bronReferentie: text("bron_referentie").notNull(),
+    lastFetchedAt: timestamp("last_fetched_at", {
+      withTimezone: true,
+    }).notNull(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.bronId, table.bronReferentie],
+      name: "source_fetch_history_pkey",
+    }),
   ]
 );
 

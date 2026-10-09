@@ -540,16 +540,20 @@ const runConnectorInner = async (
     await reportProgress("persist");
   };
 
+  // Fetch history only matters where a fetch costs a request.
+  const fetchHistory =
+    connector.fetchUsesNetwork === false ? undefined : input.resumeOrder;
+
   /**
-   * The order this page is fetched in. With a lookup, never-fetched and
-   * longest-unfetched items go first; a failed lookup keeps listing order
+   * The order this page is fetched in. With a history, never-processed and
+   * longest-unprocessed items go first; a failed lookup keeps listing order
    * (ordering only decides what a budget cut loses, never correctness).
    */
   const resumeOrderFor = async (
     items: readonly DiscoverItem[]
   ): Promise<readonly DiscoverItem[]> => {
-    const lookup = input.resumeOrder;
-    if (!lookup || connector.fetchUsesNetwork === false || items.length < 2) {
+    const lookup = fetchHistory;
+    if (!lookup || items.length < 2) {
       return items;
     }
     try {
@@ -560,6 +564,19 @@ const runConnectorInner = async (
       return orderForResume(items, lastFetched, referenceOf);
     } catch {
       return items;
+    }
+  };
+
+  /**
+   * Stamps an item as processed whatever the outcome (stored, skipped on a
+   * known hash, rejected), so it moves to the back of the next run's order.
+   * Best effort: a failed stamp only costs ordering.
+   */
+  const markFetched = async (item: DiscoverItem): Promise<void> => {
+    try {
+      await fetchHistory?.markFetched(bronId, referenceOf(item));
+    } catch {
+      // Ordering only; the run's own writes already succeeded.
     }
   };
 
@@ -580,6 +597,8 @@ const runConnectorInner = async (
       }
       // oxlint-disable-next-line no-await-in-loop -- crawl policy requires sequential fetches
       await persistItem(item, at);
+      // oxlint-disable-next-line no-await-in-loop -- stamped before the next fetch so a cut keeps it
+      await markFetched(item);
     }
     return false;
   };

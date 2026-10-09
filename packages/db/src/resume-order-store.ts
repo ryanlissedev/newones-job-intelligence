@@ -1,17 +1,17 @@
 import type { ResumeOrderLookup } from "@ji/connectors";
 import type { BronId } from "@ji/domain";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 
 import type { BronRuntimeDatabase } from "./bron-runtime";
-import { sourceRecord } from "./schema";
+import { sourceFetchHistory } from "./schema";
 
 /** Keeps each `IN` list well inside Postgres' bind-parameter limit. */
 const LOOKUP_CHUNK = 1000;
 
 /**
- * `ResumeOrderLookup` over `staging.source_record.last_fetched_at` (0032).
- * One indexed read per chunk on the `(bron_id, bron_referentie)` unique
- * index; references without a row are left out of the map (never fetched).
+ * `ResumeOrderLookup` over `staging.source_fetch_history` (0032). Reads use
+ * the `(bron_id, bron_referentie)` primary key, one query per chunk;
+ * references without a row are left out of the map (never processed).
  */
 export class PostgresResumeOrderLookup implements ResumeOrderLookup {
   private readonly database: BronRuntimeDatabase;
@@ -23,25 +23,25 @@ export class PostgresResumeOrderLookup implements ResumeOrderLookup {
   async lastFetchedAt(
     bronId: BronId,
     bronReferenties: readonly string[]
-  ): Promise<ReadonlyMap<string, Date | null>> {
+  ): Promise<ReadonlyMap<string, Date>> {
     const unique = [...new Set(bronReferenties)];
     const chunks: string[][] = [];
     for (let start = 0; start < unique.length; start += LOOKUP_CHUNK) {
       chunks.push(unique.slice(start, start + LOOKUP_CHUNK));
     }
-    const lastFetched = new Map<string, Date | null>();
+    const lastFetched = new Map<string, Date>();
     for (const chunk of chunks) {
       // oxlint-disable-next-line no-await-in-loop -- chunks read one after another on the run's connection
       const rows = await this.database
         .select({
-          bronReferentie: sourceRecord.bronReferentie,
-          lastFetchedAt: sourceRecord.lastFetchedAt,
+          bronReferentie: sourceFetchHistory.bronReferentie,
+          lastFetchedAt: sourceFetchHistory.lastFetchedAt,
         })
-        .from(sourceRecord)
+        .from(sourceFetchHistory)
         .where(
           and(
-            eq(sourceRecord.bronId, bronId),
-            inArray(sourceRecord.bronReferentie, chunk)
+            eq(sourceFetchHistory.bronId, bronId),
+            inArray(sourceFetchHistory.bronReferentie, chunk)
           )
         );
       for (const row of rows) {
@@ -49,5 +49,15 @@ export class PostgresResumeOrderLookup implements ResumeOrderLookup {
       }
     }
     return lastFetched;
+  }
+
+  async markFetched(bronId: BronId, bronReferentie: string): Promise<void> {
+    await this.database
+      .insert(sourceFetchHistory)
+      .values({ bronId, bronReferentie, lastFetchedAt: sql`now()` })
+      .onConflictDoUpdate({
+        set: { lastFetchedAt: sql`now()` },
+        target: [sourceFetchHistory.bronId, sourceFetchHistory.bronReferentie],
+      });
   }
 }

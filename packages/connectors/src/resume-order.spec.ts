@@ -37,31 +37,31 @@ const retryPolicy = {
 };
 
 /**
- * In-memory stand-in for `staging.source_record.last_fetched_at`: the
- * recorder stamps a reference when its observation is written, the lookup
- * reads the stamps back. A tick counter keeps fetch times strictly ordered.
+ * In-memory stand-in for `staging.source_fetch_history`: the run stamps each
+ * processed reference, the lookup reads the stamps back. A tick counter keeps
+ * fetch times strictly ordered.
  */
 const fetchHistory = () => {
-  const lastFetched = new Map<string, Date | null>();
+  const lastFetched = new Map<string, Date>();
   let tick = 0;
   const lookups: string[][] = [];
   const recorder = new InMemoryObservationRecorder();
-  const record = recorder.record.bind(recorder);
-  recorder.record = (input: ObservationRecordInput) => {
-    tick += 1;
-    lastFetched.set(input.sourceRecord.bronReferentie, new Date(tick * 1000));
-    return record(input);
-  };
   const lookup: ResumeOrderLookup = {
     lastFetchedAt: (_bronId, bronReferenties) => {
       lookups.push([...bronReferenties]);
-      return Promise.resolve(
-        new Map(
-          bronReferenties
-            .filter((reference) => lastFetched.has(reference))
-            .map((reference) => [reference, lastFetched.get(reference) ?? null])
-        )
-      );
+      const found = new Map<string, Date>();
+      for (const reference of bronReferenties) {
+        const fetchedAt = lastFetched.get(reference);
+        if (fetchedAt) {
+          found.set(reference, fetchedAt);
+        }
+      }
+      return Promise.resolve(found);
+    },
+    markFetched: (_bronId, bronReferentie) => {
+      tick += 1;
+      lastFetched.set(bronReferentie, new Date(tick * 1000));
+      return Promise.resolve();
     },
   };
   return { lastFetched, lookup, lookups, recorder };
@@ -146,19 +146,18 @@ const run = (
   });
 
 describe("orderForResume", () => {
-  it("puts never-fetched first, then unknown fetch time, then oldest fetch first; listing order breaks ties", () => {
-    const items = ["old", "new-1", "unknown", "newest", "new-2", "older"].map(
+  it("puts never-processed first, then oldest first; listing order breaks ties", () => {
+    const items = ["old", "new-1", "newest", "new-2", "older"].map(
       (reference) => item(reference)
     );
-    const lastFetched = new Map<string, Date | null>([
+    const lastFetched = new Map<string, Date>([
       ["old", new Date("2026-10-08T10:00:00Z")],
-      ["unknown", null],
       ["newest", new Date("2026-10-09T10:00:00Z")],
       ["older", new Date("2026-10-07T10:00:00Z")],
     ]);
     expect(
       refs(orderForResume(items, lastFetched, (entry) => entry.bronReferentie))
-    ).toEqual(["new-1", "new-2", "unknown", "older", "old", "newest"]);
+    ).toEqual(["new-1", "new-2", "older", "old", "newest"]);
   });
 });
 
@@ -255,6 +254,51 @@ describe("resumable fetch order across runs", () => {
     expect(history.lookups).toHaveLength(3);
   });
 
+  it("rejected items and known-hash skips rotate to the back too, so the head never pins a cut run", async () => {
+    const history = fetchHistory();
+    const page = ["R1", "K1", "J1", "J2", "J3", "J4"];
+    const fetched: string[] = [];
+    // Rejects (R*) and known-hash skips (K*) write nothing; J* are stored.
+    const connector: Connector = {
+      ...listing([page], fetched),
+      fetch: (entry) => {
+        fetched.push(entry.bronReferentie);
+        if (entry.bronReferentie.startsWith("R")) {
+          return Promise.resolve({
+            bronReferentie: entry.bronReferentie,
+            reason: "permanent role",
+            status: "rejected" as const,
+          });
+        }
+        if (entry.bronReferentie.startsWith("K")) {
+          return Promise.resolve(null);
+        }
+        return Promise.resolve({
+          body: new TextEncoder().encode(entry.bronReferentie),
+          bronReferentie: entry.bronReferentie,
+          contentHash: hexDigest(entry.bronReferentie),
+          contentType: "html" as const,
+          status: "fetched" as const,
+        });
+      },
+    };
+
+    // Run 1 is cut once J1 is stored: it processed R1, K1 and J1.
+    await run(connector, "rotate-1", {
+      resumeOrder: history.lookup,
+      ...budgetAfter(history.recorder, 1),
+    });
+    expect(fetched).toEqual(["R1", "K1", "J1"]);
+
+    fetched.length = 0;
+    await run(connector, "rotate-2", {
+      resumeOrder: history.lookup,
+      ...budgetAfter(history.recorder, 3),
+    });
+    // Before the fix R1 and K1 (never recorded) led every run.
+    expect(fetched).toEqual(["J2", "J3", "J4"]);
+  });
+
   it("without the lookup, every run starts at the top of the listing again (the old behaviour)", async () => {
     const page = ["J1", "J2", "J3", "J4"];
     const fetchedPerRun: string[][] = [];
@@ -279,6 +323,7 @@ describe("resumable fetch order across runs", () => {
     await run(listing([["B", "A"]], fetched), "lookup-fails", {
       resumeOrder: {
         lastFetchedAt: () => Promise.reject(new Error("database down")),
+        markFetched: () => Promise.reject(new Error("database down")),
       },
     });
     expect(fetched).toEqual(["B", "A"]);

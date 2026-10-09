@@ -8,6 +8,9 @@
  * Postgres resume-order lookup when the package has one.
  *
  *   DATABASE_URL=postgresql://… bun docs/evidence/resumable-fetch/evidence-harness.ts
+ *
+ * `REJECTED=n` serves the first n jobs without a JobPosting, so the
+ * connector rejects them every run (no source_record row is ever written).
  */
 import { executeBronRun } from "../../../packages/application/src/bronnen/index";
 import { InMemoryObjectStore } from "../../../packages/connectors/src/index";
@@ -32,6 +35,8 @@ const CRAWL_DELAY_MS = 100;
 const RUN_BUDGET_MS = 2_150; // ≈ 20 detail fetches + discovery per run
 const RUNS = 4;
 const VANISHED = "job-5"; // fetched in run 1, gone from the listing from run 2 on
+const REJECTED = Number(process.env.REJECTED ?? "0");
+const isRejected = (id: string) => Number(id.slice("job-".length)) <= REJECTED;
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
@@ -68,7 +73,10 @@ const server = Bun.serve({
     }
     const id = pathname.slice(1);
     requests.push(id);
-    return new Response(page(id), { headers: { "content-type": "text/html" } });
+    const body = isRejected(id)
+      ? `<!doctype html><html><body>${id}: no vacancy here</body></html>`
+      : page(id);
+    return new Response(body, { headers: { "content-type": "text/html" } });
   },
   port: 0,
 });
@@ -103,7 +111,7 @@ const config: JsonLdConnectorConfig = {
 };
 
 console.log(
-  `tree: ${resumeOrder ? "PR7 (resume-order lookup)" : "base (listing order)"}; ${JOBS} jobs, crawl delay ${CRAWL_DELAY_MS} ms, run budget ${RUN_BUDGET_MS} ms, ${RUNS} runs; ${VANISHED} disappears from the listing after run 1`
+  `tree: ${resumeOrder ? "PR7 (resume-order lookup)" : "base (listing order)"}; ${JOBS} jobs, crawl delay ${CRAWL_DELAY_MS} ms, run budget ${RUN_BUDGET_MS} ms, ${RUNS} runs; ${VANISHED} disappears from the listing after run 1; ${REJECTED} jobs rejected every run`
 );
 const everFetched = new Set<string>();
 for (let run = 1; run <= RUNS; run += 1) {

@@ -926,12 +926,9 @@ export class PostgresObservationRecorder implements ObservationRecorder {
         .for("update");
       requireOwnership(ownedRuns);
       const { sourceRecord: record } = input;
-      // 0032: stamps the fetch time so the next run can fetch the
-      // longest-unfetched records first (see ResumeOrderLookup).
-      const fetchedAt = sql`now()`;
       const inserted = await tx
         .insert(sourceRecord)
-        .values({ ...record, lastFetchedAt: fetchedAt })
+        .values(record)
         .onConflictDoNothing({
           target: [sourceRecord.bronId, sourceRecord.bronReferentie],
         })
@@ -1004,7 +1001,6 @@ export class PostgresObservationRecorder implements ObservationRecorder {
             // still look like the last one we acted on". `?? null` clears a
             // stale value when this observation carried no listing hash, so
             // it can never wrongly authorise a skip.
-            lastFetchedAt: fetchedAt,
             listingHash: toStoredListingHash(record.listingHash),
             rawPayloadRef: canonicalPointer.rawPayloadRef,
             scrapeRunId: canonicalPointer.scrapeRunId,

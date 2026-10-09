@@ -1,6 +1,6 @@
 # Scrape-architecture PR7: closure separated from fetch, resumable budget-cut crawls
 
-Recorded 2026-10-09 ~12:00 CEST on the box. No network beyond 127.0.0.1; the
+Recorded 2026-10-09 ~09:40 CEST on the box; PR7 re-run ~10:55 CEST after the fetch-history rework (`staging.source_fetch_history`). No network beyond 127.0.0.1; the
 local Postgres is a scratch DB.
 
 `evidence-harness.ts` drives the **real json-ld connector → `executeBronRun`**
@@ -14,7 +14,7 @@ lifecycle ports. The setup:
 The same file ran unchanged on two trees:
 
 - **base:** `git archive` of `perf/additive-hot-path-indexes` (#474), migrated with its own migrations (up to 0031);
-- **PR7:** this branch (migration 0032 applied).
+- **PR7:** this branch (migration 0032 applied, `staging.source_fetch_history`).
 
 ### base
 
@@ -35,6 +35,24 @@ run 2: fetched 19 (job-22 … job-40), completeness aborted, lifecycle {"increme
 run 3: fetched 20 (job-41 … job-60), completeness aborted, lifecycle {"incremented":1,"skippedIncrementReason":null}; distinct jobs fetched so far 60/60; job-5 missed_polls=2
 run 4: fetched 20 (job-1 … job-21), completeness aborted, lifecycle {"incremented":1,"skippedIncrementReason":null}; distinct jobs fetched so far 60/60; job-5 missed_polls=3
 ```
+
+### PR7 with 10 jobs the connector rejects every run (`REJECTED=10`)
+
+A reject writes no `source_record`. The run still stamps it in
+`source_fetch_history`, so it rotates to the back like every other item
+(Bugbot on #477: with the first version, which stamped `source_record`, rejects
+and known-hash skips stayed "never fetched" and led every cut run).
+
+```
+tree: PR7 (resume-order lookup); 60 jobs, crawl delay 100 ms, run budget 2150 ms, 4 runs; job-5 disappears from the listing after run 1; 10 jobs rejected every run
+run 1: fetched 21 (job-1 … job-21), completeness aborted, lifecycle {"incremented":0,"skippedIncrementReason":null}; distinct jobs fetched so far 21/60; job-5 missed_polls=no row
+run 2: fetched 19 (job-22 … job-40), completeness aborted, lifecycle {"incremented":0,"skippedIncrementReason":null}; distinct jobs fetched so far 40/60; job-5 missed_polls=no row
+run 3: fetched 20 (job-41 … job-60), completeness aborted, lifecycle {"incremented":0,"skippedIncrementReason":null}; distinct jobs fetched so far 60/60; job-5 missed_polls=no row
+run 4: fetched 20 (job-1 … job-21), completeness aborted, lifecycle {"incremented":0,"skippedIncrementReason":null}; distinct jobs fetched so far 60/60; job-5 missed_polls=no row
+```
+
+Run 2 starts at job-22: the ten rejects did not pin the head. (job-5 is one of
+the rejects here, so it never has a record to close.)
 
 ## Reading
 
