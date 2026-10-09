@@ -38,7 +38,7 @@ const sustainedIngest = (second: number): boolean => second % 3 === 0;
 
 const simulate = async (
   advancesAt: (second: number) => boolean,
-  versionPin: ConstructorParameters<typeof SearchAdapter>[0]["versionPin"]
+  versionPin?: ConstructorParameters<typeof SearchAdapter>[0]["versionPin"]
 ) => {
   let now = 0;
   const engine = new InMemorySearchEngine();
@@ -90,7 +90,7 @@ describe("search cache hit rate under projector churn", () => {
 
   it("replaying the measured burst/plateau churn", async () => {
     const exact = await simulate(measuredBursts, everySequence);
-    const pinned = await simulate(measuredBursts, undefined);
+    const pinned = await simulate(measuredBursts);
 
     expect(pinned.hitRate).toBeGreaterThan(0.8);
     expect(pinned.hitRate - exact.hitRate).toBeGreaterThan(0.15);
@@ -101,7 +101,7 @@ describe("search cache hit rate under projector churn", () => {
 
   it("under sustained ingestion", async () => {
     const exact = await simulate(sustainedIngest, everySequence);
-    const pinned = await simulate(sustainedIngest, undefined);
+    const pinned = await simulate(sustainedIngest);
 
     expect(exact.hitRate).toBeLessThan(0.3);
     expect(pinned.hitRate).toBeGreaterThan(0.75);

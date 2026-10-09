@@ -66,17 +66,18 @@ export class SearchVersionPin {
   private pin(): SearchVersion {
     // SAFETY: `current` awaits a successful refresh before the first pin.
     const observed = this.observed as Stamped;
-    const { pinned } = this;
     const now = this.now();
+    const { pinned } = this;
     if (
-      pinned === undefined ||
-      pinned.version.generation !== observed.version.generation ||
-      (observed.version.appliedSequence > pinned.version.appliedSequence &&
-        now - pinned.at >= this.minPinMs)
+      pinned !== undefined &&
+      pinned.version.generation === observed.version.generation &&
+      (observed.version.appliedSequence <= pinned.version.appliedSequence ||
+        now - pinned.at < this.minPinMs)
     ) {
-      this.pinned = { at: now, version: observed.version };
+      return pinned.version;
     }
-    return (this.pinned as Stamped).version;
+    this.pinned = { at: now, version: observed.version };
+    return observed.version;
   }
 
   private async refreshInBackground(): Promise<void> {
