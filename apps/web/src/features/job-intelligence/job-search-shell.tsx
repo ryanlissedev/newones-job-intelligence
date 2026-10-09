@@ -7,7 +7,8 @@ import { authClient } from "@/lib/auth-client";
 
 import { fixtureJobActions, fixtureJobDataAdapter } from "./fixtures";
 import { JobSearchPage } from "./job-search-page";
-import { JobsAccessFrame, resolveJobsAccess } from "./jobs-access";
+import { JobsAccessFrame } from "./jobs-access";
+import { resolveJobsAccess } from "./jobs-access-state";
 import { createRestJobIntelligence } from "./rest-job-data-adapter";
 
 export const JobSearchShell = () => {

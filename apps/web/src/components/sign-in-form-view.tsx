@@ -37,7 +37,10 @@ export const SignInFormView = ({
     <div className="mx-auto mt-10 w-full max-w-md p-6">
       <h1 className="mb-6 text-center text-3xl font-bold">Welcome Back</h1>
 
+      {/* method="post": submitted before hydration (the form is now in the
+          server HTML), the credentials must not land in the URL. */}
       <form
+        method="post"
         onSubmit={(e) => {
           e.preventDefault();
           e.stopPropagation();

@@ -3,7 +3,8 @@ import { describe, expect, it } from "bun:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import { JobsAccessFrame, resolveJobsAccess } from "./jobs-access";
+import { JobsAccessFrame } from "./jobs-access";
+import { resolveJobsAccess } from "./jobs-access-state";
 
 const base = {
   fixtures: false,

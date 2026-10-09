@@ -18,4 +18,8 @@ describe("SignInFormView server render", () => {
     expect(markup).toContain('type="submit"');
     expect(markup).not.toContain("animate-spin");
   });
+
+  it("posts if submitted before hydration, so credentials never reach the URL", () => {
+    expect(markup).toMatch(/<form[^>]*method="post"/u);
+  });
 });
