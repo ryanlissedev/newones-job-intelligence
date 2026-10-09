@@ -1,4 +1,11 @@
-import { describe, expect, it } from "bun:test";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  setSystemTime,
+} from "bun:test";
 
 import { loadConnectorFixture } from "@ji/connectors";
 import {
@@ -48,7 +55,20 @@ const buildPayload = (
   },
 });
 
+/** A moment inside the fixture's capture window (recorded 2026-09-18, work
+ * window 12/10/2026 - 31/12/2026). */
+const PROUNITY_FIXTURE_NOW = new Date("2026-09-20T12:00:00.000Z");
+
 describe("parseProunityPayload", () => {
+  // Pin the clock to the capture window so the fixture's 2026-12-31 work
+  // window stays in the future; the closed cases use 2023 dates.
+  beforeEach(() => {
+    setSystemTime(PROUNITY_FIXTURE_NOW);
+  });
+  afterEach(() => {
+    setSystemTime();
+  });
+
   it("maps a real open mission to a normalised draft", () => {
     const draft = parseProunityPayload(buildPayload(), "hash-1");
 

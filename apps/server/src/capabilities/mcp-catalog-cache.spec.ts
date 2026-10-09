@@ -260,6 +260,7 @@ describe("MCP catalog cache policy", () => {
   });
 
   it("emits private catalog hints and advertises no change stream", async () => {
+    setSystemTime(fixtureEpoch);
     const environment = createFixtureEnvironment();
     const client = await createFixtureClient({
       cache: new InMemoryResponseCacheStore(),
