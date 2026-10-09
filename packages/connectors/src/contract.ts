@@ -1,6 +1,8 @@
 import type { BronId, ScrapeRunId, SourceRecordId } from "@ji/domain";
 
 import type { RawContentType } from "./object-store";
+import { mergeOutcomeCounts } from "./run-outcomes";
+import type { RejectKind, RunOutcomeCounts } from "./run-outcomes";
 
 export const CONNECTOR_OBSERVATION_CONTRACT_VERSION =
   "connector-observation/v1" as const;
@@ -43,6 +45,8 @@ export interface ConnectorFetchedResult {
 
 export interface ConnectorRejectedResult {
   bronReferentie: string;
+  /** Classifies the rejection for run accounting; absent counts as `invalid`. */
+  kind?: RejectKind;
   reason: string;
   status: "rejected";
 }
@@ -57,6 +61,8 @@ export interface ConnectorRunMetrics {
   error: number;
   found: number;
   new: number;
+  /** Per-outcome counters persisted as `scrape_run.outcome_counts`. */
+  outcomes?: RunOutcomeCounts;
   rejected: number;
   unchanged: number;
 }
@@ -102,6 +108,13 @@ export interface Connector {
     item: DiscoverItem,
     signal?: AbortSignal
   ) => Promise<ConnectorFetchResult | null>;
+  /**
+   * Optional pre-fetch check, answered from local state only. True means the
+   * item is unchanged since its last persisted fetch: the runner counts it as
+   * observed (never missed) and skips `fetch` without taking a request-limiter
+   * slot, so an unchanged page costs no crawl delay.
+   */
+  skipFetch?: (item: DiscoverItem) => Promise<boolean>;
 }
 
 export const emptyRunMetrics = (): ConnectorRunMetrics => ({
@@ -127,6 +140,10 @@ export const mergeRunMetrics = (
   };
   if (left.closed !== undefined || right.closed !== undefined) {
     merged.closed = (left.closed ?? 0) + (right.closed ?? 0);
+  }
+  const outcomes = mergeOutcomeCounts(left.outcomes, right.outcomes);
+  if (outcomes !== undefined) {
+    merged.outcomes = outcomes;
   }
   return merged;
 };

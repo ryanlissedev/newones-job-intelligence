@@ -3,7 +3,7 @@ import path from "node:path";
 
 import { PostgresAlertStore } from "@ji/db/bron-health-stores";
 import { PostgresPollerHealthTelemetryStore } from "@ji/db/poller-health-telemetry-store";
-import { bron, bronHealth, scrapeRun } from "@ji/db/schema/curated";
+import { alert, bron, bronHealth, scrapeRun } from "@ji/db/schema/curated";
 import * as schema from "@ji/db/schema/index";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -139,6 +139,7 @@ describe
 
     afterAll(async () => {
       await runtime?.close();
+      await database?.delete(alert).where(eq(alert.bronId, bronId));
       await database?.delete(scrapeRun).where(eq(scrapeRun.bronId, bronId));
       await database?.delete(bronHealth).where(eq(bronHealth.bronId, bronId));
       await database?.delete(bron).where(eq(bron.id, bronId));
@@ -228,5 +229,64 @@ describe
       expect(after).toEqual(before);
       const alerts = await new PostgresAlertStore(database).listOpen();
       expect(alerts.filter((row) => row.bronId === bronId)).toEqual([]);
+    });
+
+    it("clears a budget-cut completion when a floor breach fails the owning run", async () => {
+      const ownedRunId = crypto.randomUUID();
+      await database.insert(scrapeRun).values({
+        bronId,
+        fenceToken: 3,
+        id: ownedRunId,
+        runKind: "poll",
+        status: "running",
+      });
+      const telemetry = new PostgresPollerHealthTelemetryStore(database);
+      expect(
+        await telemetry.claimSourceOwnership({
+          bronId,
+          fenceToken: 3,
+          phase: "fetch",
+          phaseStartedAt: at("2026-09-19T13:03:00.000Z"),
+          runId: ownedRunId,
+        })
+      ).toBe(true);
+      await database
+        .update(scrapeRun)
+        .set({
+          completion: "budget_exhausted",
+          geindigd: at("2026-09-19T13:04:00.000Z"),
+          status: "succeeded",
+        })
+        .where(eq(scrapeRun.id, ownedRunId));
+
+      const breach = await recordDiscoveryFloorBreach(
+        {
+          bronId,
+          bronSlug: "tenderned",
+          completeness: null,
+          fenceToken: 3,
+          lifecycle: null,
+          metrics: {
+            changed: 0,
+            error: 0,
+            found: 0,
+            new: 0,
+            rejected: 0,
+            unchanged: 0,
+          },
+          scrapeRunId: ownedRunId,
+          status: "succeeded",
+          writtenRecords: 0,
+        },
+        runtime,
+        "poll"
+      );
+      expect(breach).not.toBeNull();
+
+      const [failedRun] = await database
+        .select({ completion: scrapeRun.completion, status: scrapeRun.status })
+        .from(scrapeRun)
+        .where(eq(scrapeRun.id, ownedRunId));
+      expect(failedRun).toEqual({ completion: null, status: "failed" });
     });
   });

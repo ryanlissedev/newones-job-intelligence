@@ -6,7 +6,11 @@ import type {
   ConnectorDiscoverResult,
   DiscoverItem,
 } from "../contract";
-import { NotFoundFault, Server5xxFault } from "../effect-runtime";
+import {
+  NotFoundFault,
+  Server5xxFault,
+  ValidationFault,
+} from "../effect-runtime";
 import { shouldSkipFetch } from "../known-hash";
 import type { KnownHashStore } from "../known-hash";
 import { hashContent } from "../object-store";
@@ -14,6 +18,8 @@ import { createJsonLdClient, MissingDetailFixtureError } from "./client";
 import type { JsonLdClient } from "./client";
 import { applyExcludes, dedupeUrls } from "./discovery";
 import { hashJsonLdListingItem, hashJsonLdPayload } from "./hash";
+import { shouldSkipUnchangedLastmod } from "./lastmod-skip";
+import type { LastmodSkipOptions } from "./lastmod-skip";
 import { HttpStatusError } from "./live-fetch";
 import type {
   JsonLdConnectorConfig,
@@ -30,11 +36,40 @@ const serverErrorStatus = (error: unknown): number | null => {
   return null;
 };
 
+const HTTP_NOT_FOUND = 404;
+const HTTP_GONE = 410;
+
+/**
+ * 404 or 410 when a detail error means the vacancy is gone at the source,
+ * else null. 410 Gone is the explicit form (Randstad, BAM answer it for
+ * closed vacancies): one such page must reject its item, not fail the run.
+ */
+// oxlint-disable-next-line anti-slop/no-unknown-parameters -- catch-boundary classifier for whatever the client threw
+const goneHttpStatus = (error: unknown): number | null => {
+  if (error instanceof NotFoundFault) {
+    return HTTP_NOT_FOUND;
+  }
+  if (
+    (error instanceof HttpStatusError || error instanceof ValidationFault) &&
+    (error.status === HTTP_NOT_FOUND || error.status === HTTP_GONE)
+  ) {
+    return error.status;
+  }
+  return null;
+};
+
 export interface JsonLdConnectorOptions {
   bronId: BronId;
   client?: JsonLdClient;
   config: JsonLdConnectorConfig;
   knownHashes?: KnownHashStore;
+  /**
+   * Opt-in: skip detail pages whose sitemap `<lastmod>` has not moved since
+   * the last persisted fetch (see `shouldSkipUnchangedLastmod`). Unlike
+   * `knownHashes`, an entry without lastmod is always fetched, so this is
+   * safe for sources whose listing hash cannot otherwise see detail changes.
+   */
+  lastmodSkip?: LastmodSkipOptions;
 }
 
 /** Stable per-source reference: the decoded URL path with leading/trailing slashes
@@ -120,7 +155,7 @@ export const createJsonLdConnector = (
 ): Connector => {
   const { config } = options;
   const client = options.client ?? createJsonLdClient({ config });
-  const { knownHashes } = options;
+  const { knownHashes, lastmodSkip } = options;
 
   const batchSize =
     config.discovery.kind === "sitemap-index"
@@ -161,7 +196,10 @@ export const createJsonLdConnector = (
     entry: JsonLdDiscoveryUrl
   ): Promise<DiscoverItem> => ({
     bronReferentie: urlSlugBronReferentie(entry.url),
-    contentHash: await hashJsonLdListingItem(entry),
+    contentHash: await hashJsonLdListingItem(
+      entry,
+      lastmodSkip === undefined ? undefined : config.parserVersion
+    ),
     listingPayload: entry,
   });
 
@@ -325,25 +363,26 @@ export const createJsonLdConnector = (
           serverErrorRejections += 1;
           return {
             bronReferentie: item.bronReferentie,
+            kind: "http_5xx" as const,
             reason: `detail page kept returning HTTP ${status} after ${attempts} attempts`,
             status: "rejected" as const,
           };
         }
-        const gone =
-          (error instanceof HttpStatusError && error.status === 404) ||
-          error instanceof NotFoundFault;
-        if (!gone) {
+        const goneStatus = goneHttpStatus(error);
+        if (goneStatus === null) {
           throw error;
         }
         return {
           bronReferentie: item.bronReferentie,
-          reason: "detail page returned 404 — removed at source",
+          kind: "gone" as const,
+          reason: `detail page returned ${goneStatus} — removed at source`,
           status: "rejected" as const,
         };
       }
       if (!detail.jobPosting) {
         return {
           bronReferentie: item.bronReferentie,
+          kind: "no_structured_data" as const,
           reason: "no JobPosting JSON-LD found on detail page",
           status: "rejected" as const,
         };
@@ -369,5 +408,10 @@ export const createJsonLdConnector = (
         status: "fetched" as const,
       };
     },
+    skipFetch:
+      lastmodSkip === undefined
+        ? undefined
+        : (item) =>
+            shouldSkipUnchangedLastmod(lastmodSkip, options.bronId, item),
   };
 };

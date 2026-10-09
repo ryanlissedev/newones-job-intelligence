@@ -618,6 +618,9 @@ export const recordDiscoveryFloorBreach = async (
       const [failedRun] = await database
         .update(scrapeRun)
         .set({
+          // scrape_run_completion_kind_check allows `completion` only on a
+          // succeeded row; a floor breach turns the run failed, so clear it.
+          completion: null,
           failureClass: DISCOVERY_FLOOR_FAILURE.class,
           failureCode: DISCOVERY_FLOOR_FAILURE.code,
           failureMessage: DISCOVERY_FLOOR_FAILURE.message,

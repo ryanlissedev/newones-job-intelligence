@@ -201,6 +201,14 @@ export interface SearchEngineResult {
 
 export interface EngineSearchParams {
   ast: BooleanNode | null;
+  /**
+   * Defaults to true. False when the caller already holds facets for this
+   * query and filters (the adapter's facet cache): the engine then skips the
+   * aggregations, which cost 150–230 ms of a default match-all search in
+   * production versus ~4 ms for the hits alone (MEASURED 2026-10-09), and
+   * returns empty facets.
+   */
+  facets?: boolean;
   filters: SearchFilters;
   limit: number;
   /** Defaults to lexical for direct/legacy engine callers. */

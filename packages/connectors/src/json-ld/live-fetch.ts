@@ -9,6 +9,8 @@
  * (`cf_clearance`, …). See docs/sources/werkzoeken.md.
  */
 
+import { SourceBlockedError } from "../source-blocked";
+
 /** Named header bag for live json-ld fetches (optional ops Cookie). */
 export interface LiveFetchHeaders {
   Accept: string;
@@ -71,16 +73,18 @@ export const cloudflareChallengeError = (options: {
   cookieEnvVar: string | null;
   slug: string;
   url: string;
-}): Error => {
+}): SourceBlockedError => {
   const cookieHint =
     options.cookieEnvVar === null
       ? "an ops Cookie header from a consented browser session"
       : `${options.cookieEnvVar} from a consented browser session (cf_clearance)`;
-  return new Error(
-    `${options.slug} fetch blocked by Cloudflare managed challenge at ${options.url}. ` +
+  return new SourceBlockedError({
+    message:
+      `${options.slug} fetch blocked by Cloudflare managed challenge at ${options.url}. ` +
       `Browser-like headers alone do not clear it. Ops: set ${cookieHint}; ` +
-      `see docs/sources/werkzoeken.md. Do not use CAPTCHA solvers.`
-  );
+      `see docs/sources/werkzoeken.md. Do not use CAPTCHA solvers.`,
+    url: options.url,
+  });
 };
 
 export interface LiveFetchHeadersOptions {
