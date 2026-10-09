@@ -1878,6 +1878,9 @@ describe("durable bron runtime adapters", () => {
       expect(
         await knownHashes.get(bronId, "listing-hash-reference")
       ).toBeNull();
+      expect(
+        await knownHashes.getPayloadHash(bronId, "listing-hash-reference")
+      ).toBeNull();
 
       await record(
         firstRunId,
@@ -1891,6 +1894,10 @@ describe("durable bron runtime adapters", () => {
       expect(await knownHashes.get(bronId, "listing-hash-reference")).toBe(
         "listing-hash-1"
       );
+      // The lastmod honesty probe reads the PAYLOAD tier separately.
+      expect(
+        await knownHashes.getPayloadHash(bronId, "listing-hash-reference")
+      ).toBe("payload-hash-1");
 
       const secondRun = await store.start({
         key: { bronId, scrapeRunId: secondRunId },
@@ -1909,6 +1916,9 @@ describe("durable bron runtime adapters", () => {
       expect(await knownHashes.get(bronId, "listing-hash-reference")).toBe(
         "listing-hash-2"
       );
+      expect(
+        await knownHashes.getPayloadHash(bronId, "listing-hash-reference")
+      ).toBe("payload-hash-2");
 
       // An observation without a listing hash clears the stored value so a
       // stale listing hash can never authorise a skip.

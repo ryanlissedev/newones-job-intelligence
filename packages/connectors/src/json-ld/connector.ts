@@ -14,8 +14,8 @@ import { createJsonLdClient, MissingDetailFixtureError } from "./client";
 import type { JsonLdClient } from "./client";
 import { applyExcludes, dedupeUrls } from "./discovery";
 import { hashJsonLdListingItem, hashJsonLdPayload } from "./hash";
-import { shouldSkipUnchangedLastmod } from "./lastmod-skip";
-import type { LastmodSkipOptions } from "./lastmod-skip";
+import { createLastmodSkipGuard } from "./lastmod-skip";
+import type { LastmodGuardOptions } from "./lastmod-skip";
 import { HttpStatusError } from "./live-fetch";
 import type {
   JsonLdConnectorConfig,
@@ -43,7 +43,7 @@ export interface JsonLdConnectorOptions {
    * `knownHashes`, an entry without lastmod is always fetched, so this is
    * safe for sources whose listing hash cannot otherwise see detail changes.
    */
-  lastmodSkip?: LastmodSkipOptions;
+  lastmodSkip?: LastmodGuardOptions;
 }
 
 /** Stable per-source reference: the decoded URL path with leading/trailing slashes
@@ -130,6 +130,9 @@ export const createJsonLdConnector = (
   const { config } = options;
   const client = options.client ?? createJsonLdClient({ config });
   const { knownHashes, lastmodSkip } = options;
+  // One guard per connector, so per run: the honesty probe's distrust lasts for this run only.
+  const lastmodGuard =
+    lastmodSkip === undefined ? undefined : createLastmodSkipGuard(lastmodSkip);
 
   const batchSize =
     config.discovery.kind === "sitemap-index"
@@ -373,6 +376,7 @@ export const createJsonLdConnector = (
       }
       const body = new TextEncoder().encode(JSON.stringify(payload));
       const contentHash = await hashJsonLdPayload(body);
+      lastmodGuard?.observeFetched(item.bronReferentie, contentHash);
       return {
         body,
         bronReferentie: item.bronReferentie,
@@ -382,9 +386,8 @@ export const createJsonLdConnector = (
       };
     },
     skipFetch:
-      lastmodSkip === undefined
+      lastmodGuard === undefined
         ? undefined
-        : (item) =>
-            shouldSkipUnchangedLastmod(lastmodSkip, options.bronId, item),
+        : (item) => lastmodGuard.shouldSkip(options.bronId, item),
   };
 };
