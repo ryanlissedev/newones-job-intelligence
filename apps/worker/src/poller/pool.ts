@@ -153,7 +153,7 @@ export const runContinuously = async <Item>(
   const inFlightRuns = new Set<Promise<null>>();
   const maxInFlight = Math.max(1, Math.floor(concurrency));
   const longCap = Math.max(1, Math.floor(maxLongInFlight ?? maxInFlight));
-  let longInFlight = 0;
+  const longInFlightKeys = new Set<string>();
 
   while (!signal.aborted) {
     // oxlint-disable-next-line no-await-in-loop -- maintenance and candidate reads must not overlap
@@ -169,11 +169,11 @@ export const runContinuously = async <Item>(
         continue;
       }
       const long = isLong?.(item) ?? false;
-      if (long && longInFlight >= longCap) {
+      if (long && longInFlightKeys.size >= longCap) {
         continue;
       }
       if (long) {
-        longInFlight += 1;
+        longInFlightKeys.add(key);
       }
       inFlightKeys.add(key);
       const tracked = Promise.withResolvers<null>();
@@ -191,9 +191,7 @@ export const runContinuously = async <Item>(
             // A broken reporter must never reject the tracked run.
           }
         } finally {
-          if (long) {
-            longInFlight -= 1;
-          }
+          longInFlightKeys.delete(key);
           inFlightRuns.delete(tracked.promise);
           inFlightKeys.delete(key);
           tracked.resolve(null);
