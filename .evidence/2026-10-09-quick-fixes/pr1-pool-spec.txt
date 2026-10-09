@@ -1,23 +1,23 @@
 bun test v1.4.2 (744846f84)
 
 pool.spec.ts:
-(pass) runWithConcurrency > runs strictly one at a time at limit 1 [1.34ms]
-(pass) runWithConcurrency > never exceeds the limit and keeps the input as the starting order [0.56ms]
-(pass) runWithConcurrency > returns results in starting order, not completion order [0.21ms]
-(pass) runWithConcurrency > stops starting new items once the signal aborts [0.31ms]
-(pass) runWithConcurrency > starts nothing when the signal is already aborted [0.09ms]
-(pass) runWithConcurrency > lets the other items finish when one worker rejects [0.56ms]
-(pass) runWithConcurrency > handles an empty list without starting a runner [0.20ms]
-(pass) runContinuously > starts a newly due item while a long run is still in flight [2.34ms]
-(pass) runContinuously > keeps one active run per key and merges missed ticks into a single follow-up [4.68ms]
-(pass) runContinuously > caps concurrent starts and hands a freed slot to the next due item [2.69ms]
-(pass) runContinuously > keeps a slot for short items while a long item holds the long lane [3.69ms]
-(pass) runContinuously > treats every item as short when isLong is omitted [1.34ms]
-(pass) runContinuously > stops dispatching on abort and waits for the in-flight run to settle [1.38ms]
-(pass) runContinuously > reports a rejecting run through onRunError and keeps scheduling [0.40ms]
-(pass) runContinuously > invokes onTick before every evaluation [1.37ms]
+(pass) runWithConcurrency > runs strictly one at a time at limit 1 [0.81ms]
+(pass) runWithConcurrency > never exceeds the limit and keeps the input as the starting order [0.37ms]
+(pass) runWithConcurrency > returns results in starting order, not completion order [0.14ms]
+(pass) runWithConcurrency > stops starting new items once the signal aborts [0.19ms]
+(pass) runWithConcurrency > starts nothing when the signal is already aborted [0.06ms]
+(pass) runWithConcurrency > lets the other items finish when one worker rejects [0.29ms]
+(pass) runWithConcurrency > handles an empty list without starting a runner [0.10ms]
+(pass) runContinuously > starts a newly due item while a long run is still in flight [1.85ms]
+(pass) runContinuously > keeps one active run per key and merges missed ticks into a single follow-up [4.50ms]
+(pass) runContinuously > caps concurrent starts and hands a freed slot to the next due item [2.42ms]
+(pass) runContinuously > keeps a slot for short items while a long item holds the long lane [3.48ms]
+(pass) runContinuously > treats every item as short when isLong is omitted [1.26ms]
+(pass) runContinuously > stops dispatching on abort and waits for the in-flight run to settle [1.26ms]
+(pass) runContinuously > reports a rejecting run through onRunError and keeps scheduling [0.22ms]
+(pass) runContinuously > invokes onTick before every evaluation [1.33ms]
 
  15 pass
  0 fail
  45 expect() calls
-Ran 15 tests across 1 file. [28.00ms]
+Ran 15 tests across 1 file. [22.00ms]

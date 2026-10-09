@@ -1,0 +1,48 @@
+bun test v1.4.2 (744846f84)
+
+src/adapter.spec.ts:
+(pass) SearchAdapter > covers AE1 with stable hit IDs across repeated searches [5.27ms]
+(pass) SearchAdapter > returns structured syntax errors without calling the engine search path [0.24ms]
+(pass) SearchAdapter > returns empty index count 0 and empty facets with reason [0.37ms]
+(pass) SearchAdapter > uses result cache keyed by ast hash, index version, and filters [0.63ms]
+(pass) SearchAdapter > does not share cached hits between legacy-delimiter-colliding ASTs (RJC-427) [1.51ms]
+(pass) SearchAdapter > treats empty and whitespace-only queries as cached match-all browse requests (RJC-430) [0.67ms]
+(pass) SearchAdapter > preserves incomplete hits and facets without caching them, then retries (RJC-431) [0.92ms]
+(pass) SearchAdapter > does not cache an incomplete timeout with zero hits (RJC-431) [4.65ms]
+(pass) SearchAdapter hybrid mode > enables the environment flag strictly for the value 1 [0.09ms]
+(pass) SearchAdapter hybrid mode > passes hybrid only for positive free text without negation [1.16ms]
+(pass) SearchAdapter hybrid mode > separates cached results between lexical and hybrid mode [1.73ms]
+(pass) SearchAdapter pagination > keys the cache per page and sort, and passes the window through [2.56ms]
+(pass) SearchAdapter cache provenance (RJC-388) > marks a fresh search miss and a cached repeat hit [0.63ms]
+(pass) SearchAdapter canonical AST sent to engine (RJC-388) > feeds the engine AE1's query canonicalized with NOT last, positives sorted [0.74ms]
+(pass) SearchAdapter facets cache > reuses page 0's facets for later pages, ignoring what the engine returns for them [1.52ms]
+(pass) SearchAdapter singleflight (RJC-388) > coalesces concurrent identical searches into one engine call [6.35ms]
+(pass) SearchAdapter singleflight (RJC-388) > does not let a failed flight poison the next call [1.38ms]
+(skip) SearchAdapter canonical execution (live, RJC-388) > (unnamed)
+(skip) SearchAdapter canonical execution (live, RJC-388) > two AND permutations of the same terms return identical ordered ids, cold and cached
+(skip) SearchAdapter canonical execution (live, RJC-388) > X NOT Y and a NOT-first-equivalent permutation match a raw-ast engine.search of the original query
+
+src/cache/version-pin-hit-rate.spec.ts:
+(pass) search cache hit rate under projector churn > replaying the measured burst/plateau churn [83.68ms]
+(pass) search cache hit rate under projector churn > under sustained ingestion [83.67ms]
+
+src/cache/version-pin.spec.ts:
+(pass) SearchVersionPin > waits on the store only for the very first version [0.36ms]
+(pass) SearchVersionPin > refreshes in the background once the refresh interval has passed [0.20ms]
+(pass) SearchVersionPin > re-pins a newer sequence only after the minimum pin age [0.47ms]
+(pass) SearchVersionPin > keeps the pin when the sequence is unchanged, however old it is [0.13ms]
+(pass) SearchVersionPin > re-pins a new generation immediately [0.12ms]
+(pass) SearchVersionPin > keeps serving the last version when a background read fails [0.25ms]
+(pass) SearchVersionPin > surfaces a failed first read and retries on the next call [0.11ms]
+(pass) SearchVersionPin > shares one in-flight read between concurrent callers [0.09ms]
+
+3 tests skipped:
+(skip) SearchAdapter canonical execution (live, RJC-388) > (unnamed)
+(skip) SearchAdapter canonical execution (live, RJC-388) > two AND permutations of the same terms return identical ordered ids, cold and cached
+(skip) SearchAdapter canonical execution (live, RJC-388) > X NOT Y and a NOT-first-equivalent permutation match a raw-ast engine.search of the original query
+
+ 27 pass
+ 3 skip
+ 0 fail
+ 144 expect() calls
+Ran 30 tests across 3 files. [320.00ms]

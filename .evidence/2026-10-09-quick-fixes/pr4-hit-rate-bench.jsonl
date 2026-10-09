@@ -1,0 +1,4 @@
+{"scenario":"bursts","adapter":"main (a4ff669)","simulatedSeconds":600,"searches":600,"distinctQueries":10,"sequenceAdvances":100,"hits":368,"misses":232,"hitRate":0.613,"versionReads":600,"awaitedVersionReadsBeforeCacheLookup":600}
+{"scenario":"bursts","adapter":"this PR","simulatedSeconds":600,"searches":600,"distinctQueries":10,"sequenceAdvances":100,"hits":510,"misses":90,"hitRate":0.85,"versionReads":120,"awaitedVersionReadsBeforeCacheLookup":1}
+{"scenario":"sustained","adapter":"main (a4ff669)","simulatedSeconds":600,"searches":600,"distinctQueries":10,"sequenceAdvances":200,"hits":0,"misses":600,"hitRate":0,"versionReads":600,"awaitedVersionReadsBeforeCacheLookup":600}
+{"scenario":"sustained","adapter":"this PR","simulatedSeconds":600,"searches":600,"distinctQueries":10,"sequenceAdvances":200,"hits":500,"misses":100,"hitRate":0.833,"versionReads":120,"awaitedVersionReadsBeforeCacheLookup":1}
