@@ -26,3 +26,11 @@ export {
   runListSupportedBronSlugs,
   runResolveSourceByNaam,
 } from "./sources-effect";
+export {
+  reconcileSourceSeeds,
+  summariseSeedReconcile,
+  type BronSeedRow,
+  type SeedNaamConflict,
+  type SeedReconcileReport,
+  type SeedVoorwaardenDrift,
+} from "./seed-reconcile";
