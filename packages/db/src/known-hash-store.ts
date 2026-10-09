@@ -40,4 +40,25 @@ export class PostgresKnownHashStore implements KnownHashStore {
       .limit(1);
     return row?.listingHash ?? null;
   }
+
+  /**
+   * The payload hash (`content_hash`) of the last persisted fetch. Only read by
+   * the lastmod honesty probe, never to skip a fetch.
+   */
+  async getPayloadHash(
+    bronId: BronId,
+    bronReferentie: string
+  ): Promise<string | null | undefined> {
+    const [row] = await this.database
+      .select({ contentHash: sourceRecord.contentHash })
+      .from(sourceRecord)
+      .where(
+        and(
+          eq(sourceRecord.bronId, bronId),
+          eq(sourceRecord.bronReferentie, boundBronReferentie(bronReferentie))
+        )
+      )
+      .limit(1);
+    return row?.contentHash ?? null;
+  }
 }
