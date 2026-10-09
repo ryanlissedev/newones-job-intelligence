@@ -9,7 +9,6 @@ import {
 } from "@ji/db";
 import { env } from "@ji/env/server";
 import { Hono } from "hono";
-import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 
 import { createSessionPrincipalResolver } from "./capabilities/auth";
@@ -20,6 +19,7 @@ import {
   createRestCapabilityHandler,
   restRoutesFromRegistry,
 } from "./capabilities/rest";
+import { apiCors } from "./cors-policy";
 import { createHealthRoutes } from "./http/health";
 import { createProjectorRuntimeHandler } from "./http/projector-runtime";
 import { createReleaseHandler } from "./http/release";
@@ -36,21 +36,7 @@ const app = new Hono();
 const allowedWebOrigin = new URL(env.CORS_ORIGIN).origin;
 
 app.use(logger());
-app.use(
-  "/*",
-  cors({
-    allowHeaders: [
-      "Content-Type",
-      "Authorization",
-      "MCP-Protocol-Version",
-      "Mcp-Method",
-      "Mcp-Name",
-    ],
-    allowMethods: ["DELETE", "GET", "POST", "PUT", "OPTIONS"],
-    credentials: true,
-    origin: allowedWebOrigin,
-  })
-);
+app.use("/*", apiCors(allowedWebOrigin));
 app.use("/v1/*", jsonBodyLimit());
 app.use("/mcp", jsonBodyLimit());
 app.use("/marktvragen/*", jsonBodyLimit());

@@ -12,6 +12,11 @@ import type { PollBronRuntime } from "./poll-bron-run";
 const HERO_BRON_ID = "00000000-0000-4000-8000-000000000004";
 const SAME_TASK_RUN_ID = "00000000-0000-4000-8000-00000000a431";
 const DELAYED_POLL_RUN_ID = "00000000-0000-4000-8000-00000000a432";
+const CHAIN_RUN_IDS = [
+  "00000000-0000-4000-8000-00000000a433",
+  "00000000-0000-4000-8000-00000000a434",
+  "00000000-0000-4000-8000-00000000a435",
+] as const;
 const applicationUrl =
   process.env.DATABASE_APP_TEST_URL ??
   "postgresql://ji_app:ji_app_local@127.0.0.1:5432/ji_test";
@@ -76,6 +81,10 @@ class ReadGatedObjectStore implements ObjectStore {
 
   deleteExpired(before: Date): Promise<number> {
     return this.backing.deleteExpired(before);
+  }
+
+  disableReads(): void {
+    this.readsEnabled = false;
   }
 
   enableReads(): void {
@@ -542,6 +551,96 @@ describe
           );
         expect(runs).toHaveLength(2);
         expect(runs.every((run) => run.status === "succeeded")).toBe(true);
+      } finally {
+        await fixture.runtime.close();
+        const cleanupClient = createBronRuntimeClient(applicationUrl);
+        try {
+          await cleanHeroRows(cleanupClient.database);
+        } finally {
+          await cleanupClient.close();
+        }
+      }
+    });
+
+    it("drains a chain of unchanged re-observations through its newest link in one pass, losing nothing", async () => {
+      const fixture = createRecoveryRuntime();
+      const firstPayload = {
+        bronId: HERO_BRON_ID,
+        bronSlug: "hero" as const,
+        scrapeRunId: SAME_TASK_RUN_ID,
+      };
+      try {
+        await cleanHeroRows(fixture.runtime.database);
+        await seedHeroBron(fixture.runtime);
+        fixture.objectStore.enableReads();
+        const first = await runBronIngestPipeline(
+          firstPayload,
+          fixture.runtime,
+          "poll"
+        );
+        expect(first.curated).toBe(2);
+        fixture.objectStore.disableReads();
+
+        // Three later polls see the same two vacancies unchanged while the
+        // store will not answer: each curation pass aborts on its raw read,
+        // which is how prod piled up one `unchanged` row per identity per run.
+        for (const scrapeRunId of CHAIN_RUN_IDS) {
+          // oxlint-disable-next-line no-await-in-loop -- polls are sequential by construction
+          await expectInjectedReadFailure(
+            runBronIngestPipeline(
+              { ...firstPayload, scrapeRunId },
+              fixture.runtime,
+              "poll"
+            )
+          );
+        }
+        const statusByRun = async () => {
+          const state = await readDurableState(fixture.runtime.database);
+          return Object.fromEntries(
+            [SAME_TASK_RUN_ID, ...CHAIN_RUN_IDS].map((runId) => [
+              runId,
+              state.observations
+                .filter((observation) => observation.scrapeRunId === runId)
+                .map((observation) => observation.status)
+                .toSorted(),
+            ])
+          );
+        };
+        fixture.objectStore.enableReads();
+        fixture.disableConnector();
+        const drained = await runBronIngestPipeline(
+          { ...firstPayload, scrapeRunId: CHAIN_RUN_IDS[2] },
+          fixture.runtime,
+          "poll"
+        );
+        expect(drained.unchanged).toBe(2);
+        expect(drained.remaining).toBe(0);
+        const afterDrain = await statusByRun();
+        // The head applied, and every older link is superseded behind it.
+        expect(afterDrain).toEqual({
+          [SAME_TASK_RUN_ID]: ["curated", "curated"],
+          [CHAIN_RUN_IDS[0]]: ["superseded", "superseded"],
+          [CHAIN_RUN_IDS[1]]: ["superseded", "superseded"],
+          [CHAIN_RUN_IDS[2]]: ["unchanged", "unchanged"],
+        });
+        // Content never changed, so the drain wrote no version.
+        await expectExactlyOneNewVersionPerIdentity(fixture.runtime.database);
+        const [newestRun] = await fixture.runtime.database
+          .select({ gestart: scrapeRun.gestart })
+          .from(scrapeRun)
+          .where(eq(scrapeRun.id, CHAIN_RUN_IDS[2]));
+        const requests = await fixture.runtime.database
+          .select({ laatstGezienOp: aanvraag.laatstGezienOp })
+          .from(aanvraag)
+          .where(eq(aanvraag.bronId, HERO_BRON_ID));
+        // last-seen comes from the newest link, so nothing was lost.
+        expect(
+          requests.every(
+            (request) =>
+              newestRun !== undefined &&
+              request.laatstGezienOp.getTime() >= newestRun.gestart.getTime()
+          )
+        ).toBe(true);
       } finally {
         await fixture.runtime.close();
         const cleanupClient = createBronRuntimeClient(applicationUrl);

@@ -284,6 +284,13 @@ const main = async (): Promise<void> => {
       abandonRunAfterMs,
       defaultBudgetMs: runBudgetMs,
     });
+  // A source with a raised budget (Techniekwerkt ~4.8 h, ProUnity ~3 h,
+  // Randstad and Intermediair ~2 h) holds its slot for hours. Two of them at
+  // once would take both default slots and stall every short source, so at
+  // most `concurrency - 1` long runs share the pool (at least one).
+  const isLongRun = (bronSlug: string): boolean =>
+    runBudgetFor(bronSlug) > runBudgetMs;
+  const maxLongRuns = Math.max(1, concurrency - 1);
 
   const controller = new AbortController();
   let shutdownRequested = false;
@@ -504,7 +511,9 @@ const main = async (): Promise<void> => {
                 lastEvaluatedAt = evaluatedAt;
                 return due;
               },
+              isLong: (candidate) => isLongRun(candidate.bronSlug),
               keyOf: (candidate) => candidate.bronId,
+              maxLongInFlight: maxLongRuns,
               onRunError: (error, candidate) => {
                 // `pollSource` turns its own failures into a `poller_source`
                 // line; reaching here means the runner itself defected, so the
