@@ -13,6 +13,12 @@ export {
   urlSlugBronReferentie,
   type JsonLdConnectorOptions,
 } from "./connector";
+export {
+  DATE_ONLY_LASTMOD_SETTLE_MS,
+  LASTMOD_REVALIDATE_EVERY_DAYS,
+  shouldSkipUnchangedLastmod,
+  type LastmodSkipOptions,
+} from "./lastmod-skip";
 export { bluetrailConfig } from "./configs/bluetrail";
 export { asmlConfig } from "./configs/asml";
 export { bijOranjeConfig } from "./configs/bij-oranje";
