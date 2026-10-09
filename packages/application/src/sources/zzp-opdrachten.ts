@@ -9,7 +9,12 @@ import type { SourceDefinition } from "./definition";
 
 export const zzpOpdrachten = {
   bronId: "00000000-0000-4000-8000-000000000013",
-  createConnector: ({ bronId, listingFixturePath }) =>
+  // RJC-357/RJC-401: knownHashes never reaches the fetch-time skip (a
+  // listing-hash skip would freeze detail-only changes; see
+  // listingHashCoversDetail). It only backs lastmodSkip: these sitemap rows
+  // carry <lastmod> (measured 2026-10-08), so a page whose lastmod has not
+  // moved since its last fetch is skipped; rows without lastmod always fetch.
+  createConnector: ({ bronId, knownHashes, listingFixturePath }) =>
     createJsonLdConnector({
       bronId,
       client: listingFixturePath
@@ -20,6 +25,7 @@ export const zzpOpdrachten = {
           })
         : undefined,
       config: zzpOpdrachtenConfig,
+      lastmodSkip: knownHashes ? { knownHashes } : undefined,
     }),
   listingHashCoversDetail: false,
   liveEnv: "ZZP_OPDRACHTEN_LIVE",
