@@ -75,7 +75,9 @@ jobs:
         run: |
           set -euo pipefail
           out="${GITHUB_WORKSPACE}/out"
-          harness="${GITHUB_WORKSPACE}/evidence/.evidence/2026-10-09-quick-fixes/lighthouse"
+          # Copied into the head checkout so imports resolve against its node_modules.
+          harness="${GITHUB_WORKSPACE}/head/.lighthouse-harness"
+          cp -r "${GITHUB_WORKSPACE}/evidence/.evidence/2026-10-09-quick-fixes/lighthouse" "${harness}"
           mkdir -p "${out}/lh" "${out}/shots" "${out}/e2e"
           PORT=3100 bun "${harness}/slow-session-api.ts" > "${out}/api.log" 2>&1 &
           api_pid=$!
@@ -106,7 +108,8 @@ jobs:
               (cd head && E2E_LIVE_WEB_URL=http://localhost:3001 \
                 ./node_modules/.bin/e2e run --config e2e.live.config.ts \
                 tests/live/job-search.e2e.ts tests/live/login.e2e.ts tests/live/home.e2e.ts) \
-                2>&1 | tee "${out}/e2e/head-e2e.txt"
+                > "${out}/e2e/head-e2e.txt" 2>&1 || echo "e2e exit $?" >> "${out}/e2e/head-e2e.txt"
+              cat "${out}/e2e/head-e2e.txt"
               cp -r head/.e2e "${out}/e2e/report" 2>/dev/null || true
             fi
             kill "${web_pid}"
