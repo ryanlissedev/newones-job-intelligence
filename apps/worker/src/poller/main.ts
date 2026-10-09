@@ -186,6 +186,9 @@ const runPollSourceAttempt = async (
     () =>
       drainBacklog(
         {
+          // Every curation slot was busy after the poll: the inline pass was
+          // skipped, so this drain does the counting and curating.
+          backlogUnknown: result.curationDeferred === true,
           deadlineMs: Date.now() + curateBudgetMs,
           input: {
             bronId: result.bronId,

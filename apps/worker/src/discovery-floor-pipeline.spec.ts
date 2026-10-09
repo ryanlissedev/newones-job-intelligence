@@ -48,6 +48,9 @@ const {
 const { aanvraagObservation } = await import("@ji/db/schema/staging");
 const { DiscoveryFloorBreachedError, runBronIngestPipeline } =
   await import("./poll-bron-run");
+const { curateScrapeRun } = await import("@ji/db/curate-scrape-run");
+const { drainBacklog } = await import("./poller/drain-backlog");
+const { createSlotLimit } = await import("./poller/slots");
 
 const isPostgresAvailable = async (): Promise<boolean> => {
   const probe = postgres(migratorUrl, { connect_timeout: 2, max: 1 });
@@ -374,6 +377,75 @@ describe
           await cleanupClient.database
             .delete(scrapeRun)
             .where(eq(scrapeRun.bronId, HERO_BRON_ID));
+        } finally {
+          await cleanupClient.close();
+        }
+      }
+    });
+    it("skips the inline pass when every curation slot is busy; the backlog drain curates instead", async () => {
+      const fixture = createFloorRuntime();
+      const { database } = fixture.runtime;
+      const slots = createSlotLimit(1);
+      const runtime = { ...fixture.runtime, withCurationSlot: slots };
+      try {
+        await cleanHeroRows(database);
+        await seedHeroBron(fixture.runtime);
+        fixture.objectStore.enableReads();
+
+        // Another source's drain holds the only slot for the whole poll.
+        const held = Promise.withResolvers<null>();
+        const holder = slots(() => held.promise);
+        const result = await runBronIngestPipeline(
+          {
+            bronId: HERO_BRON_ID,
+            bronSlug: "hero",
+            scrapeRunId: BACKLOG_RUN_ID,
+          },
+          runtime,
+          "poll"
+        );
+        expect(result.curationDeferred).toBe(true);
+        expect(result.curated).toBe(0);
+        expect(await readObservationStatuses(database)).toEqual([
+          "awaiting_curation",
+          "awaiting_curation",
+        ]);
+
+        held.resolve(null);
+        await holder;
+        const { signal } = new AbortController();
+        const drained = await drainBacklog(
+          {
+            backlogUnknown: result.curationDeferred === true,
+            deadlineMs: Date.now() + 30_000,
+            input: {
+              bronId: result.bronId,
+              bronSlug: result.bronSlug,
+              database: runtime.database,
+              objectStore: runtime.objectStore,
+              scrapeRunId: result.scrapeRunId,
+              signal,
+            },
+            signal,
+            start: {
+              curated: result.curated,
+              failed: result.failed,
+              quarantined: result.quarantined,
+              remaining: result.remaining,
+            },
+          },
+          (input) => slots(() => curateScrapeRun(input))
+        );
+        expect(drained).toMatchObject({ curated: 2, remaining: 0 });
+        expect(await readObservationStatuses(database)).toEqual([
+          "curated",
+          "curated",
+        ]);
+      } finally {
+        await fixture.runtime.close();
+        const cleanupClient = createBronRuntimeClient(applicationUrl);
+        try {
+          await cleanHeroRows(cleanupClient.database);
         } finally {
           await cleanupClient.close();
         }

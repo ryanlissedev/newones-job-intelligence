@@ -3,6 +3,7 @@ import { describe, expect, it } from "bun:test";
 import type { BronId } from "@ji/domain";
 
 import { FetchRateCap, withFetchRateCap } from "./fetch-rate-cap";
+import { HostGate } from "./host-gate";
 import type { GateSignal, RequestLimiter } from "./limiter";
 
 const fakeClock = () => {
@@ -96,5 +97,49 @@ describe("withFetchRateCap", () => {
     limiter.report?.(BRON, { kind: "rate_limited", retryAfterMs: 5000 });
     expect(order).toEqual(["host", "host", "cap:1000"]);
     expect(reports).toEqual([{ kind: "rate_limited", retryAfterMs: 5000 }]);
+  });
+
+  it("a request the cap held still keeps the host's crawl delay from its real start", async () => {
+    const clock = fakeClock();
+    const gate = new HostGate({
+      crawlDelayMs: 2000,
+      now: clock.now,
+      wait: clock.wait,
+    });
+    const cap = new FetchRateCap({
+      now: clock.now,
+      perSecond: 1,
+      wait: clock.wait,
+    });
+    const limiter = withFetchRateCap(gate, cap);
+    // Another source takes the cap's slot at t=0.
+    await cap.acquire();
+    const starts: number[] = [];
+    await limiter.acquire(BRON);
+    starts.push(clock.now());
+    await limiter.acquire(BRON);
+    starts.push(clock.now());
+    // The first request left at 1000 (held by the cap), so the second may
+    // not leave before 3000; counting from the reservation would allow 2000.
+    expect(starts).toEqual([1000, 3000]);
+  });
+
+  it("tells the host limiter about a start only when the cap held it", async () => {
+    const started: string[] = [];
+    const host: RequestLimiter = {
+      acquire: () => Promise.resolve(),
+      started: (bronId) => {
+        started.push(bronId);
+      },
+    };
+    const clock = fakeClock();
+    const limiter = withFetchRateCap(
+      host,
+      new FetchRateCap({ now: clock.now, perSecond: 1, wait: clock.wait })
+    );
+    await limiter.acquire(BRON);
+    expect(started).toEqual([]);
+    await limiter.acquire(BRON);
+    expect(started).toEqual([BRON]);
   });
 });

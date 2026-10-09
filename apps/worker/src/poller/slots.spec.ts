@@ -48,4 +48,38 @@ describe("createSlotLimit", () => {
     const withSlot = createSlotLimit(0);
     expect(await withSlot(() => Promise.resolve(1))).toBe(1);
   });
+
+  it("tryRun takes a free slot but never queues behind a busy one", async () => {
+    const slots = createSlotLimit(1);
+    const held = Promise.withResolvers<null>();
+    const holder = slots(() => held.promise);
+    expect(await slots.tryRun(() => Promise.resolve("inline"))).toEqual({
+      ran: false,
+    });
+    held.resolve(null);
+    await holder;
+    expect(await slots.tryRun(() => Promise.resolve("inline"))).toEqual({
+      ran: true,
+      value: "inline",
+    });
+  });
+
+  it("a slot taken by tryRun holds back queued callers until it is done", async () => {
+    const slots = createSlotLimit(1);
+    const held = Promise.withResolvers<null>();
+    const order: string[] = [];
+    const inline = slots.tryRun(async () => {
+      await held.promise;
+      order.push("inline");
+    });
+    const queued = slots(() => {
+      order.push("queued");
+      return Promise.resolve();
+    });
+    await Bun.sleep(0);
+    expect(order).toEqual([]);
+    held.resolve(null);
+    await Promise.all([inline, queued]);
+    expect(order).toEqual(["inline", "queued"]);
+  });
 });

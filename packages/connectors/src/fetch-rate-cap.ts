@@ -42,7 +42,8 @@ export class FetchRateCap {
     this.wait = wait;
   }
 
-  async acquire(signal?: AbortSignal): Promise<void> {
+  /** Resolves when the slot starts; returns how long it waited (ms). */
+  async acquire(signal?: AbortSignal): Promise<number> {
     const currentTime = this.now();
     const startAt = Math.max(currentTime, this.nextStartAt);
     this.nextStartAt = startAt + this.intervalMs;
@@ -50,12 +51,15 @@ export class FetchRateCap {
     if (waitMs > 0) {
       await awaitWithSignal(this.wait(waitMs, signal), signal);
     }
+    return Math.max(0, waitMs);
   }
 }
 
 /**
  * Puts the process cap behind a bron's own limiter. The host's pacing is
- * honoured first, then the global slot. Feedback still reaches the host gate.
+ * honoured first, then the global slot. When the slot held the request, the
+ * host limiter hears the real start, so the crawl delay is measured between
+ * requests that actually left. Feedback still reaches the host gate.
  */
 export const withFetchRateCap = (
   limiter: RequestLimiter,
@@ -63,7 +67,11 @@ export const withFetchRateCap = (
 ): RequestLimiter => ({
   acquire: async (bronId: BronId, signal?: AbortSignal) => {
     await limiter.acquire(bronId, signal);
-    await cap.acquire(signal);
+    const waitedMs = await cap.acquire(signal);
+    if (waitedMs > 0) {
+      limiter.started?.(bronId);
+    }
   },
   report: (bronId, gateSignal) => limiter.report?.(bronId, gateSignal),
+  started: (bronId) => limiter.started?.(bronId),
 });

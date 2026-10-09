@@ -101,6 +101,7 @@ const transitionLimiterPolicy = (
       await next.acquire(bronId, signal);
     },
     report: (bronId, signal) => next.report(bronId, signal),
+    started: (bronId) => next.started(bronId),
   };
 };
 
