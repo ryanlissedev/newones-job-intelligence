@@ -384,6 +384,92 @@ describe("runContinuously", () => {
     expect(done.size).toBe(3);
   });
 
+  it("keeps a slot for short items while a long item holds the long lane", async () => {
+    const controller = new AbortController();
+    const started: string[] = [];
+    const done = new Set<string>();
+    const gates = new Map<string, () => void>();
+    const long = new Set(["long-a", "long-b"]);
+
+    const scheduler = runContinuously<string>({
+      concurrency: 2,
+      // Both long items are due first, as when Techniekwerkt and ProUnity have
+      // waited longest; without the lane cap they would take both slots.
+      dueItems: () =>
+        Promise.resolve(
+          ["long-a", "long-b", "short-c", "short-d"].filter(
+            (item) => !done.has(item)
+          )
+        ),
+      isLong: (item) => long.has(item),
+      keyOf: (item) => item,
+      maxLongInFlight: 1,
+      run: async (item) => {
+        started.push(item);
+        // oxlint-disable-next-line promise/avoid-new -- the gate is released by the test, not by another promise
+        await new Promise<null>((resolve) => {
+          gates.set(item, () => {
+            done.add(item);
+            resolve(null);
+          });
+        });
+      },
+      signal: controller.signal,
+      tickMs: 1,
+    });
+
+    await waitFor(() => started.length === 2);
+    expect(started).toEqual(["long-a", "short-c"]);
+
+    // The short slot turns over; the second long item still waits.
+    gates.get("short-c")?.();
+    await waitFor(() => started.length === 3);
+    expect(started).toEqual(["long-a", "short-c", "short-d"]);
+
+    // Once the long lane frees up, the waiting long item takes it.
+    gates.get("long-a")?.();
+    await waitFor(() => started.length === 4);
+    expect(started).toEqual(["long-a", "short-c", "short-d", "long-b"]);
+
+    for (const release of gates.values()) {
+      release();
+    }
+    controller.abort();
+    await scheduler;
+    expect(done.size).toBe(4);
+  });
+
+  it("treats every item as short when isLong is omitted", async () => {
+    const controller = new AbortController();
+    const started: string[] = [];
+    const gates: (() => void)[] = [];
+
+    const scheduler = runContinuously<string>({
+      concurrency: 2,
+      dueItems: () => Promise.resolve(["a", "b"]),
+      keyOf: (item) => item,
+      maxLongInFlight: 1,
+      run: async (item) => {
+        started.push(item);
+        // oxlint-disable-next-line promise/avoid-new -- the gate is released by the test, not by another promise
+        await new Promise<null>((resolve) => {
+          gates.push(() => resolve(null));
+        });
+      },
+      signal: controller.signal,
+      tickMs: 1,
+    });
+
+    await waitFor(() => started.length === 2);
+    expect(started).toEqual(["a", "b"]);
+
+    controller.abort();
+    for (const release of gates) {
+      release();
+    }
+    await scheduler;
+  });
+
   it("stops dispatching on abort and waits for the in-flight run to settle", async () => {
     const controller = new AbortController();
     const gate = Promise.withResolvers<null>();

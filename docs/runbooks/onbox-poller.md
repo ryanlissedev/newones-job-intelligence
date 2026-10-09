@@ -46,7 +46,7 @@ Read through the typed contract in `packages/env/src/poller.ts`, which mirrors
 | `POLLER_TICK_MS` | no, default 60000 | Longest gap between due-source re-evaluations; the loop wakes earlier whenever a run frees a slot. |
 | `POLLER_CURATE_BUDGET_MS` | no, default 120000 | Per source, per poll run: how long the poller may keep curating that source's backlog after its poll run. |
 | `POLLER_CONCURRENCY` | no, default 2 | How many due sources the poller runs side by side at once. See [Sources run side by side](#sources-run-side-by-side). |
-| `POLLER_RUN_BUDGET_MS` | no, default 3600000 (1 hour) | Wall clock for one source's connector run. When it elapses the run stops at the next item, keeps what it observed and closes its row as incomplete. A source whose full crawl needs longer declares its own `runBudgetMs` (Randstad 3 hours, Techniekwerkt 5.5 hours), capped 30 minutes below `POLLER_ABANDON_RUN_AFTER_MS`. See [Runs that never finish](#runs-that-never-finish). |
+| `POLLER_RUN_BUDGET_MS` | no, default 3600000 (1 hour) | Wall clock for one source's connector run. When it elapses the run stops at the next item, keeps what it observed and closes its row as incomplete. A source whose full crawl needs longer declares its own `runBudgetMs` (Intermediair 2.5 hours, Randstad 3 hours, ProUnity 3.5 hours, Techniekwerkt 5.5 hours), capped 30 minutes below `POLLER_ABANDON_RUN_AFTER_MS`. See [Runs that never finish](#runs-that-never-finish). |
 | `POLLER_ABANDON_RUN_AFTER_MS` | no, default 21600000 (6 hours) | A `curated.scrape_run` still `running` after this is failed once per tick, before candidates are read. See [Runs that never finish](#runs-that-never-finish). |
 | `POLLER_DURABLE_BRONNEN` | no, unset | Comma-separated source slugs dispatched through `curated.durable_job` (the `PersistedQueue` path) instead of an inline run. Unset = everything inline. Requires migration `0029_durable_job_queue` first — see [durable-bron-jobs.md](durable-bron-jobs.md). |
 | `SEARCH_PROJECTOR` | no, pinned to `onbox` | The only accepted value. The poller polls and curates; the on-box projector owns every outbox drain. |
@@ -141,6 +141,12 @@ helper with its own spec:
   the scheduler.
 - One active run per source: an in-flight source is skipped until its run
   settles, and ticks it missed while running merge into at most one follow-up.
+- Long runs share a lane: a source whose resolved run budget is above
+  `POLLER_RUN_BUDGET_MS` (Intermediair, Randstad, ProUnity, Techniekwerkt)
+  counts as long, and at most `POLLER_CONCURRENCY - 1` long runs (at least
+  one) are in flight at once. A due long source past that cap waits for the
+  next evaluation and its slot goes to the next short source, so two
+  multi-hour crawls can never take both default slots and stall the rest.
 - The abort signal is checked before each start and is passed into connector
   discovery, fetch, limiter waits and retry backoff. SIGTERM therefore stops
   new sources and lets uncancellable persistence finish its current boundary;
@@ -183,9 +189,11 @@ the poller writes one `poller_runs_abandoned` line with the count; a clean tick
 writes nothing.
 
 The six hour default is deliberately far above any healthy run. Most sources
-finish in minutes; the sitemap crawlers Randstad (~3,000 detail URLs) and
-Techniekwerkt (~8,500) at a 2 s crawl delay take around 100 minutes and 4.7
-hours. Those two declare their own `runBudgetMs` in their source definition,
+finish in minutes; the sitemap crawlers Intermediair (~2,800 detail URLs),
+Randstad (~3,000) and Techniekwerkt (~8,500) at a 2 s crawl delay take around
+94 minutes, 100 minutes and 4.7 hours, and ProUnity (~1,000) at its 10 s
+robots.txt crawl delay around 167 minutes. Those four declare their own
+`runBudgetMs` in their source definition,
 and `apps/worker/src/poller/run-budget.ts` keeps any such budget 30 minutes
 below this reaper so a live run always closes its own row first. Anything that old is a
 dead process, not slow work. It runs before the candidates are loaded so the
