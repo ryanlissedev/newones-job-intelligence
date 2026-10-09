@@ -239,6 +239,7 @@ export class HostGate implements RequestLimiter {
   async acquire(bronId: BronId, signal?: AbortSignal): Promise<void> {
     const state = this.stateOf(bronId);
     const currentTime = this.now();
+    let probing = false;
     if (state.circuitOpenUntil !== null) {
       if (currentTime < state.circuitOpenUntil || state.probeInFlight) {
         throw new HostCircuitOpenError({
@@ -248,6 +249,7 @@ export class HostGate implements RequestLimiter {
       }
       // Half-open: exactly this request probes the host.
       state.probeInFlight = true;
+      probing = true;
     }
     const requestAt = Math.max(
       currentTime,
@@ -258,13 +260,41 @@ export class HostGate implements RequestLimiter {
     state.nextRequestAt = requestAt + this.minimumIntervalMs;
     const waitMs = requestAt - currentTime;
     if (waitMs > 0) {
-      await awaitWithSignal(this.wait(waitMs, signal), signal);
+      try {
+        await awaitWithSignal(this.wait(waitMs, signal), signal);
+      } catch (error) {
+        // The probe never left: the next caller may probe instead.
+        if (probing) {
+          state.probeInFlight = false;
+        }
+        throw error;
+      }
+    }
+  }
+
+  /**
+   * Takes over another gate's per-host state, so a policy change (new crawl
+   * delay) keeps an open circuit, its escalated cool-down and any 429 pause.
+   * A probe the old gate had out is not carried: its answer reports here.
+   */
+  adoptStateOf(previous: HostGate): void {
+    for (const [bronId, state] of previous.hosts) {
+      this.hosts.set(bronId, {
+        ...state,
+        blockedAt: [...state.blockedAt],
+        probeInFlight: false,
+      });
     }
   }
 
   report(bronId: BronId, signal: GateSignal): void {
     const state = this.stateOf(bronId);
     const currentTime = this.now();
+    if (signal.kind === "settled") {
+      // No answer about the host: stay half-open so the next request probes.
+      state.probeInFlight = false;
+      return;
+    }
     if (signal.kind === "ok") {
       state.consecutiveRateLimited = 0;
       if (state.circuitOpenUntil !== null && state.probeInFlight) {

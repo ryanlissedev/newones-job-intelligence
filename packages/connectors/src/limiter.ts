@@ -6,12 +6,15 @@ import { awaitWithSignal, sleep } from "./retry";
 /**
  * What one request told the limiter about the host. `blocked` is a 403 or a
  * bot challenge; `rate_limited` is a 429 or 503, with the `Retry-After` the
- * host sent when it sent one.
+ * host sent when it sent one. `settled` is a request that ended without an
+ * answer about the host (aborted, timed out, 404, parse error): it frees the
+ * limiter's bookkeeping for that request but says nothing either way.
  */
 export type GateSignal =
   | { readonly kind: "ok" }
   | { readonly kind: "blocked" }
-  | { readonly kind: "rate_limited"; readonly retryAfterMs: number | null };
+  | { readonly kind: "rate_limited"; readonly retryAfterMs: number | null }
+  | { readonly kind: "settled" };
 
 export interface RequestLimiter {
   acquire: (bronId: BronId, signal?: AbortSignal) => Promise<void>;

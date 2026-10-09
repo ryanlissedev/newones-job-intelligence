@@ -119,6 +119,8 @@ const acquireLimiter = (
         throw new Error("bron limiter policy changed during an active run");
       }
       const replacementLimiter = new HostGate(options);
+      // A new crawl delay must not reset an open circuit or a 429 pause.
+      replacementLimiter.adoptStateOf(activeLimiter.gate);
       const refreshed = {
         activeRuns: 1,
         gate: replacementLimiter,

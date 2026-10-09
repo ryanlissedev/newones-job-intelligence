@@ -214,6 +214,7 @@ const retryRequest = async <Result>(
 };
 
 const GATE_OK: GateSignal = { kind: "ok" };
+const GATE_SETTLED: GateSignal = { kind: "settled" };
 
 /**
  * A 403 or bot challenge is an answer, not a hiccup: retrying the URL only
@@ -235,18 +236,22 @@ const request = <Result>(
   signal?: AbortSignal
 ): Promise<Result> => {
   const limitedOperation = async (): Promise<Result> => {
+    let acquired = false;
     try {
       await limiter.acquire(bronId, signal);
+      acquired = true;
       const result = await operation();
       limiter.report?.(bronId, GATE_OK);
       return result;
     } catch (error) {
+      // Every request that got past acquire reports, even one that ended
+      // without an answer (abort, timeout, 404): a half-open probe that
+      // never reports would keep the circuit shut until restart.
+      if (acquired) {
+        limiter.report?.(bronId, gateSignalOf(error) ?? GATE_SETTLED);
+      }
       if (isRunAbort(error, signal)) {
         throw new ConnectorRequestAbortedError(error);
-      }
-      const gateSignal = gateSignalOf(error);
-      if (gateSignal) {
-        limiter.report?.(bronId, gateSignal);
       }
       throw error;
     }
