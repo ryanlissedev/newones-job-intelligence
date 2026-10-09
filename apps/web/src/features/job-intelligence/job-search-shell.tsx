@@ -1,28 +1,37 @@
 "use client";
 
 import { fixturesEnabled } from "@ji/env/web";
-import { Button } from "@ji/ui/components/button";
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { authClient } from "@/lib/auth-client";
 
 import { fixtureJobActions, fixtureJobDataAdapter } from "./fixtures";
 import { JobSearchPage } from "./job-search-page";
+import {
+  JobsSessionPending,
+  JobsSignInPrompt,
+  resolveJobsAccess,
+} from "./jobs-access";
 import { createRestJobIntelligence } from "./rest-job-data-adapter";
 
 export const JobSearchShell = () => {
   const { data: session, isPending } = authClient.useSession();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  const isAuthenticated = Boolean(session?.user.id);
+  const access = resolveJobsAccess({
+    fixtures: fixturesEnabled,
+    isPending,
+    mounted,
+    userId: session?.user.id,
+  });
+  // The REST wiring (and with it every data request) only exists once the
+  // session is confirmed.
   const wiring = useMemo(
-    () =>
-      fixturesEnabled || !isAuthenticated ? null : createRestJobIntelligence(),
-    [isAuthenticated]
+    () => (access === "authenticated" ? createRestJobIntelligence() : null),
+    [access]
   );
 
-  if (fixturesEnabled) {
+  if (access === "fixtures") {
     return (
       <JobSearchPage
         actions={fixtureJobActions}
@@ -31,34 +40,12 @@ export const JobSearchShell = () => {
     );
   }
 
-  if (!mounted || isPending) {
-    return null;
+  if (access === "anonymous") {
+    return <JobsSignInPrompt />;
   }
 
-  if (!session) {
-    return (
-      <main
-        id="main-content"
-        className="mx-auto flex min-h-[50vh] w-full max-w-3xl items-center justify-center px-4 py-12"
-      >
-        <section className="space-y-4 rounded-lg border border-border bg-card p-8 text-center shadow-sm">
-          <h1 className="text-2xl font-semibold">
-            Log in om opdrachten te bekijken
-          </h1>
-          <p className="text-muted-foreground">
-            De zoekresultaten en acties zijn alleen beschikbaar met een geldig
-            Newones-account.
-          </p>
-          <Button render={<Link href="/login" />} nativeButton={false}>
-            Inloggen
-          </Button>
-        </section>
-      </main>
-    );
-  }
-
-  if (!wiring) {
-    return null;
+  if (access === "checking" || !wiring) {
+    return <JobsSessionPending />;
   }
 
   return (
