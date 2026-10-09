@@ -36,7 +36,8 @@ const productionLimits = {
 };
 
 /**
- * Sitemap detail URLs counted on 6 Oct 2026. Neither source may skip a
+ * Sitemap detail URLs counted on 6 Oct 2026 (Randstad, Techniekwerkt) and
+ * 8 Oct 2026 (Intermediair, ProUnity). None of these sources may skip a
  * detail fetch (`listingHashCoversDetail: false`), so every URL costs one
  * crawl-delay slot on every run.
  */
@@ -44,6 +45,8 @@ const LONG_CRAWLS: readonly {
   readonly corpusUrls: number;
   readonly slug: SupportedBronSlug;
 }[] = [
+  { corpusUrls: 2828, slug: "intermediair" },
+  { corpusUrls: 1000, slug: "prounity" },
   { corpusUrls: 2988, slug: "randstad" },
   { corpusUrls: 8526, slug: "techniekwerkt" },
 ];

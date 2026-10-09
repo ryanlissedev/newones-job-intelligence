@@ -8,7 +8,7 @@ import {
   runConnector,
 } from "@ji/connectors";
 
-import { NotFoundFault } from "../effect-runtime";
+import { NotFoundFault, ValidationFault } from "../effect-runtime";
 import {
   createJsonLdClient,
   extractListingLinks,
@@ -1347,6 +1347,63 @@ describe("rejected fetch paths", () => {
       listingPayload: { url: "https://x.test/gone" },
     });
     expect(fetched).toMatchObject({ status: "rejected" });
+  });
+
+  it.each([
+    [
+      "HttpStatusError 410",
+      new HttpStatusError({
+        slug: "randstad",
+        status: 410,
+        url: "https://x.test/closed",
+      }),
+    ],
+    [
+      "Effect ValidationFault 410",
+      new ValidationFault({ message: "gone", status: 410 }),
+    ],
+  ])(
+    "rejects a detail URL that answers 410 Gone (%s) instead of failing the run",
+    async (_label, error) => {
+      const connector = createJsonLdConnector({
+        bronId: "bron-gone-410",
+        client: {
+          fetchDetail: () => Promise.reject(error),
+          fetchListing: () => Promise.resolve([]),
+        },
+        config: bluetrailConfig,
+      });
+      const fetched = await connector.fetch({
+        bronReferentie: "closed",
+        contentHash: "hash",
+        listingPayload: { url: "https://x.test/closed" },
+      });
+      expect(fetched).toEqual({
+        bronReferentie: "closed",
+        kind: "gone",
+        reason: "detail page returned 410 — removed at source",
+        status: "rejected",
+      });
+    }
+  );
+
+  it("keeps other 4xx detail failures fatal", async () => {
+    const connector = createJsonLdConnector({
+      bronId: "bron-400",
+      client: {
+        fetchDetail: () =>
+          Promise.reject(new ValidationFault({ message: "bad", status: 400 })),
+        fetchListing: () => Promise.resolve([]),
+      },
+      config: bluetrailConfig,
+    });
+    await expect(
+      connector.fetch({
+        bronReferentie: "bad",
+        contentHash: "hash",
+        listingPayload: { url: "https://x.test/bad" },
+      })
+    ).rejects.toBeInstanceOf(ValidationFault);
   });
 
   it("still propagates non-404 detail failures (500 stays fatal)", async () => {

@@ -1333,6 +1333,7 @@ const unusedFloorProp = (name: string): never => {
 };
 
 interface DiscoveryFloorUpdate {
+  completion?: string | null;
   failureClass?: string | null;
   failureCode?: string | null;
   failureMessage?: string | null;
@@ -1510,9 +1511,11 @@ describe("discovery floor guard", () => {
     expect(breach?.evidence.consecutiveZeroRuns).toBe(3);
 
     // The envelope is the pinned `DISCOVER_FAILED` tuple: anything else
-    // violates `scrape_run_failure_tuple_check`.
+    // violates `scrape_run_failure_tuple_check`. `completion` is cleared
+    // because `scrape_run_completion_kind_check` forbids it on a failed row.
     expect(captured).toEqual([
       {
+        completion: null,
         failureClass: "connector",
         failureCode: "DISCOVER_FAILED",
         failureMessage: "Connector discovery failed",
