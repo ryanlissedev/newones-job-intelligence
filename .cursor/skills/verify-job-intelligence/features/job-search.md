@@ -15,7 +15,7 @@ The `/jobs` route exposes Boolean job search with filters, sort, pagination, and
 - `jobs-chips` every active filter and the query render as a removable chip above the results; `Alles wissen` clears query and filters together.
 - `jobs-facets` the sidebar facet groups (`Bron`, `Contract`, `Locatie`, `Gepubliceerd`, `Minimum uurtarief`) collapse on their heading and show live counts; groups past six entries expose `Toon alle N …`.
 - `jobs-archive` the `Ook in archief zoeken` checkbox sets internal state `scope=all`; the shareable URL query is `archief=1` (not `scope=`), per `search-state.ts` (RJC-383).
-- `jobs-auth-gate` without `NEXT_PUBLIC_USE_FIXTURES` and without a session, `/jobs` shows H1 `Opdrachten zoeken` (server-rendered, with a skeleton while the session check runs), then H2 `Log in om opdrachten te bekijken` and button `Inloggen` instead of search UI.
+- `jobs-auth-gate` without `NEXT_PUBLIC_USE_FIXTURES` and without a session, `/jobs` shows H1 `Opdrachten` (server-rendered, with a skeleton while the session check runs), then H2 `Log in om opdrachten te bekijken` and button `Inloggen` instead of search UI.
 
 ## How to get to it (user POV)
 

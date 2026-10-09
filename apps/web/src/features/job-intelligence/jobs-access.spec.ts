@@ -54,7 +54,7 @@ describe("/jobs server markup before the session is known", () => {
 
   it("paints the page heading and a busy skeleton", () => {
     expect(pending).toContain('id="main-content"');
-    expect(pending).toMatch(/<h1[^>]*>Opdrachten zoeken<\/h1>/u);
+    expect(pending).toMatch(/<h1[^>]*>Opdrachten<\/h1>/u);
     expect(pending).toContain('aria-busy="true"');
   });
 
@@ -69,7 +69,7 @@ describe("/jobs for an anonymous visitor", () => {
   const prompt = renderToStaticMarkup(createElement(JobsSignInPrompt));
 
   it("keeps the same heading and asks to sign in", () => {
-    expect(prompt).toMatch(/<h1[^>]*>Opdrachten zoeken<\/h1>/u);
+    expect(prompt).toMatch(/<h1[^>]*>Opdrachten<\/h1>/u);
     expect(prompt).toMatch(/<h2[^>]*>Log in om opdrachten te bekijken<\/h2>/u);
     expect(prompt).toContain('href="/login"');
     expect(prompt).toContain("Inloggen");

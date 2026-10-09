@@ -12,7 +12,7 @@ test("job search from the navigation asks an anonymous visitor to sign in", asyn
   // The page heading is server-rendered; the sign-in prompt follows once the
   // session check says there is no session.
   await expect(
-    screen.getByRole("heading", "Opdrachten zoeken", { level: 1 })
+    screen.getByRole("heading", "Opdrachten", { level: 1 })
   ).toBeVisible();
   await expect(
     screen.getByRole("heading", "Log in om opdrachten te bekijken", {

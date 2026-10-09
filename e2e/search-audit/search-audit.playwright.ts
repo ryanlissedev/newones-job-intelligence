@@ -40,7 +40,9 @@ const RATE_CASES = [
 
 const openJobs = async (page: Page, url = "/jobs") => {
   await page.goto(url, { waitUntil: "domcontentloaded" });
-  await expect(page.getByText("Live · U7 REST", { exact: true })).toBeVisible();
+  // #464 dropped the "Live · U7 REST" badge; the toolbar's preview control
+  // only exists once the signed-in search page has rendered.
+  await expect(page.getByLabel("Preview UI-state")).toBeVisible();
 };
 
 const waitForSearchResponse = (page: Page) =>

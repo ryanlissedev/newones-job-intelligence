@@ -50,13 +50,14 @@ export const JobsAccessShell = ({
     id="main-content"
     className="mx-auto w-full max-w-[1600px] space-y-5 px-4 py-6 sm:px-6 lg:px-8"
   >
-    <header className="space-y-1">
-      <h1 className="text-2xl font-semibold tracking-tight">
-        Opdrachten zoeken
+    {/* Same heading and copy as JobSearchToolbar, so signing in swaps the
+        content below without moving the frame. */}
+    <header className="min-w-0">
+      <h1 className="font-display text-2xl font-semibold tracking-tight">
+        Opdrachten
       </h1>
-      <p className="text-muted-foreground">
-        Doorzoek opdrachten met Boolean-logica, filters en volledige
-        herkomstinformatie.
+      <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+        Boolean search met deelbare URL-state en zichtbare herkomst.
       </p>
     </header>
     {children}
