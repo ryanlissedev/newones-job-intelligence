@@ -1,0 +1,3 @@
+{"run":"day1-first-run","lastmodSkip":true,"urls":3009,"detailFetches":3009,"crawlDelayMinutes":100.3,"observed":3009,"complete":true}
+{"run":"day2-with-lastmod-skip","lastmodSkip":true,"urls":3009,"detailFetches":533,"crawlDelayMinutes":17.8,"observed":3009,"complete":true}
+{"run":"day2-without-skip (main)","lastmodSkip":false,"urls":3009,"detailFetches":3009,"crawlDelayMinutes":100.3,"observed":3009,"complete":true}
