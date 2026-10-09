@@ -59,7 +59,18 @@ Test-import runs never count misses. Replays run as test imports.
 ## Completeness
 
 Only a run that saw the whole listing may count misses. The runner reports
-`completeness` on its result:
+two completeness values on its result:
+
+- `completeness` says whether every listed item was also **fetched**. It
+  drives the run's `completion` (`budget_exhausted`, `aborted`, …).
+- `discoveryCompleteness` says whether the whole **listing** was discovered,
+  however many detail pages were fetched. Closure keys on this one: every
+  listed `bron_referentie` is counted as observed the moment discovery returns
+  it, so a run whose budget ran out while fetching the last page still knows
+  exactly which records are gone (scrape-architecture PR7).
+
+Both share the reasons below; `discoveryCompleteness` is `aborted` only when
+the cut landed before the last page was discovered.
 
 - `{ complete: true }` -- fresh run, connector exhausted the listing.
 - `{ complete: false, reason: "resumed" }` -- resumed from a checkpoint; earlier

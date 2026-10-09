@@ -1426,7 +1426,13 @@ describe("runConnector", () => {
       complete: false,
       reason: "aborted",
     });
-    expect(result.observedBronReferenties).toEqual(["TN-1", "TN-2"]);
+    // Every reference the page listed counts as seen, fetched or not; the
+    // listing itself is incomplete because more pages were never discovered.
+    expect(result.observedBronReferenties).toEqual(["TN-1", "TN-2", "TN-3"]);
+    expect(result.discoveryCompleteness).toEqual({
+      complete: false,
+      reason: "aborted",
+    });
     // The interrupted page is not done, so its checkpoint does not advance.
     expect(result.checkpoint).toEqual({});
     // The row is closed (complete), never left `running` for the reaper.

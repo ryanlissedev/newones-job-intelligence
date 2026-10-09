@@ -33,6 +33,7 @@ import type {
   ConnectorRunMetrics,
   RunCompleteness,
   RunIncompleteReason,
+  ResumeOrderLookup,
   KnownHashStore,
   ObjectStore,
   ObservationRecorder,
@@ -130,6 +131,11 @@ export interface PollBronRuntime {
   }) => Connector;
   curateStore: PostgresCurateStore;
   database: BronRuntimeDatabase;
+  /**
+   * Orders each page's fetches never-fetched and longest-unfetched first, so
+   * a budget-cut run resumes on the next one. Optional for test runtimes.
+   */
+  fetchHistory?: ResumeOrderLookup;
   knownHashStore: KnownHashStore;
   /** RJC-397: missed-poll reconcile ports handed to every poll run. */
   lifecycle: LifecycleReconcilePorts;
@@ -205,6 +211,7 @@ export const createPollBronRuntime = (
     },
     curateStore: new PostgresCurateStore(client.database),
     database: client.database,
+    fetchHistory: client.fetchHistory,
     knownHashStore: client.knownHashStore,
     lifecycle: client.lifecycle,
     objectStore,
@@ -282,6 +289,7 @@ export const runPollBron = async (
             options.signal
           )
       : undefined,
+    resumeOrder: runtime.fetchHistory,
     retryPolicy: {
       initialDelayMs: 250,
       jitter: fullJitter,

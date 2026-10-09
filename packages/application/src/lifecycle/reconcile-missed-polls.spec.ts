@@ -526,6 +526,113 @@ describe("executeBronRun with lifecycle ports", () => {
     expect(curateStore.outboxEvents).toHaveLength(0);
   });
 
+  /**
+   * Scrape-architecture PR7: closure keys on discovery, not on fetch. The
+   * budget "elapses" after `persisted` detail pages were recorded, between
+   * items, as it does while a real run waits out its crawl delay.
+   */
+  const budgetCutRun = (
+    ports: LifecycleReconcilePorts,
+    pages: string[][],
+    runNumber: number,
+    persisted: number
+  ) => {
+    const controller = new AbortController();
+    const recorder = new InMemoryObservationRecorder();
+    const record = recorder.record.bind(recorder);
+    let count = 0;
+    recorder.record = async (input) => {
+      const result = await record(input);
+      count += 1;
+      if (count >= persisted) {
+        controller.abort();
+      }
+      return result;
+    };
+    const connector: Connector = {
+      ...listingConnector([]),
+      discover: (checkpoint) => {
+        const page = Number(
+          // SAFETY: this fake connector only ever returns `{ page: number }` checkpoints.
+          (checkpoint as { page?: number } | null)?.page ?? 0
+        );
+        return Promise.resolve({
+          checkpoint: { page: page + 1 },
+          hasMore: page + 1 < pages.length,
+          items: (pages[page] ?? []).map((ref) => ({
+            bronReferentie: ref,
+            contentHash: "",
+          })),
+        });
+      },
+    };
+    return executeBronRun(persistenceFor(), {
+      bronId: BRON,
+      bronSlug: "hero",
+      connector,
+      lifecycle: ports,
+      objectStore: new InMemoryObjectStore(),
+      observationRecorder: recorder,
+      runLifecycleStore: new InMemoryRunLifecycleStore(),
+      scrapeRunId: runId(`budget-cut-run-${runNumber}`),
+      signal: controller.signal,
+      startedAt: OBSERVED_AT,
+      wait: () => Promise.resolve(),
+      writeNow: () => OBSERVED_AT,
+    });
+  };
+
+  it("counts a miss when the budget cuts the fetch of a fully discovered listing (RJC-397 / PR7)", async () => {
+    const { ports, missedPolls } = await world([
+      { ref: "A" },
+      { ref: "B" },
+      { ref: "GONE" },
+    ]);
+    // The listing shows A and B; GONE disappeared. Only A is fetched.
+    const result = await budgetCutRun(ports, [["A", "B"]], 1, 1);
+    expect(result.completeness).toEqual({ complete: false, reason: "aborted" });
+    expect(result.discoveryCompleteness).toEqual({ complete: true });
+    expect(result.lifecycle).toMatchObject({
+      incremented: 1,
+      reset: 2,
+      skippedIncrementReason: null,
+    });
+    expect(missedPolls.read(BRON, "GONE")?.missedPolls).toBe(1);
+    // B was listed but never fetched: still seen, never counted as missed.
+    expect(missedPolls.read(BRON, "B")?.missedPolls).toBe(0);
+  });
+
+  it("stales a vanished record across budget-cut runs exactly as across complete runs", async () => {
+    const { ports, curateStore } = await world([{ ref: "A" }, { ref: "GONE" }]);
+    let last: Awaited<ReturnType<typeof budgetCutRun>> | undefined;
+    for (let runNumber = 1; runNumber <= THRESHOLD; runNumber += 1) {
+      // oxlint-disable-next-line no-await-in-loop -- consecutive polls
+      last = await budgetCutRun(ports, [["A", "B", "C"]], runNumber, 1);
+    }
+    const gone = await requireAanvraag(curateStore, "GONE");
+    expect(last?.lifecycle?.staled).toEqual([gone.aanvraagId]);
+    expect(gone.status).toBe("stale");
+    const kept = await requireAanvraag(curateStore, "A");
+    expect(kept.status).toBe("active");
+  });
+
+  it("never counts misses when the cut lands before the last page was discovered", async () => {
+    const { ports, missedPolls } = await world([
+      { ref: "A" },
+      { ref: "ON-PAGE-2" },
+    ]);
+    const result = await budgetCutRun(ports, [["A", "B"], ["ON-PAGE-2"]], 1, 1);
+    expect(result.discoveryCompleteness).toEqual({
+      complete: false,
+      reason: "aborted",
+    });
+    expect(result.lifecycle).toMatchObject({
+      incremented: 0,
+      skippedIncrementReason: "aborted",
+    });
+    expect(missedPolls.read(BRON, "ON-PAGE-2")?.missedPolls).toBe(0);
+  });
+
   it("never counts misses on a test-import run", async () => {
     const { ports, missedPolls } = await world([{ ref: "A" }, { ref: "B" }]);
     const result = await runFixture(ports, ["A"], 1, "test");

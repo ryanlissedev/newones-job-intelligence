@@ -25,6 +25,12 @@ export const sourceRecord = stagingSchema.table(
       .defaultNow()
       .notNull(),
     id: uuid("id").defaultRandom().primaryKey(),
+    /**
+     * When this record's detail page was last fetched and recorded (0032).
+     * Orders the next run's fetches: never-fetched first, oldest next, so a
+     * budget-cut crawl resumes where it stopped. Null = unknown (older rows).
+     */
+    lastFetchedAt: timestamp("last_fetched_at", { withTimezone: true }),
     /** Run that last bumped `missed_polls` (RJC-397): the same run never bumps a row twice. */
     lastMissedScrapeRunId: uuid("last_missed_scrape_run_id").references(
       () => scrapeRun.id,

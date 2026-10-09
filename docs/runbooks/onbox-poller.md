@@ -218,9 +218,18 @@ the normal `complete` path with
 far is lost: observations whose persistence completed before the abort remain
 in the object store and observation table. The interrupted page keeps the checkpoint it *started*
 from, because the items after the cut were never seen, so the next poll
-re-reads that page. Missed-poll reconciliation treats `aborted` like
-`truncated` and `resumed`: it never stales a record the run did not reach.
-The poller logs one `poller_source_incomplete` line with the reason.
+re-reads that page. Missed-poll reconciliation keys on the run's
+`discoveryCompleteness`, not on how much it fetched: a cut while fetching the
+last (or only) page still saw every listed reference and counts misses as
+usual; a cut before the last page was discovered never stales a record it did
+not reach. The poller logs one `poller_source_incomplete` line with the reason.
+
+A budget-cut crawl also resumes on the next run. Each detail fetch stamps
+`staging.source_record.last_fetched_at` (migration 0032), and the next run
+fetches each page in this order: never-fetched references first, then records
+with an unknown fetch time, then oldest fetch first. Techniekwerkt, cut at
+5.5 h on 8 of 9 runs, therefore covers its whole sitemap over consecutive
+runs instead of re-fetching the same head every time.
 
 A signal that fires after the last page was already read in full is ignored;
 the run is complete and reported as such.
@@ -421,7 +430,7 @@ Logs never carry raw payloads or database URLs.
 |---|---|
 | A source throws | Logged as one `poller_source` line with `errorName` and a redacted, 300 character `errorMessage`, skipped for this evaluation, retried on its own interval. The loop and the other sources in flight are unaffected. |
 | A run is left `running` by a dead process | Failed on the next maintenance tick once it is older than `POLLER_ABANDON_RUN_AFTER_MS`, with the `unknown` / `internal` / `UNEXPECTED_FAILURE` tuple and `geindigd` set. Logged as one `poller_runs_abandoned` line with the count. |
-| A run outlives `POLLER_RUN_BUDGET_MS`, or SIGTERM arrives mid-run | The run stops before its next item, keeps everything fetched so far, leaves the interrupted page's checkpoint where it started and closes the row as `succeeded` with `completeness.reason = "aborted"`. Missed-poll reconciliation skips staling for that run. Logged as one `poller_source_incomplete` line. |
+| A run outlives `POLLER_RUN_BUDGET_MS`, or SIGTERM arrives mid-run | The run stops before its next item, keeps everything fetched so far, leaves the interrupted page's checkpoint where it started and closes the row as `succeeded` with `completeness.reason = "aborted"`. Missed-poll reconciliation still runs when the whole listing was discovered (the cut came during fetch), and is skipped when a page was never discovered. The next run fetches the items this one never reached first. Logged as one `poller_source_incomplete` line. |
 | Database unreachable | The evaluation's candidate load throws out of the loop and the process exits 1 with `poller_fatal`. The supervisor restarts it. |
 | `POLLER_DATABASE_URL` missing or a known pooler URL | Typed env validation fails before startup and the process exits non-zero. Supply the direct endpoint for the same database and role. |
 | Second instance started | Waits for the advisory lock instead of exiting: polls every 2 s, keeps the heartbeat fresh so it stays healthy, logs `poller_lock_waiting` at most every 30 s, polls nothing. SIGINT or SIGTERM during the wait exits 0 without ever having held the lock. |

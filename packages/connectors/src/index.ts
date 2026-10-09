@@ -89,6 +89,8 @@ export {
   type RunCompleteness,
   type RunIncompleteReason,
 } from "./run";
+export { orderForResume } from "./resume-order";
+export type { ResumeOrderLookup } from "./resume-order";
 export {
   awaitWithSignal,
   fullJitter,
