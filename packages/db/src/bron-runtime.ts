@@ -524,6 +524,9 @@ export class PostgresRunStore implements RunLifecycleStore {
       .update(scrapeRun)
       .set({
         ...completionValues(input),
+        // A failed run never carries a completion kind
+        // (scrape_run_completion_kind_check).
+        completion: null,
         failureClass: input.failure.class,
         failureCode: input.failure.code,
         failureKind: input.failureKind ?? null,
