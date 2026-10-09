@@ -1,0 +1,50 @@
+[
+  {
+    "cls": 0.0002562300341001054,
+    "fcp": 2025,
+    "lcp": 5912,
+    "lcpElement": "De zoekresultaten en acties zijn alleen beschikbaar met een geldig Newones-acco… (div.grid > main#main-content > section.space-y-4 > p.text-muted-foreground)",
+    "page": "jobs",
+    "runs": 5,
+    "score": 65,
+    "si": 3298,
+    "tbt": 457,
+    "variant": "base"
+  },
+  {
+    "cls": 0.0002562300341001054,
+    "fcp": 1762,
+    "lcp": 1762,
+    "lcpElement": "Boolean search met deelbare URL-state en zichtbare herkomst. (main#main-content > header.min-w-0 > p.mt-1)",
+    "page": "jobs",
+    "runs": 5,
+    "score": 84,
+    "si": 4288,
+    "tbt": 486,
+    "variant": "head"
+  },
+  {
+    "cls": 0.0002562300341001054,
+    "fcp": 1734,
+    "lcp": 5996,
+    "lcpElement": "Welcome Back (body.min-h-dvh > div.grid > div.mx-auto > h1.mb-6)",
+    "page": "login",
+    "runs": 5,
+    "score": 65,
+    "si": 2499,
+    "tbt": 480,
+    "variant": "base"
+  },
+  {
+    "cls": 0.0002562300341001054,
+    "fcp": 1741,
+    "lcp": 1741,
+    "lcpElement": "Welcome Back (body.min-h-dvh > div.grid > div.mx-auto > h1.mb-6)",
+    "page": "login",
+    "runs": 5,
+    "score": 88,
+    "si": 1688,
+    "tbt": 428,
+    "variant": "head"
+  }
+]
