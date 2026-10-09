@@ -182,6 +182,81 @@ describe("HostGate circuit", () => {
   });
 });
 
+describe("HostGate probe bookkeeping", () => {
+  it("a probe that ends without an answer keeps the circuit half-open for the next request", async () => {
+    const clock = fakeClock();
+    const subject = gate(clock, 0);
+    subject.report(bronId, { kind: "blocked" });
+    subject.report(bronId, { kind: "blocked" });
+    clock.advance(3_600_000);
+    await subject.acquire(bronId);
+    // A 404, a timeout or an abort: nothing learned about the host.
+    subject.report(bronId, { kind: "settled" });
+    expect(subject.snapshot(bronId).circuit).toBe("half_open");
+    await subject.acquire(bronId);
+    subject.report(bronId, { kind: "ok" });
+    expect(subject.snapshot(bronId).circuit).toBe("closed");
+  });
+
+  it("a probe whose pacing wait is aborted frees the probe for the next caller", async () => {
+    const clock = fakeClock();
+    let failWait = true;
+    const subject = new HostGate({
+      crawlDelayMs: 2 * 3_600_000,
+      now: clock.now,
+      wait: (ms) => {
+        if (failWait) {
+          return Promise.reject(new Error("aborted"));
+        }
+        return clock.wait(ms);
+      },
+    });
+    // Reserve a pacing window that outlasts the cool-down.
+    await subject.acquire(bronId);
+    subject.report(bronId, { kind: "blocked" });
+    subject.report(bronId, { kind: "blocked" });
+    clock.advance(3_600_000);
+    await expect(subject.acquire(bronId)).rejects.toThrow("aborted");
+    failWait = false;
+    await subject.acquire(bronId);
+    expect(subject.snapshot(bronId).circuit).toBe("half_open");
+  });
+
+  it("a replacement gate adopts an open circuit, its cool-down and a 429 pause", async () => {
+    const clock = fakeClock();
+    const previous = gate(clock, 0);
+    previous.report(bronId, { kind: "blocked" });
+    previous.report(bronId, { kind: "blocked" });
+    const replacement = gate(clock, 5000);
+    replacement.adoptStateOf(previous);
+    await expect(replacement.acquire(bronId)).rejects.toBeInstanceOf(
+      HostCircuitOpenError
+    );
+    expect(replacement.snapshot(bronId)).toMatchObject({
+      circuit: "open",
+      recentBlocks: 2,
+    });
+    // A failed probe on the replacement still escalates to 2 h.
+    clock.advance(3_600_000);
+    await replacement.acquire(bronId);
+    replacement.report(bronId, { kind: "blocked" });
+    expect(replacement.snapshot(bronId).openUntil?.getTime()).toBe(
+      clock.now() + 2 * 3_600_000
+    );
+
+    const paused = gate(clock, 0);
+    const otherBron =
+      // SAFETY: a UUID-shaped literal is a valid BronId.
+      "00000000-0000-4000-8000-0000000000ab" as BronId;
+    paused.report(otherBron, { kind: "rate_limited", retryAfterMs: 30_000 });
+    const pausedReplacement = gate(clock, 0);
+    pausedReplacement.adoptStateOf(paused);
+    expect(pausedReplacement.snapshot(otherBron).pausedUntil?.getTime()).toBe(
+      clock.now() + 30_000
+    );
+  });
+});
+
 describe("gateSignalOf", () => {
   it("reads blocks, rate limits and Retry-After from every error shape", () => {
     const challenge = new SourceBlockedError({

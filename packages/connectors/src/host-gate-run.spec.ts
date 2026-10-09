@@ -231,6 +231,44 @@ describe("HostGate through runConnector (fault injection)", () => {
     expect(requests).toHaveLength(3);
   });
 
+  it("a probe that fails without an answer (404) lets the next run probe again", async () => {
+    const clock = fakeClock();
+    const gate = new HostGate({
+      crawlDelayMs: 0,
+      now: clock.now,
+      wait: clock.wait,
+    });
+    gate.report(bronId, { kind: "blocked" });
+    gate.report(bronId, { kind: "blocked" });
+    clock.advance(60 * 60_000);
+    // The probe is the listing read, and it answers 404.
+    let listingReads = 0;
+    const notFound: Connector = {
+      bronId,
+      discover: () => {
+        listingReads += 1;
+        return Promise.reject(new Error("HTTP 404"));
+      },
+      fetch: () => Promise.reject(new Error("unreachable")),
+    };
+    await expect(
+      run(notFound, gate, clock, new RecordingRunStore(), 5)
+    ).rejects.toThrow();
+    // The probe said nothing about the host: still half-open, not wedged.
+    expect(listingReads).toBeGreaterThan(0);
+    expect(gate.snapshot(bronId).circuit).toBe("half_open");
+    const healthy = scriptedHost({ b: [() => null] });
+    const result = await run(
+      healthy.connector,
+      gate,
+      clock,
+      new RecordingRunStore(),
+      6
+    );
+    expect(result.metrics.new).toBe(1);
+    expect(gate.snapshot(bronId).circuit).toBe("closed");
+  });
+
   it("a probe after the cool-down that succeeds closes the circuit again", async () => {
     const clock = fakeClock();
     const gate = new HostGate({
