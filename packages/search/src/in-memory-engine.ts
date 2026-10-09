@@ -376,7 +376,9 @@ export class InMemorySearchEngine implements SearchEngine {
         Math.min(params.offset + params.limit, SEARCH_WINDOW_LIMIT)
       );
       const facets = recordCriticalPathPhaseSync("search-facets", () =>
-        this.documents.size === 0 ? emptySearchFacets() : buildFacets(matched)
+        this.documents.size === 0 || params.facets === false
+          ? emptySearchFacets()
+          : buildFacets(matched)
       );
 
       let emptyReason: string | undefined;

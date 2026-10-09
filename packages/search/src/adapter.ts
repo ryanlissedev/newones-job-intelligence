@@ -172,6 +172,9 @@ export class SearchAdapter {
     const engineResult = await timeCriticalPathPhase("search-engine", () =>
       this.engine.search({
         ast,
+        // A facet cache hit means the aggregations would be thrown away, so
+        // the engine skips them; they are most of a match-all search's cost.
+        facets: cachedFacets === null,
         filters,
         limit: page.limit,
         mode,
