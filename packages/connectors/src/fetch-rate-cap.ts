@@ -67,7 +67,15 @@ export const withFetchRateCap = (
 ): RequestLimiter => ({
   acquire: async (bronId: BronId, signal?: AbortSignal) => {
     await limiter.acquire(bronId, signal);
-    const waitedMs = await cap.acquire(signal);
+    let waitedMs: number;
+    try {
+      waitedMs = await cap.acquire(signal);
+    } catch (error) {
+      // The host limiter already granted (maybe a half-open probe), but no
+      // request leaves: settle it so the probe is not held forever.
+      limiter.report?.(bronId, { kind: "settled" });
+      throw error;
+    }
     if (waitedMs > 0) {
       limiter.started?.(bronId);
     }

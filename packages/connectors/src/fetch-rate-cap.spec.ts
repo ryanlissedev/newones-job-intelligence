@@ -142,4 +142,28 @@ describe("withFetchRateCap", () => {
     await limiter.acquire(BRON);
     expect(started).toEqual([BRON]);
   });
+
+  it("an abort while waiting on the cap settles a half-open probe the host gate granted", async () => {
+    const clock = fakeClock();
+    const gate = new HostGate({
+      crawlDelayMs: 0,
+      now: clock.now,
+      wait: clock.wait,
+    });
+    gate.report(BRON, { kind: "blocked" });
+    gate.report(BRON, { kind: "blocked" });
+    clock.wait(3_600_000);
+    const cap = new FetchRateCap({
+      now: clock.now,
+      perSecond: 1,
+      wait: () => Promise.reject(new Error("aborted")),
+    });
+    // Another source holds the cap's current slot, so the probe must wait.
+    await cap.acquire();
+    const limiter = withFetchRateCap(gate, cap);
+    await expect(limiter.acquire(BRON)).rejects.toThrow("aborted");
+    // The probe never left: the next request may probe instead of being refused.
+    expect(gate.snapshot(BRON).circuit).toBe("half_open");
+    await gate.acquire(BRON);
+  });
 });

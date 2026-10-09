@@ -312,6 +312,14 @@ describe
         fixture.collapse();
         await seedZeroFoundRun(database);
 
+        // Another source's drain holds the only curation slot when the breach
+        // lands. No backlog drain follows a breach, so the inline pass must
+        // wait for the slot rather than skip.
+        const slots = createSlotLimit(1);
+        const held = Promise.withResolvers<null>();
+        const holder = slots(() => held.promise);
+        setTimeout(() => held.resolve(null), 50);
+
         let thrown: unknown;
         try {
           await runBronIngestPipeline(
@@ -320,12 +328,13 @@ describe
               bronSlug: "hero",
               scrapeRunId: FLOOR_RUN_ID,
             },
-            fixture.runtime,
+            { ...fixture.runtime, withCurationSlot: slots },
             "poll"
           );
         } catch (error) {
           thrown = error;
         }
+        await holder;
 
         expect(thrown).toBeInstanceOf(DiscoveryFloorBreachedError);
 

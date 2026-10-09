@@ -175,6 +175,25 @@ const runInline = async <T>(
   work: () => Promise<T>
 ): Promise<SlotAttempt<T>> => ({ ran: true, value: await work() });
 
+/**
+ * How the inline pass after a poll takes its curation slot. Normally only a
+ * free slot (`tryRun`): the caller's backlog drain covers a skip. A
+ * discovery-floor breach throws before that drain, so this pass is the only
+ * curation the bron gets; it queues for a slot instead of skipping.
+ */
+const inlineCurationRunner = (
+  slots: SlotLimit | undefined,
+  noDrainFollows: boolean
+): (<T>(work: () => Promise<T>) => Promise<SlotAttempt<T>>) => {
+  if (!slots) {
+    return runInline;
+  }
+  if (noDrainFollows) {
+    return (work) => runInline(() => slots(work));
+  }
+  return slots.tryRun;
+};
+
 /** The inline pass did not run; the caller's backlog drain counts and curates. */
 const skippedInlineCuration = () => ({
   alreadyCommitted: 0,
@@ -959,30 +978,32 @@ export const runBronIngestPipeline = async (
         },
         options.signal
       );
-      const inlinePass = await (runtime.withCurationSlot?.tryRun ?? runInline)(
-        () =>
-          curateScrapeRun({
-            bronId: pollResult.bronId,
-            bronSlug: pollResult.bronSlug,
-            database: runtime.database,
-            objectStore: runtime.objectStore,
-            onProgress: options.onCurationProgress
-              ? () =>
-                  reportTelemetryCallback(
-                    options.onCurationProgress,
-                    pollResult,
-                    {
-                      bronId: pollResult.bronId,
-                      bronSlug: pollResult.bronSlug,
-                      scrapeRunId: pollResult.scrapeRunId,
-                      telemetryPhase: "curation_progress",
-                    },
-                    options.signal
-                  )
-              : undefined,
-            scrapeRunId: pollResult.scrapeRunId,
-            signal: options.signal,
-          })
+      const inlinePass = await inlineCurationRunner(
+        runtime.withCurationSlot,
+        floorBreach !== null
+      )(() =>
+        curateScrapeRun({
+          bronId: pollResult.bronId,
+          bronSlug: pollResult.bronSlug,
+          database: runtime.database,
+          objectStore: runtime.objectStore,
+          onProgress: options.onCurationProgress
+            ? () =>
+                reportTelemetryCallback(
+                  options.onCurationProgress,
+                  pollResult,
+                  {
+                    bronId: pollResult.bronId,
+                    bronSlug: pollResult.bronSlug,
+                    scrapeRunId: pollResult.scrapeRunId,
+                    telemetryPhase: "curation_progress",
+                  },
+                  options.signal
+                )
+            : undefined,
+          scrapeRunId: pollResult.scrapeRunId,
+          signal: options.signal,
+        })
       );
       const curateResult = inlinePass.ran
         ? inlinePass.value
