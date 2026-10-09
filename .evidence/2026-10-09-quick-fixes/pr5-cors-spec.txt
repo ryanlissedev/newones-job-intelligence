@@ -1,0 +1,11 @@
+bun test v1.4.2 (744846f84)
+
+cors-policy.spec.ts:
+(pass) API CORS policy > lets the browser cache the preflight for the web origin [3.80ms]
+(pass) API CORS policy > does not grant another origin [0.58ms]
+(pass) API CORS policy > keeps simple requests credentialed for the web origin [1.07ms]
+
+ 3 pass
+ 0 fail
+ 9 expect() calls
+Ran 3 tests across 1 file. [14.00ms]
