@@ -1,29 +1,76 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, IBM_Plex_Sans, Space_Grotesk } from "next/font/google";
+import localFont from "next/font/local";
 
 import "../index.css";
 import Header from "@/components/header";
 import Providers from "@/components/providers";
 
-const displayFont = Space_Grotesk({
+// Self-hosted (OFL-1.1, latin subset from @fontsource 5.3.0, see ./fonts/LICENSE-*.txt) so the
+// build never fetches Google Fonts: a failed fonts.googleapis.com fetch broke CI and Coolify builds.
+const displayFont = localFont({
   display: "swap",
-  subsets: ["latin"],
+  src: [
+    {
+      path: "./fonts/space-grotesk-latin-500-normal.woff2",
+      style: "normal",
+      weight: "500",
+    },
+    {
+      path: "./fonts/space-grotesk-latin-600-normal.woff2",
+      style: "normal",
+      weight: "600",
+    },
+    {
+      path: "./fonts/space-grotesk-latin-700-normal.woff2",
+      style: "normal",
+      weight: "700",
+    },
+  ],
   variable: "--ji-font-display",
-  weight: ["500", "600", "700"],
 });
 
-const sansFont = IBM_Plex_Sans({
+const sansFont = localFont({
   display: "swap",
-  subsets: ["latin"],
+  src: [
+    {
+      path: "./fonts/ibm-plex-sans-latin-400-normal.woff2",
+      style: "normal",
+      weight: "400",
+    },
+    {
+      path: "./fonts/ibm-plex-sans-latin-500-normal.woff2",
+      style: "normal",
+      weight: "500",
+    },
+    {
+      path: "./fonts/ibm-plex-sans-latin-600-normal.woff2",
+      style: "normal",
+      weight: "600",
+    },
+  ],
   variable: "--ji-font-sans",
-  weight: ["400", "500", "600"],
 });
 
-const monoFont = IBM_Plex_Mono({
+const monoFont = localFont({
   display: "swap",
-  subsets: ["latin"],
+  src: [
+    {
+      path: "./fonts/ibm-plex-mono-latin-400-normal.woff2",
+      style: "normal",
+      weight: "400",
+    },
+    {
+      path: "./fonts/ibm-plex-mono-latin-500-normal.woff2",
+      style: "normal",
+      weight: "500",
+    },
+    {
+      path: "./fonts/ibm-plex-mono-latin-600-normal.woff2",
+      style: "normal",
+      weight: "600",
+    },
+  ],
   variable: "--ji-font-mono",
-  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = {
