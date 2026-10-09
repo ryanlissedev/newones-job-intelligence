@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { JobSearchShell } from "@/features/job-intelligence/job-search-shell";
-import { JobsSessionPending } from "@/features/job-intelligence/jobs-access";
+import { JobsAccessFrame } from "@/features/job-intelligence/jobs-access";
 
 export const metadata: Metadata = {
   description:
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 const JobsPage = () => (
-  <Suspense fallback={<JobsSessionPending />}>
+  <Suspense fallback={<JobsAccessFrame access="checking" />}>
     <JobSearchShell />
   </Suspense>
 );

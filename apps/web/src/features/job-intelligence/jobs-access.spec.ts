@@ -3,11 +3,7 @@ import { describe, expect, it } from "bun:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import {
-  JobsSessionPending,
-  JobsSignInPrompt,
-  resolveJobsAccess,
-} from "./jobs-access";
+import { JobsAccessFrame, resolveJobsAccess } from "./jobs-access";
 
 const base = {
   fixtures: false,
@@ -50,7 +46,9 @@ describe("resolveJobsAccess", () => {
 });
 
 describe("/jobs server markup before the session is known", () => {
-  const pending = renderToStaticMarkup(createElement(JobsSessionPending));
+  const pending = renderToStaticMarkup(
+    createElement(JobsAccessFrame, { access: "checking" })
+  );
 
   it("paints the page heading and a busy skeleton", () => {
     expect(pending).toContain('id="main-content"');
@@ -66,7 +64,9 @@ describe("/jobs server markup before the session is known", () => {
 });
 
 describe("/jobs for an anonymous visitor", () => {
-  const prompt = renderToStaticMarkup(createElement(JobsSignInPrompt));
+  const prompt = renderToStaticMarkup(
+    createElement(JobsAccessFrame, { access: "anonymous" })
+  );
 
   it("keeps the same heading and asks to sign in", () => {
     expect(prompt).toMatch(/<h1[^>]*>Opdrachten<\/h1>/u);

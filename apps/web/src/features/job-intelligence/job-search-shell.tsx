@@ -7,11 +7,7 @@ import { authClient } from "@/lib/auth-client";
 
 import { fixtureJobActions, fixtureJobDataAdapter } from "./fixtures";
 import { JobSearchPage } from "./job-search-page";
-import {
-  JobsSessionPending,
-  JobsSignInPrompt,
-  resolveJobsAccess,
-} from "./jobs-access";
+import { JobsAccessFrame, resolveJobsAccess } from "./jobs-access";
 import { createRestJobIntelligence } from "./rest-job-data-adapter";
 
 export const JobSearchShell = () => {
@@ -41,11 +37,11 @@ export const JobSearchShell = () => {
   }
 
   if (access === "anonymous") {
-    return <JobsSignInPrompt />;
+    return <JobsAccessFrame access="anonymous" />;
   }
 
   if (access === "checking" || !wiring) {
-    return <JobsSessionPending />;
+    return <JobsAccessFrame access="checking" />;
   }
 
   return (
