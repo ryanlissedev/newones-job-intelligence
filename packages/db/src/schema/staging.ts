@@ -95,6 +95,12 @@ export const aanvraagObservation = stagingSchema.table(
     ),
     index("aanvraag_observation_source_record_id_idx").on(table.sourceRecordId),
     index("aanvraag_observation_status_idx").on(table.status),
+    // 0031: curation backlog per bron and status, oldest first.
+    index("aanvraag_observation_bron_status_created_idx").on(
+      table.bronId,
+      table.status,
+      table.createdAt
+    ),
     check(
       "aanvraag_observation_outcome_check",
       sql`${table.outcome} IN ('new', 'changed', 'unchanged')`
