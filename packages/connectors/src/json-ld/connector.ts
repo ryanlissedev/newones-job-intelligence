@@ -325,6 +325,7 @@ export const createJsonLdConnector = (
           serverErrorRejections += 1;
           return {
             bronReferentie: item.bronReferentie,
+            kind: "http_5xx" as const,
             reason: `detail page kept returning HTTP ${status} after ${attempts} attempts`,
             status: "rejected" as const,
           };
@@ -337,6 +338,7 @@ export const createJsonLdConnector = (
         }
         return {
           bronReferentie: item.bronReferentie,
+          kind: "gone" as const,
           reason: "detail page returned 404 — removed at source",
           status: "rejected" as const,
         };
@@ -344,6 +346,7 @@ export const createJsonLdConnector = (
       if (!detail.jobPosting) {
         return {
           bronReferentie: item.bronReferentie,
+          kind: "no_structured_data" as const,
           reason: "no JobPosting JSON-LD found on detail page",
           status: "rejected" as const,
         };

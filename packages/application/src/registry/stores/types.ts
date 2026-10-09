@@ -762,6 +762,8 @@ export interface BronRunStatsRow {
   readonly interval: string | null;
   readonly lastFailureClass: string | null;
   readonly lastFailureCode: string | null;
+  /** Kind of the newest failure (blocked/timeout/...); NULL before migration 0030 data. */
+  readonly lastFailureKind: string | null;
   readonly lastFailureMessage: string | null;
   readonly lastFailurePhase: string | null;
   readonly lastRunAt: Date | null;
@@ -769,6 +771,8 @@ export interface BronRunStatsRow {
   readonly naam: string | null;
   readonly nieuw: number;
   readonly ongewijzigd: number;
+  /** Items seen but not fetched because the connector already knew them (`skipped_known`). */
+  readonly overgeslagen: number;
   readonly p95DurationMs: number | null;
   readonly rejected: number;
   readonly runs: number;

@@ -4,6 +4,7 @@ import type {
   ConnectorRunProgress,
   RunProgressStore,
 } from "./checkpoint";
+import type { RunFailureKind } from "./run-outcomes";
 
 export type ConnectorRunKind = "poll" | "test";
 
@@ -112,6 +113,8 @@ export interface RunCompletionInput {
 
 export interface RunFailureInput extends RunCompletionInput {
   failure: RunFailureEnvelope;
+  /** What kind of trouble failed the run; see `classifyRunFailure`. */
+  failureKind?: RunFailureKind;
 }
 
 export interface RunLifecycleStore extends RunProgressStore {

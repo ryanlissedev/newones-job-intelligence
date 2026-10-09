@@ -15,6 +15,7 @@ import type {
   RunFailureInput,
   RunFailureEnvelope,
   RunLifecycleStore,
+  RunOutcomeCounts,
   RunStartInput,
   RunStartResult,
   SourceRecordWriteOutcome,
@@ -359,8 +360,38 @@ export const progressValues = (progress: ConnectorRunProgress) => ({
   gesloten: progress.metrics.closed ?? 0,
   gewijzigd: progress.metrics.changed,
   nieuw: progress.metrics.new,
+  ongewijzigd: progress.metrics.unchanged,
+  outcomeCounts: progress.metrics.outcomes ?? {},
   rejected: progress.metrics.rejected,
 });
+
+const OUTCOME_COUNT = z.number().int().nonnegative().optional();
+
+/**
+ * `scrape_run.outcome_counts` as written by `progressValues`. Unknown keys are
+ * stripped and a malformed value restores as empty counters rather than
+ * failing a resume: the counters are telemetry, the checkpoint is the state.
+ */
+const OUTCOME_COUNTS_SCHEMA = z.object({
+  rejected_gone: OUTCOME_COUNT,
+  rejected_http_5xx: OUTCOME_COUNT,
+  rejected_invalid: OUTCOME_COUNT,
+  rejected_no_structured_data: OUTCOME_COUNT,
+  skipped_known: OUTCOME_COUNT,
+}) satisfies z.ZodType<RunOutcomeCounts>;
+
+/** `scrape_run` columns a run's progress is restored from on load/resume. */
+const progressColumns = {
+  changed: scrapeRun.gewijzigd,
+  checkpoint: scrapeRun.checkpoint,
+  closed: scrapeRun.gesloten,
+  error: scrapeRun.fouten,
+  found: scrapeRun.aantalGevonden,
+  new: scrapeRun.nieuw,
+  outcomes: scrapeRun.outcomeCounts,
+  rejected: scrapeRun.rejected,
+  unchanged: scrapeRun.ongewijzigd,
+};
 
 export const toRunProgress = (row: {
   changed: number;
@@ -369,7 +400,9 @@ export const toRunProgress = (row: {
   error: number;
   found: number;
   new: number;
+  outcomes?: unknown;
   rejected: number;
+  unchanged?: number;
 }): ConnectorRunProgress => {
   const metrics: ConnectorRunMetrics = {
     changed: row.changed,
@@ -377,10 +410,17 @@ export const toRunProgress = (row: {
     found: row.found,
     new: row.new,
     rejected: row.rejected,
-    unchanged: 0,
+    unchanged: row.unchanged ?? 0,
   };
   if (row.closed !== undefined && row.closed > 0) {
     metrics.closed = row.closed;
+  }
+  const parsed = OUTCOME_COUNTS_SCHEMA.safeParse(row.outcomes ?? {});
+  const outcomes: RunOutcomeCounts = parsed.success ? parsed.data : {};
+  if (
+    Object.values(outcomes).some((count) => count !== undefined && count > 0)
+  ) {
+    metrics.outcomes = outcomes;
   }
   return {
     // SAFETY: Connector checkpoints are the only JSON values written through this adapter.
@@ -423,15 +463,7 @@ export class PostgresRunStore implements RunLifecycleStore {
 
   async load(key: CheckpointKey): Promise<ConnectorRunProgress | null> {
     const [row] = await this.database
-      .select({
-        changed: scrapeRun.gewijzigd,
-        checkpoint: scrapeRun.checkpoint,
-        closed: scrapeRun.gesloten,
-        error: scrapeRun.fouten,
-        found: scrapeRun.aantalGevonden,
-        new: scrapeRun.nieuw,
-        rejected: scrapeRun.rejected,
-      })
+      .select(progressColumns)
       .from(scrapeRun)
       .where(
         and(eq(scrapeRun.id, key.scrapeRunId), eq(scrapeRun.bronId, key.bronId))
@@ -493,6 +525,7 @@ export class PostgresRunStore implements RunLifecycleStore {
         ...completionValues(input),
         failureClass: input.failure.class,
         failureCode: input.failure.code,
+        failureKind: input.failureKind ?? null,
         failureMessage: input.failure.message,
         failurePhase: input.failure.phase,
         status: "failed",
@@ -576,15 +609,9 @@ export class PostgresRunStore implements RunLifecycleStore {
 
       let [existing] = await tx
         .select({
+          ...progressColumns,
           bronId: scrapeRun.bronId,
-          changed: scrapeRun.gewijzigd,
-          checkpoint: scrapeRun.checkpoint,
-          closed: scrapeRun.gesloten,
-          error: scrapeRun.fouten,
           fenceToken: scrapeRun.fenceToken,
-          found: scrapeRun.aantalGevonden,
-          new: scrapeRun.nieuw,
-          rejected: scrapeRun.rejected,
           runKind: scrapeRun.runKind,
           startedAt: scrapeRun.gestart,
           status: scrapeRun.status,
@@ -618,15 +645,9 @@ export class PostgresRunStore implements RunLifecycleStore {
         }
         [existing] = await tx
           .select({
+            ...progressColumns,
             bronId: scrapeRun.bronId,
-            changed: scrapeRun.gewijzigd,
-            checkpoint: scrapeRun.checkpoint,
-            closed: scrapeRun.gesloten,
-            error: scrapeRun.fouten,
             fenceToken: scrapeRun.fenceToken,
-            found: scrapeRun.aantalGevonden,
-            new: scrapeRun.nieuw,
-            rejected: scrapeRun.rejected,
             runKind: scrapeRun.runKind,
             startedAt: scrapeRun.gestart,
             status: scrapeRun.status,
@@ -666,6 +687,7 @@ export class PostgresRunStore implements RunLifecycleStore {
           .set({
             failureClass: null,
             failureCode: null,
+            failureKind: null,
             failureMessage: null,
             failurePhase: null,
             fenceToken: sql`${scrapeRun.fenceToken} + 1`,

@@ -39,6 +39,11 @@ import type {
   RunFailureEnvelope,
   RunLifecycleStore,
 } from "./run-lifecycle";
+import {
+  classifyRunFailure,
+  incrementOutcome,
+  rejectOutcome,
+} from "./run-outcomes";
 
 const DAY_IN_MILLISECONDS = 86_400_000;
 
@@ -394,10 +399,18 @@ const runConnectorInner = async (
     );
     await reportProgress("fetch");
     if (fetched === null) {
+      // A null fetch is the connector declining to request an item it already
+      // holds (known listing hash). Offline audit replay also returns null for
+      // URLs without a detail fixture; that path never runs in the poller.
+      metrics.outcomes = incrementOutcome(metrics.outcomes, "skipped_known");
       return;
     }
     if (fetched.status === "rejected") {
       metrics.rejected += 1;
+      metrics.outcomes = incrementOutcome(
+        metrics.outcomes,
+        rejectOutcome(fetched.kind)
+      );
       return;
     }
     const contentHash =
@@ -568,6 +581,7 @@ const runConnectorInner = async (
     try {
       await runLifecycleStore.fail({
         failure: runError.envelope,
+        failureKind: classifyRunFailure(runError.cause),
         fenceToken: canonicalRun.fenceToken,
         finishedAt: now(),
         key: checkpointKey,

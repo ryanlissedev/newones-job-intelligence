@@ -51,6 +51,7 @@ interface BronRunStatsAggregate extends Record<string, unknown> {
   readonly is_totaal: number;
   readonly last_failure_class: string | null;
   readonly last_failure_code: string | null;
+  readonly last_failure_kind: string | null;
   readonly last_failure_message: string | null;
   readonly last_failure_phase: string | null;
   readonly last_run_at: string | null;
@@ -58,6 +59,7 @@ interface BronRunStatsAggregate extends Record<string, unknown> {
   readonly naam: string | null;
   readonly nieuw: number;
   readonly ongewijzigd: number;
+  readonly overgeslagen: number;
   readonly p95_duration_ms: number | null;
   readonly rejected: number;
   readonly runs: number;
@@ -139,7 +141,9 @@ const buildWindowedRunsCte = (since: Date, runKind: BronRunKindFilter): SQL =>
         r.fouten,
         r.failure_class,
         r.failure_code,
+        r.failure_kind,
         r.failure_message,
+        r.outcome_counts,
         r.failure_phase,
         EXTRACT(EPOCH FROM (r.geindigd - r.gestart)) * 1000 AS duur_ms
       FROM curated.scrape_run r
@@ -227,6 +231,7 @@ const toStatsRow = (
     interval: totaal ? null : row.interval,
     lastFailureClass: row.last_failure_class,
     lastFailureCode: row.last_failure_code,
+    lastFailureKind: row.last_failure_kind,
     lastFailureMessage: row.last_failure_message,
     lastFailurePhase: row.last_failure_phase,
     lastRunAt: toDate(row.last_run_at),
@@ -234,6 +239,7 @@ const toStatsRow = (
     naam: totaal ? null : row.naam,
     nieuw: row.nieuw,
     ongewijzigd: row.ongewijzigd,
+    overgeslagen: row.overgeslagen,
     p95DurationMs: row.p95_duration_ms,
     rejected: row.rejected,
     running: row.running,
@@ -403,12 +409,14 @@ export class PostgresBronRunStatsReader implements BronRunStatsReader {
         CAST(coalesce(sum(r.gesloten), 0) AS integer) AS gesloten,
         CAST(coalesce(sum(r.fouten), 0) AS integer) AS fouten,
         CAST(coalesce(sum(o.ongewijzigd), 0) AS integer) AS ongewijzigd,
+        CAST(coalesce(sum((r.outcome_counts ->> 'skipped_known')::integer), 0) AS integer) AS overgeslagen,
         CAST(avg(r.duur_ms) AS double precision) AS avg_duration_ms,
         CAST(percentile_cont(0.95) WITHIN GROUP (ORDER BY r.duur_ms) AS double precision) AS p95_duration_ms,
         max(r.gestart) AS last_run_at,
         ${latestRunValue(sql`r.status`)} AS last_run_status,
         ${latestFailureValue(sql`r.failure_class`)} AS last_failure_class,
         ${latestFailureValue(sql`r.failure_code`)} AS last_failure_code,
+        ${latestFailureValue(sql`r.failure_kind`)} AS last_failure_kind,
         ${latestFailureValue(sql`r.failure_message`)} AS last_failure_message,
         ${latestFailureValue(sql`r.failure_phase`)} AS last_failure_phase
       FROM curated.bron b
