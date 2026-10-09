@@ -211,6 +211,13 @@
       "when": 1790380800000,
       "tag": "0029_durable_job_queue",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1790467200000,
+      "tag": "0030_scrape_run_outcome_counts",
+      "breakpoints": true
     }
   ]
 }

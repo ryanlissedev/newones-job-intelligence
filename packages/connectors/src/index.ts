@@ -39,6 +39,19 @@ export {
 } from "./checkpoint";
 export { CrawlDelayLimiter, type RequestLimiter } from "./limiter";
 export {
+  classifyRunFailure,
+  PARTIAL_RUN_COMPLETIONS,
+  RUN_COMPLETIONS,
+  RUN_FAILURE_KINDS,
+  RUN_OUTCOMES,
+  type RejectKind,
+  type RunCompletion,
+  type RunFailureKind,
+  type RunOutcome,
+  type RunOutcomeCounts,
+} from "./run-outcomes";
+export { SourceBlockedError } from "./source-blocked";
+export {
   InMemoryObservationRecorder,
   type ObservationRecorder,
   type ObservationRecordInput,

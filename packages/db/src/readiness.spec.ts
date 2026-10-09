@@ -6,13 +6,13 @@ import {
   resolveExpectedMigrationTimestamp,
 } from "./readiness";
 
-const expectedMigrationTimestamp = "1790380800000";
+const expectedMigrationTimestamp = "1790467200000";
 
 describe("database readiness", () => {
   it("derives the current expected migration from the latest journal entry", () => {
     expect(migrationJournal.entries.at(-1)).toMatchObject({
-      idx: 29,
-      tag: "0029_durable_job_queue",
+      idx: 30,
+      tag: "0030_scrape_run_outcome_counts",
       when: Number(expectedMigrationTimestamp),
     });
     expect(resolveExpectedMigrationTimestamp(migrationJournal)).toBe(

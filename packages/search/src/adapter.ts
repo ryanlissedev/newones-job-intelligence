@@ -29,6 +29,7 @@ import { MemoryFacetCache } from "./cache/facets-cache";
 import type { FacetCache } from "./cache/facets-cache";
 import { ParserLruCache } from "./cache/parser-cache";
 import { Singleflight } from "./cache/singleflight";
+import { SearchVersionPin } from "./cache/version-pin";
 import { DEFAULT_SEARCH_SCOPE } from "./partition";
 import type { SearchScope } from "./partition";
 import type {
@@ -86,6 +87,16 @@ export interface SearchAdapterOptions {
   engine: SearchEngine;
   /** Overrides SEARCH_HYBRID for isolated evaluation runs and focused tests. */
   hybridEnabled?: boolean;
+  /**
+   * Cache-key version pinning (see `SearchVersionPin`). Defaults: re-read
+   * the durable version every 5 s in the background, re-pin a newer
+   * sequence at most once per 60 s.
+   */
+  versionPin?: {
+    minPinMs?: number;
+    now?: () => number;
+    refreshMs?: number;
+  };
 }
 
 export const isSearchHybridEnabled = (
@@ -100,6 +111,7 @@ export class SearchAdapter {
   private readonly facetsCache: FacetCache = new MemoryFacetCache();
   private readonly parserCache = new ParserLruCache();
   private readonly singleflight = new Singleflight<SearchAdapterResult>();
+  private readonly versionPin: SearchVersionPin;
 
   constructor(options: SearchAdapterOptions) {
     this.engine = options.engine;
@@ -107,6 +119,10 @@ export class SearchAdapter {
       options.hybridEnabled ?? isSearchHybridEnabled(process.env.SEARCH_HYBRID);
     this.cache = options.cache;
     this.cacheTtlSeconds = options.cacheTtlSeconds ?? DEFAULT_CACHE_TTL_SECONDS;
+    this.versionPin = new SearchVersionPin({
+      ...options.versionPin,
+      read: () => this.engine.getAppliedVersion(),
+    });
   }
 
   /**
@@ -156,6 +172,9 @@ export class SearchAdapter {
     const engineResult = await timeCriticalPathPhase("search-engine", () =>
       this.engine.search({
         ast,
+        // A facet cache hit means the aggregations would be thrown away, so
+        // the engine skips them; they are most of a match-all search's cost.
+        facets: cachedFacets === null,
         filters,
         limit: page.limit,
         mode,
@@ -240,8 +259,13 @@ export class SearchAdapter {
           : "lexical";
 
       return timeCriticalPathPhase("search-adapter", async () => {
-        const astHash = await hashSearchAst(ast);
-        const version = await this.engine.getAppliedVersion();
+        // The pinned version comes from memory (refreshed in the background)
+        // and moves at most once a minute while the projector ingests, so
+        // a search no longer waits on Postgres before the cache lookup.
+        const [astHash, version] = await Promise.all([
+          hashSearchAst(ast),
+          this.versionPin.current(),
+        ]);
         const cacheKey = await buildCacheKey(astHash, version, filters, {
           limit,
           mode,

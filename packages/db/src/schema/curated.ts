@@ -84,11 +84,15 @@ export const scrapeRun = curatedSchema.table(
       .references(() => bron.id, { onDelete: "cascade" }),
     checkpoint: jsonb("checkpoint"),
     circuitStatus: text("circuit_status").default("closed").notNull(),
+    /** How a succeeded run ended (complete/budget_exhausted/...); see `RUN_COMPLETIONS`. */
+    completion: text("completion"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
     failureClass: text("failure_class"),
     failureCode: text("failure_code"),
+    /** What kind of trouble failed the run (blocked/timeout/...); see `RUN_FAILURE_KINDS`. */
+    failureKind: text("failure_kind"),
     failureMessage: text("failure_message"),
     failurePhase: text("failure_phase"),
     fenceToken: bigint("fence_token", { mode: "number" }).default(0).notNull(),
@@ -101,6 +105,9 @@ export const scrapeRun = curatedSchema.table(
     gewijzigd: integer("gewijzigd").default(0).notNull(),
     id: uuid("id").defaultRandom().primaryKey(),
     nieuw: integer("nieuw").default(0).notNull(),
+    ongewijzigd: integer("ongewijzigd").default(0).notNull(),
+    /** Per-outcome item counters (skipped_known, rejected_<kind>); see `RunOutcomeCounts`. */
+    outcomeCounts: jsonb("outcome_counts").default({}).notNull(),
     rejected: integer("rejected").default(0).notNull(),
     runKind: text("run_kind").default("poll").notNull(),
     status: text("status").default("running").notNull(),
@@ -128,6 +135,19 @@ export const scrapeRun = curatedSchema.table(
     check(
       "scrape_run_fence_token_check",
       sql`${table.fenceToken} >= 0 AND ${table.fenceToken} <= 9007199254740991`
+    ),
+    check(
+      "scrape_run_failure_kind_check",
+      sql`${table.failureKind} IS NULL OR (${table.status} = 'failed' AND ${table.failureKind} IN ('blocked', 'rate_limited', 'timeout', 'http_5xx', 'http_4xx', 'not_found', 'network', 'internal'))`
+    ),
+    check(
+      "scrape_run_completion_kind_check",
+      sql`${table.completion} IS NULL OR (${table.status} = 'succeeded' AND ${table.completion} IN ('complete', 'budget_exhausted', 'aborted', 'truncated', 'resumed', 'empty'))`
+    ),
+    check("scrape_run_ongewijzigd_check", sql`${table.ongewijzigd} >= 0`),
+    check(
+      "scrape_run_outcome_counts_object_check",
+      sql`jsonb_typeof(${table.outcomeCounts}) = 'object'`
     ),
     check(
       "scrape_run_failure_envelope_check",
