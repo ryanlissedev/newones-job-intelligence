@@ -18,7 +18,7 @@ import { InMemoryObjectStore } from "./object-store";
 import { InMemoryObservationRecorder } from "./observation-recorder";
 import { runConnector } from "./run";
 import { InMemoryRunLifecycleStore } from "./run-lifecycle";
-import type { RunFailureInput } from "./run-lifecycle";
+import type { RunCompletionInput, RunFailureInput } from "./run-lifecycle";
 import { classifyRunFailure, mergeOutcomeCounts } from "./run-outcomes";
 
 const retryPolicy = {
@@ -30,7 +30,13 @@ const retryPolicy = {
 };
 
 class RecordingRunStore extends InMemoryRunLifecycleStore {
+  readonly completions: RunCompletionInput[] = [];
   readonly failures: RunFailureInput[] = [];
+
+  override complete(input: RunCompletionInput): Promise<void> {
+    this.completions.push(input);
+    return super.complete(input);
+  }
 
   override fail(input: RunFailureInput): Promise<void> {
     this.failures.push(input);
@@ -71,7 +77,11 @@ const scriptedConnector = (
   },
 });
 
-const runWith = (connector: Connector, store: InMemoryRunLifecycleStore) =>
+const runWith = (
+  connector: Connector,
+  store: InMemoryRunLifecycleStore,
+  signal?: AbortSignal
+) =>
   runConnector({
     bronId: connector.bronId,
     bronSlug: "outcomes",
@@ -84,6 +94,7 @@ const runWith = (connector: Connector, store: InMemoryRunLifecycleStore) =>
     runKind: "poll",
     runLifecycleStore: store,
     scrapeRunId: `run-${connector.bronId}`,
+    signal,
   });
 
 describe("classifyRunFailure", () => {
@@ -252,4 +263,56 @@ describe("runConnector outcome accounting", () => {
       "blocked",
     ]);
   });
+
+  it("marks a complete run complete", async () => {
+    const store = new RecordingRunStore();
+    await runWith(
+      scriptedConnector("bron-complete", {
+        "C-1": () => Promise.resolve(fetchedResult("C-1")),
+      }),
+      store
+    );
+    expect(store.completions.map((entry) => entry.completion)).toEqual([
+      "complete",
+    ]);
+  });
+
+  it.each([
+    [
+      "budget timer",
+      new DOMException("run budget", "TimeoutError"),
+      "budget_exhausted",
+    ],
+    ["shutdown", new DOMException("shutdown", "AbortError"), "aborted"],
+  ] as const)(
+    "marks a run cut off by %s as %s, not complete",
+    async (_label, reason, completion) => {
+      const store = new RecordingRunStore();
+      const controller = new AbortController();
+      const connector: Connector = {
+        bronId: `bron-${completion}`,
+        discover: () => {
+          // The signal fires while the listing page is in flight: the run
+          // stops at the next item boundary and closes as succeeded.
+          controller.abort(reason);
+          return Promise.resolve({
+            checkpoint: { page: 1 },
+            hasMore: true,
+            items: [{ bronReferentie: "F-1", contentHash: "listing-F-1" }],
+          });
+        },
+        fetch: () => Promise.resolve(fetchedResult("F-1")),
+      };
+
+      const result = await runWith(connector, store, controller.signal);
+
+      expect(result.completeness).toEqual({
+        complete: false,
+        reason: "aborted",
+      });
+      expect(store.completions.map((entry) => entry.completion)).toEqual([
+        completion,
+      ]);
+    }
+  );
 });

@@ -4,7 +4,7 @@ import type {
   ConnectorRunProgress,
   RunProgressStore,
 } from "./checkpoint";
-import type { RunFailureKind } from "./run-outcomes";
+import type { RunCompletion, RunFailureKind } from "./run-outcomes";
 
 export type ConnectorRunKind = "poll" | "test";
 
@@ -105,6 +105,8 @@ export interface RunStartResult {
 }
 
 export interface RunCompletionInput {
+  /** How a succeeded run ended; absent on failure. */
+  completion?: RunCompletion;
   fenceToken: number;
   finishedAt: Date;
   key: CheckpointKey;

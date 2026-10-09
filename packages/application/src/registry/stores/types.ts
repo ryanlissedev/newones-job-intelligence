@@ -760,6 +760,8 @@ export interface BronRunStatsRow {
   readonly gesloten: number;
   readonly gewijzigd: number;
   readonly interval: string | null;
+  /** How the newest run ended (complete/budget_exhausted/...); NULL when failed or pre-0030. */
+  readonly lastCompletion: string | null;
   readonly lastFailureClass: string | null;
   readonly lastFailureCode: string | null;
   /** Kind of the newest failure (blocked/timeout/...); NULL before migration 0030 data. */
@@ -771,6 +773,8 @@ export interface BronRunStatsRow {
   readonly naam: string | null;
   readonly nieuw: number;
   readonly ongewijzigd: number;
+  /** Succeeded runs that did not see the whole listing (budget cut, abort, page cap). */
+  readonly onvolledig: number;
   /** Items seen but not fetched because the connector already knew them (`skipped_known`). */
   readonly overgeslagen: number;
   readonly p95DurationMs: number | null;

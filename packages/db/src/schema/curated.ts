@@ -84,6 +84,8 @@ export const scrapeRun = curatedSchema.table(
       .references(() => bron.id, { onDelete: "cascade" }),
     checkpoint: jsonb("checkpoint"),
     circuitStatus: text("circuit_status").default("closed").notNull(),
+    /** How a succeeded run ended (complete/budget_exhausted/...); see `RUN_COMPLETIONS`. */
+    completion: text("completion"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -137,6 +139,10 @@ export const scrapeRun = curatedSchema.table(
     check(
       "scrape_run_failure_kind_check",
       sql`${table.failureKind} IS NULL OR (${table.status} = 'failed' AND ${table.failureKind} IN ('blocked', 'rate_limited', 'timeout', 'http_5xx', 'http_4xx', 'not_found', 'network', 'internal'))`
+    ),
+    check(
+      "scrape_run_completion_kind_check",
+      sql`${table.completion} IS NULL OR (${table.status} = 'succeeded' AND ${table.completion} IN ('complete', 'budget_exhausted', 'aborted', 'truncated', 'resumed', 'empty'))`
     ),
     check("scrape_run_ongewijzigd_check", sql`${table.ongewijzigd} >= 0`),
     check(

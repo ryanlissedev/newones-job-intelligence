@@ -42,8 +42,10 @@ import type {
 import {
   classifyRunFailure,
   incrementOutcome,
+  isTimeoutAbort,
   rejectOutcome,
 } from "./run-outcomes";
+import type { RunCompletion } from "./run-outcomes";
 
 const DAY_IN_MILLISECONDS = 86_400_000;
 
@@ -254,6 +256,19 @@ const settlePage = (
   };
 };
 
+const completionOf = (
+  completeness: RunCompleteness,
+  signal: AbortSignal | undefined
+): RunCompletion => {
+  if (completeness.complete) {
+    return "complete";
+  }
+  if (completeness.reason === "aborted" && isTimeoutAbort(signal)) {
+    return "budget_exhausted";
+  }
+  return completeness.reason;
+};
+
 const resolveCompleteness = (
   resumed: boolean,
   truncated: boolean,
@@ -343,6 +358,7 @@ const runConnectorInner = async (
   const completeAbortedRun = async (): Promise<ConnectorRunResult> => {
     aborted = true;
     progress.checkpoint = checkpoint;
+    const completeness = resolveCompleteness(resumed, truncated, aborted);
     await withFailureEnvelope(
       () =>
         runLifecycleStore.checkpoint(
@@ -355,6 +371,7 @@ const runConnectorInner = async (
     await withFailureEnvelope(
       () =>
         runLifecycleStore.complete({
+          completion: completionOf(completeness, signal),
           fenceToken: canonicalRun.fenceToken,
           finishedAt: now(),
           key: checkpointKey,
@@ -364,7 +381,7 @@ const runConnectorInner = async (
     );
     return {
       checkpoint: checkpoint ?? {},
-      completeness: resolveCompleteness(resumed, truncated, aborted),
+      completeness,
       fenceToken: canonicalRun.fenceToken,
       metrics,
       observedBronReferenties: [...observedBronReferenties],
@@ -555,9 +572,11 @@ const runConnectorInner = async (
       );
       ({ hasMore } = page);
     }
+    const completeness = resolveCompleteness(resumed, truncated, aborted);
     await withFailureEnvelope(
       () =>
         runLifecycleStore.complete({
+          completion: completionOf(completeness, signal),
           fenceToken: canonicalRun.fenceToken,
           finishedAt: now(),
           key: checkpointKey,

@@ -14,6 +14,7 @@ import {
   computeBronSuccessRate,
   resolveBronRunStatsSince,
 } from "@ji/application/registry";
+import { PARTIAL_RUN_COMPLETIONS } from "@ji/connectors";
 import type { SQL } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
@@ -23,6 +24,11 @@ import type * as schema from "./schema";
 export type BronRunStatsDatabase = PostgresJsDatabase<typeof schema>;
 
 const TOP_FAILURES_LIMIT = 5;
+
+/** `'budget_exhausted', 'aborted', 'truncated'`: module constants, never caller input. */
+const PARTIAL_COMPLETIONS_SQL = sql.raw(
+  PARTIAL_RUN_COMPLETIONS.map((completion) => `'${completion}'`).join(", ")
+);
 
 const DEFAULT_RUN_KIND: BronRunKindFilter = "poll";
 
@@ -49,6 +55,7 @@ interface BronRunStatsAggregate extends Record<string, unknown> {
   readonly gewijzigd: number;
   readonly interval: string | null;
   readonly is_totaal: number;
+  readonly last_completion: string | null;
   readonly last_failure_class: string | null;
   readonly last_failure_code: string | null;
   readonly last_failure_kind: string | null;
@@ -59,6 +66,7 @@ interface BronRunStatsAggregate extends Record<string, unknown> {
   readonly naam: string | null;
   readonly nieuw: number;
   readonly ongewijzigd: number;
+  readonly onvolledig: number;
   readonly overgeslagen: number;
   readonly p95_duration_ms: number | null;
   readonly rejected: number;
@@ -142,6 +150,7 @@ const buildWindowedRunsCte = (since: Date, runKind: BronRunKindFilter): SQL =>
         r.failure_class,
         r.failure_code,
         r.failure_kind,
+        r.completion,
         r.failure_message,
         r.outcome_counts,
         r.failure_phase,
@@ -229,6 +238,7 @@ const toStatsRow = (
     gesloten: row.gesloten,
     gewijzigd: row.gewijzigd,
     interval: totaal ? null : row.interval,
+    lastCompletion: row.last_completion,
     lastFailureClass: row.last_failure_class,
     lastFailureCode: row.last_failure_code,
     lastFailureKind: row.last_failure_kind,
@@ -239,6 +249,7 @@ const toStatsRow = (
     naam: totaal ? null : row.naam,
     nieuw: row.nieuw,
     ongewijzigd: row.ongewijzigd,
+    onvolledig: row.onvolledig,
     overgeslagen: row.overgeslagen,
     p95DurationMs: row.p95_duration_ms,
     rejected: row.rejected,
@@ -402,6 +413,7 @@ export class PostgresBronRunStatsReader implements BronRunStatsReader {
         CAST(count(r.id) FILTER (WHERE r.status = 'failed') AS integer) AS failed,
         CAST(count(r.id) FILTER (WHERE r.status = 'cancelled') AS integer) AS cancelled,
         CAST(count(r.id) FILTER (WHERE r.status = 'running') AS integer) AS running,
+        CAST(count(r.id) FILTER (WHERE r.status = 'succeeded' AND r.completion IN (${PARTIAL_COMPLETIONS_SQL})) AS integer) AS onvolledig,
         CAST(coalesce(sum(r.aantal_gevonden), 0) AS integer) AS aantal_gevonden,
         CAST(coalesce(sum(r.nieuw), 0) AS integer) AS nieuw,
         CAST(coalesce(sum(r.gewijzigd), 0) AS integer) AS gewijzigd,
@@ -414,6 +426,7 @@ export class PostgresBronRunStatsReader implements BronRunStatsReader {
         CAST(percentile_cont(0.95) WITHIN GROUP (ORDER BY r.duur_ms) AS double precision) AS p95_duration_ms,
         max(r.gestart) AS last_run_at,
         ${latestRunValue(sql`r.status`)} AS last_run_status,
+        ${latestRunValue(sql`r.completion`)} AS last_completion,
         ${latestFailureValue(sql`r.failure_class`)} AS last_failure_class,
         ${latestFailureValue(sql`r.failure_code`)} AS last_failure_code,
         ${latestFailureValue(sql`r.failure_kind`)} AS last_failure_kind,

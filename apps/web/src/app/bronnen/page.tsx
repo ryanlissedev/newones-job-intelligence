@@ -63,6 +63,8 @@ interface DashboardStats {
   readonly nieuw: number;
   readonly ongewijzigd: number;
   /** Absent from responses served before migration 0030 shipped. */
+  readonly onvolledig?: number;
+  /** Absent from responses served before migration 0030 shipped. */
   readonly overgeslagen?: number;
   readonly rejected: number;
   readonly runs: number;
@@ -190,6 +192,11 @@ const DashboardData = async ({
           label="Overgeslagen"
           testId="bronnen-kpi-overgeslagen"
           value={numberFormatter.format(overview.total.overgeslagen ?? 0)}
+        />
+        <Kpi
+          label="Onvolledige runs"
+          testId="bronnen-kpi-onvolledig"
+          value={numberFormatter.format(overview.total.onvolledig ?? 0)}
         />
         <Kpi
           label="Rejected"
@@ -394,7 +401,8 @@ const DashboardData = async ({
             gewijzigd en ongewijzigd tellen de verwerkte observaties.
             Overgeslagen zijn vacatures die de bron wel toonde maar die niet
             opnieuw zijn opgehaald, omdat ze sinds de vorige run niet
-            veranderden.
+            veranderden. Onvolledige runs zijn geslaagd maar zagen niet de hele
+            bron, bijvoorbeeld omdat het tijdsbudget op was.
           </p>
           <p>
             Nieuw betekent dat een bron nog geen runs heeft gehad. Dat is geen

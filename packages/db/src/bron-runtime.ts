@@ -431,6 +431,7 @@ export const toRunProgress = (row: {
 
 const completionValues = (input: RunCompletionInput) => ({
   ...progressValues(input.progress),
+  completion: input.completion ?? null,
   geindigd: input.finishedAt,
 });
 

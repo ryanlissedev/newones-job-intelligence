@@ -149,6 +149,72 @@ describe("scrape_run outcome taxonomy (migration 0030)", () => {
     }
   });
 
+  it("persists how a succeeded run ended and counts budget-cut runs as onvolledig", async () => {
+    if (!available) {
+      expect(available).toBe(false);
+      return;
+    }
+    const client = postgres(applicationUrl, { max: 2 });
+    const database = drizzle(client, { schema });
+    const bronId = crypto.randomUUID();
+    const store = new PostgresRunStore(database);
+    const runIds: string[] = [];
+    const succeed = async (
+      completion: "budget_exhausted" | "complete"
+    ): Promise<void> => {
+      const key = { bronId, scrapeRunId: crypto.randomUUID() };
+      runIds.push(key.scrapeRunId);
+      const started = await store.start({
+        key,
+        mode: "reset",
+        progress: { checkpoint: null, metrics: emptyRunMetrics() },
+        runKind: "poll",
+        startedAt: new Date(Date.now() - (3 - runIds.length) * 60_000),
+      });
+      await store.complete({
+        completion,
+        fenceToken: started.fenceToken,
+        finishedAt: new Date(),
+        key,
+        progress: { checkpoint: null, metrics: emptyRunMetrics() },
+      });
+    };
+    try {
+      await database.insert(bron).values({
+        actief: true,
+        categorie: "runtime-test",
+        id: bronId,
+        naam: `Completion ${bronId}`,
+        status: "ready",
+        voorwaardenStatus: "toegestaan",
+      });
+      await succeed("complete");
+      await succeed("budget_exhausted");
+
+      const rows = await database
+        .select({ completion: scrapeRun.completion, status: scrapeRun.status })
+        .from(scrapeRun)
+        .where(eq(scrapeRun.bronId, bronId))
+        .orderBy(scrapeRun.gestart);
+      expect(rows).toEqual([
+        { completion: "complete", status: "succeeded" },
+        { completion: "budget_exhausted", status: "succeeded" },
+      ]);
+      const stats = await new PostgresBronRunStatsReader(database).bronRunStats(
+        { bronIds: [bronId], window: "24u" }
+      );
+      expect(stats.bronnen[0]).toMatchObject({
+        lastCompletion: "budget_exhausted",
+        onvolledig: 1,
+        succeeded: 2,
+      });
+    } finally {
+      await database.delete(scrapeRun).where(eq(scrapeRun.bronId, bronId));
+      await database.delete(bron).where(eq(bron.id, bronId));
+      await client.end({ timeout: 5 });
+    }
+  });
+
   it("rejects a failure kind on a non-failed run and a non-object outcome_counts", async () => {
     if (!available) {
       expect(available).toBe(false);
@@ -180,6 +246,9 @@ describe("scrape_run outcome taxonomy (migration 0030)", () => {
       expect(
         await constraintViolated({ failureKind: "blocked", status: "running" })
       ).toContain("scrape_run_failure_kind_check");
+      expect(
+        await constraintViolated({ completion: "complete", status: "running" })
+      ).toContain("scrape_run_completion_kind_check");
       expect(await constraintViolated({ outcomeCounts: [] })).toContain(
         "scrape_run_outcome_counts_object_check"
       );

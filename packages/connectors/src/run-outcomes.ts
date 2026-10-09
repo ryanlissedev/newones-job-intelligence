@@ -64,6 +64,46 @@ export const mergeOutcomeCounts = (
 };
 
 /**
+ * How a *succeeded* run ended. `status = 'succeeded'` alone hides partial
+ * runs: a poll cut off by its run budget closes as succeeded with a
+ * checkpoint, which made Techniekwerkt (8 of 9 runs at its 5.5 h budget)
+ * look healthy. `budget_exhausted` is an abort caused by the run-budget
+ * timer; `aborted` is any other abort (shutdown).
+ */
+export type RunCompletion =
+  | "complete"
+  | "budget_exhausted"
+  | "aborted"
+  | "truncated"
+  | "resumed"
+  | "empty";
+
+export const RUN_COMPLETIONS = [
+  "complete",
+  "budget_exhausted",
+  "aborted",
+  "truncated",
+  "resumed",
+  "empty",
+] as const satisfies readonly RunCompletion[];
+
+/** Completions that mean the run did not see the source's whole listing. */
+export const PARTIAL_RUN_COMPLETIONS = [
+  "budget_exhausted",
+  "aborted",
+  "truncated",
+] as const satisfies readonly RunCompletion[];
+
+/**
+ * True when an abort came from a timer (`AbortSignal.timeout`, which the
+ * poller uses for the run budget) rather than from shutdown.
+ */
+export const isTimeoutAbort = (signal: AbortSignal | undefined): boolean =>
+  signal?.aborted === true &&
+  signal.reason instanceof DOMException &&
+  signal.reason.name === "TimeoutError";
+
+/**
  * What kind of trouble failed a run, orthogonal to the phase envelope
  * (`failure_phase`/`failure_code` say *where*, this says *what*). The poller
  * and dashboard use it to tell a block from a timeout from a parser break.
