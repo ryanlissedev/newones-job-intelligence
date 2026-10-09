@@ -1,0 +1,63 @@
+bun test v1.4.2 (744846f84)
+
+packages/search/src/adapter.spec.ts:
+(pass) SearchAdapter > covers AE1 with stable hit IDs across repeated searches [4.86ms]
+(pass) SearchAdapter > returns structured syntax errors without calling the engine search path [0.23ms]
+(pass) SearchAdapter > returns empty index count 0 and empty facets with reason [0.47ms]
+(pass) SearchAdapter > uses result cache keyed by ast hash, index version, and filters [1.40ms]
+(pass) SearchAdapter > does not share cached hits between legacy-delimiter-colliding ASTs (RJC-427) [3.19ms]
+(pass) SearchAdapter > treats empty and whitespace-only queries as cached match-all browse requests (RJC-430) [2.87ms]
+(pass) SearchAdapter > preserves incomplete hits and facets without caching them, then retries (RJC-431) [1.15ms]
+(pass) SearchAdapter > does not cache an incomplete timeout with zero hits (RJC-431) [0.81ms]
+(pass) SearchAdapter hybrid mode > enables the environment flag strictly for the value 1 [0.05ms]
+(pass) SearchAdapter hybrid mode > passes hybrid only for positive free text without negation [0.93ms]
+(pass) SearchAdapter hybrid mode > separates cached results between lexical and hybrid mode [0.88ms]
+(pass) SearchAdapter pagination > keys the cache per page and sort, and passes the window through [1.96ms]
+(pass) SearchAdapter cache provenance (RJC-388) > marks a fresh search miss and a cached repeat hit [0.51ms]
+(pass) SearchAdapter canonical AST sent to engine (RJC-388) > feeds the engine AE1's query canonicalized with NOT last, positives sorted [0.49ms]
+(pass) SearchAdapter facets cache > reuses page 0's facets for later pages, ignoring what the engine returns for them [1.00ms]
+(pass) SearchAdapter singleflight (RJC-388) > coalesces concurrent identical searches into one engine call [6.20ms]
+(pass) SearchAdapter singleflight (RJC-388) > does not let a failed flight poison the next call [0.87ms]
+(skip) SearchAdapter canonical execution (live, RJC-388) > (unnamed)
+(skip) SearchAdapter canonical execution (live, RJC-388) > two AND permutations of the same terms return identical ordered ids, cold and cached
+(skip) SearchAdapter canonical execution (live, RJC-388) > X NOT Y and a NOT-first-equivalent permutation match a raw-ast engine.search of the original query
+
+packages/search/src/facet-skip.spec.ts:
+(pass) facet cache skips engine aggregations > asks for facets on a facet-cache miss and skips them on a hit [0.87ms]
+(pass) facet cache skips engine aggregations > the in-memory engine returns empty facets when they are skipped [0.16ms]
+(pass) Manticore engine facet skip > sends the terms aggregations by default [1.09ms]
+(pass) Manticore engine facet skip > drops the aggregations when facets are not wanted [0.10ms]
+
+packages/search/src/cache/version-pin-hit-rate.spec.ts:
+(pass) search cache hit rate under projector churn > replaying the measured burst/plateau churn [65.44ms]
+(pass) search cache hit rate under projector churn > under sustained ingestion [70.82ms]
+
+packages/search/src/cache/version-pin.spec.ts:
+(pass) SearchVersionPin > waits on the store only for the very first version [0.27ms]
+(pass) SearchVersionPin > refreshes in the background once the refresh interval has passed [0.14ms]
+(pass) SearchVersionPin > re-pins a newer sequence only after the minimum pin age [0.35ms]
+(pass) SearchVersionPin > keeps the pin when the sequence is unchanged, however old it is [0.09ms]
+(pass) SearchVersionPin > re-pins a new generation immediately [0.08ms]
+(pass) SearchVersionPin > keeps serving the last version when a background read fails [0.14ms]
+(pass) SearchVersionPin > surfaces a failed first read and retries on the next call [0.07ms]
+(pass) SearchVersionPin > shares one in-flight read between concurrent callers [0.07ms]
+
+packages/search/src/manticore/archive-count.spec.ts:
+(pass) archive count degrades, never fails the search (RJC-383) > count succeeds → archiveTotal is the number [0.37ms]
+{"error":"archive table exploded","event":"search.archive_count_failed","index":"aanvragen_archive","timeoutMs":2000}
+(pass) archive count degrades, never fails the search (RJC-383) > count rejects → search resolves with archiveTotal null and emptyReason untouched [0.18ms]
+{"error":"Manticore request to /search timed out after 2000ms","event":"search.archive_count_failed","index":"aanvragen_archive","timeoutMs":2000}
+(pass) archive count degrades, never fails the search (RJC-383) > count hangs → the engine's own budget cuts it and the search resolves within it [2001.57ms]
+(pass) archive count degrades, never fails the search (RJC-383) > scope all issues no count at all [0.32ms]
+(pass) FetchManticoreEffectClient per-request timeout > aborts a hanging fetch at the request's own timeoutMs, not the client default [22.12ms]
+
+3 tests skipped:
+(skip) SearchAdapter canonical execution (live, RJC-388) > (unnamed)
+(skip) SearchAdapter canonical execution (live, RJC-388) > two AND permutations of the same terms return identical ordered ids, cold and cached
+(skip) SearchAdapter canonical execution (live, RJC-388) > X NOT Y and a NOT-first-equivalent permutation match a raw-ast engine.search of the original query
+
+ 36 pass
+ 3 skip
+ 0 fail
+ 169 expect() calls
+Ran 39 tests across 5 files. [2.32s]
