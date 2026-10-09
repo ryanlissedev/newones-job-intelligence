@@ -12,6 +12,7 @@ import { hostname } from "node:os";
  * 900 s task ceiling to hit. Draining the search outbox stays with the on-box
  * projector (SEARCH_PROJECTOR is pinned to onbox).
  */
+import { hostGateHoldsStart } from "@ji/application/bronnen";
 import {
   createAlertEscalator,
   createWebhookAlertSink,
@@ -61,6 +62,7 @@ import {
   byLongestWaiting,
   dueCandidates,
   loadPollCandidates,
+  partitionByHostGate,
   partitionByLiveFlag,
 } from "./schedule";
 import { createSourceHealthCallbacks } from "./source-health";
@@ -456,7 +458,18 @@ const main = async (): Promise<void> => {
                     reason: "not_live",
                   });
                 }
-                const due = live.toSorted(byLongestWaiting);
+                const nextEvaluationAt = new Date(evaluatedAt + tickMs);
+                const { held, ready } = partitionByHostGate(live, (bronId) =>
+                  // SAFETY: candidate bronIds come from curated.bron (uuid primary key).
+                  hostGateHoldsStart(bronId as BronId, nextEvaluationAt)
+                );
+                for (const candidate of held) {
+                  logLine(process.stdout, "poller_source_skipped", {
+                    bronSlug: candidate.bronSlug,
+                    reason: "host_gate",
+                  });
+                }
+                const due = ready.toSorted(byLongestWaiting);
                 logLine(process.stdout, "poller_cycle", {
                   due: due.length,
                   durationMs: evaluatedAt - lastEvaluatedAt,

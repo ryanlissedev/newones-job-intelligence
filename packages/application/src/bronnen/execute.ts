@@ -1,12 +1,13 @@
 import {
   awaitWithSignal,
-  CrawlDelayLimiter,
   fullJitter,
+  HostGate,
   runConnector,
 } from "@ji/connectors";
 import type {
   Connector,
   ConnectorRunResult,
+  HostGateSnapshot,
   ConnectorRunInput,
   ObjectStore,
   ObservationRecorder,
@@ -53,15 +54,21 @@ export interface ExecuteBronRunInput {
 
 interface ActiveLimiter {
   activeRuns: number;
+  /** The gate that owns this bron's host state (pauses, circuit). */
+  gate: HostGate;
   limiter: RequestLimiter;
   policy: LimiterPolicy;
-  replacementLimiter?: CrawlDelayLimiter;
+  replacementLimiter?: HostGate;
 }
 
+/**
+ * One HostGate per bron for the life of the process, so 429 pauses and an
+ * open circuit carry over from one run to the next.
+ */
 const activeLimiters = new Map<BronId, ActiveLimiter>();
 
 type LimiterPolicy = Pick<
-  ConstructorParameters<typeof CrawlDelayLimiter>[0],
+  ConstructorParameters<typeof HostGate>[0],
   "crawlDelayMs" | "rateLimitPerMinute"
 >;
 
@@ -74,7 +81,7 @@ const hasSamePolicy = (
 
 const transitionLimiterPolicy = (
   previous: RequestLimiter,
-  next: CrawlDelayLimiter
+  next: HostGate
 ): RequestLimiter => {
   let previousWindow: Promise<void> | undefined;
   return {
@@ -86,12 +93,13 @@ const transitionLimiterPolicy = (
       await awaitWithSignal(previousWindow, signal);
       await next.acquire(bronId, signal);
     },
+    report: (bronId, signal) => next.report(bronId, signal),
   };
 };
 
 const acquireLimiter = (
   bronId: BronId,
-  options: ConstructorParameters<typeof CrawlDelayLimiter>[0]
+  options: ConstructorParameters<typeof HostGate>[0]
 ): ActiveLimiter => {
   const activeLimiter = activeLimiters.get(bronId);
   if (activeLimiter) {
@@ -103,9 +111,10 @@ const acquireLimiter = (
       if (activeLimiter.activeRuns > 0) {
         throw new Error("bron limiter policy changed during an active run");
       }
-      const replacementLimiter = new CrawlDelayLimiter(options);
+      const replacementLimiter = new HostGate(options);
       const refreshed = {
         activeRuns: 1,
+        gate: replacementLimiter,
         limiter: transitionLimiterPolicy(
           activeLimiter.limiter,
           replacementLimiter
@@ -119,9 +128,11 @@ const acquireLimiter = (
     activeLimiter.activeRuns += 1;
     return activeLimiter;
   }
+  const gate = new HostGate(options);
   const created = {
     activeRuns: 1,
-    limiter: new CrawlDelayLimiter(options),
+    gate,
+    limiter: gate,
     policy: {
       crawlDelayMs: options.crawlDelayMs,
       rateLimitPerMinute: options.rateLimitPerMinute,
@@ -129,6 +140,27 @@ const acquireLimiter = (
   };
   activeLimiters.set(bronId, created);
   return created;
+};
+
+/**
+ * The host gate state of a bron this process has run, or null when it has
+ * not run it yet. The poller reads it to skip a source whose circuit is open
+ * or whose host asked for a pause, instead of starting a run that would only
+ * wait or fail at once.
+ */
+export const hostGateSnapshot = (bronId: BronId): HostGateSnapshot | null =>
+  activeLimiters.get(bronId)?.gate.snapshot(bronId) ?? null;
+
+/** True while a bron's host refuses new runs: circuit open, or paused past `until`. */
+export const hostGateHoldsStart = (bronId: BronId, until: Date): boolean => {
+  const snapshot = hostGateSnapshot(bronId);
+  if (!snapshot) {
+    return false;
+  }
+  return (
+    snapshot.circuit === "open" ||
+    (snapshot.pausedUntil !== null && snapshot.pausedUntil > until)
+  );
 };
 
 const releaseLimiter = (activeLimiter: ActiveLimiter): void => {

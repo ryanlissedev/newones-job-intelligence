@@ -1,7 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import path from "node:path";
 
-import { PostgresAlertStore } from "@ji/db/bron-health-stores";
+import {
+  PostgresAlertStore,
+  recordHostCircuitStatus,
+} from "@ji/db/bron-health-stores";
 import { PostgresPollerHealthTelemetryStore } from "@ji/db/poller-health-telemetry-store";
 import { alert, bron, bronHealth, scrapeRun } from "@ji/db/schema/curated";
 import * as schema from "@ji/db/schema/index";
@@ -288,5 +291,53 @@ describe
         .from(scrapeRun)
         .where(eq(scrapeRun.id, ownedRunId));
       expect(failedRun).toEqual({ completion: null, status: "failed" });
+    });
+
+    it("persists the host-gate circuit on bron_health and leaves the rest of the row alone", async () => {
+      const readHealth = async () => {
+        const [row] = await database
+          .select({
+            activeRunId: bronHealth.activeRunId,
+            circuitStatus: bronHealth.circuitStatus,
+            lastRunStatus: bronHealth.lastRunStatus,
+          })
+          .from(bronHealth)
+          .where(eq(bronHealth.bronId, bronId));
+        if (!row) {
+          throw new Error("bron_health row missing for the spec bron");
+        }
+        return row;
+      };
+      const before = await readHealth();
+      await recordHostCircuitStatus(database, bronId, "open");
+      expect(await readHealth()).toEqual({ ...before, circuitStatus: "open" });
+      await recordHostCircuitStatus(database, bronId, "closed");
+      expect(await readHealth()).toEqual({
+        ...before,
+        circuitStatus: "closed",
+      });
+
+      // A bron that never ran gets a health row carrying just the circuit.
+      const freshBronId = crypto.randomUUID();
+      await database.insert(bron).values({
+        categorie: "test",
+        id: freshBronId,
+        naam: `health-circuit-${freshBronId.slice(0, 8)}`,
+        status: "ready",
+        voorwaardenStatus: "toegestaan",
+      });
+      try {
+        await recordHostCircuitStatus(database, freshBronId, "open");
+        const [fresh] = await database
+          .select({ circuitStatus: bronHealth.circuitStatus })
+          .from(bronHealth)
+          .where(eq(bronHealth.bronId, freshBronId));
+        expect(fresh).toEqual({ circuitStatus: "open" });
+      } finally {
+        await database
+          .delete(bronHealth)
+          .where(eq(bronHealth.bronId, freshBronId));
+        await database.delete(bron).where(eq(bron.id, freshBronId));
+      }
     });
   });

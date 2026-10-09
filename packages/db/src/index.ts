@@ -29,6 +29,7 @@ export {
   PostgresAlertStore,
   PostgresBronHealthStore,
   querySilenceBaselineSamples,
+  recordHostCircuitStatus,
   type AlertDatabase,
   type BronHealthDatabase,
 } from "./bron-health-stores";

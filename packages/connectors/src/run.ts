@@ -24,7 +24,8 @@ import type {
   DiscoverItem,
 } from "./contract";
 import { isAbortLike, isReadIoFault } from "./effect-runtime/faults";
-import type { RequestLimiter } from "./limiter";
+import { gateSignalOf, isHostBlockedError } from "./host-gate";
+import type { GateSignal, RequestLimiter } from "./limiter";
 import {
   buildContentAddressedRawObjectPath,
   hashContent,
@@ -212,6 +213,19 @@ const retryRequest = async <Result>(
   }
 };
 
+const GATE_OK: GateSignal = { kind: "ok" };
+
+/**
+ * A 403 or bot challenge is an answer, not a hiccup: retrying the URL only
+ * hammers a host that already refused us. The limiter (HostGate) decides
+ * when the host may be asked again.
+ */
+const withoutBlockedRetries = (policy: RetryPolicy): RetryPolicy => ({
+  ...policy,
+  retryable: (error) =>
+    !isHostBlockedError(error) && (policy.retryable?.(error) ?? true),
+});
+
 const request = <Result>(
   operation: () => Promise<Result>,
   bronId: BronId,
@@ -223,15 +237,26 @@ const request = <Result>(
   const limitedOperation = async (): Promise<Result> => {
     try {
       await limiter.acquire(bronId, signal);
-      return await operation();
+      const result = await operation();
+      limiter.report?.(bronId, GATE_OK);
+      return result;
     } catch (error) {
       if (isRunAbort(error, signal)) {
         throw new ConnectorRequestAbortedError(error);
       }
+      const gateSignal = gateSignalOf(error);
+      if (gateSignal) {
+        limiter.report?.(bronId, gateSignal);
+      }
       throw error;
     }
   };
-  return retryRequest(limitedOperation, retryPolicy, wait, signal);
+  return retryRequest(
+    limitedOperation,
+    withoutBlockedRetries(retryPolicy),
+    wait,
+    signal
+  );
 };
 
 const isAborted = (signal: AbortSignal | undefined): boolean =>
