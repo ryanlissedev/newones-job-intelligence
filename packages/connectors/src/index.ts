@@ -53,6 +53,8 @@ export {
   type HostGatePolicy,
   type HostGateSnapshot,
 } from "./host-gate";
+export { FetchRateCap, withFetchRateCap } from "./fetch-rate-cap";
+export type { FetchRateCapOptions } from "./fetch-rate-cap";
 export {
   classifyRunFailure,
   PARTIAL_RUN_COMPLETIONS,

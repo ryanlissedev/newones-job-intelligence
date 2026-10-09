@@ -290,10 +290,14 @@ services:
       POLLER_DATABASE_URL: ${POLLER_DATABASE_URL:-${CATAPULZE_DATABASE_URL:?CATAPULZE_DATABASE_URL is required}}
       POLLER_TICK_MS: ${POLLER_TICK_MS:-60000}
       POLLER_CURATE_BUDGET_MS: ${POLLER_CURATE_BUDGET_MS:-120000}
-      # Sources polled side by side per cycle. Politeness per host is unchanged:
-      # crawl_delay_ms still paces requests inside one source. Also the ceiling
-      # on concurrent curate drains against Postgres, one per source in flight.
-      POLLER_CONCURRENCY: ${POLLER_CONCURRENCY:-2}
+      # Sources in flight at once. Politeness per host is unchanged: each
+      # source's HostGate (crawl_delay_ms, 429 pauses, 403 circuit) still paces
+      # its own requests, and POLLER_FETCHES_PER_SECOND caps the process total.
+      POLLER_CONCURRENCY: ${POLLER_CONCURRENCY:-8}
+      # Request starts per second across all sources together.
+      POLLER_FETCHES_PER_SECOND: ${POLLER_FETCHES_PER_SECOND:-8}
+      # Curation drains against Postgres at once, independent of the slots.
+      POLLER_CURATE_CONCURRENCY: ${POLLER_CURATE_CONCURRENCY:-2}
       # A scrape run still `running` after this is failed at the top of a cycle;
       # a process killed mid-run would otherwise leave the row running forever.
       POLLER_ABANDON_RUN_AFTER_MS: ${POLLER_ABANDON_RUN_AFTER_MS:-21600000}

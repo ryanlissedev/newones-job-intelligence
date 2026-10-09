@@ -41,6 +41,13 @@ export const ABANDON_RUN_AFTER_MS_DEFAULT = 6 * 60 * 60 * 1000;
  */
 export const RUN_BUDGET_MS_DEFAULT = 60 * 60 * 1000;
 
+/** Sources in flight at once (was 2 fixed slots). */
+export const POLLER_CONCURRENCY_DEFAULT = 8;
+/** Process-wide request starts per second across all sources. */
+export const POLLER_FETCHES_PER_SECOND_DEFAULT = 8;
+/** Concurrent curation drains: the old slot count, so DB pressure is unchanged. */
+export const POLLER_CURATE_CONCURRENCY_DEFAULT = 2;
+
 export const resolvePollRunStaleAfterMs = (
   value: string | undefined = process.env.POLLER_ABANDON_RUN_AFTER_MS
 ): number => {
@@ -106,17 +113,29 @@ export const pollerEnvEffectSchemas = {
     "POLLER_ABANDON_RUN_AFTER_MS"
   ),
   /**
-   * How many sources the cycle may poll at once. Politeness per host is
-   * unaffected: `crawl_delay_ms` still paces requests inside one source.
+   * How many sources may be in flight at once. Politeness per host is
+   * unaffected: each bron's HostGate still paces its own requests, and
+   * POLLER_FETCHES_PER_SECOND caps the process total. Long sources leave one
+   * slot free for short ones (`maxLongInFlight`).
    */
   POLLER_CONCURRENCY: positiveIntegerWithDefault(
-    2,
+    POLLER_CONCURRENCY_DEFAULT,
     "POLLER_CONCURRENCY",
     "concurrent sources"
   ),
   POLLER_CURATE_BUDGET_MS: millisecondsWithDefault(
     120_000,
     "POLLER_CURATE_BUDGET_MS"
+  ),
+  /**
+   * Curation drains that may run against Postgres at once. Kept at the old
+   * slot count so going to more sources in flight does not multiply database
+   * pressure; a source waiting for a curation slot holds its own run slot.
+   */
+  POLLER_CURATE_CONCURRENCY: positiveIntegerWithDefault(
+    POLLER_CURATE_CONCURRENCY_DEFAULT,
+    "POLLER_CURATE_CONCURRENCY",
+    "concurrent curation drains"
   ),
   POLLER_DATABASE_URL: directDatabaseUrlEffectSchema("POLLER_DATABASE_URL"),
   /**
@@ -132,6 +151,15 @@ export const pollerEnvEffectSchemas = {
           "POLLER_DURABLE_BRONNEN must be a comma-separated list of source slugs",
       })
     )
+  ),
+  /**
+   * Process-wide ceiling on request starts per second across every source.
+   * Each bron's own crawl delay still applies first.
+   */
+  POLLER_FETCHES_PER_SECOND: positiveIntegerWithDefault(
+    POLLER_FETCHES_PER_SECOND_DEFAULT,
+    "POLLER_FETCHES_PER_SECOND",
+    "requests per second"
   ),
   /**
    * Rows deleted per cycle at most, so a prune never holds the outbox write
@@ -203,11 +231,17 @@ const createPollerEnv = () =>
       POLLER_CURATE_BUDGET_MS: toEnvSchema(
         pollerEnvEffectSchemas.POLLER_CURATE_BUDGET_MS
       ),
+      POLLER_CURATE_CONCURRENCY: toEnvSchema(
+        pollerEnvEffectSchemas.POLLER_CURATE_CONCURRENCY
+      ),
       POLLER_DATABASE_URL: toEnvSchema(
         pollerEnvEffectSchemas.POLLER_DATABASE_URL
       ),
       POLLER_DURABLE_BRONNEN: toEnvSchema(
         pollerEnvEffectSchemas.POLLER_DURABLE_BRONNEN
+      ),
+      POLLER_FETCHES_PER_SECOND: toEnvSchema(
+        pollerEnvEffectSchemas.POLLER_FETCHES_PER_SECOND
       ),
       POLLER_OUTBOX_PRUNE_BATCH: toEnvSchema(
         pollerEnvEffectSchemas.POLLER_OUTBOX_PRUNE_BATCH

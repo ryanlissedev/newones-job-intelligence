@@ -146,6 +146,12 @@ export interface PollBronRuntime {
     circuitStatus: "closed" | "open"
   ) => Promise<void>;
   runLifecycleStore: RunLifecycleStore;
+  /**
+   * Bounds concurrent curation drains across the process. The poller sets it
+   * so eight sources in flight do not mean eight drains against Postgres.
+   * Unset runs the drain directly.
+   */
+  withCurationSlot?: <T>(work: () => Promise<T>) => Promise<T>;
   withSourceHealthTransaction: <T>(
     runOperation: (stores: {
       alerts: AlertStore;
@@ -154,6 +160,8 @@ export interface PollBronRuntime {
     }) => Promise<T>
   ) => Promise<T>;
 }
+
+const runWithoutSlot = <T>(work: () => Promise<T>): Promise<T> => work();
 
 export const createPollBronRuntime = (
   databaseUrl: string,
@@ -925,28 +933,31 @@ export const runBronIngestPipeline = async (
         },
         options.signal
       );
-      const curateResult = await curateScrapeRun({
-        bronId: pollResult.bronId,
-        bronSlug: pollResult.bronSlug,
-        database: runtime.database,
-        objectStore: runtime.objectStore,
-        onProgress: options.onCurationProgress
-          ? () =>
-              reportTelemetryCallback(
-                options.onCurationProgress,
-                pollResult,
-                {
-                  bronId: pollResult.bronId,
-                  bronSlug: pollResult.bronSlug,
-                  scrapeRunId: pollResult.scrapeRunId,
-                  telemetryPhase: "curation_progress",
-                },
-                options.signal
-              )
-          : undefined,
-        scrapeRunId: pollResult.scrapeRunId,
-        signal: options.signal,
-      });
+      const curate = runtime.withCurationSlot ?? runWithoutSlot;
+      const curateResult = await curate(() =>
+        curateScrapeRun({
+          bronId: pollResult.bronId,
+          bronSlug: pollResult.bronSlug,
+          database: runtime.database,
+          objectStore: runtime.objectStore,
+          onProgress: options.onCurationProgress
+            ? () =>
+                reportTelemetryCallback(
+                  options.onCurationProgress,
+                  pollResult,
+                  {
+                    bronId: pollResult.bronId,
+                    bronSlug: pollResult.bronSlug,
+                    scrapeRunId: pollResult.scrapeRunId,
+                    telemetryPhase: "curation_progress",
+                  },
+                  options.signal
+                )
+            : undefined,
+          scrapeRunId: pollResult.scrapeRunId,
+          signal: options.signal,
+        })
+      );
 
       const drainSummary = await drainOrDeferToProjector(runtime);
 
