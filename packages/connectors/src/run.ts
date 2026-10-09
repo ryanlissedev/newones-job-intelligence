@@ -371,6 +371,11 @@ const runConnectorInner = async (
     item: DiscoverItem,
     itemObservedAt: Date
   ): Promise<void> => {
+    // Before the limiter: an unchanged page must not cost a crawl-delay slot.
+    if (connector.skipFetch && (await connector.skipFetch(item))) {
+      await reportProgress("fetch");
+      return;
+    }
     const fetched = await withFailureEnvelope(
       () =>
         timeCriticalPathPhase("ingest-fetch", () =>
