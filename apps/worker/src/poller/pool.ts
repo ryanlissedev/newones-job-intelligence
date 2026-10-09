@@ -80,8 +80,21 @@ export interface ContinuousSchedulerOptions<Item> {
   readonly dueItems: (context: {
     inFlight: number;
   }) => Promise<readonly Item[]>;
+  /**
+   * Marks an item whose run is known to hold its slot for hours (a source
+   * with its own raised run budget). Together with `maxLongInFlight` this
+   * keeps long crawls from taking every slot. Omitted: no item is long.
+   */
+  readonly isLong?: (item: Item) => boolean;
   /** Stable identity; used to keep one active run per item. */
   readonly keyOf: (item: Item) => string;
+  /**
+   * Max long items in flight at once. A due long item past this cap is left
+   * for a later evaluation and the slot goes to the next short item, so short
+   * sources always keep `concurrency - maxLongInFlight` slots. Ignored when
+   * `isLong` is omitted.
+   */
+  readonly maxLongInFlight?: number;
   /**
    * Periodic maintenance hook (stale-run repair, outbox prune) invoked at
    * the top of every evaluation. The caller decides the actual cadence —
@@ -127,7 +140,9 @@ export const runContinuously = async <Item>(
   const {
     concurrency,
     dueItems,
+    isLong,
     keyOf,
+    maxLongInFlight,
     onRunError,
     onTick,
     run,
@@ -137,6 +152,8 @@ export const runContinuously = async <Item>(
   const inFlightKeys = new Set<string>();
   const inFlightRuns = new Set<Promise<null>>();
   const maxInFlight = Math.max(1, Math.floor(concurrency));
+  const longCap = Math.max(1, Math.floor(maxLongInFlight ?? maxInFlight));
+  let longInFlight = 0;
 
   while (!signal.aborted) {
     // oxlint-disable-next-line no-await-in-loop -- maintenance and candidate reads must not overlap
@@ -150,6 +167,13 @@ export const runContinuously = async <Item>(
       const key = keyOf(item);
       if (inFlightKeys.has(key)) {
         continue;
+      }
+      const long = isLong?.(item) ?? false;
+      if (long && longInFlight >= longCap) {
+        continue;
+      }
+      if (long) {
+        longInFlight += 1;
       }
       inFlightKeys.add(key);
       const tracked = Promise.withResolvers<null>();
@@ -167,6 +191,9 @@ export const runContinuously = async <Item>(
             // A broken reporter must never reject the tracked run.
           }
         } finally {
+          if (long) {
+            longInFlight -= 1;
+          }
           inFlightRuns.delete(tracked.promise);
           inFlightKeys.delete(key);
           tracked.resolve(null);
