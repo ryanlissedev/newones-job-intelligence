@@ -1,6 +1,6 @@
 # Scrape-architecture PR6: 8 sources in flight, a global fetch/s cap and a curation cap
 
-Recorded 2026-10-09 ~11:00 CEST on the box. No network beyond 127.0.0.1.
+Recorded 2026-10-09 ~09:15 CEST on the box (fetch-cap run repeated ~10:30 CEST after the bot-review fixes: same numbers). No network beyond 127.0.0.1.
 
 ## 1. Round time: replay of the measured run durations (`replay-harness.ts`)
 
@@ -60,6 +60,11 @@ Without the cap, eight sources start about 85 requests per second together. With
 `POLLER_FETCHES_PER_SECOND=8` the box starts 8.1 per second. A window of exactly 1 s
 can hold the endpoints of 8 intervals of 125 ms (9 starts), so the peak of 9 is the
 spacing plus timer jitter, not a burst.
+
+### After the review fixes
+
+- A request the cap held now reports its real start to its HostGate (`RequestLimiter.started`). The crawl delay therefore separates actual starts, not reservations (`fetch-rate-cap.spec`: held at 1000 ms → next start at 3000 ms, not 2000 ms).
+- The inline curation pass after a poll only takes a free slot (`SlotLimit.tryRun`). When none is free it is skipped, and the poller's backlog drain counts and curates under its own budget (`discovery-floor-pipeline.spec`: slot held → `curationDeferred`, 2 awaiting → drain curates 2; on the pre-fix code that test hangs at the slot).
 
 ## Not measured here
 
