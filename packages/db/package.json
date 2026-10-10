@@ -16,9 +16,9 @@
     "check-types": "PATH=\"./node_modules/.bin:$PATH\" tsc --noEmit",
     "db:push": "PATH=\"./node_modules/.bin:$PATH\" drizzle-kit push",
     "db:generate": "PATH=\"./node_modules/.bin:$PATH\" drizzle-kit generate",
-    "db:migrate:deploy": "PATH=\"./node_modules/.bin:$PATH\" drizzle-kit migrate",
+    "db:migrate:deploy": "PATH=\"./node_modules/.bin:$PATH\" bun ./src/migration-ownership-preflight.ts && PATH=\"./node_modules/.bin:$PATH\" drizzle-kit migrate",
     "db:studio": "PATH=\"./node_modules/.bin:$PATH\" drizzle-kit studio",
-    "db:migrate": "PATH=\"./node_modules/.bin:$PATH\" drizzle-kit migrate"
+    "db:migrate": "PATH=\"./node_modules/.bin:$PATH\" bun ./src/migration-ownership-preflight.ts && PATH=\"./node_modules/.bin:$PATH\" drizzle-kit migrate"
   },
   "dependencies": {
     "@ji/application": "workspace:*",
