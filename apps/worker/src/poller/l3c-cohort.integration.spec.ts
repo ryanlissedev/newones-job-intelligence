@@ -135,6 +135,13 @@ interface BronSpec {
    * resumes mid-listing instead of re-enumerating.
    */
   readonly abortOnItemFetch: number;
+  /**
+   * Aborts on attempt 1's read of this referentie instead of a call index.
+   * Fetch order follows `source_record.last_fetched_at`, so a source with a
+   * never-stored reject (flinter) reads it first once its persisting item
+   * has history: an index would land on a different item per test order.
+   */
+  readonly abortOnReferentie?: string;
   readonly bronId: string;
   readonly bronSlug: SliceABronSlug;
   readonly categorie: string;
@@ -170,11 +177,12 @@ const CTM: BronSpec = {
   repeatRunWritesObservations: false,
 };
 const FLINTER: BronSpec = {
-  // vergunningverlener-agrarisch is the first (and only persisting) item:
-  // the abort lands inside its raw-store write, so nothing persists before
-  // it — the retake writes it fresh. Replay absorption for flinter is
-  // pinned in the connector spec with a scripted 3-item corpus.
+  // vergunningverlener-agrarisch is the only persisting item: the abort
+  // lands inside its raw-store write, so nothing persists before it — the
+  // retake writes it fresh. Replay absorption for flinter is pinned in the
+  // connector spec with a scripted 3-item corpus.
   abortOnItemFetch: 1,
+  abortOnReferentie: "vergunningverlener-agrarisch",
   bronId: "00000000-0000-4000-8000-00000000000a",
   bronSlug: "flinter",
   categorie: "overheidsportaal",
@@ -271,6 +279,8 @@ interface ScriptOptions {
    * `BronSpec.abortOnItemFetch`).
    */
   readonly abortOnItemFetch?: number;
+  /** See `BronSpec.abortOnReferentie`; replaces the call index when set. */
+  readonly abortOnReferentie?: string;
   readonly attemptControllers?: AbortController[];
   /** Per-adapter call log: connector fetches (ctm) or detail reads (others). */
   readonly detailCalls?: string[];
@@ -560,7 +570,12 @@ describe.serial(
       const flinterClient: FlinterClient = {
         fetchDetailHtml: async (slug) => {
           options.detailCalls?.push(slug);
-          if (options.abortOnItemFetch === options.detailCalls?.length) {
+          const abortHere =
+            options.abortOnReferentie === undefined
+              ? options.abortOnItemFetch === options.detailCalls?.length
+              : options.abortOnReferentie === slug &&
+                options.attemptControllers?.length === 1;
+          if (abortHere) {
             options.attemptControllers?.at(-1)?.abort();
           }
           const html = await fixtureClient.fetchDetailHtml(slug);
@@ -1137,6 +1152,7 @@ describe.serial(
           connector: () =>
             scopedFixtureConnector(spec, {
               abortOnItemFetch: spec.abortOnItemFetch,
+              abortOnReferentie: spec.abortOnReferentie,
               attemptControllers,
               detailCalls,
               listingCalls,
@@ -1208,9 +1224,16 @@ describe.serial(
           // Both attempts read the single-page listing once; item fetches
           // ran up to the abort index plus the full corpus on the retake.
           expect(listingCalls).toEqual([1, 1]);
-          expect(detailCalls.length).toBe(
-            spec.abortOnItemFetch + spec.discoveredReferenties.length
-          );
+          const retake = spec.discoveredReferenties.length;
+          if (spec.abortOnReferentie === undefined) {
+            expect(detailCalls.length).toBe(spec.abortOnItemFetch + retake);
+          } else {
+            // Attempt 1 stopped on the scripted item; attempt 2 read all.
+            expect(detailCalls.at(-retake - 1)).toBe(spec.abortOnReferentie);
+            expect(detailCalls.slice(-retake).toSorted()).toEqual(
+              spec.discoveredReferenties.toSorted()
+            );
+          }
         }
 
         const counts = await runRows(job.scrapeRunId);

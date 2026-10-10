@@ -225,6 +225,13 @@
       "when": 1790553600000,
       "tag": "0031_hot_path_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1790640000000,
+      "tag": "0032_source_fetch_history",
+      "breakpoints": true
     }
   ]
 }

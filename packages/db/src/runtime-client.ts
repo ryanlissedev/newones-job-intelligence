@@ -8,6 +8,7 @@ import {
 } from "./bron-runtime";
 import { PostgresKnownHashStore } from "./known-hash-store";
 import { createPostgresLifecyclePorts } from "./missed-polls-store";
+import { PostgresResumeOrderLookup } from "./resume-order-store";
 import * as schema from "./schema";
 
 export const createBronRuntimeClient = (
@@ -26,6 +27,8 @@ export const createBronRuntimeClient = (
     bronPersistence: new PostgresBronPersistence(database),
     close: (): Promise<void> => sqlClient.end({ timeout: 5 }),
     database,
+    /** Last fetch time per record; pass as `executeBronRun({ resumeOrder })` so budget-cut crawls resume. */
+    fetchHistory: new PostgresResumeOrderLookup(database),
     knownHashStore: new PostgresKnownHashStore(database),
     /** RJC-397: pass as `executeBronRun({ lifecycle })` so poll runs count missed polls. */
     lifecycle: createPostgresLifecyclePorts(database),

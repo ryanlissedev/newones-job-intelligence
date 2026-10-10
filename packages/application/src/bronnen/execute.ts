@@ -7,6 +7,7 @@ import {
   withFetchRateCap,
 } from "@ji/connectors";
 import type {
+  ResumeOrderLookup,
   Connector,
   ConnectorRunResult,
   HostGateSnapshot,
@@ -39,6 +40,11 @@ export interface ExecuteBronRunInput {
   observationRecorder: ObservationRecorder;
   runLifecycleStore: RunLifecycleStore;
   runKind?: ConnectorRunKind;
+  /**
+   * Poll runs fetch never-fetched and longest-unfetched items first when
+   * this is present, so a budget cut resumes on the next run.
+   */
+  resumeOrder?: ResumeOrderLookup;
   /**
    * RJC-397: when present, poll runs reconcile `missed_polls` against the
    * observed listing after the connector run and write stale/reopen
@@ -203,9 +209,10 @@ const releaseLimiter = (activeLimiter: ActiveLimiter): void => {
  * operator close (rare, accepted).
  */
 const guardEmptyListing = (result: ConnectorRunResult): RunCompleteness =>
-  result.completeness.complete && result.observedBronReferenties.length === 0
+  result.discoveryCompleteness.complete &&
+  result.observedBronReferenties.length === 0
     ? { complete: false, reason: "empty" }
-    : result.completeness;
+    : result.discoveryCompleteness;
 
 export interface ExecuteBronRunResult extends ConnectorRunResult {
   /** Null when no lifecycle ports were supplied or the run was not a poll. */
@@ -258,6 +265,8 @@ export const executeBronRun = async (
       observationRecorder: input.observationRecorder,
       onProgress: input.onProgress,
       rawRetentionDays: record.retentionDays,
+      // Only poll runs reorder their fetches; a test import keeps listing order.
+      resumeOrder: runKind === "poll" ? input.resumeOrder : undefined,
       retryPolicy,
       runKind,
       runLifecycleStore: input.runLifecycleStore,
@@ -272,7 +281,9 @@ export const executeBronRun = async (
   }
 
   // A failed run threw above and never reaches this point, so a result here
-  // means the listing was read; `completeness` says whether all of it was.
+  // means the listing was read. Closure keys on whether the whole LISTING
+  // was discovered, not on whether every detail page was fetched: a budget
+  // cut during fetch still saw every listed reference.
   const lifecycle =
     input.lifecycle && runKind === "poll"
       ? await reconcileMissedPolls(input.lifecycle, {

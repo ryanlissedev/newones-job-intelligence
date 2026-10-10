@@ -51,6 +51,7 @@ export { curatedSchema, martsSchema, stagingSchema } from "./schemas";
 export {
   aanvraagObservation,
   aanvraagObservationRelations,
+  sourceFetchHistory,
   sourceRecord,
   sourceRecordRelations,
 } from "./staging";

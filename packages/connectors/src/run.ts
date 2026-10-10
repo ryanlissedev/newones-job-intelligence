@@ -32,6 +32,8 @@ import {
 } from "./object-store";
 import type { ObjectStore } from "./object-store";
 import type { ObservationRecorder } from "./observation-recorder";
+import { orderForResume } from "./resume-order";
+import type { ResumeOrderLookup } from "./resume-order";
 import type { RetryPolicy, Sleep } from "./retry";
 import { withRetry } from "./retry";
 import { ConnectorRunFailure, RunOwnershipLostError } from "./run-lifecycle";
@@ -132,6 +134,12 @@ export interface ConnectorRunInput {
   bronSlug: string;
   checkpoint?: ConnectorCheckpoint | null;
   connector: Connector;
+  /**
+   * Optional: orders each page's fetches never-fetched first, then oldest
+   * fetch first, so a budget-cut run resumes where the last one stopped.
+   * Only used for connectors whose fetch hits the network.
+   */
+  resumeOrder?: ResumeOrderLookup;
   limiter: RequestLimiter;
   objectStore: ObjectStore;
   observationRecorder: ObservationRecorder;
@@ -177,7 +185,15 @@ export type RunIncompleteReason = Exclude<
 
 export interface ConnectorRunResult {
   checkpoint: ConnectorCheckpoint;
+  /** Whether every item of the listing was fetched (drives `completion`). */
   completeness: RunCompleteness;
+  /**
+   * Whether the whole LISTING was discovered, regardless of how many detail
+   * pages were fetched. Closure (missed-polls) keys on this: a run whose
+   * budget ran out while fetching the last page still saw every listed
+   * reference, so records it did not see really are gone.
+   */
+  discoveryCompleteness: RunCompleteness;
   fenceToken: number;
   metrics: ConnectorRunMetrics;
   /**
@@ -263,6 +279,10 @@ const request = <Result>(
     signal
   );
 };
+
+/** The stored, bounded key a discovered item is looked up and observed by. */
+const referenceOf = (item: DiscoverItem): string =>
+  boundBronReferentie(item.bronReferentie);
 
 const isAborted = (signal: AbortSignal | undefined): boolean =>
   signal?.aborted === true;
@@ -376,6 +396,10 @@ const runConnectorInner = async (
   const resumed = checkpoint !== null;
   let truncated = false;
   let aborted = false;
+  // Set once a discovery reports no further pages: the listing was read in full.
+  let listingDiscovered = false;
+  const discoveryCompleteness = (): RunCompleteness =>
+    resolveCompleteness(resumed, truncated, !listingDiscovered);
 
   const reportProgress = (phase: "fetch" | "persist"): Promise<void> =>
     input.onProgress?.({
@@ -412,6 +436,7 @@ const runConnectorInner = async (
     return {
       checkpoint: checkpoint ?? {},
       completeness,
+      discoveryCompleteness: discoveryCompleteness(),
       fenceToken: canonicalRun.fenceToken,
       metrics,
       observedBronReferenties: [...observedBronReferenties],
@@ -550,19 +575,65 @@ const runConnectorInner = async (
     await reportProgress("persist");
   };
 
-  /** Persists items in order; returns true when the signal cut the page short. */
+  // Fetch history only matters where a fetch costs a request.
+  const fetchHistory =
+    connector.fetchUsesNetwork === false ? undefined : input.resumeOrder;
+
+  /**
+   * The order this page is fetched in. With a history, never-processed and
+   * longest-unprocessed items go first; a failed lookup keeps listing order
+   * (ordering only decides what a budget cut loses, never correctness).
+   */
+  const resumeOrderFor = async (
+    items: readonly DiscoverItem[]
+  ): Promise<readonly DiscoverItem[]> => {
+    const lookup = fetchHistory;
+    if (!lookup || items.length < 2) {
+      return items;
+    }
+    try {
+      const lastFetched = await lookup.lastFetchedAt(
+        bronId,
+        items.map(referenceOf)
+      );
+      return orderForResume(items, lastFetched, referenceOf);
+    } catch {
+      return items;
+    }
+  };
+
+  /**
+   * Stamps an item as processed whatever the outcome (stored, skipped on a
+   * known hash, rejected), so it moves to the back of the next run's order.
+   * Best effort: a failed stamp only costs ordering.
+   */
+  const markFetched = async (item: DiscoverItem): Promise<void> => {
+    try {
+      await fetchHistory?.markFetched(bronId, referenceOf(item));
+    } catch {
+      // Ordering only; the run's own writes already succeeded.
+    }
+  };
+
+  /** Persists items in fetch order; returns true when the signal cut the page short. */
   const persistPage = async (
     items: readonly DiscoverItem[],
     at: Date
   ): Promise<boolean> => {
+    // CTP-500: missed-polls compares this set against stored keys. Every
+    // listed reference counts as seen once discovery returned it, fetched or
+    // not: the listing still shows it, so it is not missed.
     for (const item of items) {
+      observedBronReferenties.add(boundBronReferentie(item.bronReferentie));
+    }
+    for (const item of await resumeOrderFor(items)) {
       if (isAborted(signal)) {
         return true;
       }
-      // CTP-500: missed-polls compares this set against stored keys.
-      observedBronReferenties.add(boundBronReferentie(item.bronReferentie));
       // oxlint-disable-next-line no-await-in-loop -- crawl policy requires sequential fetches
       await persistItem(item, at);
+      // oxlint-disable-next-line no-await-in-loop -- stamped before the next fetch so a cut keeps it
+      await markFetched(item);
     }
     return false;
   };
@@ -589,6 +660,7 @@ const runConnectorInner = async (
       await reportProgress("fetch");
       metrics.found += discovery.items.length;
       truncated ||= discovery.truncated === true;
+      listingDiscovered ||= !discovery.hasMore;
 
       // oxlint-disable-next-line no-await-in-loop -- crawl policy requires sequential fetches
       const pageAborted = await persistPage(discovery.items, observedAt);
@@ -658,6 +730,7 @@ const runConnectorInner = async (
   return {
     checkpoint: checkpoint ?? {},
     completeness: resolveCompleteness(resumed, truncated, aborted),
+    discoveryCompleteness: discoveryCompleteness(),
     fenceToken: canonicalRun.fenceToken,
     metrics,
     observedBronReferenties: [...observedBronReferenties],
