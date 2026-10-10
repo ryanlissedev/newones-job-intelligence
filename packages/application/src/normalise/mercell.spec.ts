@@ -1,4 +1,11 @@
-import { describe, expect, it } from "bun:test";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  setSystemTime,
+} from "bun:test";
 
 import { loadConnectorFixture } from "@ji/connectors";
 import type {
@@ -40,7 +47,20 @@ const buildPayload = (
   tenderId: "228236",
 });
 
+/** A moment inside the fixture's capture window (published 2026-09-18,
+ * deadline 2026-10-09). */
+const MERCELL_FIXTURE_NOW = new Date("2026-09-20T12:00:00.000Z");
+
 describe("parseMercellPayload", () => {
+  // Pin the clock to the capture window so the fixture's 2026-10-09 deadline
+  // stays in the future; the passed-deadline case below uses a 2020 date.
+  beforeEach(() => {
+    setSystemTime(MERCELL_FIXTURE_NOW);
+  });
+  afterEach(() => {
+    setSystemTime();
+  });
+
   it("maps the real detail fixture into the normalised draft", async () => {
     const fixture = await loadConnectorFixture<MercellDetail>(
       "mercell/detail-228236.json"

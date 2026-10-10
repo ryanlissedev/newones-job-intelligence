@@ -103,3 +103,136 @@ export const shouldSkipUnchangedLastmod = async (
     item.contentHash
   );
 };
+
+/**
+ * Share of would-be-skipped pages that are fetched anyway each day to check
+ * whether the source's `<lastmod>` is honest. The sample changes daily, so
+ * over time the whole corpus gets probed, on top of the weekly revalidation.
+ */
+export const LASTMOD_HONESTY_PROBE_PERCENT = 2;
+
+/**
+ * When more than this share of probed pages changed although their lastmod
+ * did not, the source's lastmod is not trusted for the rest of the run.
+ * Every remaining page is then fetched. Fail-safe: one lie in a small sample trips it.
+ */
+export const LASTMOD_DISTRUST_RATIO = 0.01;
+
+export interface LastmodHonestyReport {
+  /** Probed pages whose payload changed while their lastmod did not. */
+  dishonest: number;
+  /** True once the run stopped trusting lastmod and fetches everything. */
+  distrusted: boolean;
+  /** Would-be-skipped pages fetched anyway as honesty probes. */
+  probes: number;
+  /** Pages actually skipped on an unchanged lastmod. */
+  skipped: number;
+}
+
+export interface LastmodSkipGuard {
+  /** Call after every successful detail fetch with the fetched payload hash. */
+  observeFetched: (bronReferentie: string, payloadHash: string) => void;
+  report: () => LastmodHonestyReport;
+  shouldSkip: (bronId: BronId, item: DiscoverItem) => Promise<boolean>;
+}
+
+export interface LastmodGuardOptions extends LastmodSkipOptions {
+  /** Called once when the run stops trusting lastmod (for logs/alerts). */
+  readonly onDistrust?: (report: LastmodHonestyReport) => void;
+  readonly probePercent?: number;
+}
+
+const isHonestyProbe = async (
+  url: string,
+  now: Date,
+  percent: number
+): Promise<boolean> => {
+  if (percent <= 0) {
+    return false;
+  }
+  const day = Math.floor(now.getTime() / DAY_MS);
+  const digest = await hashContent(new TextEncoder().encode(`${day}\0${url}`));
+  return Number.parseInt(digest.slice(0, 8), 16) % 10_000 < percent * 100;
+};
+
+/**
+ * Per-run wrapper around `shouldSkipUnchangedLastmod` that adds the lastmod
+ * honesty probe (PR2, invariant C2: a skip signal is only safe if it moves
+ * when the detail does):
+ *
+ * - A daily ~2% sample of pages that WOULD be skipped is fetched anyway.
+ * - After the fetch, the payload hash is compared with the one persisted at
+ *   the last fetch. Different payload with the same lastmod means the source's
+ *   lastmod lied.
+ * - Once lies exceed `LASTMOD_DISTRUST_RATIO` of the probes, nothing else is
+ *   skipped in this run.
+ *
+ * Probes without a stored payload hash (no `getPayloadHash`, or a new record)
+ * are fetched but cannot be judged.
+ */
+export const createLastmodSkipGuard = (
+  options: LastmodGuardOptions
+): LastmodSkipGuard => {
+  const pendingProbes = new Map<string, string | null>();
+  const state: LastmodHonestyReport = {
+    dishonest: 0,
+    distrusted: false,
+    probes: 0,
+    skipped: 0,
+  };
+  const percent = options.probePercent ?? LASTMOD_HONESTY_PROBE_PERCENT;
+
+  const shouldSkip = async (
+    bronId: BronId,
+    item: DiscoverItem
+  ): Promise<boolean> => {
+    if (state.distrusted) {
+      return false;
+    }
+    if (!(await shouldSkipUnchangedLastmod(options, bronId, item))) {
+      return false;
+    }
+    // SAFETY: shouldSkipUnchangedLastmod only returns true for a JsonLdDiscoveryUrl payload with a url.
+    const { url } = item.listingPayload as JsonLdDiscoveryUrl;
+    const now = options.now?.() ?? new Date();
+    if (await isHonestyProbe(url, now, percent)) {
+      const stored =
+        (await options.knownHashes.getPayloadHash?.(
+          bronId,
+          item.bronReferentie
+        )) ?? null;
+      pendingProbes.set(item.bronReferentie, stored);
+      return false;
+    }
+    state.skipped += 1;
+    return true;
+  };
+
+  const observeFetched = (bronReferentie: string, payloadHash: string) => {
+    if (!pendingProbes.has(bronReferentie)) {
+      return;
+    }
+    const stored = pendingProbes.get(bronReferentie) ?? null;
+    pendingProbes.delete(bronReferentie);
+    if (stored === null) {
+      return;
+    }
+    state.probes += 1;
+    if (stored !== payloadHash) {
+      state.dishonest += 1;
+    }
+    if (
+      !state.distrusted &&
+      state.dishonest / state.probes > LASTMOD_DISTRUST_RATIO
+    ) {
+      state.distrusted = true;
+      options.onDistrust?.({ ...state });
+    }
+  };
+
+  return {
+    observeFetched,
+    report: () => ({ ...state }),
+    shouldSkip,
+  };
+};

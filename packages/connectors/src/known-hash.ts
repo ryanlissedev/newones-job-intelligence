@@ -14,6 +14,16 @@ export interface KnownHashStore {
     bronId: BronId,
     bronReferentie: string
   ) => Promise<string | null | undefined>;
+  /**
+   * Optional: the PAYLOAD hash (`source_record.content_hash`) last persisted for
+   * the record. Only the lastmod honesty probe uses it: it compares a probed
+   * fetch's payload hash with this to catch a source whose `<lastmod>` did not
+   * move although the page did. It is never used to skip a fetch.
+   */
+  getPayloadHash?: (
+    bronId: BronId,
+    bronReferentie: string
+  ) => Promise<string | null | undefined>;
 }
 
 /**
@@ -38,6 +48,7 @@ export const shouldSkipFetch = async (
 
 export class InMemoryKnownHashStore implements KnownHashStore {
   private readonly hashes = new Map<string, string>();
+  private readonly payloadHashes = new Map<string, string>();
 
   private static key(bronId: BronId, bronReferentie: string): string {
     return `${bronId}\0${bronReferentie}`;
@@ -56,6 +67,26 @@ export class InMemoryKnownHashStore implements KnownHashStore {
     this.hashes.set(
       InMemoryKnownHashStore.key(bronId, bronReferentie),
       contentHash
+    );
+  }
+
+  getPayloadHash(
+    bronId: BronId,
+    bronReferentie: string
+  ): Promise<string | null | undefined> {
+    return Promise.resolve(
+      this.payloadHashes.get(InMemoryKnownHashStore.key(bronId, bronReferentie))
+    );
+  }
+
+  setPayloadHash(
+    bronId: BronId,
+    bronReferentie: string,
+    payloadHash: string
+  ): void {
+    this.payloadHashes.set(
+      InMemoryKnownHashStore.key(bronId, bronReferentie),
+      payloadHash
     );
   }
 }
