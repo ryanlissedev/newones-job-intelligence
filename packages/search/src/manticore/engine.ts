@@ -633,6 +633,9 @@ export class ManticoreSearchEngine implements SearchEngine {
           mode,
           knnQueryText ?? undefined
         );
+        if (params.facets === false) {
+          delete searchRequest.aggs;
+        }
         let hybridFacetRequests: ManticoreSearchRequestBody[] = [];
         if (mode === "hybrid" && searchRequest.aggs) {
           hybridFacetRequests = HYBRID_FACET_NAMES.map((facetName) => ({

@@ -18,6 +18,8 @@ import { createJsonLdClient, MissingDetailFixtureError } from "./client";
 import type { JsonLdClient } from "./client";
 import { applyExcludes, dedupeUrls } from "./discovery";
 import { hashJsonLdListingItem, hashJsonLdPayload } from "./hash";
+import { shouldSkipUnchangedLastmod } from "./lastmod-skip";
+import type { LastmodSkipOptions } from "./lastmod-skip";
 import { HttpStatusError } from "./live-fetch";
 import type {
   JsonLdConnectorConfig,
@@ -61,6 +63,13 @@ export interface JsonLdConnectorOptions {
   client?: JsonLdClient;
   config: JsonLdConnectorConfig;
   knownHashes?: KnownHashStore;
+  /**
+   * Opt-in: skip detail pages whose sitemap `<lastmod>` has not moved since
+   * the last persisted fetch (see `shouldSkipUnchangedLastmod`). Unlike
+   * `knownHashes`, an entry without lastmod is always fetched, so this is
+   * safe for sources whose listing hash cannot otherwise see detail changes.
+   */
+  lastmodSkip?: LastmodSkipOptions;
 }
 
 /** Stable per-source reference: the decoded URL path with leading/trailing slashes
@@ -146,7 +155,7 @@ export const createJsonLdConnector = (
 ): Connector => {
   const { config } = options;
   const client = options.client ?? createJsonLdClient({ config });
-  const { knownHashes } = options;
+  const { knownHashes, lastmodSkip } = options;
 
   const batchSize =
     config.discovery.kind === "sitemap-index"
@@ -187,7 +196,10 @@ export const createJsonLdConnector = (
     entry: JsonLdDiscoveryUrl
   ): Promise<DiscoverItem> => ({
     bronReferentie: urlSlugBronReferentie(entry.url),
-    contentHash: await hashJsonLdListingItem(entry),
+    contentHash: await hashJsonLdListingItem(
+      entry,
+      lastmodSkip === undefined ? undefined : config.parserVersion
+    ),
     listingPayload: entry,
   });
 
@@ -396,5 +408,10 @@ export const createJsonLdConnector = (
         status: "fetched" as const,
       };
     },
+    skipFetch:
+      lastmodSkip === undefined
+        ? undefined
+        : (item) =>
+            shouldSkipUnchangedLastmod(lastmodSkip, options.bronId, item),
   };
 };

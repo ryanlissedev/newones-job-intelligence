@@ -108,6 +108,13 @@ export interface Connector {
     item: DiscoverItem,
     signal?: AbortSignal
   ) => Promise<ConnectorFetchResult | null>;
+  /**
+   * Optional pre-fetch check, answered from local state only. True means the
+   * item is unchanged since its last persisted fetch: the runner counts it as
+   * observed (never missed) and skips `fetch` without taking a request-limiter
+   * slot, so an unchanged page costs no crawl delay.
+   */
+  skipFetch?: (item: DiscoverItem) => Promise<boolean>;
 }
 
 export const emptyRunMetrics = (): ConnectorRunMetrics => ({
