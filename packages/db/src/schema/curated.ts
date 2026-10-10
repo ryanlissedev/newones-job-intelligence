@@ -116,6 +116,8 @@ export const scrapeRun = curatedSchema.table(
   (table) => [
     index("scrape_run_bron_id_idx").on(table.bronId),
     index("scrape_run_gestart_idx").on(table.gestart),
+    // 0031: newest run per bron within a stats window.
+    index("scrape_run_bron_gestart_idx").on(table.bronId, table.gestart.desc()),
     check(
       "scrape_run_status_check",
       sql`${table.status} IN ('running', 'succeeded', 'failed', 'cancelled')`
@@ -286,6 +288,9 @@ export const aanvraag = curatedSchema.table(
       .where(sql`${table.v1Id} IS NOT NULL`),
     index("aanvraag_dedup_groep_id_idx").on(table.dedupGroepId),
     index("aanvraag_status_idx").on(table.status),
+    // 0031: per-bron status counts and the overlap endpoint's group-by.
+    index("aanvraag_bron_status_idx").on(table.bronId, table.status),
+    index("aanvraag_dedup_groep_bron_idx").on(table.dedupGroepId, table.bronId),
   ]
 );
 
@@ -596,6 +601,10 @@ export const outboxEvent = curatedSchema.table(
       .on(table.aggregateId)
       .where(sql`${table.processedAt} IS NULL`),
     uniqueIndex("outbox_event_sequence_number_uidx").on(table.sequenceNumber),
+    // 0031: the prune's `processed_at < cutoff` range scan (was a full seq scan per tick).
+    index("outbox_event_processed_at_idx")
+      .on(table.processedAt)
+      .where(sql`${table.processedAt} IS NOT NULL`),
     check("outbox_event_retry_count_check", sql`${table.retryCount} >= 0`),
   ]
 );
