@@ -1,8 +1,0 @@
-{
-  "name": "convex-search-experiment",
-  "private": true,
-  "type": "module",
-  "dependencies": {
-    "convex": "^1.45.0"
-  }
-}
