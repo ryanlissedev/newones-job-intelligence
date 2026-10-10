@@ -52,10 +52,10 @@ sources:
     resource: repo://scripts/docker-compose-smoke.sh
   - id: openwiki-source-8e7d1f4c06ccf720a9ba1beb
     resource: repo://tools/postgres/init/10-bootstrap-roles.sh
-generated: { by: "openwiki/0.7.0", at: "2026-10-06T08:52:28.787Z" }
+generated: { by: "openwiki/0.7.0", at: "2026-10-10T14:05:56.822Z" }
 verified:
   - by: openwiki/0.7.0
-    at: 2026-10-06T08:52:28.787Z
+    at: 2026-10-10T14:05:56.822Z
 ---
 
 # Deployment, Readiness & Runbooks
@@ -295,7 +295,7 @@ only and is never used as production secrets.
 | server | `packages/env/src/server.ts` | `BETTER_AUTH_SECRET` (min 32), `BETTER_AUTH_URL`, `CORS_ORIGIN`, `DATABASE_URL`, `MANTICORE_URL` (default `http://127.0.0.1:9308`), `REDIS_URL` (optional), `NODE_ENV`, `RAW_S3_*` (optional), `SEARCH_HYBRID`, Effect feature flags. |
 | web | `packages/env/src/web.ts` | `NEXT_PUBLIC_SERVER_URL`, `INTERNAL_SERVER_URL` (optional, http-only), `APP_RELEASE_SHA`. |
 | projector | `packages/env/src/projector.ts` | `DATABASE_URL` (may be pooled), `PROJECTOR_DATABASE_URL` (direct — rejects known Neon pooler hosts), `MANTICORE_URL`, `SEARCH_HYBRID`. |
-| poller | `packages/env/src/poller.ts` | `DATABASE_URL`, `POLLER_DATABASE_URL` (direct), `POLLER_TICK_MS` (default 60000), `POLLER_CONCURRENCY` (default 2), `POLLER_CURATE_BUDGET_MS`, `POLLER_ABANDON_RUN_AFTER_MS` (default 6h), `SEARCH_PROJECTOR` (pinned `onbox`), `RAW_S3_*`, per-source live flags. |
+| poller | `packages/env/src/poller.ts` | `DATABASE_URL`, `POLLER_DATABASE_URL` (direct), `POLLER_TICK_MS` (default 60000), `POLLER_CONCURRENCY` (default 8), `POLLER_CURATE_BUDGET_MS`, `POLLER_ABANDON_RUN_AFTER_MS` (default 6h), `SEARCH_PROJECTOR` (pinned `onbox`), `RAW_S3_*`, per-source live flags. |
 | database (DB-only consumers) | `packages/env/src/database.ts` | `DATABASE_URL` only — scoped so DB-only scripts do not require server-only auth vars. |
 
 ### Direct vs pooled database URLs

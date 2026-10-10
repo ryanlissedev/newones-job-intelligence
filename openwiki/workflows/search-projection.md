@@ -39,9 +39,6 @@ sources:
   - id: openwiki-source-dc452812a52d8b3c753a1abe
     resource: repo://packages/search/src/version.ts
 generated: { by: "openwiki/0.4.3", at: "2026-09-14T14:34:20.891Z" }
-verified:
-  - by: openwiki/0.7.0
-    at: 2026-10-06T08:52:28.787Z
 ---
 
 # Search Projection

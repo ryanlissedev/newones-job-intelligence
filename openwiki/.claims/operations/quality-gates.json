@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:e0d6574660cdf5938cc9483559eb488dc58edcfb3d579ac00a253f8ef0798c3e",
+  "pageVersion": "sha256:134d7521f7584c31a746ba0e95d89cd6725a88e38de66e778c15fa16c877f10d",
   "claims": [
     {
       "id": "claim_8758437079c94941903c903dabf8f460",
@@ -45,7 +45,7 @@
           "version": "repo-lines-v1:sha256:489bc2d58e599e74bea11904bdd170986d3c6a32c7a6cebd952b0ae4b3ae2070:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjUyZDcxMTEwM2Q1MGE0Mzc4MzBjNmZiY2QwNGZiNGJhYjQ5YTBmODJmNmQyNmQxYzc5MWM2ZTg0ODhkZDA5MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDBkNzEzYWYyZDQzNjZiMjdkMWMzMjc0N2QxNmFhNGYyMmYwYzcxNzgxZjQ5MmRmYWIyZDg4YjU5MzIyMTc1YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTFlY2E0YWM1ODUxN2Y0ZmE2ZGZlNjQ5NzdlNDFlMTRkODA5ZDQxZjMwZGUyMjk3NjE3MzA2YTBjYjYxZDc4NiJ9"
         },
         {
-          "resource": "repo://package.json#L104-L104",
+          "resource": "repo://package.json#L105-L105",
           "version": "repo-lines-v1:sha256:ce2a6c46b95658f322431b8918e84d3a8162f9790e7989916afb4a84dff3864b:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2UyYTZjNDZiOTU2NThmMzIyNDMxYjg5MThlODRkM2E4MTYyZjk3OTBlNzk4OTkxNmFmYjRhODRkZmYzODY0YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2UyYTZjNDZiOTU2NThmMzIyNDMxYjg5MThlODRkM2E4MTYyZjk3OTBlNzk4OTkxNmFmYjRhODRkZmYzODY0YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmRkOTNjOTVmZjQxNzkwZTU2OWU2MWE4YjI4NWVkMWZlYjhjNTk3YzZmMzhmODYxOTUwNGI5YjMxNmRhZTBhMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTY0MGRmNDhkODg4OTZmNTgzZGRlMTQ3MDU5ODg2NWM2NjcwOTZiNzFkMWJmZDU4NTAyNTY3YjFhMjgyZGNlOSJ9"
         }
       ]
@@ -337,10 +337,62 @@
           "version": "repo-lines-v1:sha256:241bcc375162e5bfb8982e7fff754d6ae9b50103ce43a88e4c0dff6f0885cb79:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjQxYmNjMzc1MTYyZTViZmI4OTgyZTdmZmY3NTRkNmFlOWI1MDEwM2NlNDNhODhlNGMwZGZmNmYwODg1Y2I3OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjQxYmNjMzc1MTYyZTViZmI4OTgyZTdmZmY3NTRkNmFlOWI1MDEwM2NlNDNhODhlNGMwZGZmNmYwODg1Y2I3OSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTkwMTA3MTI0MGEwZDQwZjlkMDYxZDVjNjcwZDA2OTQ1NzU3ODg3NmE4YWY5Y2JmMjdiODc2ZDA5NzYxY2MwNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWYwZGZjYmZiOGM5MjQyYTFiMzA0ZjViNzJhZWJmNzBhZjc4M2Y2MjViMWJiMjljY2ZmYzAzNjBhMDEwNGZkMyJ9"
         }
       ]
+    },
+    {
+      "id": "claim_980a2f2d3430432dbe99dcb31ff7523a",
+      "statement": "Quality is driven by npm scripts in package.json, which delegate to helpers under tools/quality/ or run scripts directly.",
+      "evidence": [
+        {
+          "resource": "repo://package.json#L31-L94",
+          "version": "repo-lines-v1:sha256:f8a580854aab70a8dc7f216a172347ee94b2f8b8a19e0fd6fe5a1061886026b8:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0ODMzZDU5NDljMDNhNDBjYTk1MjQ5MTYxMGE2NjU5NjQ0YjNhYTQ2NjM2MmY3OTkwMjBkYmYxOTgxNTQ3ZGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjMTMwMGE5OTMyYzkyM2M3OTRhOGQ4ZDRlNDlhNDQ1YmVmMWM3MjQ3MTY0N2UzMWZjMWZiYzVmY2FiZDg0YzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3MjUwYzI2ZTNlMmNlZDAwYzRiNGMwOGM5OGYwMDkzZDFjYTVjNDU2ODBiYzNhYmJlNWMxNDRkNWM2NDUzMTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzYjc1ODcyNmE1Y2QxYzhiYzhkZDZjM2I4ZWU0MjMyZDMzN2Y5Yzc1Y2IyNTI4YmFkY2JiNWYyZmE1MzZkNWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_05cbc53bae35445bb64ef1382e161c1e",
+      "statement": "The `bun run check:manticore-bench-empty` script asserts Manticore benchmark tables are empty when Manticore is configured locally.",
+      "evidence": [
+        {
+          "resource": "repo://package.json#L94-L94",
+          "version": "repo-lines-v1:sha256:0c1300a9932c923c794a8d8d4e49a445bef1c72471647e31fc1fbc5fcabd84c3:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGMxMzAwYTk5MzJjOTIzYzc5NGE4ZDhkNGU0OWE0NDViZWYxYzcyNDcxNjQ3ZTMxZmMxZmJjNWZjYWJkODRjMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGMxMzAwYTk5MzJjOTIzYzc5NGE4ZDhkNGU0OWE0NDViZWYxYzcyNDcxNjQ3ZTMxZmMxZmJjNWZjYWJkODRjMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOWI2MjU4OTkyZjQ3OGEwOWYyZmY2NTY4NDI0ZmM1YWZmODIwOTAwNmM5NzAzYmYzZmNmNjhiNDAyOTMzYzM0ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzNiNzU4NzI2YTVjZDFjOGJjOGRkNmMzYjhlZTQyMzJkMzM3ZjljNzVjYjI1MjhiYWRjYmI1ZjJmYTUzNmQ1ZSJ9"
+        },
+        {
+          "resource": "repo://tools/quality/gate.sh#L107-L112",
+          "version": "repo-lines-v1:sha256:3f73b9173cee8013fd0d7177d6dd68790f46bd1f3c427cb1c783ec20f111bfec:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODgwMWU5ZjgzOGFmNzA1NmJkOGMzZGZmZjRlNjllNWZjNjA0ODgwYzY1NGY3ODYyNzMwODU1YmNkYzE5ZGVlYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzc2OWQyMzdjZDQyMGI5ZDM4Yjk4MWEwYTRmNjc3MDE5MGE0YTgzZGNhMWZlNTZjNGY1YmExZTJjYmMwZWY3NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2M4NTdmNDM2MTVkNzYyMmRkM2E4MTczNWNkM2VhZTAyOGFlOGNhYzFkMDczY2IxMTBjNThmMWU3MWM4OTY4MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDVjYjViZWVlZDFmODAwMGJmZjM3MDVhNGEzMzc2ZWNjMTllY2RjZTk2ODE0Mjc4Yzg3OTcxYzA5ZDY5MGFmNSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_1e1ce75413cf4a7b938592dd82312bb2",
+      "statement": "The `bun run check:field-coverage` script performs a fixture-only replay (no DB) diffed against the committed baseline in fixtures/field-coverage/baseline.json.",
+      "evidence": [
+        {
+          "resource": "repo://package.json#L91-L91",
+          "version": "repo-lines-v1:sha256:4dbfc3aacee5f2707b46aeb95aa8cdc582cddcf26db20c013853f57da1fbe9ce:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGRiZmMzYWFjZWU1ZjI3MDdiNDZhZWI5NWFhOGNkYzU4MmNkZGNmMjZkYjIwYzAxMzg1M2Y1N2RhMWZiZTljZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGRiZmMzYWFjZWU1ZjI3MDdiNDZhZWI5NWFhOGNkYzU4MmNkZGNmMjZkYjIwYzAxMzg1M2Y1N2RhMWZiZTljZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjQyMzYzOGE1Y2JhOTczZDhhZjY3YWIxOTdjZWYxMDQyYjE2MjJlYmI5YWVlMDMxYzgyMDcyNmNkYTBkMTFkYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGYwYzFjYTg0OWQxZDBlMjI3NDZkZmY1NGVlNTQyYTVhODFkZmE3ZDA0NWJiOTBlYzU3M2NhNWVmNmZlNzBmOCJ9"
+        },
+        {
+          "resource": "repo://tools/quality/gate.sh#L179-L180",
+          "version": "repo-lines-v1:sha256:6b06f83022626041beb6004802a40cb6a2d961898f97d23216f8f93f65f75fd7:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDAyMDNmYWJmNjYzN2YyOWEzMTA4YjA2OTNhMDUyNDkxMDBmYzcwZDY4N2RmNWZhNTQzNTZmNjg2NThhZThhZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmMyZWY2ZTM4ZTg2MmE2NzU5MjIzZDE0ZjIxMGI0Yjk3YWY3ZjA0NjM2MDNlMzgwZTIwNGU3YmJmOWQ3MDE3ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjk1MWQxMTQwNmI5MjY1ZmU0YTMyYzgxOWU1MzgzY2FiMjMzYmEzYmZiMTMwMjZiOGI3MGQwNWU5NGI1YjA1NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjIsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTA4MDk5NjU5NDQ4YWJhNGVlOGE2NWJmY2M4NDdhY2IwMTgyZjYxZjYxOGI4MmEyZTlhMDI4OTAwODhjYWU0YiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_40a261a14d194324bd32f52d15d227de",
+      "statement": "The `bun run gate:timed` script runs the full pre-push gate with performance metrics enabled via PERF_METRICS_DIR.",
+      "evidence": [
+        {
+          "resource": "repo://package.json#L76-L76",
+          "version": "repo-lines-v1:sha256:20af8f4a5ee76a9c2b31ee44a0c3b000e27535e401a360c2b8dbc9b4ee170d02:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjBhZjhmNGE1ZWU3NmE5YzJiMzFlZTQ0YTBjM2IwMDBlMjc1MzVlNDAxYTM2MGMyYjhkYmM5YjRlZTE3MGQwMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjBhZjhmNGE1ZWU3NmE5YzJiMzFlZTQ0YTBjM2IwMDBlMjc1MzVlNDAxYTM2MGMyYjhkYmM5YjRlZTE3MGQwMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzlhZGU1ZjMyNmFmYjQ2ZWRlY2JkM2NjZDE2ZDVkYjdiODY5ZjcwMGUxOWM2OTg3NDZhZjYwMjhmN2E0NTgxMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTg0OWUwNGI0MWE4NzcyN2UyODQ1N2VjOTc1ZWU3YzdjY2I0Mjg1NWUwMTE4NjRjNzc1NDNhYzNkMTE3YzhkYiJ9"
+        },
+        {
+          "resource": "repo://tools/quality/gate.sh#L47-L51",
+          "version": "repo-lines-v1:sha256:8b1a15e25e054e176f80475d3fbb54312dfab97b16525458b80d8036550e8f31:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTYxMGYyZWYwOGVmMmI3NTJkZmM2N2QzMGM0ZWE0YTZhMmRiZWVmZmFjNjYxZjM2YzVmMTg3YzMxMDhjZjU0ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDQ5NTkyZjUzNTY1Yzk2ZjEyMTlmNDFkYzI4MDQ3NDI0YmI1Nzk2MzMwODhiMzZlNmMwYWRlY2E0Y2E5MDgyNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTZjYjM2NDdhMGY2ZWJiZGZmMjQ2MDY0ZDAyM2M5ODZjYmY0YWM3ZjJjZWI3MDk5NTg5YzE5ZGUyYzcwOTUwYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDhlYWNmNzMzOTIwZjlhMDNiMTUzOTI2ZGY0ZjU4MjFmYTRiNjQ5MWJjZDI2ZjQxMjc1NTVkNzdmM2Y1YTc3NCJ9"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.0",
-    "at": "2026-10-06T08:52:28.787Z"
+    "at": "2026-10-10T14:05:56.822Z"
   }
 }

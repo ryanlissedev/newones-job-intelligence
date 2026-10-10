@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:c2ee3fd175968faf4fdd503bd7a5979a3026f36c02f3c3e5bef38eacd1b4cd2c",
+  "pageVersion": "sha256:8b2ea7312c3b4f9ae0e0756d39677fa4a6eb875aefb7ba5e983c8ae8a69e1d01",
   "claims": [
     {
       "id": "claim_35aaf84de12e4760b1d79e7a0bc40618",
@@ -111,7 +111,7 @@
           "version": "repo-lines-v1:sha256:5f835f3e7b2994781e2d493f4caa181cc099db95a9239425f73c31c156ba09c3:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmZWVkZjMzOTUwODkyMjQ2MTgwZTc0ODIwNTQ4ZDllZmQ0MTE2MDY0ZTkzMmJhZTI2NzQwNzg5MzVhYWE1YzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhZDI5NWE1MjU4YjhkN2YwOTgyMWFmYTI5YTE0N2IyNTg2MTA4MDU4YTM1YzNiNDYzZGU4MjIzNzQ4NWJlN2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM4ODFjMjA0Y2E2ZDM0MTJlMTc5ZDJhYTIzNjkyNWNhNDAyZDNiZTkwN2ZhMjQ5NWFmMzE3MDZkNjdkMzlkMDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBlOGYyNTQxZGQzNGJmMzI4MmVmMDY3Y2UxNjFjMDcyZjRlZmM0YjE3OWViZTllYTkwNmMwNTQ5MzEzMzFkNzUifQ"
         },
         {
-          "resource": "repo://packages/application/src/registry/test-fixtures.ts#L95-L103",
+          "resource": "repo://packages/application/src/registry/test-fixtures.ts#L99-L107",
           "version": "repo-lines-v1:sha256:898e7ac3da6899e668a779f3839a439896c04ba4cb78f4ae72903417d15ebae3:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDkxYWZiMTUzZjdkODk3MjkwZDVkOGI4Njc4M2JjOWFlNzA5NGRkOWY3NDYxMTBiNmU4MjEzN2ZhZTQwMjRmNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDJhMmNiMjVhMTIyYjQ0MjIxYTYyMzRlYzY2MGE3YjVmYjdmOWJkZTdiM2I5ZTJiM2M1NTlhMGQ5NmZhYzczOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2Y0MTg1NDJmMmRiNzliOTJlZWVhYzNkZWM4YjVkNDkxN2I1MzgyZjVmZjc1YWZjYjljZDM1ZjRlODgzYjBiNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODVjNDkzODc5MTUzNDI4ODNmMTRhNjRkMmRhMTUyMzQ1ODhlYjFiZWE5NzY5N2Q0N2Q0NDdmMTVhYjMyYWU4YiJ9"
         }
       ]
@@ -219,6 +219,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.0",
-    "at": "2026-10-06T08:52:28.787Z"
+    "at": "2026-10-10T14:05:56.822Z"
   }
 }

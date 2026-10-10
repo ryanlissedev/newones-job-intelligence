@@ -1,7 +1,7 @@
 ---
 type: onboarding
 title: Quickstart
-description: Onboarding entry point for the Catapulze Job Intelligence monorepo — repo identity, stack, local run steps, the three runtime processes, and the task-routing map into the rest of the wiki.
+description: Onboarding entry point for the Newones job intelligence monorepo — repo identity, stack, local run steps, the three runtime processes, and the task-routing map into the rest of the wiki.
 tags: [onboarding, quickstart, monorepo, local-run, bun, task-map]
 sources:
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
@@ -18,12 +18,15 @@ sources:
     resource: repo://package.json
   - id: openwiki-source-23775c3de52f3ab95a13cb8b
     resource: repo://README.md
-generated: { by: "openwiki/0.4.3", at: "2026-09-14T14:34:20.891Z" }
+generated: { by: "openwiki/0.7.0", at: "2026-10-10T14:05:56.822Z" }
+verified:
+  - by: openwiki/0.7.0
+    at: 2026-10-10T14:05:56.822Z
 ---
 
 # Quickstart
 
-This is the onboarding entry point for the **Catapulze Job Intelligence** repository. It states what the system is, how the codebase is laid out, how to run it locally, and which wiki page to read for each follow-on topic.
+This is the onboarding entry point for the **Newones** job intelligence monorepo. It states what the system is, how the codebase is laid out, how to run it locally, and which wiki page to read for each follow-on topic.
 
 ## What this system is
 
@@ -125,16 +128,25 @@ Where to go next, by task:
 
 | If you are working on … | Read this page |
 | --- | --- |
-<!-- openwiki: broken internal link [/openwiki/architecture/overview] file "/openwiki/architecture/overview" does not exist. Fix the href or restore the target, then delete this comment. -->
+<!-- openwiki: broken internal link [/openwiki/architecture/overview] link "/openwiki/architecture/overview" is root-absolute, which no real consumer resolves against the repository root (not a coding agent reading the page, not GitHub's Markdown renderer, not a local viewer); use a path relative to this file instead. Fix the href or restore the target, then delete this comment. -->
 | Monorepo layout, package layering, the three processes, request flow web → server → registry → stores | [Architecture Overview](/openwiki/architecture/overview) |
+<!-- openwiki: broken internal link [/openwiki/architecture/data-model.md] link "/openwiki/architecture/data-model.md" is root-absolute, which no real consumer resolves against the repository root (not a coding agent reading the page, not GitHub's Markdown renderer, not a local viewer); use a path relative to this file instead. Fix the href or restore the target, then delete this comment. -->
 | Postgres zones (staging/curated/marts), SCD2, outbox, key tables, the Drizzle migration journal | [Data Model & Persistence](/openwiki/architecture/data-model.md) |
+<!-- openwiki: broken internal link [/openwiki/concepts/capability-registry.md] link "/openwiki/concepts/capability-registry.md" is root-absolute, which no real consumer resolves against the repository root (not a coding agent reading the page, not GitHub's Markdown renderer, not a local viewer); use a path relative to this file instead. Fix the href or restore the target, then delete this comment. -->
 | The capability registry as the single application boundary: REST/MCP/tRPC transport binding, authorisation, parity | [Capability Registry](/openwiki/concepts/capability-registry.md) |
+<!-- openwiki: broken internal link [/openwiki/concepts/domain-model.md] link "/openwiki/concepts/domain-model.md" is root-absolute, which no real consumer resolves against the repository root (not a coding agent reading the page, not GitHub's Markdown renderer, not a local viewer); use a path relative to this file instead. Fix the href or restore the target, then delete this comment. -->
 | Core domain concepts: bron/aanvraag/source records, ids, the Boolean query parser, lifecycle states, UNKNOWN provenance | [Domain Model](/openwiki/concepts/domain-model.md) |
+<!-- openwiki: broken internal link [/openwiki/workflows/ingest-pipeline.md] link "/openwiki/workflows/ingest-pipeline.md" is root-absolute, which no real consumer resolves against the repository root (not a coding agent reading the page, not GitHub's Markdown renderer, not a local viewer); use a path relative to this file instead. Fix the href or restore the target, then delete this comment. -->
 | End-to-end ingest: source registry → connector discover/fetch → observation → normalise → curate → SCD2 write, run by the on-box poller | [Ingest Pipeline](/openwiki/workflows/ingest-pipeline.md) |
+<!-- openwiki: broken internal link [/openwiki/workflows/search-projection.md] link "/openwiki/workflows/search-projection.md" is root-absolute, which no real consumer resolves against the repository root (not a coding agent reading the page, not GitHub's Markdown renderer, not a local viewer); use a path relative to this file instead. Fix the href or restore the target, then delete this comment. -->
 | How curated rows become searchable: outbox drain, the on-box projector, Manticore adapter, index versioning, cached search read path | [Search Projection](/openwiki/workflows/search-projection.md) |
+<!-- openwiki: broken internal link [/openwiki/workflows/export-approval.md] link "/openwiki/workflows/export-approval.md" is root-absolute, which no real consumer resolves against the repository root (not a coding agent reading the page, not GitHub's Markdown renderer, not a local viewer); use a path relative to this file instead. Fix the href or restore the target, then delete this comment. -->
 | The approval-gated, idempotent export to Spott.io: snapshot approval, `commit_export` with idempotency keys, external receipts, reconciliation | [Export & Approval](/openwiki/workflows/export-approval.md) |
+<!-- openwiki: broken internal link [/openwiki/operations/quality-gates.md] link "/openwiki/operations/quality-gates.md" is root-absolute, which no real consumer resolves against the repository root (not a coding agent reading the page, not GitHub's Markdown renderer, not a local viewer); use a path relative to this file instead. Fix the href or restore the target, then delete this comment. -->
 | The pre-push gate and the guardrails that keep the monorepo safe: lint/format, layering, secrets, capability coverage, type-check, Postgres-gated tests | [Quality Gates](/openwiki/operations/quality-gates.md) |
+<!-- openwiki: broken internal link [/openwiki/operations/deployment-and-readiness.md] link "/openwiki/operations/deployment-and-readiness.md" is root-absolute, which no real consumer resolves against the repository root (not a coding agent reading the page, not GitHub's Markdown renderer, not a local viewer); use a path relative to this file instead. Fix the href or restore the target, then delete this comment. -->
 | Docker Compose topology, Postgres role separation and on-box production baseline (DEC-005), health/readiness, env config, the runbook/ADR index | [Deployment, Readiness & Runbooks](/openwiki/operations/deployment-and-readiness.md) |
+<!-- openwiki: broken internal link [/openwiki/testing/test-strategy.md] link "/openwiki/testing/test-strategy.md" is root-absolute, which no real consumer resolves against the repository root (not a coding agent reading the page, not GitHub's Markdown renderer, not a local viewer); use a path relative to this file instead. Fix the href or restore the target, then delete this comment. -->
 | How tests are structured: `bun test` (no type-check), Postgres-gated suites, migration-upgrade, e2e live jobs, fixture recording, search/relevance benchmarks | [Testing & Benchmarks](/openwiki/testing/test-strategy.md) |
 
 ## Minimal validation checklist

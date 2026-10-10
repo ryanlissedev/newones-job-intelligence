@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:585fbb3bc1b5302412999265e594c0aa72208c8b2d37c97ee446cb242315f49c",
+  "claims": [
+    {
+      "id": "claim_469f6678cc664994bb8aeb9ff6adaaa3",
+      "statement": "The function `mapAanvraagToSpottCreateRequest` maps an AanvraagRecord to a SpottCreateVacancyRequest by setting: - clientContactIds to an empty array - companyId to a fixed fixture ID (\"company-fixture-001\") - description to the aanvraag's beschrijving plus an optional contact persons block (as per CTP-610) - employmentType to \"contract\" - endAt to null - location to null - locationType to \"remote\" - name to the aanvraag's titel - salaryRange to null - stageId to a fixed fixture ID (\"stage-fixture-001\") - startAt to null - targetCompanyId to null - teamUserIds to an empty array",
+      "evidence": [
+        {
+          "resource": "repo://packages/application/src/export/map-aanvraag-to-spott.ts",
+          "version": "repo-file-v1:sha256:71a27709d7ddaccf0a1669d36c24c8632138b3133d956e8b6ea0808a62def1bd"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.0",
+    "at": "2026-10-10T14:05:56.822Z"
+  }
+}

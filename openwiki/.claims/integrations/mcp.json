@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:fe84efc3ed216a7454fe7806dc58e6407d2440b1a8d4c2ef13473e0104ab1275",
+  "claims": [
+    {
+      "id": "claim_08088e2bbef94132b80e5757f2081af0",
+      "statement": "The MCP integration exposes the system's capability catalog as MCP tools through the standard `tools/list` endpoint.",
+      "evidence": [
+        {
+          "resource": "repo://apps/server/src/capabilities/mcp.ts#L216-L244",
+          "version": "repo-lines-v1:sha256:d5a7ffa2e3fc499b14df60e3a4a7e9eb7ec26fbca2b5e33442a4eeaf5c753fd2:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0MDdiNmFjMWI3OTZlNWM2YjI1NjYyN2ZkNGYyYTAwNzUxMjQ3OGM4YTRhN2U4N2FkNjUwYmMyZjg3N2Y3MTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkOTgzNTQ5OWU1YmE5MWY4NzI2N2M5NTJiNzhlYWVkZDZjNDY2Zjk1YjY4ODFiMDdiNDZjY2FlYzBjZGYxNDYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVkOTYxNDJiOGQ5NGIyZTdhNzg4NDk0YTAzM2YyM2VlMjkzMGI3M2IxMWY4ODA0NDQ4MWQ4Mzg2NGQ1Y2RhYjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI5NzNhZDMxMWNmNzIwNjExZjRhNjFiOGY2NjU5NTY2YWQ2NWI1MjU2YzBkMzkyOTg3NmQxZmY0OTNmODM3ZTYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3502e65ca491498c872c919698d1257f",
+      "statement": "The MCP integration handles tool invocations via the standard `tools/call` endpoint with proper JSON-RPC 2.0 formatting.",
+      "evidence": [
+        {
+          "resource": "repo://apps/server/src/capabilities/mcp.ts#L245-L309",
+          "version": "repo-lines-v1:sha256:f53b6ab051d48ee38f075e3bb6563f05e5c8a01598db44a2203c46bef94d47d1:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNmNTlhYTc1OTM0ZDI5ZGRkMTY4YWQyMGRhMTA5NDBkMWZlOWIyMzUwOTQwNmIyNmYzMzcwNTQ0OTAxY2UwOWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZlMzNkYzczMWU3ZDA3YjFmMGMwNWNmZWJkN2UxOTIyMDIzZTYwNzdiYzBhZTdiYTMwMTQ4ZjUwODMzYTI1YTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIwZWU2YzM3MjQ3ZmIxOTYwM2U3YzRhNDAyMjk0YmQ2MGMwOWQxYjc3YzhjOTUwYWJiMTYwNGI2NmZlOGEwMTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI0OGE4NTJmNmNmNGI4ZWNlNjVlZGMyYTgxMjcxMTZkZDg3NWMyNmU5YWU1NDQwNGNjMTQ3MGQyOWM3YmYxZmEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f0d65a7473354b2c888fcc5429bd2b58",
+      "statement": "The MCP integration enforces the same authorization and input/output validation as the REST transport.",
+      "evidence": [
+        {
+          "resource": "repo://apps/server/src/capabilities/mcp.ts#L208-L208",
+          "version": "repo-lines-v1:sha256:93fa0f1cd38aeb5550df3218c5fcc492a20e2e8b86e69a4ac6f37582d6b65d02:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTNmYTBmMWNkMzhhZWI1NTUwZGYzMjE4YzVmY2M0OTJhMjBlMmU4Yjg2ZTY5YTRhYzZmMzc1ODJkNmI2NWQwMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTNmYTBmMWNkMzhhZWI1NTUwZGYzMjE4YzVmY2M0OTJhMjBlMmU4Yjg2ZTY5YTRhYzZmMzc1ODJkNmI2NWQwMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDMzYTY2MzZiMDQ5NTFlYWQzYzFhMDE1YzM5NDY4OTA2NjRmYTgxMmExZGUwZjBlYzVhYmM0ZjgwZTc1YWRiZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGZkODFhZWU3ZWMzNmE1Zjk4NzZmODc1NjNkNTRlNjFlYjA5Y2ViM2I2ODIyZDA1NzI0ZDFkNzY3NWNiOGM0ZSJ9"
+        },
+        {
+          "resource": "repo://apps/server/src/capabilities/mcp.ts#L275-L279",
+          "version": "repo-lines-v1:sha256:742c0c15e3f1b3dfe269149140b9a27574166ebdcfc6ab841f038f9891691e41:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDA2MjhkNDc4N2Y2YTE0MTRhYTlmZjlmNjMxYjlmNWE0YzlkYmYxMWU3ZGE3YTliOWFkYmZlZTVjMGU5MmY3YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjk4NTkzM2IzY2RkMzIwNDIwY2NiMzc3ZDEyMmY0MjU4MTUzZDg5MzViOWMwNjRkZWZlMWU2Y2M5NjM0MWE0ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTAyZDBjYTYxNjU0YjMwZTMyNDcwY2FmN2U5YTUxZTQyMzcyYTE4ZDkzZWU0NDkzZDYwNWE3ZjlmMDA0YzhhZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjg3ZjA1OGE2MDE2ODQ3YTRjZjkyMTA0NTFjMTRmZTJlNzlmZmUyMmY3MjdkODgyMjZlNTJiZWExOTFlZDU0NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_7eca5b01a95a4239b45c51a05891a2fd",
+      "statement": "The MCP integration shares the exact same invocation logic as REST through the `invokeMcpToolCanary` function.",
+      "evidence": [
+        {
+          "resource": "repo://apps/server/src/capabilities/mcp.ts#L281-L281",
+          "version": "repo-lines-v1:sha256:c93d828c52f11769e16744ad1873731d1441afb80b27e34bdf91ee37fce148dc:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzkzZDgyOGM1MmYxMTc2OWUxNjc0NGFkMTg3MzczMWQxNDQxYWZiODBiMjdlMzRiZGY5MWVlMzdmY2UxNDhkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzkzZDgyOGM1MmYxMTc2OWUxNjc0NGFkMTg3MzczMWQxNDQxYWZiODBiMjdlMzRiZGY5MWVlMzdmY2UxNDhkYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzQxZDVjYWRmOWRmMGU0NTFmM2IzNTFmNjNjOWU3YTQ3MzdlMzFhYzlmZGYzNmU1Y2Y1ZGIzNGFlNDQ5NjUwYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTllN2Y5ZTE3NmJjMTczODVhZjJjZTg5MGU5ZTczZTM2MWMyMGFmODUxNDAyNjY3ZWI0ZTkxZTU4MjUwNmY5ZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_9645551c6a024daf8ef0639001fb23bf",
+      "statement": "The MCP integration has a single HTTP entrypoint at POST `/mcp`.",
+      "evidence": [
+        {
+          "resource": "repo://apps/server/src/index.ts#L156-L156",
+          "version": "repo-lines-v1:sha256:6994eb4aad9c2795c2f2b8b05d2d68ae53ceff5169adc56d6584245e821dcf6e:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjk5NGViNGFhZDljMjc5NWMyZjJiOGIwNWQyZDY4YWU1M2NlZmY1MTY5YWRjNTZkNjU4NDI0NWU4MjFkY2Y2ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjk5NGViNGFhZDljMjc5NWMyZjJiOGIwNWQyZDY4YWU1M2NlZmY1MTY5YWRjNTZkNjU4NDI0NWU4MjFkY2Y2ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmM5M2QwYTNiOGQzNjliOTY4ZWVhZWY0YzM0ODI0OTA3N2YyZDhlZDE5NzQwODgzYTRkNTNjNTAyYjUzYTg4NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGZiNTNhOGRkODEyYzY4ZGE1ZTY3NzhiYmRlZWQ2OGZjNzRlZGFlNjZiNTMxMjAxYjFkMTBjOGQ3ZmI3ZDlhYiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_73321d08b60f4e26874999f671a8b4e5",
+      "statement": "The MCP integration collects metrics on MCP protocol usage and performance via the `measureMcpRequest` function.",
+      "evidence": [
+        {
+          "resource": "repo://apps/server/src/capabilities/mcp.ts#L415-L432",
+          "version": "repo-lines-v1:sha256:65fb41edef1f29e8f7f39a21185f60fcc2cf104f0993d0f505d8e2951afc137c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmMjRkZDBlOTQ3OGUwOTkxNWY1NGQzNGZiNmQ3YmRlNjI4OWUzZjM5NTg1MTdkZWRmYjY2NDY0YjAzNjkzMTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNmNjEyNGMwOWE0ZTI0YTk2OTE1NzIwMTJjZmE4Y2FkNzg2YWVjMDA3OTFkMWI4OTRlYTI5ODNiY2RmMDQxNTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiNjE2MmM1MDliMGM3N2QzZTU5ODJiZjdmZTEwNDg2MWExNThmZjdkYTEyMjlkYjZmMmI3YTI1NzhkMzFlNzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg3YzMwMmMwOTA5Mjc4NTM2NGJjZmFhODU4MTYzYzMzZjJiYTAyYWJjZTFkYjczNzdjNThlNjkxODk5NzJjZjQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_61ff12243292481089351fac7868852f",
+      "statement": "The MCP integration validates the MCP protocol version header and returns an error if missing.",
+      "evidence": [
+        {
+          "resource": "repo://apps/server/src/capabilities/mcp.ts#L394-L402",
+          "version": "repo-lines-v1:sha256:f59de4ba3e66936898c08686c3d967818bb3b9273772dadd55f404c8f39152c3:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTEyZjVlNmYyMGMxMTY4NWM1YzJjMjE4MWFmZDI1YWE2ZmYyOGFmZGE0N2Y1Y2Y2NDYwNTA1YzA2N2U2NWRiZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTJmMDFjMThjMzNmNWI3Yzc5N2JkMThmYTRmMzViZWJlMTI5NzVlNDI2ZjlhNzU2YWMwOTdiNmY3OWQxOTRkYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWU2OTE4NGY1OTFkNmMyMzEwYzg0NzA4MjhhMGMzZmIxOGNmOGY2YzgwMTk4ZTNjMzllNTEwYjRhYjg3NDVmYSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_bad2d99096584965b51ce01f9674de56",
+      "statement": "The MCP integration maintains capability availability information and returns `CAPABILITY_UNAVAILABLE_CODE` for unavailable tools.",
+      "evidence": [
+        {
+          "resource": "repo://apps/server/src/capabilities/mcp.ts#L257-L273",
+          "version": "repo-lines-v1:sha256:ec0cd92284835a597b048594f780bfa581e6de39c58fd7e547df457d6443c282:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViMTU1MWFiMDU4YzFhZjk2ODUyMzUyYTA0ODY2NWI5OWU0M2M2NjU3NjcwNWFjMGI4YmQxY2MwODI5MzRkYjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM1Y2RlZjgwODVhZTc0YWI2MzZkNjQ1OWY1YzZkNWZiZmIwZGIyNjRmMWIwZDc1YmFjNTE5YzliM2Y2NzE3YWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJiOGJlMDIyZWFjZjllYzc4NDEyMTA5MmEyOTAzMjI3NGQ1ZjgxYzY0NWEyYTkxYzNmODg1Y2M5MDY0YWM1YmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiNTMwZjc3ZjdlYTlmZTRhMTQ3NGI4MTVlOWRmMGIyNjUzY2JhZGIxN2Y5Zjc4ZTk2NTczYzRmNzQyMzFhYjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_389733d548cb4e33a8b1f52f811761f4",
+      "statement": "The MCP integration's tool listing includes MCP-specific metadata in the `_meta` field and annotations.",
+      "evidence": [
+        {
+          "resource": "repo://apps/server/src/capabilities/mcp.ts#L227-L242",
+          "version": "repo-lines-v1:sha256:a22b00f21d6b7fc44711a76df60ba5746c1d420a92aab68aab3513808b573166:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5NWM0Y2MxNDJmYTkzODliMDVhNjQ2ODhmMjE3NzM4YTllNzRhMzYxNjlkZTc0NGY1YTU1OWJjNGVjNDdhODYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzOTZmYjVjNjc0YWExOWUzMzk2ZTg4NTA1YjBmYjk5YTk3Y2JkMzlkNmI4MWJlOTgwOGRlMGNjZmU1ZGY5NWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMyOGU2NDEwM2M0Y2QzN2Y2ZTQ0NGI0NGQ3ZDUxM2Q0YmIxNjkwYWVmZjNjZjIzZDEzOGE2Yzc4N2YxZDQxYmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI0YWNiNmUxMDg0MjE3N2RiMTAxMDUxMTFjYTYxMDg5Yjk3MDFjNTFmODUzYTc1NGRlZWVhODc4YjE5YTZmNGYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_62dc50a0f0d145d08ee1a7cb1579b440",
+      "statement": "The MCP integration depends on the same capability registry and authentication system as the REST transport.",
+      "evidence": [
+        {
+          "resource": "repo://apps/server/src/index.ts#L129-L129",
+          "version": "repo-lines-v1:sha256:6ec1d4b21832e1356780322f09781025c4d657be2b9e157cf056432310b10162:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmVjMWQ0YjIxODMyZTEzNTY3ODAzMjJmMDk3ODEwMjVjNGQ2NTdiZTJiOWUxNTdjZjA1NjQzMjMxMGIxMDE2MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmVjMWQ0YjIxODMyZTEzNTY3ODAzMjJmMDk3ODEwMjVjNGQ2NTdiZTJiOWUxNTdjZjA1NjQzMjMxMGIxMDE2MiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2U4YWQ4MjYzN2M1MDIwNzFiZmQ1MDljY2I5ZTZlNWRiYjliYTM4YWEwNDZjMTMzZGJjNjRjMzllNWQ5MTcxZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTgzOGZlMjk0MWY1ZTlmMzk2MjdmZTI4YTczMWIwMjEzNDVhNTJhMWJmMDE3YjkxZWUzZjEwYmRmMTY4MDNkYSJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.0",
+    "at": "2026-10-10T14:05:56.822Z"
+  }
+}

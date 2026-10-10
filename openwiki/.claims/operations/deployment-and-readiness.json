@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:fcf682078768a4e48c43f48a9911fbdf600eed6168a5eb2189d22de8f11fd1d4",
+  "pageVersion": "sha256:56daee33c6ebb71e1d443d3df62083a054d8c8a97463706fe9ef93c28ad0754b",
   "claims": [
     {
       "id": "claim_111c4052ed7e473cbd03e61d4850109b",
       "statement": "docker-compose.yml defines the always-on app services postgres (postgres:16-alpine pinned by digest), web (port 3001), server (port 3000), redis, and manticore (6.3.8), plus opt-in profile-gated services: projector (profile projector), poller (profile poller), raw-storage-minio/raw-storage-minio-init (profile storage), and manticore29 (profile shadow). The profile services never start under a plain `docker compose up`.",
       "evidence": [
         {
-          "resource": "repo://docker-compose.yml#L1-L391",
-          "version": "repo-lines-v1:sha256:00f4931c60a2c021b7eb3eec75258b68d0cf21e0a44b1ece499d10abc4c1b23a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzkxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmNTJkNzExMTAzZDUwYTQzNzgzMGM2ZmJjZDA0ZmI0YmFiNDlhMGY4MmY2ZDI2ZDFjNzkxYzZlODQ4OGRkMDkwIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI5ZDZhOWM2MDhhMjRhYTI3NDgzYmU4OWM1NjM2NmM5ODJkYTg0YWRhMDdjNDgzMjEwZGQ3YjkwNzE3YTQ1MDllIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiIwNTg0OWQyZTgxZDk1NDU3YTc4NDJmZTAyNDIxOTBkMmY3ZmIzMjAxZjY1N2UxYTQwMjQ4OGQyMmFkOGMzZDcxIn0"
+          "resource": "repo://docker-compose.yml#L1-L404",
+          "version": "repo-lines-v1:sha256:ad84c18557a63c9cc3ed470d6bdf495bd53caea24c575999937ca3cc6d5dea2a:eyJzZWxlY3RlZExpbmVDb3VudCI6NDA0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmNTJkNzExMTAzZDUwYTQzNzgzMGM2ZmJjZDA0ZmI0YmFiNDlhMGY4MmY2ZDI2ZDFjNzkxYzZlODQ4OGRkMDkwIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI5ZDZhOWM2MDhhMjRhYTI3NDgzYmU4OWM1NjM2NmM5ODJkYTg0YWRhMDdjNDgzMjEwZGQ3YjkwNzE3YTQ1MDllIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiIwNTg0OWQyZTgxZDk1NDU3YTc4NDJmZTAyNDIxOTBkMmY3ZmIzMjAxZjY1N2UxYTQwMjQ4OGQyMmFkOGMzZDcxIn0"
         },
         {
           "resource": "repo://docker-compose.yml#L87-L158",
@@ -21,11 +21,11 @@
       "statement": "The postgres_data volume is external (Compose never creates or removes it) and `docker compose down -v` is forbidden in this environment (DEC-005); a static check (bun run check:production-compose-guard) fails when production scripts/workflows use `down -v`.",
       "evidence": [
         {
-          "resource": "repo://README.md#L59-L72",
+          "resource": "repo://README.md#L63-L76",
           "version": "repo-lines-v1:sha256:9f083fde372e434bb8b5ab373664108ae302f9a2872e69ab8bf6cfcd5cb2d4b0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM1NzIyNDllZTZlMTk3MmMwNDU5NzkzNTdlNDYwYjBhZjNjZmEyYTUzMTFkMGZiM2EwNmNlNTlhMTlmNjA1ZTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkNGY5ZDIxNTg4NWQzYzY0YjEzMmVmNGViODZhMDQxNWViYWMxMjg3NGY2OGRjY2E5NzkwNDIwNDhjZjgzMzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRjMGVjNjYxYTA1MTFhZTAwNTgyMjc1NmEyNzQyNTUwMDIxZTM2YjA1YzUzMWFhZTc2ODY3MDllMmMyNTFjMzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJjYzkwZDM2OTJjOTZhNzY4OWFlNzUzOTQ3ZmEwMDAzZDc5ZDdiMmE3NTg0YmFlNTYzZTc3NGExZjdlMmNlMmUifQ"
         },
         {
-          "resource": "repo://docker-compose.yml#L386-L391",
+          "resource": "repo://docker-compose.yml#L399-L404",
           "version": "repo-lines-v1:sha256:0161c7e91439bc4d8d9534304ac94ebbaa642543fe53e3e50042bae152b96df2:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDVlNTEwMDMxYjNkNWNmZjg2OGI5OWEyNzVkZDI0ZDcyZTQ1Y2I1MDZiM2M0ZjU4OWNkMDhkZDgwZTlmYjJlYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWQ2YTljNjA4YTI0YWEyNzQ4M2JlODljNTYzNjZjOTgyZGE4NGFkYTA3YzQ4MzIxMGRkN2I5MDcxN2E0NTA5ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2E0NDY2YTc3NTk1MGY4MDlkMGFmNDNiN2UwM2E4ODA1YzkwZjgwN2M4ZWQ2ZTAxM2VkODc2M2ViZjQ1MjI2NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDU4NDlkMmU4MWQ5NTQ1N2E3ODQyZmUwMjQyMTkwZDJmN2ZiMzIwMWY2NTdlMWE0MDI0ODhkMjJhZDhjM2Q3MSJ9"
         }
       ]
@@ -49,7 +49,7 @@
       "statement": "DEC-005 requires all production baseline gates to be closed with evidence before a deploy is accepted as production-ready: protected external volume, private port 5432 (127.0.0.1 locally; Coolify-internal network + Trigger.dev static egress IPs in the Hetzner firewall in production), role separation, continuous WAL archiving to off-site object storage, periodic restore evidence (RPO <= 1h, RTO <= 4h), monitoring (disk/pool/locks/latency/WAL/backup freshness), resource priority (Postgres prioritized over the rebuildable Manticore index), and strong unique production credentials (local .env.example values forbidden). The external volume and private port are configuration preconditions, not proof that backup/restore are operational.",
       "evidence": [
         {
-          "resource": "repo://README.md#L59-L72",
+          "resource": "repo://README.md#L63-L76",
           "version": "repo-lines-v1:sha256:9f083fde372e434bb8b5ab373664108ae302f9a2872e69ab8bf6cfcd5cb2d4b0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM1NzIyNDllZTZlMTk3MmMwNDU5NzkzNTdlNDYwYjBhZjNjZmEyYTUzMTFkMGZiM2EwNmNlNTlhMTlmNjA1ZTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkNGY5ZDIxNTg4NWQzYzY0YjEzMmVmNGViODZhMDQxNWViYWMxMjg3NGY2OGRjY2E5NzkwNDIwNDhjZjgzMzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRjMGVjNjYxYTA1MTFhZTAwNTgyMjc1NmEyNzQyNTUwMDIxZTM2YjA1YzUzMWFhZTc2ODY3MDllMmMyNTFjMzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJjYzkwZDM2OTJjOTZhNzY4OWFlNzUzOTQ3ZmEwMDAzZDc5ZDdiMmE3NTg0YmFlNTYzZTc3NGExZjdlMmNlMmUifQ"
         },
         {
@@ -85,7 +85,7 @@
           "version": "repo-lines-v1:sha256:810a52a95fa7d9a57ad5c9c2d1bfb7363dfaf4722ab1d4a0a1f0401f6d951524:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiMDkyOGQ3MzgyZWQ5MDBhY2M5MGFiYjAzOTAzYTBkYjkxYzg1ZWE1ZTY2NzcwMDI0Y2RlYTRlZmMyNTAwZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://apps/server/src/index.ts#L84-L102",
+          "resource": "repo://apps/server/src/index.ts#L70-L88",
           "version": "repo-lines-v1:sha256:147866e5d50ec657d1e437066150f8bdc4c642eac018a42f9dbdecc8d9df8836:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0ZDA3Mjc4MDFmZWNhMmZjZDU4YTA1MWU0ODlhMDc5MjliYmUzMWMyYjUxZGY3NWFiMmRkNjgwYjZiNjg0MGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxMmVmNzU2M2IyM2VhMDhhMGY3ZmQ3MDRmZWYxMDZlZWViMzhmNjJkMTNlYzU3ZWIwNTAwMTk0NjIwOWJmMjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY4MGZlNWU3YzM2ZDQ4MWMzYTVmMDBjMTI0Y2RkYzI0M2ZhMWNmMzA1MDAwZmE3NjU2YTJmZWNkOGI2YWJhZjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkzYmVlZDM2NDdjOTQxMTNlMDUwZWMzMjg4NzBlZjAwY2M3MzdjOWExMDk2NmIwOWQxNjZjOGQ4ZWE0YTFjNWUifQ"
         }
       ]
@@ -142,15 +142,15 @@
     },
     {
       "id": "claim_3cd090fdac0145af880a35784efbc402",
-      "statement": "Environment is typed per process in packages/env with Effect Schema sources of truth (ADR-0014): server.ts (BETTER_AUTH_SECRET min 32, BETTER_AUTH_URL, CORS_ORIGIN, DATABASE_URL, MANTICORE_URL default http://127.0.0.1:9308, REDIS_URL optional, NODE_ENV, RAW_S3_* optional, SEARCH_HYBRID, Effect flags), web.ts (NEXT_PUBLIC_SERVER_URL, INTERNAL_SERVER_URL optional http-only, APP_RELEASE_SHA), projector.ts (DATABASE_URL may be pooled, PROJECTOR_DATABASE_URL direct, MANTICORE_URL, SEARCH_HYBRID), poller.ts (DATABASE_URL, POLLER_DATABASE_URL direct, POLLER_TICK_MS default 60000, POLLER_CONCURRENCY default 2, POLLER_CURATE_BUDGET_MS, POLLER_ABANDON_RUN_AFTER_MS default 6h, SEARCH_PROJECTOR pinned onbox, RAW_S3_*, per-source live flags), and database.ts (DATABASE_URL only, scoped for DB-only consumers). Secrets stay in apps/server/.env and apps/web/.env (gitignored); .env.example lists names/placeholders only.",
+      "statement": "Environment is typed per process in packages/env with Effect Schema sources of truth (ADR-0014): server.ts (BETTER_AUTH_SECRET min 32, BETTER_AUTH_URL, CORS_ORIGIN, DATABASE_URL, MANTICORE_URL default http://127.0.0.1:9308, REDIS_URL optional, NODE_ENV, RAW_S3_* optional, SEARCH_HYBRID, Effect flags), web.ts (NEXT_PUBLIC_SERVER_URL, INTERNAL_SERVER_URL optional http-only, APP_RELEASE_SHA), projector.ts (DATABASE_URL may be pooled, PROJECTOR_DATABASE_URL direct, MANTICORE_URL, SEARCH_HYBRID), poller.ts (DATABASE_URL, POLLER_DATABASE_URL direct, POLLER_TICK_MS default 60000, POLLER_CONCURRENCY default 8, POLLER_CURATE_CONCURRENCY default 2, POLLER_CURATE_BUDGET_MS, POLLER_FETCHES_PER_SECOND default 8, POLLER_ABANDON_RUN_AFTER_MS default 6h, SEARCH_PROJECTOR pinned onbox, RAW_S3_*, per-source live flags), and database.ts (DATABASE_URL only, scoped for DB-only consumers). Secrets stay in apps/server/.env and apps/web/.env (gitignored); .env.example lists names/placeholders only.",
       "evidence": [
         {
           "resource": "repo://packages/env/src/database.ts#L29-L41",
           "version": "repo-lines-v1:sha256:7146558520bd1613f25ecd1ca8225d4276370120a0c98d245f908a7379df71b5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2NDQ0NmEyYTJjZTQ4MmZmYzU4ZTc1YTBkZTEyODQ3MjhhNjhhMDMyMDM1YTNhOWMxODJjOTAwYTUwY2U5ZjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZkODM2YWI3OTY0Y2EyZWJkNjRiNGIxMDU0MTE5YTQ4YmMzMjE1MWU2MTRlNDk4M2IxM2NmNWE0NDRhYmIxYjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://packages/env/src/poller.ts#L1-L245",
-          "version": "repo-lines-v1:sha256:92377f4654a3cb537d009d10e6744a5c52e60904f33d64490183ccd7ad94ec8c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQ1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI0ZmZjNjk0YTEzY2ZiNmFhNDNlMzkyNmUxZDhlMDVkZWQ4NzI3YWYyZTk1ODM1MDYzYzFkOThlNzVjNWQ3YWQ2IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJhYTFkMWE2MzM5MDIyOWM3OTgzNDdlODNhMDQwNTQ0MWM5NDAwMDM1Mjg0YWQxNjhjMWJmNmNkZjFkNzBhMzcwIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+          "resource": "repo://packages/env/src/poller.ts#L1-L279",
+          "version": "repo-lines-v1:sha256:3aa3d37827ec071ab93eec0a4996a0e62ffd78188a8eb93f6f0b89c1169fa142:eyJzZWxlY3RlZExpbmVDb3VudCI6Mjc5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI0ZmZjNjk0YTEzY2ZiNmFhNDNlMzkyNmUxZDhlMDVkZWQ4NzI3YWYyZTk1ODM1MDYzYzFkOThlNzVjNWQ3YWQ2IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJhYTFkMWE2MzM5MDIyOWM3OTgzNDdlODNhMDQwNTQ0MWM5NDAwMDM1Mjg0YWQxNjhjMWJmNmNkZjFkNzBhMzcwIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
         },
         {
           "resource": "repo://packages/env/src/projector.ts#L25-L60",
@@ -171,7 +171,7 @@
       "statement": "Long-running singleton processes (projector, poller) hold a Postgres session-level advisory lock; a pooled endpoint (PgBouncer / Neon pooler) can move consecutive queries between backend sessions and break the singleton guarantee, so PROJECTOR_DATABASE_URL and POLLER_DATABASE_URL must use a direct endpoint. packages/env/src/projector-database-url.ts validates this at startup by rejecting *-pooler.*.neon.tech and *.pooler.*.neon.tech hostnames and requiring a postgres/postgresql protocol. Ordinary data queries may still use a pooled DATABASE_URL.",
       "evidence": [
         {
-          "resource": "repo://packages/env/src/poller.ts#L121-L121",
+          "resource": "repo://packages/env/src/poller.ts#L140-L140",
           "version": "repo-lines-v1:sha256:4bdc8860c47fe8075df9e70452f4e96605b9f5404a768792238c09d1f03157b5:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGJkYzg4NjBjNDdmZTgwNzVkZjllNzA0NTJmNGU5NjYwNWI5ZjU0MDRhNzY4NzkyMjM4YzA5ZDFmMDMxNTdiNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGJkYzg4NjBjNDdmZTgwNzVkZjllNzA0NTJmNGU5NjYwNWI5ZjU0MDRhNzY4NzkyMjM4YzA5ZDFmMDMxNTdiNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTZmMGRkMmUyOWQyNGMwZjk0ZTc3ZmM2YjVhMTMzNjJjMzVmMWE0NTY4ZDU5NzIwMzk2YmNhNjYzNTg2ZGRlNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTllMDYzYjI5MGVlMzk2MWExNzc4ZTI2NTI3OGEwMGQzMmExOTIwZWM4YWUxMjIxZjJjNzJiMTU2YWFmMjI4ZCJ9"
         },
         {
@@ -243,8 +243,8 @@
           "version": "repo-lines-v1:sha256:8ca63da7fe0f0d9f68df7d9a6ab7167642e1a6419f1e42ee20ebb16c7bdace1a:eyJzZWxlY3RlZExpbmVDb3VudCI6ODUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3ZDM2YzBmYzA5OGI5OTc0MjJlZDMwZjliZmYzNDAwNGVhZTQ1NjJhODZjOTFjNTg0NzljNGJmNzhiMmIxNzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxY2NlZjkwODJiMzg2OWMzZTdhNzJkMzI4OTYzMzE4YzNjMmI0MGFlZDRmNWUxMzk0MjliZTE2YjBmMTJjYWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://docs/runbooks/onbox-poller.md#L1-L78",
-          "version": "repo-lines-v1:sha256:0d0bb5743c9682c02985cdf0f111f80641a270d34adc5056f29f62a30bbbcd53:eyJzZWxlY3RlZExpbmVDb3VudCI6NzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhN2FmNmQ0NmNkMzI3ZjQ3N2VkNGNlOGZjMWVkOWQwNDhkNjIxNDE3MWFiNmEyMGY2YWQzYmM5YjliZjAzOTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAyYzM0MmI0Y2I5MWVhMTU5ZDU3NWQ5YjRlNmFmOTJmMDFhOWIxOTc2NzM1MTE2NjI4Njk4MTA4YmIyNDk4MWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI0ZmJiNzQ0NDMyYTgxNmZhM2ZlMTI4YWMzYmFmYjc5ZGFiYWNmZGE2ZjdjZDIwMWRlNDJlMzkwOGU0ZjRkZmMifQ"
+          "resource": "repo://docs/runbooks/onbox-poller.md#L1-L80",
+          "version": "repo-lines-v1:sha256:62efc3c0c480c9b0294a0d76ee518f58272bdc515a66ca1905c924d5a6afd85f:eyJzZWxlY3RlZExpbmVDb3VudCI6ODAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhN2FmNmQ0NmNkMzI3ZjQ3N2VkNGNlOGZjMWVkOWQwNDhkNjIxNDE3MWFiNmEyMGY2YWQzYmM5YjliZjAzOTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAyYzM0MmI0Y2I5MWVhMTU5ZDU3NWQ5YjRlNmFmOTJmMDFhOWIxOTc2NzM1MTE2NjI4Njk4MTA4YmIyNDk4MWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI0ZmJiNzQ0NDMyYTgxNmZhM2ZlMTI4YWMzYmFmYjc5ZGFiYWNmZGE2ZjdjZDIwMWRlNDJlMzkwOGU0ZjRkZmMifQ"
         },
         {
           "resource": "repo://docs/runbooks/postgres-on-box.md#L1-L165",
@@ -263,6 +263,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.0",
-    "at": "2026-10-06T08:52:28.787Z"
+    "at": "2026-10-10T14:05:56.822Z"
   }
 }

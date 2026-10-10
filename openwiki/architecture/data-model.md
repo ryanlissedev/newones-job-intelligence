@@ -5,7 +5,7 @@ description: Postgres schema zones, SCD2 versioning, the search outbox, and the 
 tags: [data-model, postgres, persistence, scd2, outbox, migrations, drizzle]
 verified:
   - by: openwiki/0.7.0
-    at: 2026-10-06T08:52:28.787Z
+    at: 2026-10-10T14:05:56.822Z
 sources:
   - id: openwiki-source-26b58fea466eaae99eaeeac4
     resource: repo://packages/db/src/bron-runtime.ts

@@ -57,6 +57,9 @@ sources:
   - id: openwiki-source-74a35cef5b6efc865d373861
     resource: repo://tools/quality/gate.sh
 generated: { by: "openwiki/0.4.3", at: "2026-09-14T14:34:20.891Z" }
+verified:
+  - by: openwiki/0.7.0
+    at: 2026-10-10T14:05:56.822Z
 ---
 
 # Testing & Benchmarks

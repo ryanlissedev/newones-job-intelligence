@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:85d1d0001f7954bd7a79c760ae9b3a8822f8890b4bac907eed8d556d511a318b",
+  "pageVersion": "sha256:7d0eb165af4c2d45a1691b936b21cc13d192274c0d895a6ec5bf3562b8808c50",
   "claims": [
     {
       "id": "claim_4a98db1da46c4d53b0f6d382c16590fb",
@@ -43,7 +43,7 @@
       "statement": "The curated zone's core ingestion chain is bron -> scrape_run -> {source_record (staging), aanvraag}, with aanvraag_versie providing SCD2 history and aanvraag_bron_link, aanvraag_enrichment, aanvraag_markering, and dedup_groep as related tables.",
       "evidence": [
         {
-          "resource": "repo://packages/db/src/schema/curated.ts#L169-L201",
+          "resource": "repo://packages/db/src/schema/curated.ts#L189-L221",
           "version": "repo-lines-v1:sha256:d7a78cdcc1fb80d46adfe856cf4319caa7d0ad5a34ee7e1a52d9fc022e048c4f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4YWNlNmZjOTkzOTA0MzU5ZjVmZDBkODNlNzVhMzIwOGY4YjFjMDRkMTFhYjE5MjY0MjQzZDViMTU2ZDRjYWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5OTY3ZWMxZWQzODM2ZjhlYjE3YWZmMTcyYjViZmVmN2RlNjA0ODVhNDM5YzZjYTExYzU5MWUxNzU1NzM5YWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0MDdiNzhjZGQ0MjA4M2Q2YTFkZDk2Y2M3YjMxZDY3MzgzMjM3NzMxZjMzY2VkNGVlOGIwZjViNGI3YjU3NmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEyYTgyNWVmNzE1YzM4OWFmNGIzN2Y1M2IzZTZkNmI2NDA2MWNmZGVmMWUxYTA0Y2EyNGEwODRhODRhZGM1ZjIifQ"
         },
         {
@@ -51,28 +51,28 @@
           "version": "repo-lines-v1:sha256:227a32fc4e9dfd2799a1677d1a3daa19965624aaa73a4357b8b38ad74a2f16eb:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhODQ3NTEzNTA0ZTQxZTZmY2Y0OTg1N2I0NDQxMTJkNTY3YWU5MTJkODJlYWJmMmNhMzQzYjlkY2E2NmI3ODUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5OTY3ZWMxZWQzODM2ZjhlYjE3YWZmMTcyYjViZmVmN2RlNjA0ODVhNDM5YzZjYTExYzU5MWUxNzU1NzM5YWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE1YzgwNzkzM2MzNDQzZDNkYjE4MGNlODRhZmU3YzVmYWEzNjdhMGE5MmQ1YzYzYzJiZjRmMDIxMTgxMjZmOGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlkNTE4YjA4YjExZTdjN2ZjZDFkZjVkY2NhMTEyMDQyOGE3OGRkZjUwOTNiNTViZmZmZTg3YTk0MGI0OGFlZjIifQ"
         },
         {
-          "resource": "repo://packages/db/src/schema/curated.ts#L203-L270",
+          "resource": "repo://packages/db/src/schema/curated.ts#L223-L290",
           "version": "repo-lines-v1:sha256:920d0a364621fb3efe318c6f74dfa2973703a5523b20ade47d9c2d5f40cd8120:eyJzZWxlY3RlZExpbmVDb3VudCI6NjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjNzdlMGU2MmIwOWU1Y2E4ZGVkZjhjNmNiODVlYzc3ZDQ5MTc2ZmM5YmY5ZDZlZTEwYWUyMjc5NzQ0ZTg0MDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5OTY3ZWMxZWQzODM2ZjhlYjE3YWZmMTcyYjViZmVmN2RlNjA0ODVhNDM5YzZjYTExYzU5MWUxNzU1NzM5YWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0MDdiNzhjZGQ0MjA4M2Q2YTFkZDk2Y2M3YjMxZDY3MzgzMjM3NzMxZjMzY2VkNGVlOGIwZjViNGI3YjU3NmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU5YjU2MDE1OWYwOGIyZDY2ODYyMmNiODI2YjJmOWNkNDUyYmRjMTFjM2I1ZjYzNDA5YjY2MDc2MmY2NzBjNWUifQ"
         },
         {
-          "resource": "repo://packages/db/src/schema/curated.ts#L272-L303",
+          "resource": "repo://packages/db/src/schema/curated.ts#L292-L323",
           "version": "repo-lines-v1:sha256:e53d0528e9299553e90889270a3032a03f06eca7bdcd8369a9836767ae28b306:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBlYmVjMTk3MWI3YTc1YWY3MDY5Yzc3NTI4Nzc3NGFkNjYzMGFmMGU2NWIwMjRhYjc5YTFjZTQ4YzEyNjRjMGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5OTY3ZWMxZWQzODM2ZjhlYjE3YWZmMTcyYjViZmVmN2RlNjA0ODVhNDM5YzZjYTExYzU5MWUxNzU1NzM5YWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0MDdiNzhjZGQ0MjA4M2Q2YTFkZDk2Y2M3YjMxZDY3MzgzMjM3NzMxZjMzY2VkNGVlOGIwZjViNGI3YjU3NmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgzYjVmZTMwNTdkODcxN2RmNWQxYWM0YjlkOTMzMDY2MTNjZjNkMTA3NTA1NDIyNjFhNzdjNjg4MjJlNmIxYTAifQ"
         },
         {
-          "resource": "repo://packages/db/src/schema/curated.ts#L305-L326",
+          "resource": "repo://packages/db/src/schema/curated.ts#L325-L346",
           "version": "repo-lines-v1:sha256:0d01f0933640ffd48533fea46ecb37446cf9c0bf1c68f9baa93cf78b1fdcf096:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI0ZWY5YmI0M2NjNmI0NTFkZTM0NTEyNGVmMjBkNGNiYTAyNjE5YjY2ZjZlNzgyYTJjN2U1Nzk5YTBjYWQ0MDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwNjQ4Zjc3ZmQ1YTljNjNiM2NkZDBhZjQ5ZGFhMTI5OTIyMGI3NTQxZTg4Y2ExN2VmZTFhNmExMTRiOWZmMmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0MDdiNzhjZGQ0MjA4M2Q2YTFkZDk2Y2M3YjMxZDY3MzgzMjM3NzMxZjMzY2VkNGVlOGIwZjViNGI3YjU3NmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhmYzIzM2E3ZjUxNzQyMTFkZDcxMGJkN2M3M2ZmMTAzMWIyYmQ4ZTk2N2Q3MWE2ODUwNzJmZjgxY2Y4NmVmOWMifQ"
         },
         {
-          "resource": "repo://packages/db/src/schema/curated.ts#L359-L398",
+          "resource": "repo://packages/db/src/schema/curated.ts#L379-L418",
           "version": "repo-lines-v1:sha256:cd1ab154300f78eec1bcd3630c5b7dfa5baa75dbd405bdfb62e26fc266ba6f80:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlNzdiOGNkOWE1ZjExYzFjZTczODU1ODAyZGYxNzQxYzJkNDYxZDhkNGY0ODQ2NTY0ZjNmYzRiNTIwMDBhNzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5OTY3ZWMxZWQzODM2ZjhlYjE3YWZmMTcyYjViZmVmN2RlNjA0ODVhNDM5YzZjYTExYzU5MWUxNzU1NzM5YWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0MDdiNzhjZGQ0MjA4M2Q2YTFkZDk2Y2M3YjMxZDY3MzgzMjM3NzMxZjMzY2VkNGVlOGIwZjViNGI3YjU3NmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM4YWE1MGZiNzZjMTMyMjVlMzI5ZDQ0Njg5NDA0YTdhNTljYjE2MTkzZWIyNWQzYjNkMTZkOThkZWZlMmFjMjQifQ"
         },
         {
-          "resource": "repo://packages/db/src/schema/curated.ts#L400-L440",
+          "resource": "repo://packages/db/src/schema/curated.ts#L420-L460",
           "version": "repo-lines-v1:sha256:37c10107a3ce73f3ab56449f85e1bd272069cce90eb53b9620ca7b0824b8d3b2:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1YTMzNTk4ZTZjNzA4YTRlZTBmOTEzNjQ4MTQ3ZWQ4OTJiNWE0MTJkMDE0NGRmODAxZDM3NzM3YmQ2YTZmMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5OTY3ZWMxZWQzODM2ZjhlYjE3YWZmMTcyYjViZmVmN2RlNjA0ODVhNDM5YzZjYTExYzU5MWUxNzU1NzM5YWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0MDdiNzhjZGQ0MjA4M2Q2YTFkZDk2Y2M3YjMxZDY3MzgzMjM3NzMxZjMzY2VkNGVlOGIwZjViNGI3YjU3NmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ3YjY5ZGY4YTJiM2YzMDU0NzlhODM4Zjc0YjBiNWJlZjMxNmM0YjZhZTBiZTE1OTE5ZWFlN2MwNjMwYTk5MDYifQ"
         },
         {
-          "resource": "repo://packages/db/src/schema/curated.ts#L78-L167",
-          "version": "repo-lines-v1:sha256:4e8c4d3ff8dda5c9054ca602d7223cd66ae287fe432549ac32f940a7b6ae192c:eyJzZWxlY3RlZExpbmVDb3VudCI6OTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhZGM1ZTM2OWY4MmRmY2Y5OTY2OWU3YmUwMTkxNmUwYWM0NWUzYTdiMGIwZjZkOTRmZjJhNmI3ZWI4ZGMyNDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5OTY3ZWMxZWQzODM2ZjhlYjE3YWZmMTcyYjViZmVmN2RlNjA0ODVhNDM5YzZjYTExYzU5MWUxNzU1NzM5YWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0MDdiNzhjZGQ0MjA4M2Q2YTFkZDk2Y2M3YjMxZDY3MzgzMjM3NzMxZjMzY2VkNGVlOGIwZjViNGI3YjU3NmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3YWQ2YzZkMTE1OWFhOWNjZjFlZTBjMjRlYmM4NDMzYzc1NmZkOWM5YzIxYzYyOGMxYjIyZmM2ODljYmNhYWQifQ"
+          "resource": "repo://packages/db/src/schema/curated.ts#L78-L187",
+          "version": "repo-lines-v1:sha256:c16e825afbd7d526db40bbe2597d7a4f9201d07aa29abea8af04ab384a65f22a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI2YWRjNWUzNjlmODJkZmNmOTk2NjllN2JlMDE5MTZlMGFjNDVlM2E3YjBiMGY2ZDk0ZmYyYTZiN2ViOGRjMjQ2IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0OTk2N2VjMWVkMzgzNmY4ZWIxN2FmZjE3MmI1YmZlZjdkZTYwNDg1YTQzOWM2Y2ExMWM1OTFlMTc1NTczOWFlIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlNDA3Yjc4Y2RkNDIwODNkNmExZGQ5NmNjN2IzMWQ2NzM4MzIzNzczMWYzM2NlZDRlZThiMGY1YjRiN2I1NzZjIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIwN2FkNmM2ZDExNTlhYTljY2YxZWUwYzI0ZWJjODQzM2M3NTZmZDljOWMyMWM2MjhjMWIyMmZjNjg5Y2JjYWFkIn0"
         },
         {
           "resource": "repo://packages/db/src/schema/staging.ts#L16-L66",
@@ -85,7 +85,7 @@
       "statement": "The bron table enforces that a bron must be created inactive and can only be active when status is ready and voorwaarden_status is toegestaan, via the bron_active_policy_check and bron_ready_policy_check CHECK constraints; secret_ref is constrained to op/vault/trigger schemes so plaintext secrets are rejected at the DB layer even via direct DML.",
       "evidence": [
         {
-          "resource": "repo://packages/db/src/bron-runtime.ts#L210-L222",
+          "resource": "repo://packages/db/src/bron-runtime.ts#L211-L223",
           "version": "repo-lines-v1:sha256:0c27f2831761dadbf81496f7d79f278539da2cec21b5500f6c6ee74683fd9c41:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxNDI4OWJkYzBlZjE4ODIwMzQ5NTk3ZWNiM2NiOGM0YmEzMjIzMTM4NjU2ZjFhZmY5ZTQ4YjFiMjFjYzllMTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBlODZhZjkwOTRhMDM1MDQ4MGZiMDU0ZTdmOWQyM2U0NmM1MDFhMmNkMTc1Y2UyZDBlNzVlN2EwMTFiZjU2NWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM1ZDMxMGI3NmEwZWQ3OWYyNzU3ZjI3ZGUyYThlZDk0MjZhMjUyOTNjNDA2YTQyZGRkNDc2MDA2MjI5OWNiMjYifQ"
         },
         {
@@ -103,12 +103,12 @@
       "statement": "A failed scrape_run must carry a complete failure envelope (failure_phase, failure_class, failure_code, failure_message) drawn from a fixed allow-list enforced by scrape_run_failure_tuple_check; non-failed runs must have all four NULL, enforced by scrape_run_failure_envelope_check.",
       "evidence": [
         {
-          "resource": "repo://packages/db/src/bron-runtime.ts#L70-L143",
+          "resource": "repo://packages/db/src/bron-runtime.ts#L71-L144",
           "version": "repo-lines-v1:sha256:584454305f74ed8a4cbe2fc59d7b50f787889eb946bceadd6cd0e141664faa68:eyJzZWxlY3RlZExpbmVDb3VudCI6NzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIyZWQxODQ0NzRkOTAyMWJmNjQ1NWJjZjc0ZmI4NjI3YTM2N2U5MmJhMDAxZWUyOWU4MTJiNjlkYzEyZTE0NmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyN2JkODg2NDExM2MzYjUxZGFjZjEwZmFkOGU1MmZiMWJhNzEzYTA1ODVjYzFiMGQ2NGNkNjBjZjNjZGQzMDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlmZmEzNzI3MDllYzdiNDE4ZTAzN2Y5NjMwZTI0MDNjYTIwZTg3ODljNTkzMDAwZDkzNjY4OWIwZTQ5YTRmOGMifQ"
         },
         {
-          "resource": "repo://packages/db/src/schema/curated.ts#L124-L166",
-          "version": "repo-lines-v1:sha256:036a0331b9d7f743d8eeffca5ffbd748f34b852c85f55f47aaa4297ad2f0b42d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyMmNkMDE0MmVhM2FlYTVjZTIxOGIyMjU4MmU4MGI5ODE2YmU3YzgwMjk5ZWRjNDIzNDM1YzAwYTZmMGYxZDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwNjQ4Zjc3ZmQ1YTljNjNiM2NkZDBhZjQ5ZGFhMTI5OTIyMGI3NTQxZTg4Y2ExN2VmZTFhNmExMTRiOWZmMmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFhY2NiYzIyOGM4MWFiZTI4MTcwNTVjNjYyYTUwYjBkNzhhYzFlOTBkNjE2YjEzZGVkY2RhZGZmODE3YjdmYzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJlZDYxOTQ0OGVkZTkzNWQ5M2NlZDA2M2Q4MTU4YmQ5MmY2Y2UxYWJjNmIwZDkyMjRkMWU4M2U0ZmE2NGE5ZDMifQ"
+          "resource": "repo://packages/db/src/schema/curated.ts#L131-L186",
+          "version": "repo-lines-v1:sha256:d83cc2e87d4cac85d2efbd59eb61e32b7702293dfbdf534d0b70f791a91f2e92:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyMmNkMDE0MmVhM2FlYTVjZTIxOGIyMjU4MmU4MGI5ODE2YmU3YzgwMjk5ZWRjNDIzNDM1YzAwYTZmMGYxZDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwNjQ4Zjc3ZmQ1YTljNjNiM2NkZDBhZjQ5ZGFhMTI5OTIyMGI3NTQxZTg4Y2ExN2VmZTFhNmExMTRiOWZmMmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFhY2NiYzIyOGM4MWFiZTI4MTcwNTVjNjYyYTUwYjBkNzhhYzFlOTBkNjE2YjEzZGVkY2RhZGZmODE3YjdmYzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJlZDYxOTQ0OGVkZTkzNWQ5M2NlZDA2M2Q4MTU4YmQ5MmY2Y2UxYWJjNmIwZDkyMjRkMWU4M2U0ZmE2NGE5ZDMifQ"
         }
       ]
     },
@@ -121,7 +121,7 @@
           "version": "repo-lines-v1:sha256:668707e74d11a129ead7ed7e994bb624011df4b5f8c38b24f4ceb0cd8b3af49a:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkYTQ3NzljZTg5MzUxMjI2NzRkZjc4ZDY4OTI1NTY3MmNiNzk2NGEzZTM4MmQ2YjliZjk1MmM2NGJmYTYwZTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiMzRlZjEyZjNmZDg1ZDJhMDEyMWY3NWNlODdkOTgyZGJlZjBhY2ZmMzc5OWQ0MTRjYjM4NTMyM2FmNDdhNzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://packages/db/src/schema/curated.ts#L272-L303",
+          "resource": "repo://packages/db/src/schema/curated.ts#L292-L323",
           "version": "repo-lines-v1:sha256:e53d0528e9299553e90889270a3032a03f06eca7bdcd8369a9836767ae28b306:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBlYmVjMTk3MWI3YTc1YWY3MDY5Yzc3NTI4Nzc3NGFkNjYzMGFmMGU2NWIwMjRhYjc5YTFjZTQ4YzEyNjRjMGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5OTY3ZWMxZWQzODM2ZjhlYjE3YWZmMTcyYjViZmVmN2RlNjA0ODVhNDM5YzZjYTExYzU5MWUxNzU1NzM5YWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0MDdiNzhjZGQ0MjA4M2Q2YTFkZDk2Y2M3YjMxZDY3MzgzMjM3NzMxZjMzY2VkNGVlOGIwZjViNGI3YjU3NmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgzYjVmZTMwNTdkODcxN2RmNWQxYWM0YjlkOTMzMDY2MTNjZjNkMTA3NTA1NDIyNjFhNzdjNjg4MjJlNmIxYTAifQ"
         }
       ]
@@ -135,7 +135,7 @@
           "version": "repo-lines-v1:sha256:678fe9ab15af1fee03af1d6d707c8d30b4884149f6dbc35f31f6f8c342610159:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyZmIwMDViY2RmNTMyYTkzNmM1NTM5ZTk3NzgyZTBiMmRlZDBiYTAyNThmNWJmMTAxYWQwNjVmMzhmMDc4OTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTYwNzc0OGZhZjExYjUxZjM3ZTRkZjRmYTBjOTYwZmRkYmMwMWM4NzZhYWFhNTEyOTdlMTIxMzMxMmFkYmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwMTdlODhkYmYwYjE0NzE4NTY3MWI0M2NlN2E2YWE5ZmQwYmQ2ZDA3YTk3ODJmOWQ5ZmY2ZDQ5NWY5YWY5M2MifQ"
         },
         {
-          "resource": "repo://packages/db/src/schema/curated.ts#L529-L581",
+          "resource": "repo://packages/db/src/schema/curated.ts#L549-L601",
           "version": "repo-lines-v1:sha256:dda22d31ead49bdfba27bf9974ed8a9bdb495a7b4c3bced3772b8685c37a6fa4:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5OTY3ZWMxZWQzODM2ZjhlYjE3YWZmMTcyYjViZmVmN2RlNjA0ODVhNDM5YzZjYTExYzU5MWUxNzU1NzM5YWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0MDdiNzhjZGQ0MjA4M2Q2YTFkZDk2Y2M3YjMxZDY3MzgzMjM3NzMxZjMzY2VkNGVlOGIwZjViNGI3YjU3NmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM5OTllMGM4MGJhNzhhNmVlMzI1MDFjNjFlMDg1NjhhMDE0YTNjMmFhYzIyYTEyYWM3NjZiODZjMWRkZDAyZmIifQ"
         }
       ]
@@ -159,7 +159,7 @@
       "statement": "The outbox projection watermark is search_projection_state (one row per aggregate: applied_sequence, generation, projection_hash); the drain skips the Manticore write when the hash is unchanged within the same generation, so curated edits that do not touch indexed fields never reindex.",
       "evidence": [
         {
-          "resource": "repo://packages/db/src/schema/curated.ts#L583-L602",
+          "resource": "repo://packages/db/src/schema/curated.ts#L603-L622",
           "version": "repo-lines-v1:sha256:271294eb7a88dd3e4ba1f3f856c774d1fef860e3ce9def49c94f7b65a905cba4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5OTY3ZWMxZWQzODM2ZjhlYjE3YWZmMTcyYjViZmVmN2RlNjA0ODVhNDM5YzZjYTExYzU5MWUxNzU1NzM5YWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0MDdiNzhjZGQ0MjA4M2Q2YTFkZDk2Y2M3YjMxZDY3MzgzMjM3NzMxZjMzY2VkNGVlOGIwZjViNGI3YjU3NmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFjZTAzYzYyNzYxMmQ4YjU0ZmZhNGM4ZWNhNzhmZDQyODY2M2M5ZWQ5NDM1ZTE4MDllMmFjOGVhNGUxZmUzNzgifQ"
         }
       ]
@@ -224,7 +224,7 @@
         },
         {
           "resource": "repo://packages/db/src/migrations/meta/_journal.json",
-          "version": "repo-file-v1:sha256:29bf03632b23e9b7a15b5658dd8d3e5276e8d4dfc969d285b4bef51f86af1d49"
+          "version": "repo-file-v1:sha256:9e2f93f5a775154bdb2ce756f0c416378f1f32834ad4c784bde45b4b9762e23d"
         }
       ]
     },
@@ -233,7 +233,7 @@
       "statement": "Runtime readiness compares the latest journal entry's when timestamp against the created_at of the most recent drizzle.__drizzle_migrations row; evaluateDbReadiness returns migration_mismatch if they differ, database_error if the query throws, and ready only on an exact match, so a deploy against a stale schema fails readiness.",
       "evidence": [
         {
-          "resource": "repo://packages/db/src/index.ts#L241-L265",
+          "resource": "repo://packages/db/src/index.ts#L242-L266",
           "version": "repo-lines-v1:sha256:d68099f2cca462b6e77d2c867b541aadca2d1342d9124e966eca80616efb745a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiZDUwZDZkZGYwOWQxZGM3NTU0MzgzOTQyM2VhMzk4NjQ5MTA5ZDA4MjZiZTBlZGQ3NmU0NjkyYjY1NGMxZTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNhM2U0NmY5NDI3NmI2ZjZmNGVkMWYwMmFmNzhiZWY2YTJlZTFjNDM5ZGQ1NTg0Yjk3Mzk0ODMxMzIxNGQyYjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNkMTZhNGNmNjJmMjdkMzUzMGQwMzZhNDU0YWUxZGE3NjZjOWZlYmE4YmE4YTg4MDAxOGJiNWM2ZTI3ZDJiOTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZmJmMDMxOGNlZjI2YTVmZTlmYWNkZjdmODUyZmJhNjM0ZGFlZTdmODc3ZDg0OTI5ODZhZDExMjg2NjgyOWEifQ"
         },
         {
@@ -269,7 +269,7 @@
           "version": "repo-file-v1:sha256:54e0be6c1ce59847413f054dffb9825769897d13db6756b00824cbb823cfb618"
         },
         {
-          "resource": "repo://packages/db/src/schema/curated.ts#L621-L642",
+          "resource": "repo://packages/db/src/schema/curated.ts#L641-L662",
           "version": "repo-lines-v1:sha256:29157bdd1e71d897898b1a0209c0ce6d01f30ac81a0c7cd9d180a12cc1204489:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5OTY3ZWMxZWQzODM2ZjhlYjE3YWZmMTcyYjViZmVmN2RlNjA0ODVhNDM5YzZjYTExYzU5MWUxNzU1NzM5YWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJlYmMyYzgxNzljNTg2YTcyYzIwMzcxMmE4YjU5NTdmMzI1NjBkNGFhZTJmNTIyZDMwNzI3YzlhNzQ2NWQ2OWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhYjc0YzRhOGFkOWE1ODBmY2JiYTFmYzY2NDNmNDQzODQ3MGRiNzUzOTA2YjcxNmExOWIwMTZiNDZjZjQ2ZTUifQ"
         }
       ]
@@ -279,15 +279,15 @@
       "statement": "The export flow gates on approval: query_snapshot captures point-in-time result_ids, approval_record (one per snapshot via approval_record_snapshot_uidx) records the approval with an expiry, and export_attempt/export_effect/external_receipt/external_id_crosswalk drive idempotent export of approved vacancies to the spott target.",
       "evidence": [
         {
-          "resource": "repo://packages/db/src/schema/curated.ts#L442-L489",
+          "resource": "repo://packages/db/src/schema/curated.ts#L462-L509",
           "version": "repo-lines-v1:sha256:779781048fc6ec0afaa972e7e34731ffc58d5dda7dc784890978f23547beeee5:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2M2NkZDMxYTg0ZWY1OWQ0ZWQ5MTkzYjQ2MGU2OGVjNWJmY2NlYWNhYjY4YjhlOTVhNTc5OGFlZDM0MGZkNjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5OTY3ZWMxZWQzODM2ZjhlYjE3YWZmMTcyYjViZmVmN2RlNjA0ODVhNDM5YzZjYTExYzU5MWUxNzU1NzM5YWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0MDdiNzhjZGQ0MjA4M2Q2YTFkZDk2Y2M3YjMxZDY3MzgzMjM3NzMxZjMzY2VkNGVlOGIwZjViNGI3YjU3NmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxOWVhMWFkZjJhMDVjNWFjOTdhMjk0ZWViNGY2NTRlMzFiNjUxODZiM2EwMTM2MzUwNjZjOGI2ZTM2MjVjZjYifQ"
         },
         {
-          "resource": "repo://packages/db/src/schema/curated.ts#L954-L1008",
+          "resource": "repo://packages/db/src/schema/curated.ts#L974-L1028",
           "version": "repo-lines-v1:sha256:10963a9f1d41906744051751a8843e95d1950d3995b0fbb0b39643325b437b0f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImExNTZiNDgzMDIwN2U3ZDQ3Zjk5YTQ5MWE3OTg5ZGQ3NjNiMDM2OTdhZTdlMjMxMWQ2MDAwMTAwNWZjOWVkMTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjViNzQxZDJjMDhlNmY1MTBiN2U5YTI2NGYzNzhmOWNlMDA0OWE1MDRlMGU3ZWY1ZDY3Y2QzZWE4MTNmODU0NzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJhOGM4NGI0ZDFhMTFiYWExYmU0ODkyOTFjYTgyYTNkMzI2OGNlZDkzOWJjZDFiNmVlOWMxMzhjNjZlNTYzMGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxZTc4MGY1N2Q4Y2ZhOGVmZDk3YjQyNzYyZDhmMzRhNDQwYzRkZDY1ZTBjOTEwNzk0Yjc2M2U4Mzc1MDA5Y2MifQ"
         },
         {
-          "resource": "repo://packages/db/src/schema/curated.ts#L1010-L1185",
+          "resource": "repo://packages/db/src/schema/curated.ts#L1030-L1205",
           "version": "repo-lines-v1:sha256:212db589a88db591525a6df5564ddbe6516867b69f956361974c0288e73c3720:eyJzZWxlY3RlZExpbmVDb3VudCI6MTc2LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmMDJhNTRiOGY0ODc2MDgyYzI4N2QwOTkwNzM5MGNhMzZiZDRiNGI0OTYyZjNhZWQ1YzY3ZWQ1NzE3NjAxMzU3IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0OTk2N2VjMWVkMzgzNmY4ZWIxN2FmZjE3MmI1YmZlZjdkZTYwNDg1YTQzOWM2Y2ExMWM1OTFlMTc1NTczOWFlIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJmYWY4NjU2ZDIwYjVmZTgzZTRjZTc3MDViOTY3NzNiMjllODkyOTkwMzY4OTMyNzg4MzhkN2E0N2VhZmRmMDZjIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
         }
       ]
@@ -311,7 +311,7 @@
       "statement": "staging.source_record uniqueness is (bron_id, bron_referentie) and the same content_hash is allowed for distinct references; later migrations added listing_hash (0012, nullable and never authorising a fetch skip when NULL) and missed_polls/last_seen_at/last_seen_scrape_run_id/last_missed_scrape_run_id (0009) for stale-record detection.",
       "evidence": [
         {
-          "resource": "repo://packages/db/src/bron-runtime.ts#L58-L60",
+          "resource": "repo://packages/db/src/bron-runtime.ts#L59-L61",
           "version": "repo-lines-v1:sha256:9130422daf0f08b4aadf12f2fb07760d163711c6df469a2525ffb317f892137b:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTE2Y2FkN2Y3NjM5MWE1ZGUwNDA5MDliYjNhMGI1MmM4MTdmMDJhZmE4Mzg5MDg0MjhlMTRlZjVjZDA3N2Q2OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzQyMjhkM2Q2Y2ZhYjM2MDNlZTQyNzJkOWZhMWE2MDg3M2Y3MjlmMWEzOGJiYTJhMWMzOWY1OTQ0YWZlNTNjYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWY4NDk4YjAyMTY3NDY2NzI4MTJlMmE1NWNjYmQwMDRmOThkNjFlZTY1MTMxOGMxMDdhMmY4NmRhYjIwZjk3OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWMzODFmN2IzYjkyZDZmYTZhZmY2MWU2NmIzZjQwYWQwOTNkNzk0ZDQ1YjdjOWQ2Njg5ZWUwYTVjNDcwNjE0OCJ9"
         },
         {
@@ -327,6 +327,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.0",
-    "at": "2026-10-06T08:52:28.787Z"
+    "at": "2026-10-10T14:05:56.822Z"
   }
 }

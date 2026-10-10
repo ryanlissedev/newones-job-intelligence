@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:b478427b9911ee18b1dec5c58379f6cc3f1e6dbcbe290bd7c5b4b9684357e7d1",
+  "claims": [
+    {
+      "id": "claim_584576c19a6d44f78a9eff9dddc36534",
+      "statement": "Each ingestible source is defined by a SourceDefinition object located in /packages/application/src/sources/ that includes bronId, createConnector factory, listingHashCoversDetail flag, liveEnv variable name, optional runBudgetMs, human-readable naam, normalise function, seed configuration, and slug identifier.",
+      "evidence": [
+        {
+          "resource": "repo://packages/application/src/sources/alliander.ts",
+          "version": "repo-file-v1:sha256:e22a76ba224b2dcefc4ab67dc89de1a197ea0c747dcab4da1e8c701f4c2167ff"
+        },
+        {
+          "resource": "repo://packages/application/src/sources/definition.ts",
+          "version": "repo-file-v1:sha256:ce2f3cde0839a94fec451a8a741d25d7572486838b65b7e1559cf11e225a0ad0"
+        },
+        {
+          "resource": "repo://packages/application/src/sources/registry.ts",
+          "version": "repo-file-v1:sha256:c47f76807c1e11349ca2fbeccfc28b6a67321a995d73cd287d4c74bf3095c109"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.0",
+    "at": "2026-10-10T14:05:56.822Z"
+  }
+}

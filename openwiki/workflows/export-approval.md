@@ -33,10 +33,10 @@ sources:
     resource: repo://packages/db/src/export-reconciliation.ts
   - id: openwiki-source-00816f778098498c26e02a7f
     resource: repo://packages/db/src/export-stores.ts
-generated: { by: "openwiki/0.4.3", at: "2026-09-14T14:34:20.891Z" }
+generated: { by: "openwiki/0.7.0", at: "2026-10-10T14:05:56.822Z" }
 verified:
   - by: openwiki/0.7.0
-    at: 2026-10-06T08:52:28.787Z
+    at: 2026-10-10T14:05:56.822Z
 ---
 
 
@@ -143,14 +143,22 @@ For each `canonicalVacancyId` in the approved snapshot's `resultIds`,
 ### Create and confirm
 
 When the reservation is newly acquired, `commit_export` maps the aanvraag to a
-`SpottCreateVacancyRequest` and calls `spottWriteClient.createVacancy`. The
-returned id is validated against a schema, then `recordExternalId` persists it
-with `provider_response` provenance and transitions the effect to
-`external_id_acquired`. `confirmSpottCreateEffect` then performs a `getVacancy`
-readback; only a matching detail id counts as confirmed. On match,
-`finalizeConfirmed` atomically inserts the external id crosswalk, a `created`
-export attempt, a confirmed receipt, and sets the effect to `confirmed` in a
-serializable transaction.
+`SpottCreateVacancyRequest` where:
+- `description` is the aanvraag's `beschrijving` concatenated with a formatted
+  block of its `contactpersonen` (if any)
+- `name` is the aanvraag's `titel`
+- `companyId` and `stageId` are hardcoded fixture IDs
+- `employmentType` is `"contract"`
+- `endAt`, `location`, `locationType`, `salaryRange`, `startAt`,
+  `targetCompanyId`, and `teamUserIds` are `null` or empty arrays
+- `clientContactIds` is an empty array
+It then calls `spottWriteClient.createVacancy`. The returned id is validated
+against a schema, then `recordExternalId` persists it with `provider_response`
+provenance and transitions the effect to `external_id_acquired`.
+`confirmSpottCreateEffect` then performs a `getVacancy` readback; only a
+matching detail id counts as confirmed. On match, `finalizeConfirmed` atomically
+inserts the external id crosswalk, a `created` export attempt, a confirmed
+receipt, and sets the effect to `confirmed` in a serializable transaction.
 
 ### Failure and skip semantics
 

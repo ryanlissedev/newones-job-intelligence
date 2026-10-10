@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:c853ce024bd67d9557431897c63129f8d2883b8218b8ccaec1d3b90b3869bc28",
+  "claims": [
+    {
+      "id": "claim_d60fc657a8334b63ac39f5f24f590f60",
+      "statement": "After migrating polling and curation to the on-box poller, the following jobs remain on Trigger.dev: enrich-incomplete, schedule-enrich-incomplete, drain-outbox, backfill-neon-v1.",
+      "evidence": [
+        {
+          "resource": "repo://docs/runbooks/onbox-poller.md#L22-L23",
+          "version": "repo-lines-v1:sha256:d5f9ecdafb8742056b6d03586916e0acef5ac3b9079396162e9889e8ea9e27fc:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjI0MmRiNWVjY2MwMTIwMDEwMTY2ZGQ5MTdkYmRlMDU0YjkzZDE0ODk2YmFiMjA4ZTQwNDVjMDQ3ZjAxZjZiMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWUxZWNlNWUwMDhmMDJjMmYxNGJjZmE2NWMwOWY5NjNhNDI0Y2IyOWFlNDY2YzI4ODA3NWE4YWZkMmZjZmIzMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmE1Y2ZjYjk2YmMwNjZkZWVlZTMxMjRhNWNhMjFjNTU0NTZjNmExOWM1NWIxZjAzODkxMWE0N2RlMDE2NGM4NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmY5MzBlMDc3ZWRlNmExZDFlZjY3MGU3YzM2MTE5YmMxOGI1YWU0ZWQyMTYzNzEyMDZmY2JlMzlkOTIxZTU1ZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_6236c029df7440eb9011df3da31069b3",
+      "statement": "These jobs run in Trigger.dev's hosted compute (us-east-1) and access the same database and object storage as on-box services.",
+      "evidence": [
+        {
+          "resource": "repo://apps/worker/src/tasks/enrich-incomplete.ts#L1-L24",
+          "version": "repo-lines-v1:sha256:b05d020ec863f6130260624a1fa1deb5720f13ffa8dea542a3d61493cba9cd7f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4MjAwOTY0YTk3ODYzNTUyMmIyYWIwOTBjNjUwNjVkOGVmOGU4NWM0NzMwYmIyZWIwNDYwZDM0YzY3N2RkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM4YjA1YjNhOTg5ZGUyZWNhODVmMDQxZjk0ZmI5ZDRiMzk4YjUyYTczNTMyMTE2NTJjZjVhNjEwMjVlMGRlOWEifQ"
+        },
+        {
+          "resource": "repo://docs/runbooks/onbox-poller.md#L5-L12",
+          "version": "repo-lines-v1:sha256:7b0d23dc48f9120a35c487af5d46a541ac7ac985596fbb86207aa22dab97ef59:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzczODkyODAyMzA1OGNiNjY5ZDIxMjFkMzhlYTlkZjU3YWUzMjU5OTBiZWIyY2VhNmZmZWQ3OWJjMDQxNGNiNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMWQ1NmE2MWI1NzdkZjU4MDY2ODk2YjI2NTQxOTA1N2Q1MGE1NGE5YzEzNTllMTYxZmI5YTc1MmZlMDE4MmVkZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjc0ZWY0YzJjODFlMDkxOWYwMjM1NWFmYWE4ZDU5MmJhYjQ2MTc2NmEzNzg0YjY4ZjZiMGRjNDk4ODM0YmQxMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMGZmMjIzZTA5NmUxOWYzNDNhYTUyNTEzNzNiMmEwYTQzYWU2NDdkMTAzNmJjNDhhZjFiM2RmMTdlYjk1YmIzMiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_00554448cdb14642bec36801686f7463",
+      "statement": "enrich-incomplete performs enrichment of incomplete aanvragen using LLMs and extractors, and can run via inline or durable path.",
+      "evidence": [
+        {
+          "resource": "repo://apps/worker/src/tasks/enrich-incomplete.ts#L28-L43",
+          "version": "repo-lines-v1:sha256:3ace09ea4dd983cf89d61130061de6f5c61f013790655f1b2948c33d56fbaad7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkM2MxMDJlYjdmMTE3Y2E0YTYxMjcyNTU2Yjg4YTI5ZDAwMjI2ZDEzNDMxMmI2YjJkNDU4YWMyNWQzM2QyNWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM4YjA1YjNhOTg5ZGUyZWNhODVmMDQxZjk0ZmI5ZDRiMzk4YjUyYTczNTMyMTE2NTJjZjVhNjEwMjVlMGRlOWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE3MmFlY2UwY2ZiZTFiNTVmNGEzNDA4ODE3ZGNkZmJlZjExNjkxMjQ1ZWU4Mzg0ZWMyYjM5YThhOGQ0NTljMmUifQ"
+        },
+        {
+          "resource": "repo://apps/worker/src/tasks/enrich-incomplete.ts#L93-L100",
+          "version": "repo-lines-v1:sha256:1def22b92a5bc397f2c7470914263e5dff09aba8076c46825b394b93c52c815f:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWFmMjJjZjA3MzI1OTJjMjQ3MTQxY2JlNjFlZmExMTAxMjYxMmY1YTMxMjJiOWFmOWJiYWY1MmY1NzI0ZDE5NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTA1N2UyMWVmNWExNmNkMjRkMmNhNzJkZjIwMDc1NzNiYWQxNzU4NTE0Y2VjMjk0YjVjZGVhMTQyY2ZhZTk0YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzczYjBkYmUyMThjNzg1YjhhZjgwM2E4YmVkMGVlZWY1Nzc2ZTE1M2QzYWM5MWUzMWJjOWE5MmY1MmVhMjEwNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzZlMTA5NWJiOWNmNDc5ZGE5ZDJjN2QyYjQ3ODNhMzg4MGU4NzI0YjEyYzM1MWNkZTU3N2VkNmExZGQyYjMzMCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_9e42391adbe44fb6a30b3a69be3ab882",
+      "statement": "schedule-enrich-incomplete runs on a cron schedule (every 15 minutes) to trigger enrichment jobs.",
+      "evidence": [
+        {
+          "resource": "repo://apps/worker/src/tasks/schedule-enrich-incomplete.ts#L25-L29",
+          "version": "repo-lines-v1:sha256:0b37bba35ecd85060a563a2b31cdb636fd4c42df8c4a450279fc1823aa6394d7:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDU0ZTE4YWRjOTRjMTVhN2NmNmIyMjA3ODE0YTE5OThkMmE4MzAxN2NkMGE2YWUwYTBmMGU5NTFhZmI5ZjM5MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGQ1Y2QyZmI0ZjNkZjg4NDUxNTI1NWIzOTUyM2YyZjhiNTQ3MmJlZWE5ZjU2NmZmY2EyMDRkYjgwMjU2MTA0MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2NiNGEwZGNmZmJjY2Y2YWY4MmM5OWY2MDdmYWEwNTZmZTU0YWMxNTY2ZmRlMDM4OGRjNDUyZTc0MGUxNGI3MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDY4ZWYxYjYzOWUyNzQ5MTM1YjRjMjg1MzM0Y2NlNTEwYjQyMGE2YWJjMzYzZjNmZjAzNmY1NzI4MDIyNGVhZiJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.0",
+    "at": "2026-10-10T14:05:56.822Z"
+  }
+}

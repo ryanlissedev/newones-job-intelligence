@@ -38,10 +38,10 @@ sources:
     resource: repo://tools/quality/load-compose-env.sh
   - id: openwiki-source-a154829d66d9c70b47a23508
     resource: repo://tools/quality/resolve-changed.sh
-generated: { by: "openwiki/0.7.0", at: "2026-10-06T08:52:28.787Z" }
+generated: { by: "openwiki/0.7.0", at: "2026-10-10T14:05:56.822Z" }
 verified:
   - by: openwiki/0.7.0
-    at: 2026-10-06T08:52:28.787Z
+    at: 2026-10-10T14:05:56.822Z
 ---
 
 # Quality Gates
@@ -55,7 +55,7 @@ the only thing that keeps a change from landing ungated. Never use `--no-verify`
 ## Entrypoints and verbs
 
 Quality is driven by npm scripts in `package.json`, each delegating to a shell
-helper under `tools/quality/`:
+helper under `tools/quality/` or running scripts directly:
 
 | Verb | Script | Scope |
 | --- | --- | --- |
@@ -64,12 +64,15 @@ helper under `tools/quality/`:
 | `bun run fix:all` | `ultracite fix` | Whole-tree escape hatch. |
 | `bun run check:all` | `ultracite check` | Whole-tree escape hatch. |
 | `bun run gate` | `tools/quality/gate.sh` | Full pre-push gate. |
+| `bun run gate:timed` | `tools/quality/gate.sh` with `PERF_METRICS_DIR` | Full pre-push gate with performance metrics. |
 | `bun run check-layering` | `scripts/check-layering.ts` | Web→server→db layering boundary. |
 | `bun run check-secrets` | `scripts/check-secrets-scan.ts` | Committed-secret scan. |
 | `bun run check:capability-coverage` | `scripts/check-capability-coverage.ts` | Capability catalog coverage. |
 | `bun run check:capability-registry` | `scripts/check-capability-registry.ts` | Capability registry binding parity. |
 | `bun run check:postgres-compose` | `scripts/check-postgres-compose.ts` | Compose Postgres safety invariants. |
 | `bun run check:production-compose-guard` | `scripts/check-production-compose-guard.ts` | Guard against `docker compose down -v` outside the isolated CI volume job. |
+| `bun run check:manticore-bench-empty` | `tools/quality/assert-manticore-bench-empty.ts` | Assert Manticore benchmark tables are empty when Manticore is configured locally. |
+| `bun run check:field-coverage` | `scripts/check-field-coverage.ts` | Perform a fixture-only replay (no DB) diffed against the committed baseline in fixtures/field-coverage/baseline.json. |
 
 `fix` and `check` are **scoped to changed files**: they resolve the union of
 branch, staged, unstaged, and untracked changes against `origin/main` (or
