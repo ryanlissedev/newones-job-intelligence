@@ -24,7 +24,8 @@ import type {
   DiscoverItem,
 } from "./contract";
 import { isAbortLike, isReadIoFault } from "./effect-runtime/faults";
-import type { RequestLimiter } from "./limiter";
+import { gateSignalOf, isHostBlockedError } from "./host-gate";
+import type { GateSignal, RequestLimiter } from "./limiter";
 import {
   buildContentAddressedRawObjectPath,
   hashContent,
@@ -228,6 +229,20 @@ const retryRequest = async <Result>(
   }
 };
 
+const GATE_OK: GateSignal = { kind: "ok" };
+const GATE_SETTLED: GateSignal = { kind: "settled" };
+
+/**
+ * A 403 or bot challenge is an answer, not a hiccup: retrying the URL only
+ * hammers a host that already refused us. The limiter (HostGate) decides
+ * when the host may be asked again.
+ */
+const withoutBlockedRetries = (policy: RetryPolicy): RetryPolicy => ({
+  ...policy,
+  retryable: (error) =>
+    !isHostBlockedError(error) && (policy.retryable?.(error) ?? true),
+});
+
 const request = <Result>(
   operation: () => Promise<Result>,
   bronId: BronId,
@@ -237,17 +252,32 @@ const request = <Result>(
   signal?: AbortSignal
 ): Promise<Result> => {
   const limitedOperation = async (): Promise<Result> => {
+    let acquired = false;
     try {
       await limiter.acquire(bronId, signal);
-      return await operation();
+      acquired = true;
+      const result = await operation();
+      limiter.report?.(bronId, GATE_OK);
+      return result;
     } catch (error) {
+      // Every request that got past acquire reports, even one that ended
+      // without an answer (abort, timeout, 404): a half-open probe that
+      // never reports would keep the circuit shut until restart.
+      if (acquired) {
+        limiter.report?.(bronId, gateSignalOf(error) ?? GATE_SETTLED);
+      }
       if (isRunAbort(error, signal)) {
         throw new ConnectorRequestAbortedError(error);
       }
       throw error;
     }
   };
-  return retryRequest(limitedOperation, retryPolicy, wait, signal);
+  return retryRequest(
+    limitedOperation,
+    withoutBlockedRetries(retryPolicy),
+    wait,
+    signal
+  );
 };
 
 /** The stored, bounded key a discovered item is looked up and observed by. */
@@ -418,6 +448,11 @@ const runConnectorInner = async (
     item: DiscoverItem,
     itemObservedAt: Date
   ): Promise<void> => {
+    // Before the limiter: an unchanged page must not cost a crawl-delay slot.
+    if (connector.skipFetch && (await connector.skipFetch(item))) {
+      await reportProgress("fetch");
+      return;
+    }
     const fetched = await withFailureEnvelope(
       () =>
         timeCriticalPathPhase("ingest-fetch", () =>

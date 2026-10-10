@@ -15,6 +15,7 @@ import {
   byLongestWaiting,
   dueCandidates,
   loadPollCandidates,
+  partitionByHostGate,
   partitionByLiveFlag,
 } from "./schedule";
 
@@ -138,6 +139,23 @@ describe("byLongestWaiting", () => {
     ].toSorted(byLongestWaiting);
 
     expect(slugsOf(sorted)).toEqual(["tenderned", "bluetrail"]);
+  });
+});
+
+describe("partitionByHostGate", () => {
+  it("holds back a due source whose host gate refuses a start and keeps the order of the rest", () => {
+    const blocked = candidate({
+      // SAFETY: literal UUID, the only shape BronId brands.
+      bronId: "22222222-2222-4222-8222-222222222222" as BronId,
+      bronSlug: "inhuurdesk",
+    });
+    const open = candidate();
+    const result = partitionByHostGate(
+      [blocked, open],
+      (bronId) => bronId === blocked.bronId
+    );
+    expect(slugsOf(result.held)).toEqual(["inhuurdesk"]);
+    expect(slugsOf(result.ready)).toEqual(["tenderned"]);
   });
 });
 

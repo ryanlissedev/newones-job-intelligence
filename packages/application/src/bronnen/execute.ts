@@ -1,13 +1,16 @@
 import {
   awaitWithSignal,
-  CrawlDelayLimiter,
+  FetchRateCap,
   fullJitter,
+  HostGate,
   runConnector,
+  withFetchRateCap,
 } from "@ji/connectors";
 import type {
   ResumeOrderLookup,
   Connector,
   ConnectorRunResult,
+  HostGateSnapshot,
   ConnectorRunInput,
   ObjectStore,
   ObservationRecorder,
@@ -49,6 +52,11 @@ export interface ExecuteBronRunInput {
    */
   lifecycle?: LifecycleReconcilePorts;
   retryPolicy?: RetryPolicy;
+  /**
+   * Overrides the process-wide fetch cap for this run (tests). Unset uses the
+   * cap from `configureProcessFetchRateCap`, or none when that was never set.
+   */
+  fetchRateCap?: FetchRateCap;
   /** CTP-490: stops the connector run at the next item boundary; see `ConnectorRunInput.signal`. */
   signal?: AbortSignal;
   now?: () => number;
@@ -59,15 +67,21 @@ export interface ExecuteBronRunInput {
 
 interface ActiveLimiter {
   activeRuns: number;
+  /** The gate that owns this bron's host state (pauses, circuit). */
+  gate: HostGate;
   limiter: RequestLimiter;
   policy: LimiterPolicy;
-  replacementLimiter?: CrawlDelayLimiter;
+  replacementLimiter?: HostGate;
 }
 
+/**
+ * One HostGate per bron for the life of the process, so 429 pauses and an
+ * open circuit carry over from one run to the next.
+ */
 const activeLimiters = new Map<BronId, ActiveLimiter>();
 
 type LimiterPolicy = Pick<
-  ConstructorParameters<typeof CrawlDelayLimiter>[0],
+  ConstructorParameters<typeof HostGate>[0],
   "crawlDelayMs" | "rateLimitPerMinute"
 >;
 
@@ -80,7 +94,7 @@ const hasSamePolicy = (
 
 const transitionLimiterPolicy = (
   previous: RequestLimiter,
-  next: CrawlDelayLimiter
+  next: HostGate
 ): RequestLimiter => {
   let previousWindow: Promise<void> | undefined;
   return {
@@ -92,12 +106,14 @@ const transitionLimiterPolicy = (
       await awaitWithSignal(previousWindow, signal);
       await next.acquire(bronId, signal);
     },
+    report: (bronId, signal) => next.report(bronId, signal),
+    started: (bronId) => next.started(bronId),
   };
 };
 
 const acquireLimiter = (
   bronId: BronId,
-  options: ConstructorParameters<typeof CrawlDelayLimiter>[0]
+  options: ConstructorParameters<typeof HostGate>[0]
 ): ActiveLimiter => {
   const activeLimiter = activeLimiters.get(bronId);
   if (activeLimiter) {
@@ -109,9 +125,12 @@ const acquireLimiter = (
       if (activeLimiter.activeRuns > 0) {
         throw new Error("bron limiter policy changed during an active run");
       }
-      const replacementLimiter = new CrawlDelayLimiter(options);
+      const replacementLimiter = new HostGate(options);
+      // A new crawl delay must not reset an open circuit or a 429 pause.
+      replacementLimiter.adoptStateOf(activeLimiter.gate);
       const refreshed = {
         activeRuns: 1,
+        gate: replacementLimiter,
         limiter: transitionLimiterPolicy(
           activeLimiter.limiter,
           replacementLimiter
@@ -125,9 +144,11 @@ const acquireLimiter = (
     activeLimiter.activeRuns += 1;
     return activeLimiter;
   }
+  const gate = new HostGate(options);
   const created = {
     activeRuns: 1,
-    limiter: new CrawlDelayLimiter(options),
+    gate,
+    limiter: gate,
     policy: {
       crawlDelayMs: options.crawlDelayMs,
       rateLimitPerMinute: options.rateLimitPerMinute,
@@ -135,6 +156,42 @@ const acquireLimiter = (
   };
   activeLimiters.set(bronId, created);
   return created;
+};
+
+/**
+ * The host gate state of a bron this process has run, or null when it has
+ * not run it yet. The poller reads it to skip a source whose circuit is open
+ * or whose host asked for a pause, instead of starting a run that would only
+ * wait or fail at once.
+ */
+export const hostGateSnapshot = (bronId: BronId): HostGateSnapshot | null =>
+  activeLimiters.get(bronId)?.gate.snapshot(bronId) ?? null;
+
+/** True while a bron's host refuses new runs: circuit open, or paused past `until`. */
+export const hostGateHoldsStart = (bronId: BronId, until: Date): boolean => {
+  const snapshot = hostGateSnapshot(bronId);
+  if (!snapshot) {
+    return false;
+  }
+  return (
+    snapshot.circuit === "open" ||
+    (snapshot.pausedUntil !== null && snapshot.pausedUntil > until)
+  );
+};
+
+let processFetchRateCap: FetchRateCap | null = null;
+
+/**
+ * Sets the process-wide ceiling on request starts per second, shared by every
+ * bron run in this process; `null` removes it. The poller calls this once at
+ * startup with POLLER_FETCHES_PER_SECOND. Per-host pacing is unaffected: the
+ * cap sits behind each bron's HostGate.
+ */
+export const configureProcessFetchRateCap = (
+  perSecond: number | null
+): void => {
+  processFetchRateCap =
+    perSecond === null ? null : new FetchRateCap({ perSecond });
 };
 
 const releaseLimiter = (activeLimiter: ActiveLimiter): void => {
@@ -194,13 +251,16 @@ export const executeBronRun = async (
     wait: input.wait,
   });
 
+  const fetchRateCap = input.fetchRateCap ?? processFetchRateCap;
   let result: ConnectorRunResult;
   try {
     result = await runConnector({
       bronId: input.bronId,
       bronSlug: input.bronSlug,
       connector: input.connector,
-      limiter: activeLimiter.limiter,
+      limiter: fetchRateCap
+        ? withFetchRateCap(activeLimiter.limiter, fetchRateCap)
+        : activeLimiter.limiter,
       objectStore: input.objectStore,
       observationRecorder: input.observationRecorder,
       onProgress: input.onProgress,

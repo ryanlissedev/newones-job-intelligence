@@ -46,9 +46,11 @@ Read through the typed contract in `packages/env/src/poller.ts`, which mirrors
 | `POLLER_TICK_MS` | no, default 60000 | Longest gap between due-source re-evaluations; the loop wakes earlier whenever a run frees a slot. |
 | `POLLER_CURATE_BUDGET_MS` | no, default 120000 | Per source, per poll run: how long the poller may keep curating that source's backlog after its poll run. |
 | `POLLER_CONCURRENCY` | no, default 2 | How many due sources the poller runs side by side at once. See [Sources run side by side](#sources-run-side-by-side). |
-| `POLLER_RUN_BUDGET_MS` | no, default 3600000 (1 hour) | Wall clock for one source's connector run. When it elapses the run stops at the next item, keeps what it observed and closes its row as incomplete. A source whose full crawl needs longer declares its own `runBudgetMs` (Randstad 3 hours, Techniekwerkt 5.5 hours), capped 30 minutes below `POLLER_ABANDON_RUN_AFTER_MS`. See [Runs that never finish](#runs-that-never-finish). |
+| `POLLER_RUN_BUDGET_MS` | no, default 3600000 (1 hour) | Wall clock for one source's connector run. When it elapses the run stops at the next item, keeps what it observed and closes its row as incomplete. A source whose full crawl needs longer declares its own `runBudgetMs` (Intermediair 2.5 hours, Randstad 3 hours, ProUnity 3.5 hours, Techniekwerkt 5.5 hours), capped 30 minutes below `POLLER_ABANDON_RUN_AFTER_MS`. See [Runs that never finish](#runs-that-never-finish). |
 | `POLLER_ABANDON_RUN_AFTER_MS` | no, default 21600000 (6 hours) | A `curated.scrape_run` still `running` after this is failed once per tick, before candidates are read. See [Runs that never finish](#runs-that-never-finish). |
 | `POLLER_DURABLE_BRONNEN` | no, unset | Comma-separated source slugs dispatched through `curated.durable_job` (the `PersistedQueue` path) instead of an inline run. Unset = everything inline. Requires migration `0029_durable_job_queue` first — see [durable-bron-jobs.md](durable-bron-jobs.md). |
+| `POLLER_FETCHES_PER_SECOND` | no, default 8 | Process-wide ceiling on request starts per second, across every source. Each source's own crawl delay still applies first. |
+| `POLLER_CURATE_CONCURRENCY` | no, default 2 | How many `curateScrapeRun` passes may run against Postgres at once, across all sources in flight. |
 | `SEARCH_PROJECTOR` | no, pinned to `onbox` | The only accepted value. The poller polls and curates; the on-box projector owns every outbox drain. |
 | `MANTICORE_URL` | no | Unused while `SEARCH_PROJECTOR` is `onbox`. Declared so the contract is one document. |
 | `RAW_S3_BUCKET`, `RAW_S3_ENDPOINT`, `RAW_S3_REGION`, `RAW_S3_ACCESS_KEY_ID`, `RAW_S3_SECRET_ACCESS_KEY` | in production yes | Read by `createPollBronRuntime` in `apps/worker/src/poll-bron-run.ts`. With `NODE_ENV=production` the process refuses to start on the filesystem backend, because raw payloads written there would read back as null from the server (RJC-386, [raw-object-storage.md](raw-object-storage.md)). |
@@ -112,7 +114,7 @@ source's run.
 
 ## Sources run side by side
 
-The poller runs up to `POLLER_CONCURRENCY` sources at once, default 2, and
+The poller runs up to `POLLER_CONCURRENCY` sources at once, default 8, and
 keeps scheduling while they run. There is no cohort barrier: an evaluation
 starts every due source that has a free slot, and the loop re-evaluates on the
 tick or the moment a run finishes — a long BlueTrail or Opdrachtoverheid crawl
@@ -141,6 +143,12 @@ helper with its own spec:
   the scheduler.
 - One active run per source: an in-flight source is skipped until its run
   settles, and ticks it missed while running merge into at most one follow-up.
+- Long runs share a lane: a source whose resolved run budget is above
+  `POLLER_RUN_BUDGET_MS` (Intermediair, Randstad, ProUnity, Techniekwerkt)
+  counts as long, and at most `POLLER_CONCURRENCY - 1` long runs (at least
+  one) are in flight at once. A due long source past that cap waits for the
+  next evaluation and its slot goes to the next short source, so two
+  multi-hour crawls can never take both default slots and stall the rest.
 - The abort signal is checked before each start and is passed into connector
   discovery, fetch, limiter waits and retry backoff. SIGTERM therefore stops
   new sources and lets uncancellable persistence finish its current boundary;
@@ -150,12 +158,24 @@ The scoped liveness fiber refreshes the heartbeat independently of source
 progress, so a long connector or curation pass cannot make process liveness
 look stale. Source progress and freshness are separate signals.
 
-Postgres load is bounded by the same number. Each source's drain step runs
-inside that source's budget, so `POLLER_CONCURRENCY` is also the ceiling on
-concurrent `curateScrapeRun` drains: at the default that is two. Raising it
-raises both the number of sites polled at once and the number of drains
-competing for the database, so raise it in small steps and watch `poller_cycle`
-durations rather than jumping to the source count.
+Two process-wide caps sit beside the slot count:
+
+- **`POLLER_FETCHES_PER_SECOND`** (default 8) spaces request starts across
+  every source in flight. A source waits for its own host first (crawl delay,
+  429 pause), then for a global slot. With eight sources whose crawl delays are
+  short, this is what keeps the box's outbound rate where it was.
+- **`POLLER_CURATE_CONCURRENCY`** (default 2) bounds `curateScrapeRun` passes
+  against Postgres. A curation pass takes a slot, and a source whose drain is
+  waiting keeps its run slot meanwhile. The default equals the old two fixed
+  slots, so moving from 2 to 8 sources in flight does not add database
+  pressure. Raise it in small steps and watch curation `remaining` and
+  Postgres load, not the source count.
+
+Why 8: the measured round (2026-10-08) had 33–34 sources always due and both
+slots busy in 88% of evaluations. The p50 round was 6.27 h, dominated by
+Techniekwerkt (330 min) and Randstad (103 min). Replaying those durations
+through `runContinuously` (`docs/evidence/poller-concurrency/`) takes the round
+from about 6 h at 2 slots to about the length of the longest source at 8.
 
 ## Runs that never finish
 
@@ -183,9 +203,11 @@ the poller writes one `poller_runs_abandoned` line with the count; a clean tick
 writes nothing.
 
 The six hour default is deliberately far above any healthy run. Most sources
-finish in minutes; the sitemap crawlers Randstad (~3,000 detail URLs) and
-Techniekwerkt (~8,500) at a 2 s crawl delay take around 100 minutes and 4.7
-hours. Those two declare their own `runBudgetMs` in their source definition,
+finish in minutes; the sitemap crawlers Intermediair (~2,800 detail URLs),
+Randstad (~3,000) and Techniekwerkt (~8,500) at a 2 s crawl delay take around
+94 minutes, 100 minutes and 4.7 hours, and ProUnity (~1,000) at its 10 s
+robots.txt crawl delay around 167 minutes. Those four declare their own
+`runBudgetMs` in their source definition,
 and `apps/worker/src/poller/run-budget.ts` keeps any such budget 30 minutes
 below this reaper so a live run always closes its own row first. Anything that old is a
 dead process, not slow work. It runs before the candidates are loaded so the
@@ -398,10 +420,16 @@ the dead connection, and the replacement container sits logging
   kept; the next poll continues from there. Seeing this error means the failure
   is probably systemic: read the `curation_candidate_failed` lines before
   requeueing anything.
-- **`poller_source_skipped`**: a due source was not polled. Today the only
-  `reason` is `not_live`: production plus an unset live flag. One line per
-  skipped source per evaluation, so a source that is meant to be live and keeps
-  appearing here is a missing environment variable, not a broken connector.
+- **`poller_source_skipped`**: a due source was not polled. `reason` is one of:
+  - `not_live`: production plus an unset live flag. One line per skipped
+    source per evaluation, so a source that is meant to be live and keeps
+    appearing here is a missing environment variable, not a broken connector.
+  - `host_gate`: the source's host gate refuses a start. Either its circuit is
+    open (two 403 / Cloudflare-challenge answers within 6 h; cool-down 1 h,
+    doubling per failed probe up to 24 h) or a 429/503 pause outlasts the
+    next evaluation. The source comes back on its own; `/bronnen` shows the
+    open circuit (`bron_health.circuit_status`). The gate lives in process
+    memory, so a poller restart lets one probe run through.
 - **`poller_cycle`**: one line per due-source evaluation with `pollable`,
   `due`, `skipped`, `inFlight` (runs still in flight) and `durationMs` (wall
   clock since the previous evaluation — roughly the tick, or less when a
@@ -438,6 +466,8 @@ Logs never carry raw payloads or database URLs.
 | Lock silently dropped | Caught by the scoped periodic bounded probe. If the lock is free the same session retakes it; if another session has it, `LockLostError` exits the process 1. |
 | Backlog cannot shrink | The drain loop for that source ends as soon as a curation pass fails to reduce `remaining`, rather than burning the whole budget. The next poll run tries again. |
 | A due source has no live flag in production | Skipped before its connector is built, logged as `poller_source_skipped` with `reason: "not_live"`. No scrape run, no fixture data in `curated`. |
+| A source answers 429/503 | The host gate pauses that host for its `Retry-After` (capped at 10 min) or 30 s doubling to 10 min without one, then retries. Other sources are not slowed. |
+| A source answers 403 / a Cloudflare challenge | The request is not retried. Two blocks within 6 h open the host circuit: later runs send no request until the cool-down ends, are skipped with `reason: "host_gate"`, and `bron_health.circuit_status` reads `open`. |
 | SIGINT / SIGTERM | Aborts the loop. The due sources not yet started are dropped; cancellable source requests and waits stop, while uncancellable persistence drains its current write boundary. Then a shutdown line, the lock release, the connection close, and exit 0 unless a process-level failure occurs. Source-level persistence or ownership failures are logged and do not necessarily change the process exit code. A repeated signal is logged as `poller_shutdown_in_progress` and otherwise ignored. This needs a stop timeout of at least 300 s on both Compose and Coolify; below that Docker escalates to SIGKILL, which nothing in userspace can catch and which can leave the advisory lock held until Postgres notices the dead connection. |
 
 ## Related work

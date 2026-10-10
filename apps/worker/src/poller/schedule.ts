@@ -91,6 +91,29 @@ export const partitionByLiveFlag = (
   return { live, notLive };
 };
 
+export interface HostGatePartition {
+  readonly held: PollCandidate[];
+  readonly ready: PollCandidate[];
+}
+
+/**
+ * Due sources whose host gate refuses a new run right now (circuit open after
+ * repeated 403/bot challenges, or a 429/503 pause that outlasts the next
+ * evaluation) are held back: starting them would only fail at once or sit in a
+ * slot waiting. They come back on their own once the gate reopens.
+ */
+export const partitionByHostGate = (
+  candidates: readonly PollCandidate[],
+  holdsStart: (bronId: string) => boolean
+): HostGatePartition => {
+  const held: PollCandidate[] = [];
+  const ready: PollCandidate[] = [];
+  for (const candidate of candidates) {
+    (holdsStart(candidate.bronId) ? held : ready).push(candidate);
+  }
+  return { held, ready };
+};
+
 /**
  * Pollable Slice A bronnen without a non-stale running poll, paired with their
  * interval and most recent poll run.

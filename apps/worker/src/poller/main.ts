@@ -13,6 +13,10 @@ import { hostname } from "node:os";
  * projector (SEARCH_PROJECTOR is pinned to onbox).
  */
 import {
+  configureProcessFetchRateCap,
+  hostGateHoldsStart,
+} from "@ji/application/bronnen";
+import {
   createAlertEscalator,
   createWebhookAlertSink,
 } from "@ji/application/observability";
@@ -34,6 +38,7 @@ import {
 } from "../poll-bron-env";
 import { createPollBronRuntime, runBronIngestPipeline } from "../poll-bron-run";
 import type { PollBronRuntime } from "../poll-bron-run";
+import { logSeedDriftAtBoot, reportSeedDrift } from "../seed-reconcile";
 import type { SliceABronSlug } from "../slice-a-bronnen";
 import { withAbortFinalization } from "./abort-finalization";
 import { drainBacklog } from "./drain-backlog";
@@ -61,8 +66,10 @@ import {
   byLongestWaiting,
   dueCandidates,
   loadPollCandidates,
+  partitionByHostGate,
   partitionByLiveFlag,
 } from "./schedule";
+import { createSlotLimit } from "./slots";
 import { createSourceHealthCallbacks } from "./source-health";
 import type { PollerSourceLog } from "./source-log";
 import {
@@ -131,6 +138,8 @@ interface PollSourceAttemptOptions {
   signal: AbortSignal;
 }
 
+const runWithoutSlot = <T>(work: () => Promise<T>): Promise<T> => work();
+
 /**
  * CTP-490: one signal for the connector run that fires on shutdown or when
  * the run budget elapses, so a stalled poll closes its own row instead of
@@ -178,6 +187,9 @@ const runPollSourceAttempt = async (
     () =>
       drainBacklog(
         {
+          // Every curation slot was busy after the poll: the inline pass was
+          // skipped, so this drain does the counting and curating.
+          backlogUnknown: result.curationDeferred === true,
           deadlineMs: Date.now() + curateBudgetMs,
           input: {
             bronId: result.bronId,
@@ -207,7 +219,12 @@ const runPollSourceAttempt = async (
             remaining: result.remaining,
           },
         },
-        curateScrapeRun
+        // Each pass takes a curation slot, so the drains of all in-flight
+        // sources share POLLER_CURATE_CONCURRENCY between them.
+        (curateInput) =>
+          (runtime.withCurationSlot ?? runWithoutSlot)(() =>
+            curateScrapeRun(curateInput)
+          )
       )
   );
   await health.finish(result, drained);
@@ -257,6 +274,8 @@ const main = async (): Promise<void> => {
   const tickMs = Number(pollerEnv.POLLER_TICK_MS);
   const curateBudgetMs = Number(pollerEnv.POLLER_CURATE_BUDGET_MS);
   const concurrency = Number(pollerEnv.POLLER_CONCURRENCY);
+  const curateConcurrency = Number(pollerEnv.POLLER_CURATE_CONCURRENCY);
+  const fetchesPerSecond = Number(pollerEnv.POLLER_FETCHES_PER_SECOND);
   const abandonRunAfterMs = Number(pollerEnv.POLLER_ABANDON_RUN_AFTER_MS);
   const runBudgetMs = Number(pollerEnv.POLLER_RUN_BUDGET_MS);
   // Randstad and Techniekwerkt need more than the default hour to walk their
@@ -266,6 +285,13 @@ const main = async (): Promise<void> => {
       abandonRunAfterMs,
       defaultBudgetMs: runBudgetMs,
     });
+  // A source with a raised budget (Techniekwerkt ~4.8 h, ProUnity ~3 h,
+  // Randstad and Intermediair ~2 h) holds its slot for hours. Two of them at
+  // once would take both default slots and stall every short source, so at
+  // most `concurrency - 1` long runs share the pool (at least one).
+  const isLongRun = (bronSlug: string): boolean =>
+    runBudgetFor(bronSlug) > runBudgetMs;
+  const maxLongRuns = Math.max(1, concurrency - 1);
 
   const controller = new AbortController();
   let shutdownRequested = false;
@@ -348,22 +374,31 @@ const main = async (): Promise<void> => {
       runBudgetMs,
       startedAt: PROCESS_STARTED_AT,
     });
-    runtime = createPollBronRuntime(pollerEnv.DATABASE_URL, {
-      pollRunStaleAfterMs: abandonRunAfterMs,
-    });
+    // Every bron run in this process shares one ceiling on request starts;
+    // each bron's HostGate still paces its own host first.
+    configureProcessFetchRateCap(fetchesPerSecond);
+    runtime = {
+      ...createPollBronRuntime(pollerEnv.DATABASE_URL, {
+        pollRunStaleAfterMs: abandonRunAfterMs,
+      }),
+      withCurationSlot: createSlotLimit(curateConcurrency),
+    };
     const activeRuntime = runtime;
     const activeRuntimeHealth = runtimeHealth;
     logLine(process.stdout, "poller_started", {
       abandonRunAfterMs,
       concurrency,
       curateBudgetMs,
+      curateConcurrency,
       egressProxiedSources: egress.proxiedSources,
       egressProxyConfigured: egress.proxyConfigured,
+      fetchesPerSecond,
       releaseSha: pollerEnv.APP_RELEASE_SHA ?? null,
       runBudgetMs,
       startedAt: PROCESS_STARTED_AT.toISOString(),
       tickMs,
     });
+    await logSeedDriftAtBoot(() => reportSeedDrift(activeRuntime.database));
 
     await runWithPollerLiveness(
       {
@@ -456,7 +491,18 @@ const main = async (): Promise<void> => {
                     reason: "not_live",
                   });
                 }
-                const due = live.toSorted(byLongestWaiting);
+                const nextEvaluationAt = new Date(evaluatedAt + tickMs);
+                const { held, ready } = partitionByHostGate(live, (bronId) =>
+                  // SAFETY: candidate bronIds come from curated.bron (uuid primary key).
+                  hostGateHoldsStart(bronId as BronId, nextEvaluationAt)
+                );
+                for (const candidate of held) {
+                  logLine(process.stdout, "poller_source_skipped", {
+                    bronSlug: candidate.bronSlug,
+                    reason: "host_gate",
+                  });
+                }
+                const due = ready.toSorted(byLongestWaiting);
                 logLine(process.stdout, "poller_cycle", {
                   due: due.length,
                   durationMs: evaluatedAt - lastEvaluatedAt,
@@ -467,7 +513,9 @@ const main = async (): Promise<void> => {
                 lastEvaluatedAt = evaluatedAt;
                 return due;
               },
+              isLong: (candidate) => isLongRun(candidate.bronSlug),
               keyOf: (candidate) => candidate.bronId,
+              maxLongInFlight: maxLongRuns,
               onRunError: (error, candidate) => {
                 // `pollSource` turns its own failures into a `poller_source`
                 // line; reaching here means the runner itself defected, so the
@@ -548,12 +596,13 @@ const main = async (): Promise<void> => {
                   });
                 }
               },
-              // At most POLLER_CONCURRENCY sources in flight. Each source still
-              // runs one at a time and keeps its own `crawl_delay_ms` pacing, so
-              // this buys cycle wall clock without touching politeness per host.
-              // Each in-flight source can hold one `curateScrapeRun` drain, so
-              // the concurrency is also the ceiling on concurrent drains against
-              // Postgres.
+              // At most POLLER_CONCURRENCY sources in flight (default 8). Each
+              // source still runs one at a time behind its own HostGate, and
+              // POLLER_FETCHES_PER_SECOND caps request starts across all of
+              // them, so more slots buy wall clock without loosening
+              // politeness. Curation drains are capped separately by
+              // POLLER_CURATE_CONCURRENCY, so Postgres sees no more drains
+              // than it did with two slots.
               run: async (candidate) => {
                 // CTP-622: bronnen listed in POLLER_DURABLE_BRONNEN are handed to
                 // the durable queue instead of run inline. The job's scrapeRunId

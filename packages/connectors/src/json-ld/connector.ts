@@ -18,6 +18,8 @@ import { createJsonLdClient, MissingDetailFixtureError } from "./client";
 import type { JsonLdClient } from "./client";
 import { applyExcludes, dedupeUrls } from "./discovery";
 import { hashJsonLdListingItem, hashJsonLdPayload } from "./hash";
+import { createLastmodSkipGuard } from "./lastmod-skip";
+import type { LastmodGuardOptions } from "./lastmod-skip";
 import { HttpStatusError } from "./live-fetch";
 import type {
   JsonLdConnectorConfig,
@@ -61,6 +63,13 @@ export interface JsonLdConnectorOptions {
   client?: JsonLdClient;
   config: JsonLdConnectorConfig;
   knownHashes?: KnownHashStore;
+  /**
+   * Opt-in: skip detail pages whose sitemap `<lastmod>` has not moved since
+   * the last persisted fetch (see `shouldSkipUnchangedLastmod`). Unlike
+   * `knownHashes`, an entry without lastmod is always fetched, so this is
+   * safe for sources whose listing hash cannot otherwise see detail changes.
+   */
+  lastmodSkip?: LastmodGuardOptions;
 }
 
 /** Stable per-source reference: the decoded URL path with leading/trailing slashes
@@ -146,7 +155,10 @@ export const createJsonLdConnector = (
 ): Connector => {
   const { config } = options;
   const client = options.client ?? createJsonLdClient({ config });
-  const { knownHashes } = options;
+  const { knownHashes, lastmodSkip } = options;
+  // One guard per connector, so per run: the honesty probe's distrust lasts for this run only.
+  const lastmodGuard =
+    lastmodSkip === undefined ? undefined : createLastmodSkipGuard(lastmodSkip);
 
   const batchSize =
     config.discovery.kind === "sitemap-index"
@@ -187,7 +199,10 @@ export const createJsonLdConnector = (
     entry: JsonLdDiscoveryUrl
   ): Promise<DiscoverItem> => ({
     bronReferentie: urlSlugBronReferentie(entry.url),
-    contentHash: await hashJsonLdListingItem(entry),
+    contentHash: await hashJsonLdListingItem(
+      entry,
+      lastmodSkip === undefined ? undefined : config.parserVersion
+    ),
     listingPayload: entry,
   });
 
@@ -388,6 +403,7 @@ export const createJsonLdConnector = (
       }
       const body = new TextEncoder().encode(JSON.stringify(payload));
       const contentHash = await hashJsonLdPayload(body);
+      lastmodGuard?.observeFetched(item.bronReferentie, contentHash);
       return {
         body,
         bronReferentie: item.bronReferentie,
@@ -396,5 +412,9 @@ export const createJsonLdConnector = (
         status: "fetched" as const,
       };
     },
+    skipFetch:
+      lastmodGuard === undefined
+        ? undefined
+        : (item) => lastmodGuard.shouldSkip(options.bronId, item),
   };
 };

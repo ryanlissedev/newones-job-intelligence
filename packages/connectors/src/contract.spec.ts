@@ -1300,6 +1300,59 @@ describe("runConnector", () => {
     });
   });
 
+  it("skips fetch and the request limiter for items the connector reports unchanged", async () => {
+    const acquireCalls: string[] = [];
+    const fetched: string[] = [];
+    const bronId = "bron-skip-fetch";
+    const result = await runConnector({
+      ...runDependencies("run-skip-fetch"),
+      bronId,
+      bronSlug: "skip-fetch",
+      checkpoint: null,
+      connector: {
+        bronId,
+        discover: () =>
+          Promise.resolve({
+            checkpoint: { page: 1 },
+            hasMore: false,
+            items: [
+              { bronReferentie: "unchanged", contentHash: "a" },
+              { bronReferentie: "changed", contentHash: "b" },
+            ],
+          }),
+        fetch: (item) => {
+          fetched.push(item.bronReferentie);
+          return Promise.resolve({
+            body: new TextEncoder().encode(item.bronReferentie),
+            bronReferentie: item.bronReferentie,
+            contentHash:
+              "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            contentType: "json" as const,
+            status: "fetched" as const,
+          });
+        },
+        skipFetch: (item) =>
+          Promise.resolve(item.bronReferentie === "unchanged"),
+      },
+      limiter: {
+        acquire: (limitedBronId: BronId): Promise<void> => {
+          acquireCalls.push(limitedBronId);
+          return Promise.resolve();
+        },
+      },
+    });
+
+    expect(fetched).toEqual(["changed"]);
+    // One slot for discover, one for the changed item; none for the skip.
+    expect(acquireCalls).toEqual([bronId, bronId]);
+    expect(result.observedBronReferenties.toSorted()).toEqual([
+      "changed",
+      "unchanged",
+    ]);
+    expect(result.metrics.new).toBe(1);
+    expect(result.completeness).toEqual({ complete: true });
+  });
+
   it("reports a fresh, exhausted listing as complete and lists every discovered reference as observed", async () => {
     const dependencies = runDependencies("run-complete");
     const result = await runConnector({

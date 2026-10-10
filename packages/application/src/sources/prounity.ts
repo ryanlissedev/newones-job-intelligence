@@ -23,6 +23,11 @@ export const prounity = {
   liveEnv: "PROUNITY_LIVE",
   naam: "ProUnity",
   normalise: normaliseProunityObservation,
+  // ~1,000 sitemap detail URLs (audit 8 Oct 2026) × the 10 s robots.txt
+  // crawl delay is ~167 minutes of pacing alone, so the 1 hour poller default
+  // aborted every run before it reached the end of the sitemap. 3.5 h is the
+  // pacing plus ~25 % for fetch latency and catalog growth.
+  runBudgetMs: 3.5 * 60 * 60 * 1000,
   seed: {
     // robots.txt: `Crawl-delay: 10` (verified live 2026-09-18).
     crawlDelayMs: 10_000,

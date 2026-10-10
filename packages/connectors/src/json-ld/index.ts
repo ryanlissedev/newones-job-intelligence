@@ -13,6 +13,18 @@ export {
   urlSlugBronReferentie,
   type JsonLdConnectorOptions,
 } from "./connector";
+export {
+  createLastmodSkipGuard,
+  DATE_ONLY_LASTMOD_SETTLE_MS,
+  LASTMOD_DISTRUST_RATIO,
+  LASTMOD_HONESTY_PROBE_PERCENT,
+  LASTMOD_REVALIDATE_EVERY_DAYS,
+  shouldSkipUnchangedLastmod,
+  type LastmodGuardOptions,
+  type LastmodHonestyReport,
+  type LastmodSkipGuard,
+  type LastmodSkipOptions,
+} from "./lastmod-skip";
 export { bluetrailConfig } from "./configs/bluetrail";
 export { asmlConfig } from "./configs/asml";
 export { bijOranjeConfig } from "./configs/bij-oranje";

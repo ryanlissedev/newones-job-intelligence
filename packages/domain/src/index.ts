@@ -39,6 +39,7 @@ export {
   canTransitionBronStatus,
   requiresSecretRef,
   shouldScheduleBronPoll,
+  isVoorwaardenStatus,
   validateBronConfig,
   type ActivateBronInput,
   type ActivateBronResult,

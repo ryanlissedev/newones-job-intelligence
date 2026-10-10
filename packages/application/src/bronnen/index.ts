@@ -18,6 +18,9 @@ export {
 } from "./register";
 export {
   executeBronRun,
+  configureProcessFetchRateCap,
+  hostGateHoldsStart,
+  hostGateSnapshot,
   type ExecuteBronRunInput,
   type ExecuteBronRunResult,
 } from "./execute";
