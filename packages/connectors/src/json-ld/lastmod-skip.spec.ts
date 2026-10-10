@@ -13,10 +13,12 @@ import type { JsonLdClient } from "./client";
 import { createJsonLdConnector } from "./connector";
 import { hashJsonLdListingItem } from "./hash";
 import {
+  createLastmodSkipGuard,
   DATE_ONLY_LASTMOD_SETTLE_MS,
   LASTMOD_REVALIDATE_EVERY_DAYS,
   shouldSkipUnchangedLastmod,
 } from "./lastmod-skip";
+import type { LastmodHonestyReport } from "./lastmod-skip";
 import type { JsonLdConnectorConfig, JsonLdDiscoveryUrl } from "./types";
 
 const BRON_ID: BronId = "00000000-0000-4000-8000-0000000000aa";
@@ -201,30 +203,39 @@ describe("json-ld connector with lastmodSkip across two poll runs", () => {
     listing: JsonLdDiscoveryUrl[],
     recorder: InMemoryObservationRecorder,
     now: Date,
-    runId: string
+    runId: string,
+    probe?: {
+      onDistrust?: (report: LastmodHonestyReport) => void;
+      percent: number;
+      title?: (detailUrl: string) => string;
+    }
   ) => {
     const fetchedUrls: string[] = [];
     const client: JsonLdClient = {
       fetchDetail: (detailUrl) => {
         fetchedUrls.push(detailUrl);
         return Promise.resolve({
-          jobPosting: { "@type": "JobPosting", title: detailUrl },
+          jobPosting: {
+            "@type": "JobPosting",
+            title: probe?.title?.(detailUrl) ?? detailUrl,
+          },
           labelBlock: {},
           url: detailUrl,
         });
       },
       fetchListing: () => Promise.resolve(listing),
     };
+    const persisted = (bronId: BronId, bronReferentie: string) =>
+      recorder.records.find(
+        (record) =>
+          record.bronId === bronId && record.bronReferentie === bronReferentie
+      );
     // Backed by what earlier runs persisted, like PostgresKnownHashStore.
     const knownHashes: KnownHashStore = {
       get: (bronId, bronReferentie) =>
-        Promise.resolve(
-          recorder.records.find(
-            (record) =>
-              record.bronId === bronId &&
-              record.bronReferentie === bronReferentie
-          )?.listingHash ?? null
-        ),
+        Promise.resolve(persisted(bronId, bronReferentie)?.listingHash ?? null),
+      getPayloadHash: (bronId, bronReferentie) =>
+        Promise.resolve(persisted(bronId, bronReferentie)?.contentHash ?? null),
     };
     let virtualWaitMs = 0;
     const result = await runConnector({
@@ -235,7 +246,13 @@ describe("json-ld connector with lastmodSkip across two poll runs", () => {
         bronId: BRON_ID,
         client,
         config,
-        lastmodSkip: { knownHashes, now: () => now },
+        lastmodSkip: {
+          knownHashes,
+          now: () => now,
+          onDistrust: probe?.onDistrust,
+          // Off unless a test opts in, so the revalidation assertions stay exact.
+          probePercent: probe?.percent ?? 0,
+        },
       }),
       limiter: new CrawlDelayLimiter({
         crawlDelayMs: CRAWL_DELAY_MS,
@@ -362,5 +379,136 @@ describe("json-ld connector with lastmodSkip across two poll runs", () => {
       });
     }
     expect(fetched).toHaveLength(corpus.length * 2);
+  });
+
+  it("honesty probe: a frozen lastmod over a changed page is caught, and the run stops trusting lastmod", async () => {
+    const recorder = new InMemoryObservationRecorder();
+    const listing = [...corpus];
+    await pollRun(listing, recorder, NOW, "run-honest-1");
+
+    // Next day nothing in the sitemap moved, but the publisher edited every
+    // page without bumping <lastmod>. Probe all would-be-skipped pages (100%)
+    // so the lie is seen on the first probe.
+    const nextDay = new Date(NOW.getTime() + DAY_MS);
+    const distrusted: LastmodHonestyReport[] = [];
+    const second = await pollRun(listing, recorder, nextDay, "run-honest-2", {
+      onDistrust: (report) => distrusted.push(report),
+      percent: 100,
+      title: (detailUrl) => `${detailUrl} (edited)`,
+    });
+
+    expect(distrusted).toHaveLength(1);
+    expect(distrusted[0]).toMatchObject({ dishonest: 1, distrusted: true });
+    // Every page was fetched, and every edit reached a changed observation.
+    expect(second.fetchedUrls.toSorted()).toEqual(
+      listing.map((entry) => entry.url).toSorted()
+    );
+    expect(second.result.metrics.changed).toBe(listing.length);
+  });
+
+  it("without the probe (base #468 behaviour) a frozen lastmod hides most edits until each page's revalidation day", async () => {
+    const recorder = new InMemoryObservationRecorder();
+    const listing = [...corpus];
+    await pollRun(listing, recorder, NOW, "run-frozen-1");
+    const nextDay = new Date(NOW.getTime() + DAY_MS);
+    const second = await pollRun(listing, recorder, nextDay, "run-frozen-2", {
+      percent: 0,
+      title: (detailUrl) => `${detailUrl} (edited)`,
+    });
+    // Only the revalidation-day share is refetched; the other edits stay frozen for up to 7 days.
+    expect(second.result.metrics.changed).toBeLessThan(listing.length / 2);
+  });
+
+  it("honest lastmod: probes match the stored payload and pages keep being skipped", async () => {
+    const recorder = new InMemoryObservationRecorder();
+    const listing = [...corpus];
+    await pollRun(listing, recorder, NOW, "run-trust-1");
+    const nextDay = new Date(NOW.getTime() + DAY_MS);
+    const distrusted: LastmodHonestyReport[] = [];
+    const second = await pollRun(listing, recorder, nextDay, "run-trust-2", {
+      onDistrust: (report) => distrusted.push(report),
+      percent: 2,
+    });
+    expect(distrusted).toEqual([]);
+    expect(second.result.metrics.changed).toBe(0);
+    expect(second.fetchedUrls.length).toBeLessThan(listing.length / 2);
+  });
+});
+
+describe("createLastmodSkipGuard", () => {
+  const corpus: JsonLdDiscoveryUrl[] = Array.from(
+    { length: 400 },
+    (_, index) => ({
+      lastmod: "2026-10-01T10:00:00Z",
+      url: `https://jobs.example.test/vacature/g${index}`,
+    })
+  );
+
+  it("probes about 2% of would-be-skipped pages and distrusts lastmod for the rest of the run after a lie", async () => {
+    const items = await Promise.all(corpus.map((entry) => itemFor(entry)));
+    const listingHashes = new Map(
+      items.map((item) => [item.bronReferentie, item.contentHash])
+    );
+    const knownHashes: KnownHashStore = {
+      get: (_bronId, bronReferentie) =>
+        Promise.resolve(listingHashes.get(bronReferentie) ?? null),
+      getPayloadHash: () => Promise.resolve("payload-v1"),
+    };
+    const guard = createLastmodSkipGuard({
+      knownHashes,
+      now: () => NOW,
+      revalidateEveryDays: 10_000,
+    });
+
+    const firstPass = await Promise.all(
+      items.map((item) => guard.shouldSkip(BRON_ID, item))
+    );
+    const probed = items.filter((_, index) => firstPass[index] === false);
+    // A seeded daily sample: a handful out of 400, never zero, never most.
+    expect(probed.length).toBeGreaterThan(0);
+    expect(probed.length).toBeLessThan(items.length * 0.06);
+    expect(guard.report()).toMatchObject({
+      distrusted: false,
+      skipped: items.length - probed.length,
+    });
+
+    // The first probe comes back with a different payload: lastmod lied.
+    const [liar, ...honest] = probed;
+    guard.observeFetched(liar?.bronReferentie ?? "", "payload-v2");
+    for (const item of honest) {
+      guard.observeFetched(item.bronReferentie, "payload-v1");
+    }
+    expect(guard.report()).toMatchObject({
+      dishonest: 1,
+      distrusted: true,
+      probes: probed.length,
+    });
+
+    // From now on nothing is skipped in this run.
+    const secondPass = await Promise.all(
+      items.map((item) => guard.shouldSkip(BRON_ID, item))
+    );
+    expect(secondPass.every((skip) => skip === false)).toBe(true);
+  });
+
+  it("cannot judge a probe without a stored payload hash, and does not distrust on it", async () => {
+    const item = await itemFor({
+      lastmod: "2026-10-01T10:00:00Z",
+      url: "https://jobs.example.test/vacature/solo",
+    });
+    const guard = createLastmodSkipGuard({
+      knownHashes: storeWith(item.contentHash),
+      now: () => NOW,
+      probePercent: 100,
+      revalidateEveryDays: 10_000,
+    });
+    await expect(guard.shouldSkip(BRON_ID, item)).resolves.toBe(false);
+    guard.observeFetched(item.bronReferentie, "anything");
+    expect(guard.report()).toEqual({
+      dishonest: 0,
+      distrusted: false,
+      probes: 0,
+      skipped: 0,
+    });
   });
 });

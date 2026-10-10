@@ -38,6 +38,7 @@ import {
 } from "../poll-bron-env";
 import { createPollBronRuntime, runBronIngestPipeline } from "../poll-bron-run";
 import type { PollBronRuntime } from "../poll-bron-run";
+import { logSeedDriftAtBoot, reportSeedDrift } from "../seed-reconcile";
 import type { SliceABronSlug } from "../slice-a-bronnen";
 import { withAbortFinalization } from "./abort-finalization";
 import { drainBacklog } from "./drain-backlog";
@@ -397,6 +398,7 @@ const main = async (): Promise<void> => {
       startedAt: PROCESS_STARTED_AT.toISOString(),
       tickMs,
     });
+    await logSeedDriftAtBoot(() => reportSeedDrift(activeRuntime.database));
 
     await runWithPollerLiveness(
       {
