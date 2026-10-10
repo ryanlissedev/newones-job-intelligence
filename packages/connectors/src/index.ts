@@ -37,7 +37,22 @@ export {
   type ConnectorRunProgress,
   type RunProgressStore,
 } from "./checkpoint";
-export { CrawlDelayLimiter, type RequestLimiter } from "./limiter";
+export {
+  CrawlDelayLimiter,
+  type GateSignal,
+  type RequestLimiter,
+} from "./limiter";
+export {
+  DEFAULT_HOST_GATE_POLICY,
+  gateSignalOf,
+  HostCircuitOpenError,
+  HostGate,
+  isHostBlockedError,
+  type HostCircuitState,
+  type HostGateOptions,
+  type HostGatePolicy,
+  type HostGateSnapshot,
+} from "./host-gate";
 export {
   classifyRunFailure,
   PARTIAL_RUN_COMPLETIONS,

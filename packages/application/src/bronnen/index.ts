@@ -18,6 +18,8 @@ export {
 } from "./register";
 export {
   executeBronRun,
+  hostGateHoldsStart,
+  hostGateSnapshot,
   type ExecuteBronRunInput,
   type ExecuteBronRunResult,
 } from "./execute";

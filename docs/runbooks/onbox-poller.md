@@ -396,10 +396,16 @@ the dead connection, and the replacement container sits logging
   kept; the next poll continues from there. Seeing this error means the failure
   is probably systemic: read the `curation_candidate_failed` lines before
   requeueing anything.
-- **`poller_source_skipped`**: a due source was not polled. Today the only
-  `reason` is `not_live`: production plus an unset live flag. One line per
-  skipped source per evaluation, so a source that is meant to be live and keeps
-  appearing here is a missing environment variable, not a broken connector.
+- **`poller_source_skipped`**: a due source was not polled. `reason` is one of:
+  - `not_live`: production plus an unset live flag. One line per skipped
+    source per evaluation, so a source that is meant to be live and keeps
+    appearing here is a missing environment variable, not a broken connector.
+  - `host_gate`: the source's host gate refuses a start. Either its circuit is
+    open (two 403 / Cloudflare-challenge answers within 6 h; cool-down 1 h,
+    doubling per failed probe up to 24 h) or a 429/503 pause outlasts the
+    next evaluation. The source comes back on its own; `/bronnen` shows the
+    open circuit (`bron_health.circuit_status`). The gate lives in process
+    memory, so a poller restart lets one probe run through.
 - **`poller_cycle`**: one line per due-source evaluation with `pollable`,
   `due`, `skipped`, `inFlight` (runs still in flight) and `durationMs` (wall
   clock since the previous evaluation — roughly the tick, or less when a
@@ -436,6 +442,8 @@ Logs never carry raw payloads or database URLs.
 | Lock silently dropped | Caught by the scoped periodic bounded probe. If the lock is free the same session retakes it; if another session has it, `LockLostError` exits the process 1. |
 | Backlog cannot shrink | The drain loop for that source ends as soon as a curation pass fails to reduce `remaining`, rather than burning the whole budget. The next poll run tries again. |
 | A due source has no live flag in production | Skipped before its connector is built, logged as `poller_source_skipped` with `reason: "not_live"`. No scrape run, no fixture data in `curated`. |
+| A source answers 429/503 | The host gate pauses that host for its `Retry-After` (capped at 10 min) or 30 s doubling to 10 min without one, then retries. Other sources are not slowed. |
+| A source answers 403 / a Cloudflare challenge | The request is not retried. Two blocks within 6 h open the host circuit: later runs send no request until the cool-down ends, are skipped with `reason: "host_gate"`, and `bron_health.circuit_status` reads `open`. |
 | SIGINT / SIGTERM | Aborts the loop. The due sources not yet started are dropped; cancellable source requests and waits stop, while uncancellable persistence drains its current write boundary. Then a shutdown line, the lock release, the connection close, and exit 0 unless a process-level failure occurs. Source-level persistence or ownership failures are logged and do not necessarily change the process exit code. A repeated signal is logged as `poller_shutdown_in_progress` and otherwise ignored. This needs a stop timeout of at least 300 s on both Compose and Coolify; below that Docker escalates to SIGKILL, which nothing in userspace can catch and which can leave the advisory lock held until Postgres notices the dead connection. |
 
 ## Related work
