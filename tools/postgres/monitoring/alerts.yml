@@ -1,0 +1,82 @@
+---
+# Postgres monitoring and alert stubs (U10 / JI-037)
+#
+# Wire these rules into the production metrics stack (Prometheus/Alertmanager,
+# Grafana Cloud, or Coolify health notifications). Expressions are placeholders
+# until the scrape targets exist on the Hetzner host.
+
+groups:
+  - name: catapulze-postgres-u10
+    rules:
+      - alert: PostgresUnavailable
+        expr: pg_up == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: postgres
+        annotations:
+          summary: Postgres is unavailable
+          runbook: docs/runbooks/postgres-restore-v1.md
+
+      - alert: PostgresDiskWarning
+        expr: postgres_data_free_ratio < 0.30
+        for: 10m
+        labels:
+          severity: warning
+          component: postgres
+        annotations:
+          summary: Postgres data volume below 30% free space
+
+      - alert: PostgresDiskCritical
+        expr: postgres_data_free_ratio < 0.20
+        for: 5m
+        labels:
+          severity: critical
+          component: postgres
+        annotations:
+          summary: Postgres data volume below 20% free space
+
+      - alert: WalArchiveLag
+        expr: time() - wal_g_last_successful_upload_timestamp_seconds > 900
+        for: 5m
+        labels:
+          severity: critical
+          component: postgres-backup
+        annotations:
+          summary: WAL archive upload older than 15 minutes
+
+      - alert: BaseBackupStale
+        expr: time() - wal_g_last_basebackup_timestamp_seconds > 93600
+        for: 15m
+        labels:
+          severity: critical
+          component: postgres-backup
+        annotations:
+          summary: Base backup older than 26 hours
+
+      - alert: PostgresConnectionPressure
+        expr: pg_stat_database_numbackends / pg_settings_max_connections > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          component: postgres
+        annotations:
+          summary: Postgres connection pool above 80%
+
+      - alert: PostgresLongRunningLocks
+        expr: pg_locks_waiting_duration_seconds > 30
+        for: 2m
+        labels:
+          severity: warning
+          component: postgres
+        annotations:
+          summary: Postgres lock wait exceeds 30 seconds
+
+      - alert: ManticoreContentionRisk
+        expr: manticore_memory_ratio > 0.9 and postgres_memory_ratio < 0.75
+        for: 15m
+        labels:
+          severity: warning
+          component: manticore
+        annotations:
+          summary: Manticore is near its limit while Postgres still has headroom

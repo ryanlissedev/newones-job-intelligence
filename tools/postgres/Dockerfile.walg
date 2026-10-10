@@ -1,0 +1,19 @@
+# checkov:skip=CKV_DOCKER_3:Official postgres entrypoint requires root for data-dir ownership on first init.
+FROM postgres:16-bookworm
+
+ARG WALG_VERSION=3.0.9
+ARG WALG_ASSET=wal-g-pg-22.04-amd64
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates curl gosu \
+  && curl -fsSL \
+    "https://github.com/wal-g/wal-g/releases/download/v${WALG_VERSION}/${WALG_ASSET}" \
+    -o /usr/local/bin/wal-g \
+  && chmod +x /usr/local/bin/wal-g \
+  && wal-g --version \
+  && apt-get purge -y curl \
+  && apt-get autoremove -y \
+  && rm -rf /var/lib/apt/lists/*
+
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 \
+  CMD pg_isready -U "${POSTGRES_USER:-postgres}" || exit 1

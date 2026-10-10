@@ -1,0 +1,15 @@
+{
+  "total_count": 1,
+  "jobs": [
+    {
+      "id": 201,
+      "name": "verify (attempt 2)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-28T10:05:00.000Z",
+      "completed_at": "2026-08-28T10:08:00.000Z",
+      "html_url": "https://github.com/acme/repo/actions/runs/42/job/201",
+      "steps": []
+    }
+  ]
+}

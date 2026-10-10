@@ -1,0 +1,8 @@
+{
+  "captureNote": "Recorded by tools/fixtures/record.ts: GET https://werkenbij.alliander.com/sitemap.xml. Mechanically stripped (elements): script:not([type=\"application/ld+json\"])×0, style×0, svg×0, nav×0, footer×0, redacted:email×0, redacted:phone×0. Trimmed by tools/fixtures/trim-sitemap.ts: kept 3 <url> entries, removed 508.",
+  "capturedAt": "2026-09-17T22:25:24.486Z",
+  "contentType": "html",
+  "contractVersion": "connector-fixture/v1",
+  "payload": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"><url><loc>https://werkenbij.alliander.com/vacatures/business-partner-veiligheid-milieu-en-kwaliteit/jr14092</loc><lastmod>2026-09-17</lastmod></url><url><loc>https://werkenbij.alliander.com/vacatures/cloud-security-specialist/jr17461</loc><lastmod>2026-09-17</lastmod></url><url><loc>https://werkenbij.alliander.com/vacatures/gasmonteur-in-opleiding/jr18244</loc><lastmod>2026-09-17</lastmod></url></urlset>",
+  "source": "alliander"
+}

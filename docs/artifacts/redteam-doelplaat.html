@@ -1,0 +1,234 @@
+<title>Catapulze Architectuur Red Team</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --ground:#F3F5F7;--surface:#FFFFFF;--surface2:#E8ECF0;--ink:#1B222B;--ink2:#4A5563;--ink3:#7A8494;--line:#D3D9E0;
+  --accent:#0F6E6B;--accent-soft:#D9EEEC;
+  --crit:#B3261E;--crit-soft:#F6DEDC;--sig:#9A6A12;--sig-soft:#F5E9CF;--ok:#2E7D5B;--ok-soft:#D9EFE4;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --ground:#12171D;--surface:#1B222B;--surface2:#232C36;--ink:#E6EAEE;--ink2:#B4BDC8;--ink3:#7F8A98;--line:#2F3944;
+  --accent:#4FB3AE;--accent-soft:#163A39;
+  --crit:#E56A62;--crit-soft:#3E1F1C;--sig:#D9A94A;--sig-soft:#3A2E14;--ok:#5FC194;--ok-soft:#173627;
+}}
+:root[data-theme="dark"]{
+  --ground:#12171D;--surface:#1B222B;--surface2:#232C36;--ink:#E6EAEE;--ink2:#B4BDC8;--ink3:#7F8A98;--line:#2F3944;
+  --accent:#4FB3AE;--accent-soft:#163A39;
+  --crit:#E56A62;--crit-soft:#3E1F1C;--sig:#D9A94A;--sig-soft:#3A2E14;--ok:#5FC194;--ok-soft:#173627;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55;font-variant-numeric:tabular-nums}
+a{color:var(--accent)}
+.wrap{max-width:1120px;margin:0 auto;padding:40px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(34px,5vw,56px);line-height:1.02;letter-spacing:-.02em;margin:10px 0 18px;text-wrap:balance}
+h2{font-family:var(--display);font-weight:700;font-size:26px;letter-spacing:-.01em;margin:0 0 6px;text-wrap:balance}
+h3{font-family:var(--display);font-weight:700;font-size:18px;margin:0 0 6px}
+p{max-width:68ch;margin:0 0 14px}
+.lede{font-size:20px;color:var(--ink2);max-width:62ch}
+header{border-bottom:1px solid var(--line);padding-bottom:28px;margin-bottom:36px}
+.meta{display:flex;flex-wrap:wrap;gap:8px 22px;font-family:var(--mono);font-size:12px;color:var(--ink3);margin-top:14px}
+.verdict{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,1fr);gap:28px;align-items:start;margin:0 0 44px}
+.verdict-card{background:var(--surface);border:1px solid var(--line);padding:22px 24px;border-radius:4px}
+.verdict-card .tag{display:inline-block;font-family:var(--display);font-weight:800;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--sig);background:var(--sig-soft);padding:4px 10px;border-radius:3px;margin-bottom:10px}
+.verdict-card p:last-child{margin-bottom:0}
+.risk{background:var(--surface2);border:1px solid var(--line);padding:18px 20px;border-radius:4px}
+.risk .eyebrow{margin-bottom:6px}
+.risk p{font-size:15.5px;margin-bottom:0;color:var(--ink2)}
+section{margin:0 0 52px}
+.section-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:22px}
+.section-head .eyebrow{white-space:nowrap}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:28px}
+ol.points{list-style:none;counter-reset:pt;margin:0;padding:0;display:grid;gap:12px}
+ol.points li{counter-increment:pt;display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:start;background:var(--surface);border:1px solid var(--line);padding:12px 14px;border-radius:4px;font-size:16px}
+ol.points li::before{content:counter(pt);font-family:var(--display);font-weight:800;font-size:20px;color:var(--ink3);line-height:1.1}
+.steel ol.points li::before{color:var(--ok)}
+.counter ol.points li::before{color:var(--crit)}
+.claimref{font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-left:6px;white-space:nowrap}
+.pos{font-style:italic;color:var(--ink2);margin-bottom:14px}
+table{width:100%;border-collapse:collapse;font-size:15px;background:var(--surface)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:4px}
+th,td{padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);background:var(--surface2)}
+tr:last-child td{border-bottom:0}
+.sev{display:inline-block;font-family:var(--display);font-weight:700;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:3px;white-space:nowrap}
+.sev.crit{color:var(--crit);background:var(--crit-soft)}
+.sev.sig{color:var(--sig);background:var(--sig-soft)}
+.sev.ok{color:var(--ok);background:var(--ok-soft)}
+.sev.note{color:var(--ink2);background:var(--surface2)}
+.n{font-family:var(--mono);font-size:12.5px;color:var(--ink2)}
+.gaps{display:grid;gap:14px}
+.gap{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:14px 16px;display:grid;grid-template-columns:56px 1fr;gap:14px}
+.gap .id{font-family:var(--display);font-weight:800;font-size:22px;color:var(--accent);line-height:1}
+.gap h3{margin-bottom:4px}
+.gap p{font-size:15.5px;margin-bottom:6px;color:var(--ink2)}
+.gap p:last-child{margin-bottom:0}
+.gap strong{color:var(--ink)}
+.slice{background:var(--accent-soft);border:1px solid var(--line);border-radius:4px;padding:22px 24px}
+.slice h3{color:var(--accent)}
+.slice ol{margin:10px 0 0;padding-left:22px;font-size:16px}
+.slice li{margin-bottom:8px}
+.slice li:last-child{margin-bottom:0}
+.rule{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:18px}
+.rule div{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:12px 14px;font-size:15px}
+.rule .eyebrow{margin-bottom:4px}
+.roster{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;font-size:14px}
+.roster div{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:10px 12px;color:var(--ink2)}
+.roster b{font-family:var(--mono);font-size:12px;color:var(--ink);display:block;margin-bottom:2px}
+.callout{color:var(--ink2);font-size:16px;margin:18px 0 0;padding-top:12px;border-top:1px dashed var(--line);max-width:68ch}
+footer{border-top:1px solid var(--line);padding-top:18px;font-family:var(--mono);font-size:12px;color:var(--ink3)}
+@media (max-width:760px){.verdict{grid-template-columns:1fr}.gap{grid-template-columns:44px 1fr}}
+@media (prefers-reduced-motion:no-preference){.gap,.points li{transition:border-color .15s}.gap:hover,.points li:hover{border-color:var(--accent)}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Red Team · ParallelAnalysis · 11 reviewers + agent-native lens + Fable review · 27 aug 2026</div>
+  <h1>Catapulze — Ideale IT-architectuur v1.1, onder vuur</h1>
+  <p class="lede">Elf onafhankelijke reviewers, één agent-native audit en een Fable-eindreview op de doelplaat van 25 augustus. Doel: de plaat sterker maken, niet slopen. Het skelet blijft staan; de ruggengraat moet anders.</p>
+  <div class="meta">
+    <span>Object: <a href="https://claude.ai/code/artifact/93692ad4-4974-4204-986b-d955d28576dc">Catapulze Architectuur Explorer</a></span>
+    <span>Afgeleid van FUUSE-doelplaat v4 (20 aug)</span>
+    <span>24 atomaire claims · 4 lagen · 2 verticale balken</span>
+  </div>
+</header>
+
+<div class="verdict">
+  <div class="verdict-card">
+    <span class="tag">Verdict: fix-first</span>
+    <h2>De lagen kloppen. De volgorde en één beslissing niet.</h2>
+    <p>De vier lagen, de compliance-framing (AI Act hoog risico), de identifier-discipline en de agent-als-identiteit keuze overleven de aanval intact. Wat moet veranderen is één alinea — de bouwvolgorde "eerst fundament, dan pas agents" — en één regel in het logboek: "vanaf nul herbouwen". Niet "opnieuw beginnen"; wel: skelet houden, ruggengraat omdraaien.</p>
+    <p>De plaat is <em>goed voor datakwaliteit en fout voor risico</em>: de gereguleerde dataset (28 gescrapete bronnen, Please-loondata, een ongegoverneerde harness) wordt in stap 1 opgebouwd, de audit en governance komen in stap 4.</p>
+  </div>
+  <div class="risk">
+    <div class="eyebrow">Het ene risico dat beslist</div>
+    <p>Er komt <strong>nul zichtbare matching-waarde</strong> uit voordat laag 3 staat — in een driepersoonsbedrijf zonder toegewezen bouwer. Identifier-haalbaarheid is een echt probleem maar te overleven (fuzzy match + menselijke reviewqueue). Een plan dat twee fases lang niets oplevert, is dat niet.</p>
+  </div>
+</div>
+
+<section class="steel">
+  <div class="section-head"><h2>Steelman — de sterkste versie van de plaat</h2><span class="eyebrow">Fase 4</span></div>
+  <p class="pos"><strong>De positie (beste versie):</strong> Bouw de staffing-automatisering bottom-up op één schone datalaag met gedeelde identifiers, zodat agents een betrouwbare, gegoverneerde ondergrond erven in plaats van te hallucineren op losse bronnen.</p>
+  <ol class="points">
+    <li><span>Agents erven de kwaliteit van alles eronder; die kwaliteit is nu aantoonbaar afwezig.<span class="claimref">#4 · 6 reviewers</span></span></li>
+    <li><span>Zeven bronnen normaliseren onafhankelijk; "nog geen keten" is eerlijk gedocumenteerd, niet weggemoffeld.<span class="claimref">#5 · #12</span></span></li>
+    <li><span>Elk MDM-programma faalde als retrofit; Catapulze staat exact vóór dat moment, zonder legacy.<span class="claimref">#5 · IN-2</span></span></li>
+    <li><span>Slechte matches uit dubbele records worden gediagnosticeerd als "de AI werkt niet" — project dood.<span class="claimref">#4 · AR-5</span></span></li>
+    <li><span>Critici vergeten: matching is Annex III hoog-risico; ongegoverneerde agents zijn hier geen MVP maar aansprakelijkheid.<span class="claimref">#13 · AR-2</span></span></li>
+    <li><span>Agents als identiteiten met rechten, nooit anoniem — zeldzaam juist in een doelplaat.<span class="claimref">#14 · PT-7</span></span></li>
+    <li><span>DWH-technologie bewust open laten is laat binden op wat goedkoop te herbinden is.<span class="claimref">#8 · AR-8</span></span></li>
+    <li><span>Identifiers nu bakken in Spott.io kost niets; over drie jaar kost het een MDM-programma.<span class="claimref">#5 · 5 reviewers</span></span></li>
+  </ol>
+  <p class="callout">Geldigheid: de kernzorg is legitiem en hardgemaakt — agents op ongekoppelde, ontdubbelde data falen stil en duur. Dat probleem bestaat. De vraag is of dit plan het oplost in een volgorde die het bedrijf overleeft.</p>
+</section>
+
+<section class="counter">
+  <div class="section-head"><h2>Tegenargument — waar het breekt</h2><span class="eyebrow">Fase 5</span></div>
+  <p class="pos"><strong>De positie:</strong> "Eerst het fundament en de datastromen, dan de middellaag, dan pas agents opschalen" — plus "eerst specificeren, dan vanaf nul bouwen".</p>
+  <ol class="points">
+    <li><span>Dit is Inmon-doctrine uit de jaren negentig: het corporate datamodel eerst, al het andere is gokwerk.<span class="claimref">#12 · #3 · IN-2</span></span></li>
+    <li><span>Lidl eLWIS, ESB canonical models, de Netscape-rewrite: fundament-eerst leverde pas waarde als het af was — meestal nooit.<span class="claimref">#18 · IN-2</span></span></li>
+    <li><span>Claude doet vandaag al dagvoorbereiding en mailrouting zonder datalaag; waarde bestaat al, de premisse is ondergraven.<span class="claimref">#3 · IN-1</span></span></li>
+    <li><span>Identifiers over 28 gescrapete bronnen is probabilistische entity-resolution, geen vinkje in een geplande laag.<span class="claimref">#5 · EN-1 · EN-3</span></span></li>
+    <li><span>De plaat spreekt zichzelf tegen: "geen legacy", maar Spott.io-ID's worden gelockt vóór het model dat ze dienen.<span class="claimref">#5 · AR-5 · AR-8</span></span></li>
+    <li><span>Recruiters eren ID's op de geldketen (Spott→Please→Moneybird) en negeren ze op de matchketen (DM, WhatsApp, bellen).<span class="claimref">#5 · PT-4</span></span></li>
+    <li><span>Gescrapete tekst voedt een agent die naar Spott.io schrijft: prompt-injectie in een schrijfpad, audit pas in stap 4.<span class="claimref">#22 · PT-1 · PT-7</span></span></li>
+    <li><span>Vier lagen, geen verticale snede, geen toegewezen bouwer: een FUUSE-sjabloon op een bedrijf van drie mensen.<span class="claimref">#24 · #2 · AR-2</span></span></li>
+  </ol>
+  <p class="callout">Beoordeling: de kern (agents erven kwaliteit) is gezond; de uitvoering (alles-eerst, agents-laatst, herbouw vanaf nul) is het historisch best gedocumenteerde faalpatroon in enterprise data, toegepast op een schaal die het niet kan dragen.</p>
+</section>
+
+<section>
+  <div class="section-head"><h2>Convergentie — waar reviewers elkaar onafhankelijk vonden</h2><span class="eyebrow">Fase 3</span></div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Bevinding</th><th>Claim</th><th>Reviewers</th><th>Ernst</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Identifiers: timing goed, haalbaarheid onbewezen.</strong> Panel splitst — 4 vallen aan (entity-resolution, geen soevereiniteit over Please/jobboards, zelf-tegenspraak in de parallelnoot), 4 verdedigen (het ene goedkoop-nu besluit). Beide hebben gelijk over een andere helft.</td><td class="n">#5</td><td class="n">EN-1 EN-3 EN-6 AR-5 AR-8 PT-1 PT-4 IN-1 IN-2</td><td><span class="sev crit">Kritiek</span></td></tr>
+      <tr><td><strong>Bottom-up volgorde is big-bang.</strong> Geen verticale snede levert matching-waarde vóór laag 3; "vanaf nul" gooit de enige werkende datastroom (Job Intelligence v1) weg met de operationele lessen erin.</td><td class="n">#12 #3 #18</td><td class="n">AR-2 IN-1 IN-2 PT-1</td><td><span class="sev crit">Kritiek</span></td></tr>
+      <tr><td><strong>Governance-perimeter dekt het interieur, niet de randen.</strong> Please (contract, loon, factuur) buiten audit; Moneybird/Revolut schrijftoegang ongescoped; harness zonder per-app login is één credential over alles; gescrapete input ongetrust in agent-context én schrijfpad.</td><td class="n">#22 #21 #16</td><td class="n">PT-1 PT-7 EN-6</td><td><span class="sev sig">Significant</span></td></tr>
+      <tr><td><strong>Bouwcapaciteit is niet toegewezen.</strong> De plaat beschrijft rollen, niet wie bouwt of wanneer. (Obsidian: Ryans rol is een adviesretainer van ~3u/week — oordeel, geen bouwcapaciteit. Dat is een ander gat dan Catapulze's eigen capaciteit, en het maakt dit gat groter, niet kleiner.)</td><td class="n">#24</td><td class="n">AR-2 IN-1</td><td><span class="sev sig">Significant</span></td></tr>
+      <tr><td><strong>Agents-laatst is agent-native fout om.</strong> Het datamodel wordt ontworpen zonder de agent als consument; de velden die matching nodig heeft (bewijs, rationale, uitkomst eerdere voorstellen) ontbreken dan.</td><td class="n">#4 #12</td><td class="n">agent-native</td><td><span class="sev sig">Significant</span></td></tr>
+      <tr><td><strong>Sterk fundament:</strong> agents erven kwaliteit; identifiers greenfield; AI Act als statuutlezing; agents-als-identiteit; MCP als koppelvlak; evals als deploy-gate.</td><td class="n">#4 #5 #13 #14 #9 #20</td><td class="n">6 / 5 / 3 / 2 reviewers</td><td><span class="sev ok">Houdt stand</span></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <div class="section-head"><h2>Agent-native gaps — gerangschikt</h2><span class="eyebrow">Extra lens</span></div>
+  <p>Wat er al agent-native aan is: MCP als gestandaardiseerd koppelvlak, agents als identiteiten, feedback loop &amp; memory in de gedeelde laag, evals vóór livegang, unieke identifiers zonder legacy. Dat is meer dan de meeste doelplaten halen. De gaten zitten in de volgorde en in wat er buiten de lus valt.</p>
+  <div class="gaps">
+    <div class="gap"><div class="id">G1</div><div><h3>Agents laatst, dus het datamodel kent geen agent</h3><p>Het canonieke model wordt gevormd door dashboard-behoeften van mensen; de velden voor matching ontbreken. <strong>Remedie:</strong> één dunne agent-lus vanaf week één; zijn falen bepaalt de modelspec. De datalaag wordt gebouwd <em>door</em> agentvraag, niet ervoor.</p></div></div>
+    <div class="gap"><div class="id">G2</div><div><h3>Harness en BI zijn mens-only oppervlakken</h3><p>Niets zegt dat een agent alles kan wat Robbie via de harness kan, of het dashboard kan bevragen. <strong>Remedie:</strong> capability-map in de Company OS-spec — elke menselijke handeling in Spott.io, Please-portaal, Moneybird, LinkedIn, Clay en elke dashboard-metriek gemapt op een MCP-tool. BI wordt "agent stelt dezelfde vraag".</p></div></div>
+    <div class="gap"><div class="id">G3</div><div><h3>Agents als workflows, niet als uitkomsten over primitieven</h3><p>Vijf benoemde taakagents = workflow-ontwerp; het oordeel belandt in code per agent. <strong>Remedie:</strong> MCP-laag als CRUD-primitieven per entiteit (professional, aanvraag, plaatsing, contact, factuur) plus search en notify; elke "agent" is een prompt. Nieuwe capability kost een prompt, geen build.</p></div></div>
+    <div class="gap"><div class="id">G4</div><div><h3>Please breekt de lus</h3><p>Plaatsing → contract → factuur → betaling is de omzetlus; het midden is mail naar een mens bij Please. Geen agent sluit hem, geen uitkomstdata stroomt terug. <strong>Remedie:</strong> Please als core-systeem met MCP-adapter (API, anders gestructureerde mailbox); bevestigingen schrijven terug op de plaatsing-entiteit. Tot dan: expliciete goedkeuringsgate met getrackte taak, geen ongetrackt gat.</p></div></div>
+    <div class="gap"><div class="id">G5</div><div><h3>Memory is een auditlog, geen leesbare context</h3><p>"OS onthoudt acties + uitkomsten" is een auditstore. Agent-native memory is context die de agent leest vóór handelen: voorkeuren per opdrachtgever, welke tariefvoorstellen geaccepteerd werden, waarom een professional afviel. <strong>Remedie:</strong> een context-bestand per entiteit in de gecureerde zone, lees- en schrijfbaar via dezelfde primitieven, runtime in de prompt.</p></div></div>
+    <div class="gap"><div class="id">G6</div><div><h3>Evals bewaken deploys, maar definiëren niet "klaar"</h3><p>Geen voltooiingssignaal; agents stoppen op heuristiek. <strong>Remedie:</strong> elke lus eindigt met <span class="n">complete_task</span> plus bewijs; de Company OS scoort tegen een rubric per taaktype (kwalificatie-precisie, match-acceptatie, outreach-respons). Dát voedt memory en maakt "lerend via feedback loop" echt.</p></div></div>
+    <div class="gap"><div class="id">G7</div><div><h3>Goedkeuringsgates niet gekoppeld aan omkeerbaarheid</h3><p>Voorstel indienen en tarief bevestigen zijn gegate; niets zegt wat auto-goedgekeurd is — dus alles wordt gegate en de doorvoer sterft. <strong>Remedie:</strong> goedkeuringsmatrix: auto voor omkeerbare/interne writes, gate voor extern, onomkeerbaar of geld-bewegend. Dezelfde matrix vervult de AI Act-eis van menselijk toezicht.</p></div></div>
+    <div class="gap"><div class="id">G8</div><div><h3>Per-bron normalisatie = statische tool-mapping</h3><p>28 bronnen met elk een eigen vorm. <strong>Remedie:</strong> één aanvraag-primitief met discover/read; bronnen zijn adapters, de agent ziet één entiteit.</p></div></div>
+  </div>
+</section>
+
+<section>
+  <div class="section-head"><h2>Next level — dezelfde plaat, andere ruggengraat</h2><span class="eyebrow">Aanbeveling</span></div>
+  <p>Houd elke laag die getekend is. Draai de volgorde om in één dunne verticale snede en laat datalaag en Company OS groeien uit wat die snede aantoonbaar nodig heeft. De eerste werkende agent staat in maand één, niet in stap vier — en alles eronder wordt gebouwd om die agent beter te maken.</p>
+  <div class="slice">
+    <h3>De verticale snede</h3>
+    <ol>
+      <li><strong>Minimaal entiteitsmodel, drie entiteiten:</strong> opdrachtgever, professional, aanvraag. Dit <em>is</em> het canonieke model, voor nu. Spott.io krijgt deze drie ID's op dag één; al het andere blijft ongemodelleerd tot een agent erom vraagt.</li>
+      <li><strong>Job Intelligence v1 blijft draaien</strong> en schrijft naar één Postgres-tabel met die ID's. Geen herbouw vanaf nul; v2-spec groeit uit wat v1 en de agent leren.</li>
+      <li><strong>Eén aanvraag-kwalificatie-agent</strong> over MCP CRUD-primitieven, met auditlog, goedkeuringsmatrix en <span class="n">complete_task</span>-eval. Dit is de eerste échte datastroom — en de eerste échte governance.</li>
+      <li><strong>Company OS krimpt tot wat de snede nodig heeft</strong> (primitieven, memory per entiteit, matrix, evals) en verbreedt daarna.</li>
+      <li><strong>Please via MCP-adapter</strong> zodra de eerste plaatsing uit de snede komt; tot dan expliciete gate.</li>
+    </ol>
+  </div>
+  <div class="rule">
+    <div><div class="eyebrow">Naar stap 0</div>AVG-grondslag per bron vastleggen vóór bron 8; harness aan identiteit binden en loggen; Please en de financiële schrijfpaden binnen de threat model.</div>
+    <div><div class="eyebrow">Behouden, letterlijk</div>Identifier-discipline (greenfield, nu), AI Act Annex III-framing, agents-als-identiteit, DWH-tech laat kiezen, harness leverancier-wisselbaar.</div>
+    <div><div class="eyebrow">Schrappen</div>Logboekregel "eerst specificeren, dan bouwen (vanaf nul)". Vervang door: "spec groeit uit de snede".</div>
+    <div><div class="eyebrow">Toewijzen</div>Wie bouwt de snede, en wanneer. Zonder naam en datum is dit een tekening, geen plan.</div>
+  </div>
+</section>
+
+<section>
+  <div class="section-head"><h2>Context uit Obsidian (MARS-vault, 4.329 notes)</h2><span class="eyebrow">Bronnen</span></div>
+  <p>Over Catapulze's architectuur, FUUSE, Job Intelligence, Spott.io of Company OS staat <strong>niets</strong> in de vault — het plan leeft erbuiten. Wat er wél staat, verandert het gewicht van één bevinding en levert de agent-native referenties.</p>
+  <div class="two">
+    <div>
+      <h3>Advisory Retainer — 2h per week deal (1 aug)</h3>
+      <p>~€2.000/mnd voor 3u/week ≈ €154/u; Robbie's vraag letterlijk "help build their product". Open kernvraag in de note: <em>"2h/week buys judgement, not building capacity."</em> Onbevestigde hypothese: dit is TSG, waar Ryan al Motion, nightly review-agents en een dashboard bouwde — dan is dit custodianschap, geen greenfield, en moet het dashboard van Ryans persoonlijke GCP af als apart fixed-price deliverable.</p>
+      <p><strong>Consequentie voor deze review:</strong> de retainer koopt precies wat deze plaat mist — het oordeel om de ruggengraat om te draaien — en niet wat de plaat aanneemt: iemand die vier lagen bouwt.</p>
+    </div>
+    <div>
+      <h3>Agent-native referenties in de vault</h3>
+      <p><em>agent-graph-engineering-and-multi-agent-orchestration</em> (9 aug): prompt → context → harness → loop → graph; "state is the product surface"; checkpoint op node-grenzen; execution graph ≠ knowledge graph. Direct toepasbaar op de Company OS-spec (G3, G5, G6).</p>
+      <p><em>build-for-agents-karpathy</em>: docs als markdown, SKILL.md per product, CLI én MCP. De parity-checklist voor G2.</p>
+      <p><em>Agentic Engineering Stack — Loops, Harnesses, Hill Climbing and Claws</em> (26 aug, 123KB): "slop starts as bad data structures"; agents vs claws = identiteitsgrens; Linear's production-agents via workflow-tools-evals. De onderbouwing voor G1 en G7.</p>
+      <p><em>Brand and Product Direction</em>: privacy-grenspatroon — publieke kennislaag die nooit operationele data raakt. Relevant voor de harness-credential (PT-7).</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="section-head"><h2>Panel</h2><span class="eyebrow">Fase 2</span></div>
+  <div class="roster">
+    <div><b>EN-1 Systems Thinker</b>Identifiers = meerjarig entity-resolution werk, geen vinkje.</div>
+    <div><b>EN-3 Edge Case Hunter</b>Geen identifier-soevereiniteit over Please en jobboards; circulair op "plaatsing".</div>
+    <div><b>EN-6 Dependency Tracer</b>Wortel-aanname: governance over een externe partner — nooit geborgd.</div>
+    <div><b>AR-2 Trade-off Illuminator</b>"Vanaf nul" gooit de enige werkende stroom weg; kosten van fundament-eerst nooit geprijsd.</div>
+    <div><b>AR-5 Second-Order</b>Spott.io-ID lock-in parallel aan stap 1 maakt Spott.io op dag één legacy.</div>
+    <div><b>AR-8 Reversibility</b>Elk omkeerbaar besluit beschermd; het ene onomkeerbare gehaast.</div>
+    <div><b>PT-1 Red Team Lead</b>Audit stap 4, gereguleerde data stap 1; "nog geen keten" is een schriftelijke bekentenis.</div>
+    <div><b>PT-4 Social Engineer</b>ID's houden op de geldketen, falen op de matchketen — waar de plaat voor bestaat.</div>
+    <div><b>PT-7 Threat Modeler</b>Perimeter dekt het interieur; Please, financiën, harness-credential en gescrapete input aan de randen.</div>
+    <div><b>IN-1 Naive Questioner</b>Waarom vier lagen als eenheid van investering voor één scraper en een paar prompts?</div>
+    <div><b>IN-2 Analogy Finder</b>Inmon vs Kimball, Lidl eLWIS, Netscape 6: fundament-eerst in een MCP-jasje.</div>
+    <div><b>Fable-eindreview</b>Fix-first, optie A. Vier correcties op de synthese toegepast (zie noten).</div>
+  </div>
+  <p class="callout" style="margin-top:18px">Correcties uit de Fable-review, verwerkt: (1) "Spott.io-ID's ná het canonieke model" herstelde het patroon dat we aanvielen — vervangen door het minimale drie-entiteitenmodel dat de snede zelf is; (2) claim 3 is <em>ondergraven</em>, niet weerlegd; (3) 3u/week is Ryans retainer, niet Catapulze's bouwcapaciteit — het gat is "onbezet", niet "Ryan"; (4) gescrapete input in een agent die schrijft is injectie in een schrijfpad — het sterkste argument voor governance op stap 0.</p>
+</section>
+
+<footer>RedTeam ParallelAnalysis · 24 claims · 11 agents (3 engineers, 3 architects, 3 pentesters, 2 interns) · agent-native-architecture lens · Obsidian MARS sweep · fable-advisor eindreview · 27-08-2026</footer>
+</div>

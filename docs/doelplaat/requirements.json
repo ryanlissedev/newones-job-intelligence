@@ -1,0 +1,1852 @@
+{
+  "meta": {
+    "naam": "Catapulze Job Intelligence — IT-requirements v2",
+    "versie": "0.1",
+    "datum": "2026-08-26",
+    "status": "concept — ter review door Robbie en Julian",
+    "basis": "Analyse v1-app \"Jobs Intelligence\" (Lovable op Neon Postgres) + Neon-schema van 26-08-2026 (33 tabellen, 432 kolommen)"
+  },
+  "domeinen": [
+    {
+      "id": "JI-SCP",
+      "naam": "Scope en afbakening"
+    },
+    {
+      "id": "JI-BRN",
+      "naam": "Bronnen, adapters en onboarding"
+    },
+    {
+      "id": "JI-ING",
+      "naam": "Ingestie, scheduling en betrouwbaarheid"
+    },
+    {
+      "id": "JI-DAT",
+      "naam": "Datamodel en datalaag"
+    },
+    {
+      "id": "JI-KWA",
+      "naam": "Datakwaliteit en normalisatie"
+    },
+    {
+      "id": "JI-DUP",
+      "naam": "Ontdubbeling"
+    },
+    {
+      "id": "JI-SKL",
+      "naam": "Skills en taxonomie"
+    },
+    {
+      "id": "JI-SRC",
+      "naam": "Search en detailweergave"
+    },
+    {
+      "id": "JI-DSH",
+      "naam": "Dashboard en analyse"
+    },
+    {
+      "id": "JI-INT",
+      "naam": "Integraties en API"
+    },
+    {
+      "id": "JI-OPS",
+      "naam": "Monitoring, observability en beheer"
+    },
+    {
+      "id": "JI-SEC",
+      "naam": "Security, AVG en compliance"
+    },
+    {
+      "id": "JI-NFR",
+      "naam": "Niet-functioneel (prestaties, schaal, kosten)"
+    },
+    {
+      "id": "JI-MIG",
+      "naam": "Migratie van v1"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "JI-SCP-01",
+      "domein": "JI-SCP",
+      "domeinNaam": "Scope en afbakening",
+      "tekst": "Job Intelligence verzamelt, normaliseert, ontdubbelt, verrijkt en ontsluit **aanvragen/vacatures** en de bijbehorende **bron- en organisatiegegevens**. Kandidaten, matching, screening, sollicitaties, interviews en berichten vallen **buiten** de module.",
+      "prio": "M",
+      "acceptatie": "Het datamodel van Job Intelligence bevat geen tabellen voor kandidaten, matches, screening calls, applications, interviews of messages; die functionaliteit leeft in de agentlaag/Company OS en in Spott.io.",
+      "herkomst": "`candidates`, `job_matches`, `screening_calls`, `applications`, `interviews`, `messages`, `candidate_skills*` (vrijwel leeg)"
+    },
+    {
+      "id": "JI-SCP-02",
+      "domein": "JI-SCP",
+      "domeinNaam": "Scope en afbakening",
+      "tekst": "Job Intelligence biedt zijn data aan via een **API en MCP-tools**, zodat matching-agents en Spott.io consumenten zijn en geen onderdeel.",
+      "prio": "M",
+      "acceptatie": "Alle leesfunctionaliteit van de UI loopt via dezelfde API/MCP-laag; er is geen tweede datapad.",
+      "herkomst": "UI leest rechtstreeks read-only op Neon"
+    },
+    {
+      "id": "JI-SCP-03",
+      "domein": "JI-SCP",
+      "domeinNaam": "Scope en afbakening",
+      "tekst": "Eén aanvraag = één record **per bron**; dezelfde aanvraag via meerdere brokers wordt gegroepeerd, nooit samengevoegd.",
+      "prio": "M",
+      "acceptatie": "`curated.aanvraag` heeft unique `(bron_id, bron_referentie)`; `dedup_groep_id` verbindt de records.",
+      "herkomst": "`uq_platform_external_id`, `job_dedupe_ranks`"
+    },
+    {
+      "id": "JI-SCP-04",
+      "domein": "JI-SCP",
+      "domeinNaam": "Scope en afbakening",
+      "tekst": "Alle aanvragen worden bewaard (ook irrelevante en gesloten); relevantie is een score, geen filter bij ingestie.",
+      "prio": "M",
+      "acceptatie": "Historische vacatures blijven bevraagbaar voor tariefanalyse; er is geen delete bij lage relevantie.",
+      "herkomst": "240k rijen in `jobs`, `status`/`archived_at`"
+    },
+    {
+      "id": "JI-BRN-01",
+      "domein": "JI-BRN",
+      "domeinNaam": "Bronnen, adapters en onboarding",
+      "tekst": "Er is een **bronregister** (`curated.bron`) met per bron: naam, categorie (msp_broker | global_msp | das_tender | overheidsportaal | jobboard | werkenbij), website, ingestietype, schedule, login_vereist, voorwaarden_status, actief, config_ref, adapter-versie.",
+      "prio": "M",
+      "acceptatie": "Alle 7 v1-platformen en de 23 bronnen uit het Source Register staan erin, ook als ze nog niet actief zijn.",
+      "herkomst": "`platform_catalog` (slug, adapter_kind, auth_mode, capabilities, docs_url, is_enabled), `scraper_configs`"
+    },
+    {
+      "id": "JI-BRN-02",
+      "domein": "JI-BRN",
+      "domeinNaam": "Bronnen, adapters en onboarding",
+      "tekst": "Elke bron heeft een **declaratieve configuratie** (JSON/YAML) met een JSON Schema voor parameters én voor auth; de configuratie wordt gevalideerd vóór activering.",
+      "prio": "M",
+      "acceptatie": "Ongeldige config → bron kan niet op `actief`; validatiefout is zichtbaar in het beheerscherm.",
+      "herkomst": "`platform_catalog.config_schema`, `auth_schema`, `scraper_configs.validation_status`, `last_validation_error`"
+    },
+    {
+      "id": "JI-BRN-03",
+      "domein": "JI-BRN",
+      "domeinNaam": "Bronnen, adapters en onboarding",
+      "tekst": "Een adapter bestaat uit drie onderdelen: **discovery**, **fetch** en **extract**; elk onderdeel is los testbaar en heeft een versienummer.",
+      "prio": "M",
+      "acceptatie": "`scrape_run.versie_adapter` wordt gevuld; unit-tests per onderdeel draaien in CI.",
+      "herkomst": "`adapter_kind` in catalogus, geen versie in v1"
+    },
+    {
+      "id": "JI-BRN-04",
+      "domein": "JI-BRN",
+      "domeinNaam": "Bronnen, adapters en onboarding",
+      "tekst": "Nieuwe bronnen doorlopen een **onboarding-flow** met vaste stappen: concept → configuratie → validatie (bereikbaarheid, login) → test-import (≥ 20 records) → review van veldmapping → activering. Elke stap legt bewijs vast.",
+      "prio": "M",
+      "acceptatie": "Een bron kan niet actief worden zonder geslaagde test-import; het onboarding-record toont stap, blocker en next actions.",
+      "herkomst": "`platform_onboarding_runs` (status, current_step, blocker_kind, next_actions, evidence, result), `last_test_import_*`"
+    },
+    {
+      "id": "JI-BRN-05",
+      "domein": "JI-BRN",
+      "domeinNaam": "Bronnen, adapters en onboarding",
+      "tekst": "Bronnen zonder deterministische parser starten met **LLM-extractie** naar het JSON Schema van het canonieke model; per record wordt `extractie_methode` en `extractie_confidence` vastgelegd.",
+      "prio": "M",
+      "acceptatie": "Een bron kan live met alleen LLM-extractie; ≥ 95% van de records valideert tegen het schema.",
+      "herkomst": "— (v1 heeft geen fallback)"
+    },
+    {
+      "id": "JI-BRN-06",
+      "domein": "JI-BRN",
+      "domeinNaam": "Bronnen, adapters en onboarding",
+      "tekst": "Per bron wordt de **veldmapping** vastgelegd: bronveld → canoniek veld of `bron_specifiek`, met type en verplichtheid; unieke bronvelden worden gedocumenteerd.",
+      "prio": "M",
+      "acceptatie": "Bronregister bevat een mapping-tabel per actieve bron; `bron_specifiek` bevat uitsluitend gedocumenteerde sleutels.",
+      "herkomst": "Datapunten-matrix (xlsx), `raw_payload`"
+    },
+    {
+      "id": "JI-BRN-07",
+      "domein": "JI-BRN",
+      "domeinNaam": "Bronnen, adapters en onboarding",
+      "tekst": "Credentials voor portalen achter login staan in een **secret store** en worden alleen via referentie (`secret_ref`) in de configuratie genoemd.",
+      "prio": "M",
+      "acceptatie": "Geen versleutelde blobs in de database; rotatie van een secret vereist geen wijziging van de bronconfig.",
+      "herkomst": "`scraper_configs.auth_config_encrypted`, `credentials_ref`"
+    },
+    {
+      "id": "JI-BRN-08",
+      "domein": "JI-BRN",
+      "domeinNaam": "Bronnen, adapters en onboarding",
+      "tekst": "Werkenbij-sites vormen één broncategorie met een **generieke adapter**: bedrijvenlijst → ATS-detectie → ATS-API / JSON-LD JobPosting / sitemap + LLM.",
+      "prio": "S",
+      "acceptatie": "Een nieuw bedrijf toevoegen kost alleen een rij in de bedrijvenlijst; geen code.",
+      "herkomst": "—"
+    },
+    {
+      "id": "JI-BRN-09",
+      "domein": "JI-BRN",
+      "domeinNaam": "Bronnen, adapters en onboarding",
+      "tekst": "Per bron wordt een **evals-set** van ≥ 20 pagina's met verwachte extractie bijgehouden; deze draait bij elke adapter- of promptwijziging.",
+      "prio": "S",
+      "acceptatie": "CI faalt als de veld-nauwkeurigheid onder 95% zakt.",
+      "herkomst": "`autopilot_runs`/`autopilot_findings` (zelftest-idee)"
+    },
+    {
+      "id": "JI-ING-01",
+      "domein": "JI-ING",
+      "domeinNaam": "Ingestie, scheduling en betrouwbaarheid",
+      "tekst": "Elke bron heeft een eigen **schedule** (cron + jitter) én een **freshness-SLA**; \"achterstallig\" is een berekende toestand (`now > laatste_succesvolle_run + SLA`) die een alert geeft.",
+      "prio": "M",
+      "acceptatie": "Dashboard toont per bron: laatste succesvolle run, SLA, achterstallig ja/nee; alert binnen 5 min na overschrijding.",
+      "herkomst": "Dashboard v1 \"Achterstallig\" op alle scrapers (25-08), `cron_expression` default `0 0 */4 * * *`"
+    },
+    {
+      "id": "JI-ING-02",
+      "domein": "JI-ING",
+      "domeinNaam": "Ingestie, scheduling en betrouwbaarheid",
+      "tekst": "Ingestie loopt via een **werkwachtrij** (Postgres, `FOR UPDATE SKIP LOCKED`) met meerdere workers; één falende bron blokkeert nooit de andere.",
+      "prio": "M",
+      "acceptatie": "Simulatie: één bron time-out van 10 min → andere bronnen halen hun SLA.",
+      "herkomst": "Alle bronnen tegelijk achterstallig in v1"
+    },
+    {
+      "id": "JI-ING-03",
+      "domein": "JI-ING",
+      "domeinNaam": "Ingestie, scheduling en betrouwbaarheid",
+      "tekst": "**Circuit breaker per bron**: open na N (default 5) opeenvolgende fouten, half-open na 30 min met één proefrun, dicht na succes; status zichtbaar en handmatig te resetten.",
+      "prio": "M",
+      "acceptatie": "Statusovergangen worden gelogd in `scrape_run.circuit_status`.",
+      "herkomst": "`consecutive_failures`, \"Circuit geopend\" MiPublic"
+    },
+    {
+      "id": "JI-ING-04",
+      "domein": "JI-ING",
+      "domeinNaam": "Ingestie, scheduling en betrouwbaarheid",
+      "tekst": "**Retries** met exponentiële backoff en per bron een rate limit (requests/min, concurrency) en proxy-beleid.",
+      "prio": "M",
+      "acceptatie": "Bron overschrijdt nooit het geconfigureerde tempo; 429/403 leiden tot backoff, niet tot circuit-open bij de eerste fout.",
+      "herkomst": "`parameters` jsonb (ongestructureerd)"
+    },
+    {
+      "id": "JI-ING-05",
+      "domein": "JI-ING",
+      "domeinNaam": "Ingestie, scheduling en betrouwbaarheid",
+      "tekst": "Elke run legt **run-metadata** vast: gestart/geëindigd, duur, gevonden, nieuw, gewijzigd, gesloten, duplicaten, quarantaine, fouten (gestructureerd), adapter-versie, lijst van betrokken aanvraag-ids.",
+      "prio": "M",
+      "acceptatie": "`curated.scrape_run` bevat deze kolommen; runs zijn ≥ 12 maanden bevraagbaar.",
+      "herkomst": "`scrape_results` (jobs_found/new/duplicates, errors, job_ids)"
+    },
+    {
+      "id": "JI-ING-06",
+      "domein": "JI-ING",
+      "domeinNaam": "Ingestie, scheduling en betrouwbaarheid",
+      "tekst": "Ingestie is **incrementeel**: detailpagina's worden alleen opgehaald bij nieuwe of gewijzigde listing-hash; ongewijzigde aanvragen krijgen alleen `laatst_gezien_op` bijgewerkt.",
+      "prio": "M",
+      "acceptatie": "Bij een run zonder wijzigingen < 5% van de listing wordt opnieuw gefetcht.",
+      "herkomst": "—"
+    },
+    {
+      "id": "JI-ING-07",
+      "domein": "JI-ING",
+      "domeinNaam": "Ingestie, scheduling en betrouwbaarheid",
+      "tekst": "De **ruwe payload** (HTML/JSON/PDF) wordt onveranderd in object storage bewaard met pad `raw/{bron}/{jjjj}/{mm}/{dd}/{run}/{hash}` en is vanuit de aanvraag herleidbaar.",
+      "prio": "M",
+      "acceptatie": "Elke versie van een aanvraag heeft een `raw_payload_ref` die naar een bestaand object wijst.",
+      "herkomst": "`jobs.raw_payload` (jsonb in-row)"
+    },
+    {
+      "id": "JI-ING-08",
+      "domein": "JI-ING",
+      "domeinNaam": "Ingestie, scheduling en betrouwbaarheid",
+      "tekst": "Elke stap (discover, fetch, extract, normaliseer, laad) is **idempotent en herstartbaar**; een afgebroken run kan zonder dubbele records worden hervat.",
+      "prio": "M",
+      "acceptatie": "Twee keer dezelfde run draaien levert identieke curated-data op.",
+      "herkomst": "—"
+    },
+    {
+      "id": "JI-ING-09",
+      "domein": "JI-ING",
+      "domeinNaam": "Ingestie, scheduling en betrouwbaarheid",
+      "tekst": "Een **dead man's switch** (externe heartbeat) alarmeert als de scheduler zelf uitvalt.",
+      "prio": "M",
+      "acceptatie": "Scheduler 15 min stil → alert via mail/Teams.",
+      "herkomst": "Alle scrapers achterstallig zonder alert"
+    },
+    {
+      "id": "JI-ING-10",
+      "domein": "JI-ING",
+      "domeinNaam": "Ingestie, scheduling en betrouwbaarheid",
+      "tekst": "Beheerders kunnen per bron een run **handmatig starten**, pauzeren en een test-import draaien zonder de schedule te wijzigen.",
+      "prio": "S",
+      "acceptatie": "Beheerscherm heeft knoppen Run now / Pauzeer / Test-import met resultaat binnen het scherm.",
+      "herkomst": "`last_test_import_at/status`, `is_active`"
+    },
+    {
+      "id": "JI-ING-11",
+      "domein": "JI-ING",
+      "domeinNaam": "Ingestie, scheduling en betrouwbaarheid",
+      "tekst": "**Herverwerken** (replay) van opgeslagen ruwe payloads met een nieuwe adapter- of promptversie is mogelijk per bron en periode, zonder opnieuw te fetchen.",
+      "prio": "S",
+      "acceptatie": "Replay van 30 dagen van één bron kost geen externe requests en produceert nieuwe versies alleen waar de content_hash wijzigt.",
+      "herkomst": "`raw_payload` aanwezig, geen replay-functie"
+    },
+    {
+      "id": "JI-DAT-01",
+      "domein": "JI-DAT",
+      "domeinNaam": "Datamodel en datalaag",
+      "tekst": "Het **canonieke model `aanvraag`** (spec §4, 75 velden) is de enige definitie; het wordt als Pydantic-model beheerd en genereert het JSON Schema voor validatie, LLM-extractie en documentatie.",
+      "prio": "M",
+      "acceptatie": "Eén repository-bestand definieert het model; schema-wijzigingen zijn versiebeheerd (semver) en gemigreerd.",
+      "herkomst": "`jobs` (62 kolommen, geen formele definitie)"
+    },
+    {
+      "id": "JI-DAT-02",
+      "domein": "JI-DAT",
+      "domeinNaam": "Datamodel en datalaag",
+      "tekst": "De datalaag kent vier zones: **raw** (object storage), **staging** (per bron, bronvorm), **curated** (canoniek) en **marts** (afgeleid), elk met eigen retentie.",
+      "prio": "M",
+      "acceptatie": "Schema's `staging.*`, `curated.*`, `marts.*` bestaan; raw-objecten zijn per bron/datum terug te vinden.",
+      "herkomst": "Alles in `public`"
+    },
+    {
+      "id": "JI-DAT-03",
+      "domein": "JI-DAT",
+      "domeinNaam": "Datamodel en datalaag",
+      "tekst": "`curated.aanvraag` bevat de **huidige versie**; `curated.aanvraag_versie` bewaart elke eerdere versie (SCD2 met `geldig_van`/`geldig_tot`, `content_hash`, `raw_payload_ref`).",
+      "prio": "M",
+      "acceptatie": "Wijziging van tarief of deadline bij de bron levert een nieuwe versie op; de vorige blijft opvraagbaar.",
+      "herkomst": "Geen historie in `jobs` (alleen `updated`-loze overschrijving)"
+    },
+    {
+      "id": "JI-DAT-04",
+      "domein": "JI-DAT",
+      "domeinNaam": "Datamodel en datalaag",
+      "tekst": "Lijstvelden worden **genormaliseerd** in eigen tabellen: `aanvraag_eis` (eis | wens | gunningscriterium, knockout, weging), `aanvraag_skill`, `aanvraag_bijlage`, `aanvraag_contact`; JSONB blijft alleen voor `bron_specifiek`.",
+      "prio": "M",
+      "acceptatie": "Query \"alle open aanvragen met knock-out eis X\" is uitvoerbaar zonder JSONB-parsing.",
+      "herkomst": "`requirements`, `wishes`, `competences`, `conditions`, `attachments`, `questions`, `languages`, `agent_contact`, `recruiter_contact` als jsonb"
+    },
+    {
+      "id": "JI-DAT-05",
+      "domein": "JI-DAT",
+      "domeinNaam": "Datamodel en datalaag",
+      "tekst": "**Organisaties** (opdrachtgever, intermediair) zijn een eigen entiteit `curated.organisatie` met aliassen, KvK, type, sector, domein, logo, adres en verrijkingsreferentie; aanvragen verwijzen ernaar.",
+      "prio": "M",
+      "acceptatie": "\"Distinct companies\" is een telling van organisaties, niet van vrije tekst; naamvarianten (\"Gemeente Utrecht\"/\"gemeente utrecht\") tellen als één.",
+      "herkomst": "`company`, `end_client`, `company_logo_url`, `company_address` als losse tekst"
+    },
+    {
+      "id": "JI-DAT-06",
+      "domein": "JI-DAT",
+      "domeinNaam": "Datamodel en datalaag",
+      "tekst": "Alle primaire sleutels zijn **UUID**; alle tijdstempels **`timestamptz`** (UTC); geld als `numeric(10,2)` met aparte valutakolom; enums als Postgres-enums of check-constraints.",
+      "prio": "M",
+      "acceptatie": "Geen `text`-ids en geen `timestamp without time zone` in `curated.*`.",
+      "herkomst": "ids `text`, timestamps zonder tijdzone, `rate_min` integer"
+    },
+    {
+      "id": "JI-DAT-07",
+      "domein": "JI-DAT",
+      "domeinNaam": "Datamodel en datalaag",
+      "tekst": "De ruwe payload staat **niet** in de rij maar in object storage (`raw_payload_ref`); de rij bevat wel de `content_hash`.",
+      "prio": "M",
+      "acceptatie": "`curated.aanvraag` bevat geen kolom met volledige HTML/JSON.",
+      "herkomst": "`jobs.raw_payload` jsonb"
+    },
+    {
+      "id": "JI-DAT-08",
+      "domein": "JI-DAT",
+      "domeinNaam": "Datamodel en datalaag",
+      "tekst": "Full-text search gebruikt een **`tsvector`-kolom** (Nederlands + Engels) met GIN-index, automatisch bijgewerkt; semantische search een pgvector-kolom met HNSW-index.",
+      "prio": "M",
+      "acceptatie": "`EXPLAIN` toont index-gebruik voor tekst- en vectorzoekopdrachten.",
+      "herkomst": "`search_vector` is `text`; trigger `jobs_search_vector_update`; `embedding` zonder zichtbare HNSW-index"
+    },
+    {
+      "id": "JI-DAT-09",
+      "domein": "JI-DAT",
+      "domeinNaam": "Datamodel en datalaag",
+      "tekst": "Het canonieke model wordt **uitgebreid** met velden die v1 al vult en het model nog mist: `locatie_postcode`, `locatie_lat`, `locatie_lon`, `beschrijving_samenvatting` (AI), `onderaanneming_toegestaan`, `voorwaarden[]`, `sollicitatievragen[]`, `oorspronkelijke_bron` + `oorspronkelijke_bron_url` (aggregators), `aantal_views_bron`, `opdrachtgever_referentie`.",
+      "prio": "M",
+      "acceptatie": "Specificatie §4 wordt bijgewerkt (v0.2); de kolommen bestaan in `curated.aanvraag` of in een genormaliseerde subtabel.",
+      "herkomst": "`postcode`, `latitude`, `longitude`, `description_summary`, `allows_subcontracting`, `conditions`, `questions`, `source_platform`, `source_url`, `number_of_views`, `client_reference_code`"
+    },
+    {
+      "id": "JI-DAT-10",
+      "domein": "JI-DAT",
+      "domeinNaam": "Datamodel en datalaag",
+      "tekst": "Marts zijn **materialized views** die na elke run worden ververst: `open_aanvragen`, `aanvragen_per_bron_per_dag`, `tarieven_per_functiegroep`, `bron_gezondheid`, `tijd_tot_sluiting`, `datakwaliteit_per_bron`, `facetten` (voorberekende filterwaarden).",
+      "prio": "M",
+      "acceptatie": "Dashboard- en sidebarqueries raken alleen marts; verversing < 2 min bij 500k aanvragen.",
+      "herkomst": "`sidebar_metadata`, `kpi_snapshots`, `platform_daily_stats`"
+    },
+    {
+      "id": "JI-DAT-11",
+      "domein": "JI-DAT",
+      "domeinNaam": "Datamodel en datalaag",
+      "tekst": "Dagelijkse **KPI-snapshots** (open aanvragen, nieuw, gesloten, per functiegroep, per bron) worden bewaard voor trendanalyse.",
+      "prio": "S",
+      "acceptatie": "Tabel `marts.kpi_dag` met ≥ 1 rij per dag; trend-grafieken lezen hieruit.",
+      "herkomst": "`kpi_snapshots` (open_vacatures, matches_created …)"
+    },
+    {
+      "id": "JI-KWA-01",
+      "domein": "JI-KWA",
+      "domeinNaam": "Datakwaliteit en normalisatie",
+      "tekst": "Elke aanvraag wordt gevalideerd tegen het JSON Schema; verplichte velden, plausibiliteit (tarief 20–250 €/u, uren 4–40, start ≤ einde, sluiting ≥ publicatie) en enum-waarden. Afgekeurde records gaan naar **quarantaine** met reden.",
+      "prio": "M",
+      "acceptatie": "Geen record in curated dat het schema schendt; quarantaine-tabel bevraagbaar per bron en reden.",
+      "herkomst": "Geen validatielaag zichtbaar"
+    },
+    {
+      "id": "JI-KWA-02",
+      "domein": "JI-KWA",
+      "domeinNaam": "Datakwaliteit en normalisatie",
+      "tekst": "**Locatie-normalisatie**: plaats → gestandaardiseerde plaatsnaam, provincie, postcode (waar bekend) en coördinaten via een lokale referentietabel (CBS/BAG-plaatsnamen); provincie-afleiding is verplicht als een plaats bekend is.",
+      "prio": "M",
+      "acceptatie": "Provincie gevuld op ≥ 90% van de aanvragen met een Nederlandse standplaats (v1: ~13%).",
+      "herkomst": "Dashboard: \"only 13% of jobs have a province set — casing normalised\""
+    },
+    {
+      "id": "JI-KWA-03",
+      "domein": "JI-KWA",
+      "domeinNaam": "Datakwaliteit en normalisatie",
+      "tekst": "**Tarief-extractie uit vrije tekst**: als de bron geen gestructureerd tarief levert, wordt het tarief (min/max/eenheid/type) uit beschrijving en voorwaarden gehaald (regex + LLM) met confidence; `tarief_type` geeft aan of het een maximum, indicatie of vast tarief is.",
+      "prio": "M",
+      "acceptatie": "Tarief gevuld op ≥ 60% van broker-/overheidsaanvragen (v1: ~17% over alles); steekproef van 100 records ≥ 95% correct.",
+      "herkomst": "Dashboard: \"only ~17% of jobs publish a rate\""
+    },
+    {
+      "id": "JI-KWA-04",
+      "domein": "JI-KWA",
+      "domeinNaam": "Datakwaliteit en normalisatie",
+      "tekst": "**Uren-normalisatie**: \"32-40 uur\", \"0,8 fte\", \"fulltime\" → `uren_per_week_min/max`.",
+      "prio": "M",
+      "acceptatie": "Uren gevuld op ≥ 85% van broker-/overheidsaanvragen.",
+      "herkomst": "`hours_per_week`, `min_hours_per_week`"
+    },
+    {
+      "id": "JI-KWA-05",
+      "domein": "JI-KWA",
+      "domeinNaam": "Datakwaliteit en normalisatie",
+      "tekst": "**Datum-normalisatie**: \"z.s.m.\", \"per direct\", \"Q4 2026\", \"1 oktober\" → `startdatum` of `start_zsm`; deadlines met tijdstip en tijdzone.",
+      "prio": "M",
+      "acceptatie": "Alle datumvelden zijn ISO-datums of null met vlag; geen vrije tekst in datumkolommen.",
+      "herkomst": "`start_date`, `application_deadline` timestamp zonder tz"
+    },
+    {
+      "id": "JI-KWA-06",
+      "domein": "JI-KWA",
+      "domeinNaam": "Datakwaliteit en normalisatie",
+      "tekst": "**Enum-normalisatie** voor inhuurvorm, werkplek, dienstverband, opleidingsniveau, tarief_eenheid; onbekende bronwaarden worden gelogd in een mapping-backlog en gemapt naar `onbekend`.",
+      "prio": "M",
+      "acceptatie": "Elke enumkolom bevat alleen toegestane waarden; mapping-backlog is leeg of toegewezen.",
+      "herkomst": "`contract_type`, `contract_label`, `work_arrangement`, `remuneration_type`, `education_level` (vrije tekst)"
+    },
+    {
+      "id": "JI-KWA-07",
+      "domein": "JI-KWA",
+      "domeinNaam": "Datakwaliteit en normalisatie",
+      "tekst": "**Taal-detectie** (nl/en/overig) en HTML → markdown met behoud van secties (eisen/wensen/voorwaarden).",
+      "prio": "M",
+      "acceptatie": "`taal` gevuld op 100%; beschrijving bevat geen HTML-tags.",
+      "herkomst": "`description`"
+    },
+    {
+      "id": "JI-KWA-08",
+      "domein": "JI-KWA",
+      "domeinNaam": "Datakwaliteit en normalisatie",
+      "tekst": "Per aanvraag een **compleetheidsscore** (0–1) op de kernvelden; per bron een datakwaliteit-mart met vulgraad per veld.",
+      "prio": "M",
+      "acceptatie": "Dashboard \"Data quality\" toont vulgraad per veld per bron en trend.",
+      "herkomst": "Dashboard \"Data quality — share of jobs with each field filled in\""
+    },
+    {
+      "id": "JI-KWA-09",
+      "domein": "JI-KWA",
+      "domeinNaam": "Datakwaliteit en normalisatie",
+      "tekst": "**Opdrachtgever-normalisatie**: naamvarianten, \"Gemeente X\" vs. \"gemeente x\", geanonimiseerde opdrachtgevers (\"een gemeente in Zuid-Holland\") worden herkend en aan een organisatie of aan `opdrachtgever_type` gekoppeld.",
+      "prio": "S",
+      "acceptatie": "Top-50 opdrachtgevers hebben elk één organisatie-record; anonieme aanvragen krijgen `opdrachtgever_type`.",
+      "herkomst": "`company`/`end_client` vrije tekst"
+    },
+    {
+      "id": "JI-KWA-10",
+      "domein": "JI-KWA",
+      "domeinNaam": "Datakwaliteit en normalisatie",
+      "tekst": "**Statusafleiding**: open → gesloten bij bronstatus, verstreken sluitingsdatum of N (default 3) opeenvolgende succesvolle runs zonder waarneming; heropening maakt een nieuwe versie.",
+      "prio": "M",
+      "acceptatie": "`gesloten_gedetecteerd_op` gevuld bij elke sluiting; geen aanvraag blijft \"open\" na 3 runs afwezigheid.",
+      "herkomst": "`status` default `open`, `archived_at`"
+    },
+    {
+      "id": "JI-DUP-01",
+      "domein": "JI-DUP",
+      "domeinNaam": "Ontdubbeling",
+      "tekst": "**Exacte ontdubbeling** binnen een bron op `(bron_id, bron_referentie)`; bij ontbrekende bronreferentie op genormaliseerde URL.",
+      "prio": "M",
+      "acceptatie": "Unique constraint; her-scrape levert nooit een tweede record.",
+      "herkomst": "`uq_platform_external_id`, `idx_platform_external_url`"
+    },
+    {
+      "id": "JI-DUP-02",
+      "domein": "JI-DUP",
+      "domeinNaam": "Ontdubbeling",
+      "tekst": "**Cross-source groepering** op genormaliseerde titel + opdrachtgever + startdatum + uren, aangevuld met embedding-similariteit ≥ drempel; resultaat in `curated.dedup_groep` met primaire aanvraag, methode, similariteit en `handmatig_bevestigd`.",
+      "prio": "M",
+      "acceptatie": "Elke groep is een rij (geen JSONB-blob); groepen zijn per aanvraag en per opdrachtgever bevraagbaar.",
+      "herkomst": "`dedupe_title/client/location_normalized`, `job_dedupe_ranks`, `overlap_groups.groups` jsonb"
+    },
+    {
+      "id": "JI-DUP-03",
+      "domein": "JI-DUP",
+      "domeinNaam": "Ontdubbeling",
+      "tekst": "Groepering is **niet destructief**: ieder bronrecord behoudt eigen tarief, deadline en voorwaarden; de UI toont de groep als één aanvraag met N bronnen.",
+      "prio": "M",
+      "acceptatie": "Zoekresultaat toont 1 rij per groep met badge \"via 3 bronnen\"; detail toont alle bronvarianten.",
+      "herkomst": "Geen groepsweergave in v1-UI"
+    },
+    {
+      "id": "JI-DUP-04",
+      "domein": "JI-DUP",
+      "domeinNaam": "Ontdubbeling",
+      "tekst": "Beheerders kunnen groepen **splitsen of samenvoegen**; correcties worden gelogd en gebruikt als evals voor het algoritme.",
+      "prio": "S",
+      "acceptatie": "Audit-log per correctie; precisie van groepering ≥ 95% op de eval-set.",
+      "herkomst": "—"
+    },
+    {
+      "id": "JI-DUP-05",
+      "domein": "JI-DUP",
+      "domeinNaam": "Ontdubbeling",
+      "tekst": "De **primaire bron** per groep is configureerbaar (default: vroegst gezien; voorkeur voor bron met tarief en directe indiening).",
+      "prio": "S",
+      "acceptatie": "Primaire-bronregel staat in configuratie; wijziging herberekent groepen.",
+      "herkomst": "`dedupe_rank`"
+    },
+    {
+      "id": "JI-SKL-01",
+      "domein": "JI-SKL",
+      "domeinNaam": "Skills en taxonomie",
+      "tekst": "Er is één **gecureerde skills-taxonomie** (`curated.skill`) met canonieke naam, slug, type (technologie | methode | domein | taal | competentie), aliassen en optioneel ESCO-URI; omvang orde 1.000–3.000, geen zinnen.",
+      "prio": "M",
+      "acceptatie": "Geen skill langer dan 40 tekens of met meer dan 4 woorden; elke skill heeft ≥ 1 gekoppelde aanvraag of is gemarkeerd als kandidaat.",
+      "herkomst": "`skills` 151.416 rijen, \"long sentence-style entries filtered out\""
+    },
+    {
+      "id": "JI-SKL-02",
+      "domein": "JI-SKL",
+      "domeinNaam": "Skills en taxonomie",
+      "tekst": "Skill-extractie levert per aanvraag ≥ 3 skills met `belang` (eis | wens | genoemd), `bron` (tekst | afgeleid) en confidence; ruwe labels worden bewaard voor de mapping-backlog.",
+      "prio": "M",
+      "acceptatie": "Gemiddeld ≥ 3 skills per aanvraag in de functiegroepen ai/platform (v1: ~1).",
+      "herkomst": "`job_skills_v2` (importance required/nice, confidence, raw_label)"
+    },
+    {
+      "id": "JI-SKL-03",
+      "domein": "JI-SKL",
+      "domeinNaam": "Skills en taxonomie",
+      "tekst": "Nieuwe ruwe labels gaan via een **mapping-tabel met reviewwachtrij** (alias → skill), automatisch waar de confidence hoog is, anders handmatig; ESCO als referentie, niet als verplicht kader.",
+      "prio": "M",
+      "acceptatie": "Reviewwachtrij < 200 open items; mapping-tabel groeit niet met ruwe teksten.",
+      "herkomst": "`skill_mappings` 2.081.947 rijen, `sent_to_review`, `review_status`, `skill_aliases`, `esco_skills`"
+    },
+    {
+      "id": "JI-SKL-04",
+      "domein": "JI-SKL",
+      "domeinNaam": "Skills en taxonomie",
+      "tekst": "Skills zijn **filterbaar en aggregeerbaar** (top-skills per functiegroep, per bron, trend per maand).",
+      "prio": "M",
+      "acceptatie": "Dashboard \"Top skills\" toont alleen gecureerde skills; skill-filter in search toont facetwaarden met aantallen.",
+      "herkomst": "Dashboard \"Top skills across postings\", skills-filter"
+    },
+    {
+      "id": "JI-SKL-05",
+      "domein": "JI-SKL",
+      "domeinNaam": "Skills en taxonomie",
+      "tekst": "Per functiegroep een **skill-profiel** (kernskills) dat de relevantiescore en de classificatie ondersteunt.",
+      "prio": "S",
+      "acceptatie": "Profiel per functiegroep in configuratie; classificatie-eval ≥ 90% nauwkeurig.",
+      "herkomst": "—"
+    },
+    {
+      "id": "JI-SRC-01",
+      "domein": "JI-SRC",
+      "domeinNaam": "Search en detailweergave",
+      "tekst": "**Vrije zoekterm** met scope (titel | titel+beschrijving | opdrachtgever | alles), full-text (tsvector, nl+en) met prefix- en fuzzy-matching (pg_trgm) en **semantische** search (pgvector) als aparte modus of hybride ranking.",
+      "prio": "M",
+      "acceptatie": "Zoekopdracht \"kubernetes platform engineer\" vindt ook \"K8s\"/\"platform-engineer\"; hybride modus toont relevantiescore.",
+      "herkomst": "`q`, `scope=title`, `search_vector`, `embedding`, pg_trgm"
+    },
+    {
+      "id": "JI-SRC-02",
+      "domein": "JI-SRC",
+      "domeinNaam": "Search en detailweergave",
+      "tekst": "**Facetfilters** met aantallen: bron, broncategorie, status, functiegroep, inhuurvorm, werkplek, provincie, opdrachtgever_type, opdrachtgever, intermediair, skills (meervoudig, AND/OR), taal, opleidingsniveau, zzp_toegestaan, verlenging_mogelijk.",
+      "prio": "M",
+      "acceptatie": "Elke facet toont de top-waarden met aantal binnen de huidige selectie; leeg facet toont \"geen waarden\" met reden.",
+      "herkomst": "Filters Platform/Status/Contract type/Work arrangement/Province/Skills; `sidebar_metadata`"
+    },
+    {
+      "id": "JI-SRC-03",
+      "domein": "JI-SRC",
+      "domeinNaam": "Search en detailweergave",
+      "tekst": "**Bereikfilters**: tarief (min/max, eenheid), uren per week, duur in maanden, ervaring in jaren; **datumfilters**: gepubliceerd, sluitingsdatum, startdatum, eerste_gezien.",
+      "prio": "M",
+      "acceptatie": "Bereikfilter \"tarief ≥ 100\" combineert met \"sluiting binnen 3 dagen\".",
+      "herkomst": "Hourly rate, Hours per week, Posted between"
+    },
+    {
+      "id": "JI-SRC-04",
+      "domein": "JI-SRC",
+      "domeinNaam": "Search en detailweergave",
+      "tekst": "**Sortering** op nieuw (eerste_gezien), gepubliceerd, sluitingsdatum, tarief, relevantiescore, zoekrelevantie.",
+      "prio": "M",
+      "acceptatie": "Sorteerkeuze in URL; standaard \"nieuw\" voor open aanvragen.",
+      "herkomst": "`sort=posted_desc`"
+    },
+    {
+      "id": "JI-SRC-05",
+      "domein": "JI-SRC",
+      "domeinNaam": "Search en detailweergave",
+      "tekst": "De volledige zoekstaat (term, scope, filters, sortering, pagina, geopend detail) staat in de **URL** en is deelbaar; **opgeslagen zoekopdrachten** met naam, per gebruiker, met optionele alert bij nieuwe treffers.",
+      "prio": "M",
+      "acceptatie": "Gedeelde URL reproduceert exact dezelfde lijst; opgeslagen zoekopdracht kan een dagelijkse/directe notificatie triggeren.",
+      "herkomst": "URL-parameters v1, `saved_searches.filters` (leeg)"
+    },
+    {
+      "id": "JI-SRC-06",
+      "domein": "JI-SRC",
+      "domeinNaam": "Search en detailweergave",
+      "tekst": "**Resultatenlijst** met per rij: titel, opdrachtgever/intermediair, plaats+werkplek, tarief (of \"geen tarief\"), uren, bron(nen), gepubliceerd, sluitingsdatum, functiegroep, relevantiescore, compleetheid; groepen als één rij met bron-badge. Paginering configureerbaar (25/50/100) en totaalaantal.",
+      "prio": "M",
+      "acceptatie": "Kolommen in- en uit te schakelen; sluitingsdatum kleurt bij < 48 uur.",
+      "herkomst": "Tabel Title/Company/Location/Rate/Hrs/Platform/Posted, 10 per pagina"
+    },
+    {
+      "id": "JI-SRC-07",
+      "domein": "JI-SRC",
+      "domeinNaam": "Search en detailweergave",
+      "tekst": "**Detailpaneel** per aanvraag: alle canonieke velden gegroepeerd (kern, locatie, omvang, tarief, voorwaarden, eisen/wensen/gunning, contact, bijlagen), de bronvarianten in de groep, versiehistorie (wat wijzigde wanneer), skills met belang, relevantiescore met reden, link naar bron en naar ruwe payload.",
+      "prio": "M",
+      "acceptatie": "Elke versie is aanklikbaar; diff tussen versies zichtbaar voor tarief, deadline, uren, beschrijving.",
+      "herkomst": "`job=`-parameter, detailpaneel v1"
+    },
+    {
+      "id": "JI-SRC-08",
+      "domein": "JI-SRC",
+      "domeinNaam": "Search en detailweergave",
+      "tekst": "Vanuit het detail kan de gebruiker een aanvraag **markeren** (relevant / niet relevant / gevolgd) en **doorzetten naar Spott.io**; de markering voedt de relevantie-evals.",
+      "prio": "S",
+      "acceptatie": "Markering opgeslagen met gebruiker en tijd; \"doorzetten\" maakt via outbox een record in Spott.io.",
+      "herkomst": "—"
+    },
+    {
+      "id": "JI-SRC-09",
+      "domein": "JI-SRC",
+      "domeinNaam": "Search en detailweergave",
+      "tekst": "**Export** van de huidige selectie naar CSV/XLSX (max 10.000 rijen) met canonieke kolomnamen.",
+      "prio": "S",
+      "acceptatie": "Export bevat dezelfde rijen en volgorde als de lijst.",
+      "herkomst": "—"
+    },
+    {
+      "id": "JI-SRC-10",
+      "domein": "JI-SRC",
+      "domeinNaam": "Search en detailweergave",
+      "tekst": "Zoek-API en UI tonen **nooit contactgegevens** aan gebruikers zonder de rol \"recruiter\"; contactvelden zitten niet in de zoekindex.",
+      "prio": "M",
+      "acceptatie": "Rol \"viewer\" ziet contactblok niet; index bevat geen e-mail/telefoon.",
+      "herkomst": "`agent_contact`, `recruiter_contact` open in `jobs`"
+    },
+    {
+      "id": "JI-DSH-01",
+      "domein": "JI-DSH",
+      "domeinNaam": "Dashboard en analyse",
+      "tekst": "**Overzicht**: KPI's open aanvragen (totaal en per functiegroep), nieuw vandaag/7 dagen/30 dagen, gesloten 7 dagen, aantal organisaties, aantal actieve bronnen, mediane tijd tot sluiting. Elke KPI klikt door naar de zoeklijst met dezelfde selectie.",
+      "prio": "M",
+      "acceptatie": "KPI-waarden komen uit marts en zijn gelijk aan de zoeklijst-telling met identiek filter.",
+      "herkomst": "Tegels Total jobs / Distinct companies / Posted last 30 days; \"click any chart bar to open it in search\""
+    },
+    {
+      "id": "JI-DSH-02",
+      "domein": "JI-DSH",
+      "domeinNaam": "Dashboard en analyse",
+      "tekst": "**Grafieken**: aanvragen per week (52 weken, per functiegroep stapelbaar), per bron, per provincie (kaart of staaf), tariefverdeling (€10-buckets, per functiegroep), verdeling inhuurvorm/werkplek, top-skills (gecureerd), top-opdrachtgevers en -intermediairs.",
+      "prio": "M",
+      "acceptatie": "Elke staaf/segment is een filter op de zoeklijst.",
+      "herkomst": "Jobs per week/platform/province, Hourly rate distribution, Top skills"
+    },
+    {
+      "id": "JI-DSH-03",
+      "domein": "JI-DSH",
+      "domeinNaam": "Dashboard en analyse",
+      "tekst": "**Bron-gezondheid**: per bron laatste succesvolle run, freshness-SLA-status, circuit-status, foutpercentage 24 u, nieuw/gewijzigd/gesloten per dag, quarantaine-aandeel, LLM-fallback-aandeel, beschikbaarheid bron (uptime).",
+      "prio": "M",
+      "acceptatie": "Eén scherm toont in één oogopslag welke bron aandacht nodig heeft; kleuren volgens SLA.",
+      "herkomst": "v1-dashboard per platform (cron, laatste run, status, volgende run), `platform_daily_stats.available`"
+    },
+    {
+      "id": "JI-DSH-04",
+      "domein": "JI-DSH",
+      "domeinNaam": "Dashboard en analyse",
+      "tekst": "**Datakwaliteit**: vulgraad per veld per bron (tarief, uren, provincie, startdatum, sluitingsdatum, skills), trend per week, lijst van mapping-backlog en quarantaine-redenen.",
+      "prio": "M",
+      "acceptatie": "Vulgraad-percentages zijn per bron en per veld exporteerbaar.",
+      "herkomst": "Dashboard \"Data quality\""
+    },
+    {
+      "id": "JI-DSH-05",
+      "domein": "JI-DSH",
+      "domeinNaam": "Dashboard en analyse",
+      "tekst": "**Marktanalyse**: tarieftrend per functiegroep/regio per kwartaal, vraag per skill over de tijd, aandeel remote/hybride, gemiddelde looptijd en verlengingskans, tijd tussen publicatie en sluiting per bron.",
+      "prio": "S",
+      "acceptatie": "Rapport per kwartaal te genereren uit marts; alle cijfers herleidbaar naar aanvragen.",
+      "herkomst": "— (v1 heeft alleen basis-aggregaties)"
+    },
+    {
+      "id": "JI-DSH-06",
+      "domein": "JI-DSH",
+      "domeinNaam": "Dashboard en analyse",
+      "tekst": "**AI-kosten en -gebruik**: tokens en kosten per flow (extractie, classificatie, embeddings, skills) per dag en per bron; budgetdrempel met alert.",
+      "prio": "M",
+      "acceptatie": "Kosten per aanvraag zichtbaar; alert bij > 120% van dagbudget.",
+      "herkomst": "`ai_usage` (flow, provider, model, tokens, cost_usd_micros)"
+    },
+    {
+      "id": "JI-DSH-07",
+      "domein": "JI-DSH",
+      "domeinNaam": "Dashboard en analyse",
+      "tekst": "**Chat over de data** (natuurlijke-taalvragen op marts/curated via MCP-tools, met gegenereerde SQL zichtbaar en read-only) als aanvulling op de dashboards.",
+      "prio": "C",
+      "acceptatie": "Vraag \"hoeveel open aanvragen voor data engineers boven 110 €/u in Utrecht\" levert lijst + SQL.",
+      "herkomst": "`chat_sessions`, `chat_session_messages`"
+    },
+    {
+      "id": "JI-INT-01",
+      "domein": "JI-INT",
+      "domeinNaam": "Integraties en API",
+      "tekst": "**REST-API** (FastAPI, OpenAPI-spec): `GET /aanvragen` (search + filters + paginering), `GET /aanvragen/{id}` (incl. versies, groep, skills), `GET /bronnen`, `GET /bronnen/{id}/runs`, `GET /organisaties`, `POST /aanvragen/{id}/markering`, `POST /bronnen/{id}/run`. Versiebeheer in pad (`/v1`).",
+      "prio": "M",
+      "acceptatie": "OpenAPI-document gegenereerd; contract-tests in CI.",
+      "herkomst": "UI leest rechtstreeks uit de database"
+    },
+    {
+      "id": "JI-INT-02",
+      "domein": "JI-INT",
+      "domeinNaam": "Integraties en API",
+      "tekst": "**MCP-server** met tools `search_aanvragen`, `get_aanvraag`, `list_bronnen`, `bron_status`, `mark_relevant`, `get_organisatie`; dezelfde autorisatie als de API.",
+      "prio": "M",
+      "acceptatie": "Een agent in de Company OS kan zonder database-toegang zoeken en markeren.",
+      "herkomst": "`agent_events` (event-bus zonder tool-interface)"
+    },
+    {
+      "id": "JI-INT-03",
+      "domein": "JI-INT",
+      "domeinNaam": "Integraties en API",
+      "tekst": "**Events** (outbox-patroon): `aanvraag.nieuw`, `aanvraag.gewijzigd`, `aanvraag.gesloten`, `bron.circuit_open`, `bron.achterstallig`; consumenten (notificaties, Spott.io-push, agents) lezen de outbox.",
+      "prio": "M",
+      "acceptatie": "Elke statuswijziging produceert exact één event; herlevering is idempotent.",
+      "herkomst": "`agent_events` (status pending/processed_by)"
+    },
+    {
+      "id": "JI-INT-04",
+      "domein": "JI-INT",
+      "domeinNaam": "Integraties en API",
+      "tekst": "**Spott.io-push**: relevante aanvragen (score ≥ drempel of handmatig gemarkeerd) worden als vacature/aanvraag in Spott.io aangemaakt of bijgewerkt met Job Intelligence-id als externe sleutel; feedback (voorgesteld, geplaatst, afgewezen) komt terug in de datalaag.",
+      "prio": "S",
+      "acceptatie": "Dubbele push is uitgesloten; Spott-id staat op de aanvraag; feedback zichtbaar in detail.",
+      "herkomst": "—"
+    },
+    {
+      "id": "JI-INT-05",
+      "domein": "JI-INT",
+      "domeinNaam": "Integraties en API",
+      "tekst": "**Notificaties** via mail en Teams: nieuwe aanvraag met score ≥ 0,8, opgeslagen zoekopdracht met nieuwe treffers, bron-alerts. Frequentie per gebruiker instelbaar (direct / dagelijks).",
+      "prio": "M",
+      "acceptatie": "Notificatie bevat titel, opdrachtgever, tarief, sluitingsdatum en deep-link.",
+      "herkomst": "—"
+    },
+    {
+      "id": "JI-INT-06",
+      "domein": "JI-INT",
+      "domeinNaam": "Integraties en API",
+      "tekst": "**Organisatie-verrijking** via Clay (en KvK) op verzoek of batch: KvK, domein, sector, omvang, PE-backed; resultaat in `curated.organisatie` met bron en datum.",
+      "prio": "C",
+      "acceptatie": "Top-100 opdrachtgevers verrijkt; verrijking is herhaalbaar.",
+      "herkomst": "—"
+    },
+    {
+      "id": "JI-INT-07",
+      "domein": "JI-INT",
+      "domeinNaam": "Integraties en API",
+      "tekst": "**Bulk-export** van curated en marts als Parquet/CSV naar object storage (dagelijks) voor extern BI of een later DWH.",
+      "prio": "S",
+      "acceptatie": "Dagelijkse export aanwezig; schema-evolutie gedocumenteerd.",
+      "herkomst": "—"
+    },
+    {
+      "id": "JI-OPS-01",
+      "domein": "JI-OPS",
+      "domeinNaam": "Monitoring, observability en beheer",
+      "tekst": "**Gestructureerde logging** (JSON) met correlatie-id per run en per aanvraag; tracing via OpenTelemetry; metrics (runs, duur, fouten, records, LLM-calls) naar Grafana/Prometheus.",
+      "prio": "M",
+      "acceptatie": "Eén run is end-to-end te volgen van discovery tot curated-load.",
+      "herkomst": "`scrape_results.errors` jsonb"
+    },
+    {
+      "id": "JI-OPS-02",
+      "domein": "JI-OPS",
+      "domeinNaam": "Monitoring, observability en beheer",
+      "tekst": "**Alerts** met eigenaar en escalatie: bron achterstallig, circuit open, quarantaine > 10%, LLM-fallback > 30%, scheduler-heartbeat weg, budget overschreden, disk/DB-ruimte.",
+      "prio": "M",
+      "acceptatie": "Alert-regels in code (versiebeheerd); testalert per kanaal.",
+      "herkomst": "Geen alerting zichtbaar in v1"
+    },
+    {
+      "id": "JI-OPS-03",
+      "domein": "JI-OPS",
+      "domeinNaam": "Monitoring, observability en beheer",
+      "tekst": "**LLM-observability** (Langfuse of gelijkwaardig): elke LLM-call met prompt-versie, model, tokens, kosten, latency en uitkomst; evals per promptversie.",
+      "prio": "M",
+      "acceptatie": "Promptwijziging zonder eval-run is niet deploybaar.",
+      "herkomst": "`ai_usage` (kosten wel, prompts niet)"
+    },
+    {
+      "id": "JI-OPS-04",
+      "domein": "JI-OPS",
+      "domeinNaam": "Monitoring, observability en beheer",
+      "tekst": "**Beheerscherm** voor bronnen: configuratie bewerken (met schema-validatie), activeren/pauzeren, run starten, test-import, circuit resetten, onboarding-voortgang, laatste fouten met payload-link.",
+      "prio": "M",
+      "acceptatie": "Alle beheeracties zijn zonder database-toegang uit te voeren en worden gelogd met gebruiker.",
+      "herkomst": "`scraper_configs`, `platform_onboarding_runs`, `platform_settings`"
+    },
+    {
+      "id": "JI-OPS-05",
+      "domein": "JI-OPS",
+      "domeinNaam": "Monitoring, observability en beheer",
+      "tekst": "**Zelftest / smoke-journeys** na elke deploy (search, detail, bron-run, API, MCP) met bevindingen als issues.",
+      "prio": "S",
+      "acceptatie": "Deploy-pipeline faalt op een rode journey.",
+      "herkomst": "`autopilot_runs`, `autopilot_findings` (github_issue_number)"
+    },
+    {
+      "id": "JI-OPS-06",
+      "domein": "JI-OPS",
+      "domeinNaam": "Monitoring, observability en beheer",
+      "tekst": "**Back-ups en herstel**: dagelijkse database-back-up met point-in-time recovery (≥ 7 dagen), raw-zone versioned; hersteltest per kwartaal.",
+      "prio": "M",
+      "acceptatie": "RPO ≤ 1 uur, RTO ≤ 4 uur, gedocumenteerd en getest.",
+      "herkomst": "Neon (PITR beschikbaar), raw in-row"
+    },
+    {
+      "id": "JI-OPS-07",
+      "domein": "JI-OPS",
+      "domeinNaam": "Monitoring, observability en beheer",
+      "tekst": "**Infrastructure as code** en CI/CD: migraties (Alembic), containers, omgevingen dev/prod, secrets buiten de repo.",
+      "prio": "M",
+      "acceptatie": "Nieuwe omgeving uitrollen kost < 1 uur zonder handwerk.",
+      "herkomst": "Lovable-app + Neon, geen zichtbare IaC"
+    },
+    {
+      "id": "JI-SEC-01",
+      "domein": "JI-SEC",
+      "domeinNaam": "Security, AVG en compliance",
+      "tekst": "**Authenticatie** via Microsoft 365 (Entra ID, OIDC) voor UI, API en beheer; **rollen** viewer, recruiter (contactgegevens, markeren, doorzetten), beheerder (bronnen, config), service (API/MCP-tokens per consument).",
+      "prio": "M",
+      "acceptatie": "Geen anonieme toegang; rol bepaalt zichtbaarheid van contactvelden en beheeracties.",
+      "herkomst": "Geen auth zichtbaar in v1-UI (\"read-only · neon\")"
+    },
+    {
+      "id": "JI-SEC-02",
+      "domein": "JI-SEC",
+      "domeinNaam": "Security, AVG en compliance",
+      "tekst": "Database-toegang via **rollen met minimale rechten**: ingest (schrijft staging/curated), api (leest curated/marts, schrijft markeringen), bi (leest marts). Geen gedeelde superuser-connectie.",
+      "prio": "M",
+      "acceptatie": "UI en BI gebruiken read-only rollen; ingest kan geen tabellen droppen.",
+      "herkomst": "\"read-only · neon\"-badge"
+    },
+    {
+      "id": "JI-SEC-03",
+      "domein": "JI-SEC",
+      "domeinNaam": "Security, AVG en compliance",
+      "tekst": "**Secrets** (bronaccounts, API-keys, LLM-keys) in een secret manager (1Password/Doppler), rotatie gedocumenteerd, nooit in database of repo.",
+      "prio": "M",
+      "acceptatie": "Repo-scan en DB-scan vinden geen credentials.",
+      "herkomst": "`auth_config_encrypted` in DB"
+    },
+    {
+      "id": "JI-SEC-04",
+      "domein": "JI-SEC",
+      "domeinNaam": "Security, AVG en compliance",
+      "tekst": "**PII-minimalisatie**: contactpersonen van aanvragen in aparte tabel `aanvraag_contact`, niet in zoekindex, 90 dagen na sluiting genulled (ook in versies), toegang gelogd; verwerkingsregister-entry \"Job Intelligence\".",
+      "prio": "M",
+      "acceptatie": "Query op gesloten aanvragen > 90 dagen levert geen contactgegevens; audit-log toont wie contactblok opende.",
+      "herkomst": "`agent_contact`, `recruiter_contact` jsonb in `jobs`; `gdpr_audit_log` (leeg)"
+    },
+    {
+      "id": "JI-SEC-05",
+      "domein": "JI-SEC",
+      "domeinNaam": "Security, AVG en compliance",
+      "tekst": "**Bronvoorwaarden**: per bron ToS-URL, status (toegestaan / te toetsen / niet toegestaan), eigen-account-vereiste en datum van toetsing; bronnen met status \"niet toegestaan\" kunnen niet worden ingepland, ook niet handmatig.",
+      "prio": "M",
+      "acceptatie": "Activering van een bron zonder toetsing is technisch geblokkeerd.",
+      "herkomst": "Geen voorwaardenregistratie in v1"
+    },
+    {
+      "id": "JI-SEC-06",
+      "domein": "JI-SEC",
+      "domeinNaam": "Security, AVG en compliance",
+      "tekst": "**Netjes scrapen**: robots.txt respecteren voor publieke sites, identificeerbare user-agent met contactadres, rate limits per bron, geen omzeiling van beveiliging of anti-bot-maatregelen.",
+      "prio": "M",
+      "acceptatie": "Configuratie per bron bevat `respect_robots`, `user_agent`, `rate_limit`.",
+      "herkomst": "`parameters` jsonb"
+    },
+    {
+      "id": "JI-SEC-07",
+      "domein": "JI-SEC",
+      "domeinNaam": "Security, AVG en compliance",
+      "tekst": "**EU AI Act / transparantie**: relevantiescore en classificatie zijn ondersteunend; reden altijd zichtbaar; menselijke beoordeling vóór voorstellen aan opdrachtgevers; model- en promptversie per uitkomst vastgelegd.",
+      "prio": "M",
+      "acceptatie": "Elke score heeft `relevantie_reden`, model en promptversie.",
+      "herkomst": "`job_matches.reasoning`, `model`, `prompt_version` (goed voorbeeld)"
+    },
+    {
+      "id": "JI-SEC-08",
+      "domein": "JI-SEC",
+      "domeinNaam": "Security, AVG en compliance",
+      "tekst": "**Audit-log** voor beheeracties, markeringen, exports en toegang tot contactgegevens (wie, wat, wanneer, waarom).",
+      "prio": "M",
+      "acceptatie": "Log is append-only en ≥ 24 maanden bewaard.",
+      "herkomst": "`gdpr_audit_log` (structuur aanwezig)"
+    },
+    {
+      "id": "JI-SEC-09",
+      "domein": "JI-SEC",
+      "domeinNaam": "Security, AVG en compliance",
+      "tekst": "**Data-retentie**: raw 12 maanden (daarna alleen hash + metadata), staging 90 dagen, curated niet-PII onbeperkt, contact 90 dagen na sluiting, logs 24 maanden; retentie-jobs geautomatiseerd.",
+      "prio": "M",
+      "acceptatie": "Retentie-job draait dagelijks en rapporteert verwijderde aantallen.",
+      "herkomst": "`data_retention_until` (alleen op candidates)"
+    },
+    {
+      "id": "JI-NFR-01",
+      "domein": "JI-NFR",
+      "domeinNaam": "Niet-functioneel",
+      "tekst": "**Schaal**: ontworpen voor 1 miljoen aanvragen, 5 miljoen versies, 50 bronnen, 200 werkenbij-sites, 20.000 nieuwe aanvragen per dag, zonder architectuurwijziging.",
+      "prio": "M",
+      "acceptatie": "Load-test met 1M synthetische aanvragen haalt de prestatie-eisen.",
+      "herkomst": "240k aanvragen, 7 bronnen, ~3.500 runs"
+    },
+    {
+      "id": "JI-NFR-02",
+      "domein": "JI-NFR",
+      "domeinNaam": "Niet-functioneel",
+      "tekst": "**Prestaties search**: p95 < 500 ms voor gefilterde zoekopdrachten met facetten op 1M aanvragen; p95 < 1 s voor semantische search; detail < 200 ms.",
+      "prio": "M",
+      "acceptatie": "Gemeten met k6/Locust op prod-achtige data.",
+      "herkomst": "Facetwaarden laadden niet (leeg) bij analyse 26-08"
+    },
+    {
+      "id": "JI-NFR-03",
+      "domein": "JI-NFR",
+      "domeinNaam": "Niet-functioneel",
+      "tekst": "**Prestaties dashboard**: eerste render < 2 s; alle KPI's uit marts; geen live aggregatie over de volledige tabel.",
+      "prio": "M",
+      "acceptatie": "Geen dashboard-query met seq scan over `curated.aanvraag`.",
+      "herkomst": "\"Aggregates across the full jobs table\""
+    },
+    {
+      "id": "JI-NFR-04",
+      "domein": "JI-NFR",
+      "domeinNaam": "Niet-functioneel",
+      "tekst": "**Freshness**: 5-minuten-bronnen binnen 15 min in curated; dagelijkse bronnen binnen 2 uur na run; marts binnen 5 min na run.",
+      "prio": "M",
+      "acceptatie": "Freshness-metriek per bron zichtbaar; SLA-overschrijding alarmeert.",
+      "herkomst": "Cron elke 4–6 uur, achterstallig"
+    },
+    {
+      "id": "JI-NFR-05",
+      "domein": "JI-NFR",
+      "domeinNaam": "Niet-functioneel",
+      "tekst": "**Beschikbaarheid**: API/UI 99,5% per maand (kantooruren 99,9%); ingestie tolerant voor 4 uur downtime zonder dataverlies (inhaalslag).",
+      "prio": "M",
+      "acceptatie": "Uptime-monitoring extern; inhaalslag getest.",
+      "herkomst": "—"
+    },
+    {
+      "id": "JI-NFR-06",
+      "domein": "JI-NFR",
+      "domeinNaam": "Niet-functioneel",
+      "tekst": "**Kosten**: LLM-kosten < €0,02 per nieuwe aanvraag gemiddeld (extractie + classificatie + embedding); infra fase 1 < €300/maand; kosten per bron zichtbaar.",
+      "prio": "S",
+      "acceptatie": "Maandrapport kosten per component en per bron.",
+      "herkomst": "`ai_usage.cost_usd_micros`"
+    },
+    {
+      "id": "JI-NFR-07",
+      "domein": "JI-NFR",
+      "domeinNaam": "Niet-functioneel",
+      "tekst": "**Portabiliteit**: cloud-agnostisch (Postgres, S3-compatibele storage, containers); geen vendor-specifieke services die verhuizing blokkeren; data in open formaten (Parquet/JSON).",
+      "prio": "M",
+      "acceptatie": "Verhuizing naar andere provider is een gedocumenteerd runbook zonder codewijziging.",
+      "herkomst": "Neon + Lovable + R2 (vendor-mix)"
+    },
+    {
+      "id": "JI-NFR-08",
+      "domein": "JI-NFR",
+      "domeinNaam": "Niet-functioneel",
+      "tekst": "**Onderhoudbaarheid**: nieuwe bron toevoegen zonder wijziging aan de kern (alleen config + adapter); testdekking kern ≥ 80%; adapter-drift wordt gedetecteerd, niet ontdekt via klachten.",
+      "prio": "M",
+      "acceptatie": "Nieuwe bron met LLM-extractie live in < 1 dag; met parser in < 3 dagen.",
+      "herkomst": "—"
+    },
+    {
+      "id": "JI-NFR-09",
+      "domein": "JI-NFR",
+      "domeinNaam": "Niet-functioneel",
+      "tekst": "**Taal**: UI en documentatie Nederlands; canonieke veldnamen Nederlands (spec §4); API-veldnamen gelijk aan het canonieke model.",
+      "prio": "S",
+      "acceptatie": "Geen mix van Engelse en Nederlandse veldnamen in curated/API.",
+      "herkomst": "v1 Engels (`jobs.title`, UI \"Jobs Intelligence\")"
+    },
+    {
+      "id": "JI-MIG-01",
+      "domein": "JI-MIG",
+      "domeinNaam": "Migratie van v1",
+      "tekst": "Alle 240.131 v1-aanvragen worden **gemigreerd** naar curated met `v1_id` als herleidbare sleutel; `raw_payload` verhuist naar object storage; `(platform, external_id)` → `(bron_id, bron_referentie)`.",
+      "prio": "M",
+      "acceptatie": "Aantal curated-records ≥ aantal v1-records; steekproef 200 records veld-voor-veld correct.",
+      "herkomst": "`jobs`, `raw_payload`"
+    },
+    {
+      "id": "JI-MIG-02",
+      "domein": "JI-MIG",
+      "domeinNaam": "Migratie van v1",
+      "tekst": "De **veldmapping v1 → canoniek** (§3 van dit document) wordt uitgevoerd en gedocumenteerd; onmapbare velden gaan naar `bron_specifiek` met prefix `v1_`.",
+      "prio": "M",
+      "acceptatie": "Geen v1-kolom verloren; mapping-tabel in repo.",
+      "herkomst": "62 kolommen `jobs`"
+    },
+    {
+      "id": "JI-MIG-03",
+      "domein": "JI-MIG",
+      "domeinNaam": "Migratie van v1",
+      "tekst": "v1-**skills** worden niet één-op-één gemigreerd; `job_skills_v2.raw_label` wordt opnieuw gemapt op de gecureerde taxonomie; `skills`/`skill_mappings` blijven als archief in staging.",
+      "prio": "M",
+      "acceptatie": "Curated skills bevatten geen zinnen; ruwe labels bewaard.",
+      "herkomst": "`skills` 151k, `skill_mappings` 2M"
+    },
+    {
+      "id": "JI-MIG-04",
+      "domein": "JI-MIG",
+      "domeinNaam": "Migratie van v1",
+      "tekst": "v1-**scrape-historie** (`scrape_results`, `platform_daily_stats`, `kpi_snapshots`) wordt gemigreerd naar `curated.scrape_run` en marts voor continuïteit van trends.",
+      "prio": "S",
+      "acceptatie": "Trendgrafiek loopt door vanaf de v1-startdatum.",
+      "herkomst": "`scrape_results` 3.472, `platform_daily_stats` 881, `kpi_snapshots` 126"
+    },
+    {
+      "id": "JI-MIG-05",
+      "domein": "JI-MIG",
+      "domeinNaam": "Migratie van v1",
+      "tekst": "Recruitment-tabellen (`candidates`, `job_matches`, `screening_calls`, `applications`, `interviews`, `messages`, `chat_*`) worden **niet** gemigreerd naar Job Intelligence; eventueel waardevolle inhoud (41 matches met reasoning) wordt geëxporteerd als referentiemateriaal voor de agentlaag.",
+      "prio": "M",
+      "acceptatie": "Export aanwezig; tabellen niet in het v2-schema.",
+      "herkomst": "Zie JI-SCP-01"
+    },
+    {
+      "id": "JI-MIG-06",
+      "domein": "JI-MIG",
+      "domeinNaam": "Migratie van v1",
+      "tekst": "v1 blijft **parallel** draaien tot v2 voor de 7 v1-bronnen ≥ 2 weken gelijke of betere dekking laat zien (aantal nieuw per dag per bron ± 5%).",
+      "prio": "M",
+      "acceptatie": "Vergelijkingsrapport per bron; go/no-go vastgelegd.",
+      "herkomst": "—"
+    }
+  ],
+  "mapping": [
+    {
+      "nr": 1,
+      "v1": "id",
+      "type": "text PK",
+      "doel": "`v1_id` (migratiesleutel) → nieuwe `aanvraag_id` uuid",
+      "soort": "canoniek",
+      "opmerking": "Bewaren voor herleidbaarheid"
+    },
+    {
+      "nr": 2,
+      "v1": "platform",
+      "type": "text",
+      "doel": "`bron_id`",
+      "soort": "canoniek",
+      "opmerking": "Via bronregister; slug gelijk houden"
+    },
+    {
+      "nr": 3,
+      "v1": "external_id",
+      "type": "text",
+      "doel": "`bron_referentie`",
+      "soort": "canoniek",
+      "opmerking": "Natuurlijke sleutel met bron_id"
+    },
+    {
+      "nr": 4,
+      "v1": "external_url",
+      "type": "text",
+      "doel": "`bron_url`",
+      "soort": "canoniek",
+      "opmerking": "Canoniek maken (tracking-parameters strippen)"
+    },
+    {
+      "nr": 5,
+      "v1": "client_reference_code",
+      "type": "text",
+      "doel": "`opdrachtgever_referentie`",
+      "soort": "nieuw",
+      "opmerking": "Aanvraagnummer van de opdrachtgever/broker"
+    },
+    {
+      "nr": 6,
+      "v1": "title",
+      "type": "text",
+      "doel": "`titel`",
+      "soort": "canoniek",
+      "opmerking": ""
+    },
+    {
+      "nr": 7,
+      "v1": "company",
+      "type": "text",
+      "doel": "`intermediair` (bij broker/MSP) of `opdrachtgever_naam` (bij jobboard/werkenbij) → `organisatie`",
+      "soort": "organisatie",
+      "opmerking": "Regel per broncategorie"
+    },
+    {
+      "nr": 8,
+      "v1": "end_client",
+      "type": "text",
+      "doel": "`opdrachtgever_naam` → `organisatie`",
+      "soort": "organisatie",
+      "opmerking": "Geanonimiseerde waarden → `opdrachtgever_type`"
+    },
+    {
+      "nr": 9,
+      "v1": "contract_label",
+      "type": "text",
+      "doel": "`bron_specifiek.contract_label` + bron voor `inhuurvorm`",
+      "soort": "bron_specifiek",
+      "opmerking": "Ruwe bronwaarde bewaren"
+    },
+    {
+      "nr": 10,
+      "v1": "location",
+      "type": "text",
+      "doel": "`locatie_plaats`",
+      "soort": "canoniek",
+      "opmerking": "Normaliseren (JI-KWA-02)"
+    },
+    {
+      "nr": 11,
+      "v1": "province",
+      "type": "text",
+      "doel": "`locatie_provincie`",
+      "soort": "canoniek",
+      "opmerking": "Afleiden uit plaats waar leeg"
+    },
+    {
+      "nr": 12,
+      "v1": "description",
+      "type": "text",
+      "doel": "`beschrijving` (markdown)",
+      "soort": "canoniek",
+      "opmerking": "HTML → markdown"
+    },
+    {
+      "nr": 13,
+      "v1": "dedupe_title_normalized",
+      "type": "text",
+      "doel": "intern (dedup-sleutel)",
+      "soort": "intern",
+      "opmerking": "Herberekenen in v2"
+    },
+    {
+      "nr": 14,
+      "v1": "dedupe_client_normalized",
+      "type": "text",
+      "doel": "intern (dedup-sleutel)",
+      "soort": "intern",
+      "opmerking": "idem"
+    },
+    {
+      "nr": 15,
+      "v1": "dedupe_location_normalized",
+      "type": "text",
+      "doel": "intern (dedup-sleutel)",
+      "soort": "intern",
+      "opmerking": "idem"
+    },
+    {
+      "nr": 16,
+      "v1": "search_text",
+      "type": "text",
+      "doel": "vervalt → `zoekvector` (tsvector)",
+      "soort": "intern",
+      "opmerking": ""
+    },
+    {
+      "nr": 17,
+      "v1": "status",
+      "type": "text",
+      "doel": "`status` (enum)",
+      "soort": "canoniek",
+      "opmerking": "open | gesloten | ingetrokken | vervuld | onbekend"
+    },
+    {
+      "nr": 18,
+      "v1": "archived_at",
+      "type": "timestamp",
+      "doel": "`gesloten_gedetecteerd_op`",
+      "soort": "canoniek",
+      "opmerking": ""
+    },
+    {
+      "nr": 19,
+      "v1": "rate_min",
+      "type": "integer",
+      "doel": "`tarief_min` numeric",
+      "soort": "canoniek",
+      "opmerking": ""
+    },
+    {
+      "nr": 20,
+      "v1": "rate_max",
+      "type": "integer",
+      "doel": "`tarief_max` numeric",
+      "soort": "canoniek",
+      "opmerking": ""
+    },
+    {
+      "nr": 21,
+      "v1": "currency",
+      "type": "text",
+      "doel": "`tarief_valuta`",
+      "soort": "canoniek",
+      "opmerking": ""
+    },
+    {
+      "nr": 22,
+      "v1": "positions_available",
+      "type": "integer",
+      "doel": "`aantal_posities`",
+      "soort": "canoniek",
+      "opmerking": ""
+    },
+    {
+      "nr": 23,
+      "v1": "start_date",
+      "type": "timestamp",
+      "doel": "`startdatum` (+ `start_zsm`)",
+      "soort": "canoniek",
+      "opmerking": ""
+    },
+    {
+      "nr": 24,
+      "v1": "end_date",
+      "type": "timestamp",
+      "doel": "`einddatum`",
+      "soort": "canoniek",
+      "opmerking": ""
+    },
+    {
+      "nr": 25,
+      "v1": "application_deadline",
+      "type": "timestamp",
+      "doel": "`sluitingsdatum` (timestamptz)",
+      "soort": "canoniek",
+      "opmerking": ""
+    },
+    {
+      "nr": 26,
+      "v1": "posted_at",
+      "type": "timestamp",
+      "doel": "`gepubliceerd_op`",
+      "soort": "canoniek",
+      "opmerking": ""
+    },
+    {
+      "nr": 27,
+      "v1": "contract_type",
+      "type": "text",
+      "doel": "`inhuurvorm[]` (enum)",
+      "soort": "canoniek",
+      "opmerking": "Mapping-tabel per bron"
+    },
+    {
+      "nr": 28,
+      "v1": "work_arrangement",
+      "type": "text",
+      "doel": "`werkplek` (enum)",
+      "soort": "canoniek",
+      "opmerking": ""
+    },
+    {
+      "nr": 29,
+      "v1": "allows_subcontracting",
+      "type": "boolean",
+      "doel": "`onderaanneming_toegestaan`",
+      "soort": "nieuw",
+      "opmerking": "Commercieel relevant voor bemiddeling"
+    },
+    {
+      "nr": 30,
+      "v1": "requirements",
+      "type": "jsonb[]",
+      "doel": "subtabel `aanvraag_eis` (soort = eis)",
+      "soort": "subtabel",
+      "opmerking": ""
+    },
+    {
+      "nr": 31,
+      "v1": "wishes",
+      "type": "jsonb[]",
+      "doel": "subtabel `aanvraag_eis` (soort = wens)",
+      "soort": "subtabel",
+      "opmerking": ""
+    },
+    {
+      "nr": 32,
+      "v1": "competences",
+      "type": "jsonb[]",
+      "doel": "`competenties[]`",
+      "soort": "canoniek",
+      "opmerking": ""
+    },
+    {
+      "nr": 33,
+      "v1": "conditions",
+      "type": "jsonb[]",
+      "doel": "`voorwaarden[]`",
+      "soort": "nieuw",
+      "opmerking": "Contractvoorwaarden als lijst"
+    },
+    {
+      "nr": 34,
+      "v1": "hours_per_week",
+      "type": "integer",
+      "doel": "`uren_per_week_max`",
+      "soort": "canoniek",
+      "opmerking": ""
+    },
+    {
+      "nr": 35,
+      "v1": "min_hours_per_week",
+      "type": "integer",
+      "doel": "`uren_per_week_min`",
+      "soort": "canoniek",
+      "opmerking": ""
+    },
+    {
+      "nr": 36,
+      "v1": "extension_possible",
+      "type": "boolean",
+      "doel": "`verlenging_mogelijk`",
+      "soort": "canoniek",
+      "opmerking": ""
+    },
+    {
+      "nr": 37,
+      "v1": "country_code",
+      "type": "text",
+      "doel": "`locatie_land`",
+      "soort": "canoniek",
+      "opmerking": ""
+    },
+    {
+      "nr": 38,
+      "v1": "remuneration_type",
+      "type": "text",
+      "doel": "`tarief_eenheid` / `salaris_periode`",
+      "soort": "canoniek",
+      "opmerking": "Afhankelijk van waarde"
+    },
+    {
+      "nr": 39,
+      "v1": "work_experience_years",
+      "type": "integer",
+      "doel": "`ervaring_jaren_min`",
+      "soort": "canoniek",
+      "opmerking": ""
+    },
+    {
+      "nr": 40,
+      "v1": "number_of_views",
+      "type": "integer",
+      "doel": "`aantal_views_bron`",
+      "soort": "nieuw",
+      "opmerking": "Concurrentiesignaal per bron"
+    },
+    {
+      "nr": 41,
+      "v1": "attachments",
+      "type": "jsonb[]",
+      "doel": "subtabel `aanvraag_bijlage`",
+      "soort": "subtabel",
+      "opmerking": "Kopie naar object storage"
+    },
+    {
+      "nr": 42,
+      "v1": "questions",
+      "type": "jsonb[]",
+      "doel": "`sollicitatievragen[]`",
+      "soort": "nieuw",
+      "opmerking": "Vragen die de bron aan kandidaat/leverancier stelt"
+    },
+    {
+      "nr": 43,
+      "v1": "languages",
+      "type": "jsonb[]",
+      "doel": "`taaleisen[]`",
+      "soort": "canoniek",
+      "opmerking": ""
+    },
+    {
+      "nr": 44,
+      "v1": "description_summary",
+      "type": "jsonb",
+      "doel": "`beschrijving_samenvatting` (AI)",
+      "soort": "nieuw",
+      "opmerking": "Met model/promptversie"
+    },
+    {
+      "nr": 45,
+      "v1": "faq_answers",
+      "type": "jsonb[]",
+      "doel": "`bron_specifiek.faq`",
+      "soort": "bron_specifiek",
+      "opmerking": "Bronspecifiek (Striive-achtige FAQ)"
+    },
+    {
+      "nr": 46,
+      "v1": "agent_contact",
+      "type": "jsonb",
+      "doel": "subtabel `aanvraag_contact` (rol = intermediair)",
+      "soort": "subtabel",
+      "opmerking": "PII, retentie 90 dagen"
+    },
+    {
+      "nr": 47,
+      "v1": "recruiter_contact",
+      "type": "jsonb",
+      "doel": "subtabel `aanvraag_contact` (rol = recruiter)",
+      "soort": "subtabel",
+      "opmerking": "PII"
+    },
+    {
+      "nr": 48,
+      "v1": "latitude",
+      "type": "real",
+      "doel": "`locatie_lat`",
+      "soort": "nieuw",
+      "opmerking": ""
+    },
+    {
+      "nr": 49,
+      "v1": "longitude",
+      "type": "real",
+      "doel": "`locatie_lon`",
+      "soort": "nieuw",
+      "opmerking": ""
+    },
+    {
+      "nr": 50,
+      "v1": "postcode",
+      "type": "text",
+      "doel": "`locatie_postcode`",
+      "soort": "nieuw",
+      "opmerking": ""
+    },
+    {
+      "nr": 51,
+      "v1": "company_logo_url",
+      "type": "text",
+      "doel": "`organisatie.logo_url`",
+      "soort": "organisatie",
+      "opmerking": ""
+    },
+    {
+      "nr": 52,
+      "v1": "education_level",
+      "type": "text",
+      "doel": "`opleidingsniveau` (enum)",
+      "soort": "canoniek",
+      "opmerking": ""
+    },
+    {
+      "nr": 53,
+      "v1": "duration_months",
+      "type": "integer",
+      "doel": "`duur_maanden`",
+      "soort": "canoniek",
+      "opmerking": ""
+    },
+    {
+      "nr": 54,
+      "v1": "source_url",
+      "type": "text",
+      "doel": "`oorspronkelijke_bron_url`",
+      "soort": "nieuw",
+      "opmerking": "Aggregators (Werkzoeken)"
+    },
+    {
+      "nr": 55,
+      "v1": "source_platform",
+      "type": "text",
+      "doel": "`oorspronkelijke_bron`",
+      "soort": "nieuw",
+      "opmerking": "idem"
+    },
+    {
+      "nr": 56,
+      "v1": "categories",
+      "type": "jsonb[]",
+      "doel": "`vakgebied_bron` (eerste) + `bron_specifiek.categories`",
+      "soort": "bron_specifiek",
+      "opmerking": ""
+    },
+    {
+      "nr": 57,
+      "v1": "company_address",
+      "type": "text",
+      "doel": "`organisatie.adres`",
+      "soort": "organisatie",
+      "opmerking": ""
+    },
+    {
+      "nr": 58,
+      "v1": "scraped_at",
+      "type": "timestamp",
+      "doel": "`laatst_gezien_op`; bij migratie ook `eerste_gezien_op`",
+      "soort": "canoniek",
+      "opmerking": ""
+    },
+    {
+      "nr": 59,
+      "v1": "deleted_at",
+      "type": "timestamp",
+      "doel": "soft delete behouden (`verwijderd_op`)",
+      "soort": "canoniek",
+      "opmerking": ""
+    },
+    {
+      "nr": 60,
+      "v1": "raw_payload",
+      "type": "jsonb",
+      "doel": "object storage → `raw_payload_ref`",
+      "soort": "canoniek",
+      "opmerking": ""
+    },
+    {
+      "nr": 61,
+      "v1": "embedding",
+      "type": "vector",
+      "doel": "`embedding` (pgvector, HNSW-index)",
+      "soort": "canoniek",
+      "opmerking": "Opnieuw berekenen met vast model"
+    },
+    {
+      "nr": 62,
+      "v1": "search_vector",
+      "type": "text",
+      "doel": "`zoekvector` tsvector (GIN)",
+      "soort": "canoniek",
+      "opmerking": ""
+    }
+  ],
+  "afgeleid": [
+    "functiegroep",
+    "relevantie_score",
+    "relevantie_reden",
+    "compleetheid_score",
+    "extractie_methode",
+    "extractie_confidence",
+    "taal",
+    "content_hash",
+    "versie",
+    "dedup_groep_id",
+    "scrape_run_id",
+    "tarief_type",
+    "opdrachtgever_type",
+    "bron_categorie"
+  ],
+  "nietMee": [
+    {
+      "onderdeel": "`candidates`, `candidate_skills*`, `job_matches`, `screening_calls`, `applications`, `interviews`, `messages`",
+      "besluit": "Buiten Job Intelligence",
+      "waarheen": "Agentlaag (matching/kwalificatie via Company OS) en Spott.io (ATS/CRM)"
+    },
+    {
+      "onderdeel": "`chat_sessions`, `chat_session_messages`",
+      "besluit": "Optioneel (JI-DSH-07)",
+      "waarheen": "Als MCP-consument op de datalaag, niet als eigen tabellen in curated"
+    },
+    {
+      "onderdeel": "`agent_events`",
+      "besluit": "Vervangen door outbox/events (JI-INT-03)",
+      "waarheen": "Company OS event-bus"
+    },
+    {
+      "onderdeel": "`autopilot_runs`, `autopilot_findings`",
+      "besluit": "Concept behouden (JI-OPS-05)",
+      "waarheen": "CI/CD-pipeline"
+    },
+    {
+      "onderdeel": "`ai_usage`",
+      "besluit": "Behouden en uitgebreid (JI-DSH-06, JI-OPS-03)",
+      "waarheen": "Observability-laag (Langfuse + marts)"
+    },
+    {
+      "onderdeel": "`kpi_snapshots`, `platform_daily_stats`",
+      "besluit": "Behouden als marts (JI-DAT-11, JI-DSH-03)",
+      "waarheen": "`marts.*`"
+    },
+    {
+      "onderdeel": "`esco_skills`, `skill_aliases`, `skill_mappings`, `skills`",
+      "besluit": "Herbouwen als gecureerde taxonomie (JI-SKL)",
+      "waarheen": "`curated.skill`, `curated.skill_alias`, reviewwachtrij"
+    }
+  ],
+  "openVragen": [
+    "Rolmodel (JI-SEC-01): volstaan viewer / recruiter / beheerder, of moet Julian een aparte \"sales\"-rol met export krijgen?",
+    "Tarief-extractie (JI-KWA-03): is 60% vulgraad op broker-/overheidsaanvragen de juiste lat, of willen we per bron een doel?",
+    "Spott.io-push (JI-INT-04): automatisch boven drempel of altijd na menselijke markering? (raakt JI-SEC-07)",
+    "Chat-over-data (JI-DSH-07): behouden uit v1 of parkeren tot de Company OS er is?",
+    "Werkenbij-sites (JI-BRN-08): prioriteit t.o.v. de 23 broker-/portaalbronnen — v2.1 of v2.2?",
+    "Parallel draaien (JI-MIG-06): wie beoordeelt het vergelijkingsrapport en wanneer schakelen we v1 uit?"
+  ],
+  "trace": [
+    {
+      "spec": "§1 Doel en scope",
+      "requirements": "JI-SCP"
+    },
+    {
+      "spec": "§3 Architectuur (pipeline, adapters, werkenbij)",
+      "requirements": "JI-BRN, JI-ING"
+    },
+    {
+      "spec": "§4 Canoniek datamodel",
+      "requirements": "JI-DAT-01, JI-DAT-04, JI-DAT-09, §3 mapping"
+    },
+    {
+      "spec": "§5 Datalaag: zones, tabellen, laadpatroon",
+      "requirements": "JI-DAT-02..08, JI-DAT-10..11, JI-KWA-10"
+    },
+    {
+      "spec": "§6 Scheduling, betrouwbaarheid, monitoring",
+      "requirements": "JI-ING, JI-OPS"
+    },
+    {
+      "spec": "§7 Bronconfiguratie",
+      "requirements": "JI-BRN-02, JI-BRN-07, JI-SEC-05..06"
+    },
+    {
+      "spec": "§8 Search en analyse",
+      "requirements": "JI-SRC, JI-DSH, JI-SKL-04"
+    },
+    {
+      "spec": "§9 Stack",
+      "requirements": "JI-NFR-07, JI-OPS-07"
+    },
+    {
+      "spec": "§10 Compliance",
+      "requirements": "JI-SEC"
+    },
+    {
+      "spec": "§11 Fasering",
+      "requirements": "JI-MIG"
+    }
+  ],
+  "v1": {
+    "app": {
+      "intro": "De v1-app \"Jobs Intelligence\" (neon-data-whisperer.lovable.app) is een React-frontend die **read-only** op een Neon Postgres-database leest (badge \"read-only · neon\"). Twee schermen:",
+      "dashboard": "**Dashboard** (\"Database overview — aggregates across the full jobs table; click any chart bar to open it in search\"): KPI-tegels *Total jobs* (open/closed), *Distinct companies*, *Posted last 30 days*; grafieken *Jobs posted per week* (52 weken op `posted_at`), *Jobs per platform* (klik → zoekfilter), *Jobs per province* (\"only 13% of jobs have a province set — casing normalised\"), *Hourly rate distribution* (\"€10 buckets on rate_min — only ~17% of jobs publish a rate\"), *Data quality* (\"share of jobs with each field filled in\"), *Top skills across postings* (\"from job_skills_v2 — long sentence-style entries filtered out\").",
+      "search": "**Search** (`/jobs`): vrije zoekterm met scope (`scope=title`), facetfilters *Platform*, *Status*, *Contract type*, *Work arrangement*, *Province*, *Skills* (\"tagged skills from job_skills_v2; noisy sentence entries are hidden\"), bereikfilters *Hourly rate (€)* en *Hours per week*, datumfilter *Posted between*, sortering (`sort=posted_desc`), paginering (10 per pagina), resultaattabel (Title, Company, Location, Rate, Hrs, Platform, Posted) en een detailpaneel per vacature (`job=`-parameter). De volledige filterstaat zit in de URL en is dus deelbaar."
+    },
+    "schema": {
+      "db": "Neon Postgres · database neondb · schema public · 33 tabellen · 432 kolommen · 64 constraints · 154 indexes",
+      "extensies": "pgvector (embedding op jobs en candidates), pg_trgm (fuzzy tekst); alle IDs text; tijdstempels zonder tijdzone",
+      "clusters": [
+        {
+          "cluster": "Vacatures (kern)",
+          "tabellen": "`jobs` (240.131 rijen, 62 kolommen), `job_dedupe_ranks` (240.131), `overlap_groups` (1)",
+          "betekenis": "Eén brede tabel met canonieke velden, JSONB-lijsten (requirements, wishes, competences, conditions, languages, attachments, questions, faq_answers), contacten, geo, `raw_payload` in-row, `embedding` (pgvector), `search_vector` + trigger, dedupe-kolommen. Unieke sleutel `(platform, external_id)`."
+        },
+        {
+          "cluster": "Skills",
+          "tabellen": "`skills` (151.416), `job_skills_v2` (250.897), `skill_mappings` (2.081.947), `skill_aliases` (7.108), `esco_skills` (752), `job_skills` (0)",
+          "betekenis": "Twee generaties: ESCO-gebaseerd (v1, leeg) en vrije skills-tabel (v2). 151k \"skills\" op 240k vacatures en gemiddeld ~1 skill per vacature = taxonomie is verzadigd met ruis; UI filtert \"sentence-style entries\" weg."
+        },
+        {
+          "cluster": "Scraping",
+          "tabellen": "`scraper_configs` (7), `scrape_results` (3.472), `platform_catalog` (9), `platform_onboarding_runs` (21), `platform_daily_stats` (881), `platform_settings` (6)",
+          "betekenis": "Per platform: base_url, parameters, versleutelde auth, cron (default elke 4 uur), validatie- en test-importstatus, laatste run, `consecutive_failures` (circuit breaker). Catalogus met `adapter_kind`, `auth_mode`, `capabilities`, `config_schema`, `auth_schema`; onboarding-wizard met stappen, blockers en evidence."
+        },
+        {
+          "cluster": "Recruitment-flow",
+          "tabellen": "`candidates` (2), `job_matches` (41), `applications` (0), `interviews` (0), `messages` (0), `screening_calls` (0), `candidate_skills*` (0)",
+          "betekenis": "Aanzet tot matching, AI-screening (voice rooms, transcripts) en pipeline; nauwelijks gebruikt. Hoort in de to-be bij de agentlaag en Spott.io, niet bij Job Intelligence."
+        },
+        {
+          "cluster": "Platform/AI-huishouding",
+          "tabellen": "`agent_events` (732), `ai_usage` (21.986), `chat_sessions` (86) + `chat_session_messages`, `autopilot_runs` (21) + `autopilot_findings` (179), `kpi_snapshots` (126), `saved_searches` (0), `sidebar_metadata` (1), `gdpr_audit_log` (0)",
+          "betekenis": "Event-bus, LLM-kostenregistratie per flow/model, chat-over-data, zelftestende \"autopilot\" met GitHub-issues, dagelijkse KPI-snapshots, voorberekende facetten voor de sidebar, AVG-auditlog (leeg)."
+        }
+      ]
+    },
+    "kerntabellen": [
+      {
+        "tabel": "jobs",
+        "rijen": 240131,
+        "kolommen": 62,
+        "rol": "Vacatures/aanvragen (kern)"
+      },
+      {
+        "tabel": "job_dedupe_ranks",
+        "rijen": 240131,
+        "kolommen": 4,
+        "rol": "Dedupe-rang en -groep per vacature"
+      },
+      {
+        "tabel": "job_skills_v2",
+        "rijen": 250897,
+        "kolommen": 9,
+        "rol": "Skills per vacature (importance, confidence)"
+      },
+      {
+        "tabel": "skills",
+        "rijen": 151416,
+        "kolommen": 5,
+        "rol": "Skills-lijst (ongecureerd)"
+      },
+      {
+        "tabel": "skill_mappings",
+        "rijen": 2081947,
+        "kolommen": 15,
+        "rol": "Ruwe skill → genormaliseerd → ESCO, reviewwachtrij"
+      },
+      {
+        "tabel": "skill_aliases",
+        "rijen": 7108,
+        "kolommen": 8,
+        "rol": "Aliassen naar ESCO-URI"
+      },
+      {
+        "tabel": "esco_skills",
+        "rijen": 752,
+        "kolommen": 10,
+        "rol": "ESCO-subset"
+      },
+      {
+        "tabel": "scraper_configs",
+        "rijen": 7,
+        "kolommen": 18,
+        "rol": "Per platform: base_url, parameters, auth, cron, validatie, laatste run, consecutive_failures"
+      },
+      {
+        "tabel": "scrape_results",
+        "rijen": 3472,
+        "kolommen": 11,
+        "rol": "Run-log: found/new/duplicates, status, errors, job_ids"
+      },
+      {
+        "tabel": "platform_catalog",
+        "rijen": 9,
+        "kolommen": 15,
+        "rol": "Adapter-catalogus: adapter_kind, auth_mode, capabilities, config_schema, auth_schema"
+      },
+      {
+        "tabel": "platform_onboarding_runs",
+        "rijen": 21,
+        "kolommen": 14,
+        "rol": "Onboarding-wizard: status, stap, blocker, next_actions, evidence"
+      },
+      {
+        "tabel": "platform_daily_stats",
+        "rijen": 881,
+        "kolommen": 7,
+        "rol": "Beschikbaarheid, views, applications per platform per dag"
+      },
+      {
+        "tabel": "ai_usage",
+        "rijen": 21986,
+        "kolommen": 10,
+        "rol": "LLM-calls: flow, provider, model, tokens, kosten"
+      },
+      {
+        "tabel": "agent_events",
+        "rijen": 732,
+        "kolommen": 14,
+        "rol": "Event-bus tussen agents"
+      },
+      {
+        "tabel": "kpi_snapshots",
+        "rijen": 126,
+        "kolommen": 7,
+        "rol": "Dagelijkse KPI-snapshots"
+      },
+      {
+        "tabel": "sidebar_metadata",
+        "rijen": 1,
+        "kolommen": 8,
+        "rol": "Voorberekende facetten voor de zoek-sidebar"
+      },
+      {
+        "tabel": "saved_searches",
+        "rijen": 0,
+        "kolommen": 6,
+        "rol": "Opgeslagen zoekopdrachten (filters jsonb)"
+      },
+      {
+        "tabel": "candidates / job_matches / screening_calls / applications / interviews / messages",
+        "rijen": 2,
+        "kolommen": 0,
+        "rol": "Recruitment-flow (2 kandidaten, 41 matches, rest leeg) — buiten Job Intelligence"
+      },
+      {
+        "tabel": "chat_sessions / chat_session_messages",
+        "rijen": 86,
+        "kolommen": 0,
+        "rol": "Chat-over-data"
+      },
+      {
+        "tabel": "autopilot_runs / autopilot_findings",
+        "rijen": 21,
+        "kolommen": 0,
+        "rol": "Zelftest-journeys met bevindingen (GitHub-issues)"
+      },
+      {
+        "tabel": "gdpr_audit_log",
+        "rijen": 0,
+        "kolommen": 8,
+        "rol": "AVG-auditlog (leeg)"
+      }
+    ],
+    "goedslecht": [
+      {
+        "goed": "Brede, gestructureerde `jobs`-tabel met eisen/wensen als lijsten, contactvelden, geo, bijlagen en `raw_payload`",
+        "pijn": "Slechts ~13% provincie en ~17% tarief gevuld; datakwaliteit is zichtbaar in het dashboard maar wordt niet actief verbeterd"
+      },
+      {
+        "goed": "Unieke sleutel per bron `(platform, external_id)`; dedupe-rangen over bronnen heen",
+        "pijn": "Dedupe-uitkomst staat in een losse tabel en één JSONB-blob (`overlap_groups.groups`); niet bevraagbaar, geen primaire bron per groep"
+      },
+      {
+        "goed": "Platformcatalogus met config-/auth-schema en onboarding-wizard; circuit breaker via `consecutive_failures`",
+        "pijn": "Op 25-08 stonden álle scrapers op \"Achterstallig\": scheduler zonder externe bewaking, freshness is geen eerste-klas begrip"
+      },
+      {
+        "goed": "Skills per vacature met importance (required/nice) en confidence; ESCO-basis aanwezig",
+        "pijn": "151k skills, 2M mappings, ~1 skill per vacature en ruis in de UI: taxonomie zonder curatie"
+      },
+      {
+        "goed": "Search met facetten, bereiken, URL-staat, detailpaneel; voorberekende sidebar-facetten; `search_vector` + pgvector",
+        "pijn": "Full-text kolom is `text` in plaats van `tsvector`; geen versiegeschiedenis van een vacature; `raw_payload` in de rij maakt de tabel zwaar"
+      },
+      {
+        "goed": "LLM-kosten per flow (`ai_usage`), event-bus, KPI-snapshots, AVG-audittabel",
+        "pijn": "Recruitment-flow (candidates, matches, screening) vermengd met de vacaturedata in één database en één app"
+      }
+    ]
+  }
+}

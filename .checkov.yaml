@@ -1,0 +1,16 @@
+---
+# Checkov (via qlty) scans `--directory .` and walks the tree itself, so qlty's
+# exclude_patterns do not apply. Without these skips it walks 1.3 GB of
+# node_modules and hits qlty's 600 s plugin timeout, failing the gate.
+skip-path:
+  - node_modules
+  - \.turbo
+  - dist
+  - build
+  - coverage
+  - \.cache
+  - \.qlty
+  - openwiki
+  - docs
+compact: true
+quiet: true

@@ -1,0 +1,14 @@
+{
+  "contractVersion": "spott-fixture/v1",
+  "source": "spott",
+  "endpoint": "GET /vacancies/{id}",
+  "capturedAt": "2026-08-30T16:00:00.000Z",
+  "payload": {
+    "id": "vacancy-fixture-001",
+    "name": "Senior Java Developer",
+    "description": "Fixture vacancy for Slice B spike tests.",
+    "restricted": false,
+    "companyId": "company-fixture-001",
+    "stageId": "stage-fixture-001"
+  }
+}

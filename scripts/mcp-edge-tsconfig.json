@@ -1,0 +1,12 @@
+{
+  "extends": "../packages/config/tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["bun"]
+  },
+  "include": [
+    "mcp-edge-result.spec.ts",
+    "mcp-edge-result.ts",
+    "mcp-edge-smoke.ts"
+  ]
+}

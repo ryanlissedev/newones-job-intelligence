@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "description": "Slice A search benchmark profile (JI-016). Corpus pointer for 200k gate; local compose may use a smaller fixture corpus.",
+  "corpus": {
+    "pointer": "fixtures/search/benchmark-corpus.jsonl",
+    "expectedDocuments": 200000,
+    "notes": "Full 200k corpus is not checked into this repository. Import via Motian-Neon read-only backfill (U8) or generate locally before running the production gate."
+  },
+  "queries": [
+    {
+      "id": "ae1-azure-platform-not-intern",
+      "query": "(Azure OR \"platform engineer\") NOT intern",
+      "weight": 0.25
+    },
+    {
+      "id": "phrase-devops",
+      "query": "\"devops engineer\" AND kubernetes",
+      "weight": 0.2
+    },
+    {
+      "id": "simple-java",
+      "query": "java AND spring NOT trainee",
+      "weight": 0.2
+    },
+    {
+      "id": "or-locatie",
+      "query": "(Amsterdam OR Utrecht) AND scrum",
+      "weight": 0.2
+    },
+    {
+      "id": "filter-only",
+      "query": "consultant",
+      "weight": 0.15
+    }
+  ],
+  "concurrency": 2,
+  "warmupIterations": 5,
+  "measuredIterations": 50,
+  "slo": {
+    "boundary": "SearchAdapter",
+    "metric": "p95",
+    "maxMs": 100,
+    "reference": "JI-NFR-02 rewrite (2026-08-27)"
+  }
+}

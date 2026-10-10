@@ -1,0 +1,34 @@
+{
+  "contractVersion": "connector-fixture/v1",
+  "source": "harveynash",
+  "capturedAt": "2026-08-31T11:15:55.000Z",
+  "contentType": "json",
+  "payload": {
+    "total_size": 31,
+    "results": [
+      {
+        "job": {
+          "id": "452d25a3-ae7d-4ee6-9ceb-3c696332799f",
+          "title": "Endpoints specialist",
+          "addresses": ["Bunnik , Utrecht"],
+          "external_reference": "BBBH121494_1788161094",
+          "url_slug": "298852-Endpoints-specialist-",
+          "salary_package": "Max tarief 106.50 euro all-in exclusief btw",
+          "published_at": 1788161095,
+          "expires_at": 1788825599,
+          "updated_at": 1788161096,
+          "categories": [
+            {
+              "name": "Clients",
+              "values": [
+                {
+                  "name": "Politie"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

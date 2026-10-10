@@ -1,0 +1,403 @@
+<title>Job Intelligence Techstack</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --ground:#F3F5F7;--surface:#FFFFFF;--surface2:#E8ECF0;--ink:#1B222B;--ink2:#4A5563;--ink3:#7A8494;--line:#D3D9E0;
+  --accent:#0F6E6B;--accent-soft:#D9EEEC;--warn:#9A6A12;--warn-soft:#F5E9CF;--no:#B3261E;--no-soft:#F6DEDC;--ok:#2E7D5B;--ok-soft:#D9EFE4;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;--body:"Source Serif 4",Georgia,serif;--mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --ground:#12171D;--surface:#1B222B;--surface2:#232C36;--ink:#E6EAEE;--ink2:#B4BDC8;--ink3:#7F8A98;--line:#2F3944;
+  --accent:#4FB3AE;--accent-soft:#163A39;--warn:#D9A94A;--warn-soft:#3A2E14;--no:#E56A62;--no-soft:#3E1F1C;--ok:#5FC194;--ok-soft:#173627;
+}}
+:root[data-theme="dark"]{
+  --ground:#12171D;--surface:#1B222B;--surface2:#232C36;--ink:#E6EAEE;--ink2:#B4BDC8;--ink3:#7F8A98;--line:#2F3944;
+  --accent:#4FB3AE;--accent-soft:#163A39;--warn:#D9A94A;--warn-soft:#3A2E14;--no:#E56A62;--no-soft:#3E1F1C;--ok:#5FC194;--ok-soft:#173627;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55;font-variant-numeric:tabular-nums}
+a{color:var(--accent)}
+.wrap{max-width:1160px;margin:0 auto;padding:40px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(34px,5vw,56px);line-height:1.02;letter-spacing:-.02em;margin:10px 0 18px;text-wrap:balance}
+h2{font-family:var(--display);font-weight:700;font-size:26px;letter-spacing:-.01em;margin:0 0 6px;text-wrap:balance}
+h3{font-family:var(--display);font-weight:700;font-size:18px;margin:0 0 6px}
+p{max-width:70ch;margin:0 0 14px}
+.lede{font-size:20px;color:var(--ink2);max-width:64ch}
+header{border-bottom:1px solid var(--line);padding-bottom:28px;margin-bottom:36px}
+.meta{display:flex;flex-wrap:wrap;gap:8px 22px;font-family:var(--mono);font-size:12px;color:var(--ink3);margin-top:14px}
+section{margin:0 0 56px}
+.section-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:22px}
+.section-head .eyebrow{white-space:nowrap}
+figure{margin:0 0 18px;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:18px 18px 12px;overflow-x:auto}
+figure svg{max-width:100%;height:auto;display:block;color:var(--ink);font-family:var(--display);font-weight:500}
+figcaption{font-size:14.5px;color:var(--ink2);margin-top:10px;max-width:80ch}
+.stackline{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 28px}
+.stackline div{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:10px 12px}
+.stackline .eyebrow{margin-bottom:3px}
+.stackline b{font-family:var(--display);font-size:16px;font-weight:700}
+.stackline small{display:block;color:var(--ink3);font-size:12.5px;margin-top:2px}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:4px;margin-bottom:16px}
+table{width:100%;border-collapse:collapse;font-size:15px;background:var(--surface)}
+th,td{padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);background:var(--surface2)}
+tr:last-child td{border-bottom:0}
+.n{font-family:var(--mono);font-size:12.5px;color:var(--ink2)}
+.tag{display:inline-block;font-family:var(--display);font-weight:700;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:3px;white-space:nowrap}
+.tag.ok{color:var(--ok);background:var(--ok-soft)}.tag.warn{color:var(--warn);background:var(--warn-soft)}.tag.no{color:var(--no);background:var(--no-soft)}.tag.acc{color:var(--accent);background:var(--accent-soft)}.tag.note{color:var(--ink2);background:var(--surface2)}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:24px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:16px 18px}
+.card p{font-size:15.5px;color:var(--ink2);margin-bottom:8px}.card p:last-child{margin-bottom:0}.card strong{color:var(--ink)}
+ul.tight{margin:0;padding-left:20px;font-size:15.5px}ul.tight li{margin-bottom:6px}
+.aside{color:var(--ink2);font-size:15.5px;margin:18px 0 0;padding-top:12px;border-top:1px dashed var(--line);max-width:78ch}
+.numbers{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px}
+.numbers div{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:12px 14px}
+.numbers b{font-family:var(--display);font-size:26px;font-weight:800;display:block;line-height:1.1}
+.numbers span{font-size:13.5px;color:var(--ink3)}
+footer{border-top:1px solid var(--line);padding-top:18px;font-family:var(--mono);font-size:12px;color:var(--ink3)}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Catapulze · Job Intelligence · techstack-brainstorm · 27 aug 2026 · vier onderzoekssporen, alle cijfers uit opgehaalde bronnen of lokale benchmarks</div>
+  <h1>Job Intelligence — de stack die instant zoekt en naar 15M schaalt</h1>
+  <p class="lede">Eén schrijfpad, één zoekpad, één tool-oppervlak voor mensen én agents. Postgres is de waarheid, Manticore is de snelheid, de outbox verbindt ze. Alles TypeScript, alles op Hetzner, human-in-the-loop als beleid in data — zodat de score-drempel later één rij is, geen herbouw.</p>
+  <div class="meta"><span>Schaal: 600k nieuwe aanvragen/mnd → ~7,5M (12 mnd) → ~15M (24 mnd)</span><span>Doel: p95 ≤ 100 ms Boolean + facets · typeahead ≤ 50 ms</span><span>Hergebruik: motian <span class="n">packages/scrapers</span> (6k LOC, 7 connectors + dynamic-adapter)</span></div>
+</header>
+
+<div class="stackline">
+  <div><div class="eyebrow">Runtime</div><b>Bun + TypeScript</b><small>Effect-TS · Drizzle · Effect Schema</small></div>
+  <div><div class="eyebrow">Waarheid</div><b>Postgres</b><small>Neon nu · on-box bij 7,5M · zones staging/curated/marts</small></div>
+  <div><div class="eyebrow">Zoeken</div><b>Manticore RT</b><small>via outbox · achter SearchAdapter</small></div>
+  <div><div class="eyebrow">Orkestratie</div><b>Trigger.dev</b><small>Cloud nu · self-host als geplande stap · zie §3</small></div>
+  <div><div class="eyebrow">Raw</div><b>Hetzner Object Storage</b><small>S3-compatibel · raw/{bron}/{datum}/{run}/{hash}</small></div>
+  <div><div class="eyebrow">Cache & limits</div><b>Redis (Upstash)</b><small>rate-limit per bron · result-cache (ast, index_version)</small></div>
+  <div><div class="eyebrow">Render</div><b>Chromium on-box</b><small>Firecrawl / Browserbase alleen per vijandig bord</small></div>
+  <div><div class="eyebrow">Observability</div><b>OTel + Langfuse</b><small>ScrapeRun-rijen · freshness-SLA · AuditEvent</small></div>
+  <div><div class="eyebrow">Analytics & export</div><b>DuckLake</b><small>Parquet op object storage · catalogus in Postgres · KPI-snapshots, trends, export</small></div>
+  <div><div class="eyebrow">Guards</div><b>Capability registry</b><small>approval als data · drift-gates · mock/sandbox/real</small></div>
+</div>
+
+<section>
+  <div class="section-head"><h2>1 · Hoe data stroomt — één schrijfpad, één zoekpad</h2><span class="eyebrow">Architectuur</span></div>
+  <figure>
+    <svg viewBox="0 0 1120 500" role="img" aria-label="Datastroom: 28 bronnen worden door TypeScript-workers op Hetzner opgehaald via een ladder direct, Firecrawl, Browserbase; ruwe payload gaat naar object storage, genormaliseerde data naar Postgres met zones en een outbox; een drainer vult Manticore; API en MCP vormen het enige leespad voor UI, agents en Company OS; approval met snapshot leidt tot een idempotente export naar Spott.io met receipt terug in Postgres; Redis levert rate-limits en een geversioneerde result-cache.">
+      <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+      <g font-size="12" fill="currentColor">
+        <!-- sources -->
+        <rect x="20" y="40" width="130" height="70" rx="3" fill="none" stroke="currentColor"/>
+        <text x="85" y="66" text-anchor="middle" font-weight="600">28 bronnen</text>
+        <text x="85" y="84" text-anchor="middle" fill="var(--ink3)">API · HTML · JS</text>
+        <text x="85" y="100" text-anchor="middle" fill="var(--ink3)">~6M fetches/mnd</text>
+        <!-- workers -->
+        <rect x="200" y="20" width="200" height="130" rx="3" fill="none" stroke="currentColor"/>
+        <text x="300" y="42" text-anchor="middle" font-weight="600">Workers · Bun/TS · Hetzner</text>
+        <text x="300" y="60" text-anchor="middle" fill="var(--ink3)">motian connectors + dynamic-adapter</text>
+        <text x="212" y="86">1 direct / __NEXT_DATA__</text>
+        <text x="212" y="102">2 eigen HTTP-connector</text>
+        <text x="212" y="118">3 Firecrawl · 4 Browserbase</text>
+        <text x="212" y="140" fill="var(--ink3)">Chromium: Playwright-server on-box</text>
+        <line x1="150" y1="75" x2="198" y2="75" stroke="currentColor" marker-end="url(#ar)"/>
+        <text x="174" y="68" text-anchor="middle" font-size="11" fill="var(--ink3)">fetch</text>
+        <!-- raw -->
+        <rect x="200" y="190" width="200" height="50" rx="3" fill="none" stroke="currentColor"/>
+        <text x="300" y="210" text-anchor="middle" font-weight="600">Object storage · raw</text>
+        <text x="300" y="227" text-anchor="middle" fill="var(--ink3)">onveranderlijk · replay zonder fetch</text>
+        <line x1="300" y1="150" x2="300" y2="188" stroke="currentColor" marker-end="url(#ar)"/>
+        <text x="306" y="172" font-size="11" fill="var(--ink3)">raw_payload_ref</text>
+        <!-- postgres -->
+        <rect x="450" y="20" width="230" height="220" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <text x="565" y="42" text-anchor="middle" font-weight="600">Postgres · system of record</text>
+        <text x="462" y="66">staging  → per bron, bronvorm</text>
+        <text x="462" y="84">curated  → aanvraag (SCD2), organisatie</text>
+        <text x="462" y="100">            dedup_groep · skill · contact (PII)</text>
+        <text x="462" y="118">marts    → mat. views, KPI-snapshots</text>
+        <rect x="462" y="132" width="206" height="40" rx="2" fill="none" stroke="var(--accent)"/>
+        <text x="565" y="149" text-anchor="middle" fill="var(--accent)" font-weight="600">search_outbox (id, op, version)</text>
+        <text x="565" y="164" text-anchor="middle" font-size="11" fill="var(--ink3)">zelfde transactie als de write</text>
+        <text x="462" y="196">snapshot · approval · export_attempt</text>
+        <text x="462" y="212">receipt · audit_event · scrape_run</text>
+        <line x1="400" y1="75" x2="448" y2="75" stroke="currentColor" marker-end="url(#ar)"/>
+        <text x="424" y="68" text-anchor="middle" font-size="11" fill="var(--ink3)">upsert</text>
+        <!-- manticore -->
+        <rect x="730" y="110" width="170" height="70" rx="3" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="815" y="134" text-anchor="middle" font-weight="600" fill="var(--accent)">Manticore RT</text>
+        <text x="815" y="151" text-anchor="middle" fill="var(--ink3)">Boolean · facets · prefix</text>
+        <text x="815" y="167" text-anchor="middle" fill="var(--ink3)">herbouwbaar uit Postgres</text>
+        <line x1="680" y1="152" x2="728" y2="145" stroke="var(--accent)" marker-end="url(#ar)"/>
+        <text x="704" y="136" text-anchor="middle" font-size="11" fill="var(--accent)">drainer, 1–5 s</text>
+        <!-- api/mcp -->
+        <rect x="730" y="230" width="170" height="80" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <text x="815" y="252" text-anchor="middle" font-weight="600">API + MCP · enig leespad</text>
+        <text x="815" y="270" text-anchor="middle" fill="var(--ink3)">SearchAdapter(ast, facets,</text>
+        <text x="815" y="285" text-anchor="middle" fill="var(--ink3)">cursor, index_version)</text>
+        <text x="815" y="301" text-anchor="middle" fill="var(--ink3)">Effect HTTP · OpenAPI · tools</text>
+        <line x1="815" y1="180" x2="815" y2="228" stroke="currentColor" marker-end="url(#ar)"/>
+        <text x="822" y="208" font-size="11" fill="var(--ink3)">query</text>
+        <line x1="680" y1="205" x2="728" y2="250" stroke="currentColor" marker-end="url(#ar)"/>
+        <text x="690" y="238" font-size="11" fill="var(--ink3)">detail, marts</text>
+        <!-- consumers -->
+        <rect x="950" y="200" width="150" height="140" rx="3" fill="none" stroke="currentColor"/>
+        <text x="1025" y="222" text-anchor="middle" font-weight="600">Consumenten</text>
+        <text x="962" y="246">Recruiter-UI</text>
+        <text x="962" y="264">Agents (Company OS)</text>
+        <text x="962" y="282">Harness / chat</text>
+        <text x="962" y="300">BI (marts)</text>
+        <text x="962" y="326" font-size="11" fill="var(--ink3)">zelfde tools, zelfde rechten</text>
+        <line x1="900" y1="270" x2="948" y2="270" stroke="currentColor" marker-end="url(#ar)"/>
+        <!-- redis -->
+        <rect x="730" y="20" width="170" height="60" rx="3" fill="none" stroke="currentColor" stroke-dasharray="4 3"/>
+        <text x="815" y="42" text-anchor="middle" font-weight="600">Redis (Upstash)</text>
+        <text x="815" y="59" text-anchor="middle" fill="var(--ink3)">rate-limit per bron</text>
+        <text x="815" y="73" text-anchor="middle" fill="var(--ink3)">result-cache (ast_hash, version)</text>
+        <line x1="730" y1="50" x2="400" y2="50" stroke="currentColor" stroke-dasharray="4 3" marker-end="url(#ar)"/>
+        <text x="565" y="14" text-anchor="middle" font-size="11" fill="var(--ink3)">token bucket gedeeld door alle workers</text>
+        <line x1="815" y1="80" x2="815" y2="108" stroke="currentColor" stroke-dasharray="4 3"/>
+        <!-- approval / export -->
+        <rect x="450" y="300" width="230" height="140" rx="3" fill="none" stroke="currentColor"/>
+        <text x="565" y="322" text-anchor="middle" font-weight="600">Control slice · effecten</text>
+        <text x="462" y="346">QuerySnapshot (query, ids, index_version)</text>
+        <text x="462" y="364">→ ApprovalRecord (beleid: mens | score)</text>
+        <text x="462" y="382">→ export_approved_jobs (idempotent)</text>
+        <text x="462" y="400">→ ExternalReceipt (Spott-id, hash)</text>
+        <text x="462" y="424" font-size="11" fill="var(--ink3)">één vacancy/snapshot/target = max. één effect</text>
+        <line x1="730" y1="300" x2="681" y2="330" stroke="currentColor" marker-end="url(#ar)"/>
+        <text x="720" y="326" font-size="11" fill="var(--ink3)">approve-tool</text>
+        <rect x="200" y="330" width="200" height="60" rx="3" fill="none" stroke="currentColor"/>
+        <text x="300" y="353" text-anchor="middle" font-weight="600">Spott.io</text>
+        <text x="300" y="371" text-anchor="middle" fill="var(--ink3)">downstream effect, geen datalaag</text>
+        <line x1="448" y1="360" x2="402" y2="360" stroke="currentColor" marker-end="url(#ar)"/>
+        <text x="425" y="352" text-anchor="middle" font-size="11" fill="var(--ink3)">export</text>
+        <line x1="400" y1="378" x2="448" y2="378" stroke="currentColor" stroke-dasharray="4 3" marker-end="url(#ar)"/>
+        <text x="425" y="394" text-anchor="middle" font-size="11" fill="var(--ink3)">receipt</text>
+        <!-- observability -->
+        <text x="20" y="478" font-size="11" fill="var(--ink3)">Observability dwars: ScrapeRun-rijen + freshness-SLA in Postgres · OTel-traces · Langfuse per LLM-call · alerts op stilte, niet alleen op fouten</text>
+      </g>
+    </svg>
+    <figcaption>Postgres schrijft de outbox-rij in dezelfde transactie als de aanvraag; de drainer vult Manticore en zet de hoogwatermerk als <span class="n">index_version</span>. Daardoor is "dezelfde query + dezelfde indexversie → dezelfde ID's" een veld in de snapshot, geen belofte. UI, agents en Company OS praten allemaal tegen dezelfde API/MCP-laag — er is geen tweede datapad (JI-SCP-02).</figcaption>
+  </figure>
+</section>
+
+<section>
+  <div class="section-head"><h2>2 · De beslissingen — wat, waarom, en wanneer je het omgooit</h2><span class="eyebrow">Ledger</span></div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Beslissing</th><th>Keuze</th><th>Waarom (bewijs)</th><th>Omgooi-trigger</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Runtime & taal</strong></td><td>Bun + TypeScript, Effect-TS, Drizzle, Effect Schema</td><td>Gemeten: enige CPU-stap (MinHash-dedupe) = 168 CPU-s/mnd bij 100k docs, ~17 CPU-min bij 600k; Go 21× sneller koopt een kwartier per maand tegen 4–10 persoonsweken port. Fetch is I/O-bound (Bun 66 ms vs Go 63 ms wall). Anti-bot-ecosysteem 2026: 7 tools, allemaal Node/Python; nul Go/Rust. Striive's mapping is JS-als-string.</td><td>≥10M docs/mnd, óf Chromium moet on-worker (geheugenvraag, geen taalvraag)</td></tr>
+      <tr><td><strong>Hosting</strong></td><td>Hetzner, Docker/Coolify; CCX33 cloud (32 GB, €43,49) tot ~7,5M; tweede search-only AX42 dedicated (64 GB ECC, €99) bij ~15M</td><td>EU-datalocatie, laagste kosten, geen lock-in. Splitsen bij 15M: page cache van Manticore stopt met concurreren met Postgres-buffers; rebuilds stallen de SoR niet.</td><td>HA/multi-node nodig, of working set > 64 GB (~30M docs)</td></tr>
+      <tr><td><strong>Search</strong></td><td>Manticore RT via outbox achter SearchAdapter</td><td>Enige engine met recruiter-Boolean als native taal (<span class="n">(a | b) -c "x"~2 @title kub*</span>), facets in één pass, ingest→zoekbaar 1–5 s, ~40 MB basis-RSS, vectors ingebouwd. Vendor: 3,85× ES op 110M docs; 3,98 vs 36,98 GB RAM op 10M. Geen infix (14,7× indexgroei), wel <span class="n">min_prefix_len=3</span>.</td><td>HA nodig → OpenSearch (AST-emitter, geen herbouw). Eigen Rust/Tantivy alleen bij semantiek die geen engine biedt (5–7 pw)</td></tr>
+      <tr><td><strong>Orkestratie</strong></td><td><span class="tag ok">gekozen</span> Trigger.dev Cloud</td><td>TypeScript-runtime is de doorslag: motian's tasks porten direct, dashboard/alerts ingebouwd, geen determinisme-model te leren. Volume uit de bronmatrix (listing-polls 5–15 min + detail alleen bij gewijzigde hash): ~1–1,2M fetches/mnd → Cloud ~$50–100/mnd, onder de self-host-break-even ($150–200). Self-host (tweede box + Redis) pas bij structureel hogere rekening. Temporal (self-host €20–30, Cloud $100–125) blijft de gedocumenteerde alternatieve route.</td><td>Rekening structureel >$150–200 → self-host; Go/Rust-workers ooit nodig → Temporal</td></tr>
+      <tr><td><strong>Scrapers</strong></td><td>motian <span class="n">packages/scrapers</span> + dynamic-adapter; alle 28 in eigen beheer; per-bord ladder</td><td>6k LOC geteste NL-extractors, config-driven onboarding. Ladder per bord: direct → eigen connector → Firecrawl ($0,0006/pag, <span class="n">rawHtml+json</span>) → Browserbase (sessie-hergebruik ~$0,00006/fetch; residential proxy $10–12/GB alleen waar nodig). Stagehand alleen bij onboarding/reparatie — op het hot path $2k–20k/mnd.</td><td>Firecrawl self-host: nee (AGPL, zonder anti-bot = eigen Playwright met markdown-converter)</td></tr>
+      <tr><td><strong>Raw & zones</strong></td><td>Object storage (S3) voor raw; Postgres-schema's staging/curated/marts; SCD2 op aanvraag</td><td>JI-ING-07, JI-DAT-02/03: replay zonder fetch, versiehistorie, marts voor dashboards (geen seq-scan over curated).</td><td>—</td></tr>
+      <tr><td><strong>Redis</strong></td><td>Upstash (motian heeft 'm al): per-bron token-bucket + result-cache <span class="n">(ast_hash, index_version)</span></td><td>Gedeelde rate-limit over workers zonder rij-write per hit; herhaalde recruiter-queries ~1 ms en nooit stale (key wisselt met de index). Niet voor locks (advisory locks), niet voor dedupe (unique op content_hash), niet als queue.</td><td>Trigger self-host vereist eigen Redis-container</td></tr>
+      <tr><td><strong>Analytics & export</strong></td><td>DuckLake 1.0: catalogus in aparte Postgres-db, Parquet op Hetzner Object Storage; DuckDB CLI als subprocess vanuit Bun</td><td>Postgres-MVs blijven de dashboard-marts (JI-DAT-10). DuckLake neemt KPI-snapshots (JI-DAT-11 — time-travel gratis), kwartaaltrends over 7,5–15M rijen (JI-DSH-05), en de export ís de tabel (JI-INT-07). Append per ingest-run op <span class="n">valid_from</span>-watermark, geen CDC; maandelijks <span class="n">CHECKPOINT</span>. Geen Bun-bindings → CLI-subprocess. MIT, spec 1.0 met backward-compat.</td><td>Multi-engine federatie nodig → Iceberg ("weken, geen maanden" — het is Parquet)</td></tr>
+      <tr><td><strong>Agent-native</strong></td><td>MCP-tools + API zijn het enige datapad; goedkeuring als beleid-in-data</td><td>JI-SCP-02 / JI-INT-02 + audit-gaps G2/G6/G7: tools <span class="n">search · get · snapshot · approve · export_approved · mark · bron_status · complete_task</span>. UI is één rendering van dezelfde tools.</td><td>—</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <div class="section-head"><h2>3 · Orkestratie — het verschil, en de keuze</h2><span class="eyebrow">Besloten: A</span></div>
+  <figure>
+    <svg viewBox="0 0 1120 300" role="img" aria-label="Twee opties naast elkaar. Links Trigger.dev Cloud: de queue en run-state leven bij Trigger buiten Europa-onafhankelijk, workers draaien als tasks op Trigger-machines die naar de Hetzner-box connecten voor Chromium en Postgres. Rechts Temporal self-hosted: server, persistence-Postgres, workers en Chromium staan allemaal op één Hetzner-box; de workflow-state is event-sourced en herspeelbaar.">
+      <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+      <g font-size="12" fill="currentColor">
+        <text x="20" y="26" font-weight="600" font-size="13">A · Trigger.dev Cloud — ~$50–100/mnd bij ~1,2M fetches (gekozen)</text>
+        <rect x="20" y="50" width="240" height="110" rx="3" fill="none" stroke="currentColor" stroke-dasharray="4 3"/>
+        <text x="140" y="72" text-anchor="middle" font-weight="600">Trigger.dev Cloud</text>
+        <text x="32" y="94">queue · run-state · retries · UI</text>
+        <text x="32" y="112">tasks: scrape-source (small-1x)</text>
+        <text x="32" y="130">batchTrigger per bron, idempotencyKey</text>
+        <text x="32" y="148" fill="var(--ink3)">concurrencyKey · ttl · wait.for gratis</text>
+        <rect x="320" y="50" width="220" height="110" rx="3" fill="none" stroke="currentColor"/>
+        <text x="430" y="72" text-anchor="middle" font-weight="600">Hetzner-box</text>
+        <text x="332" y="94">Chromium (Playwright-server)</text>
+        <text x="332" y="112">Postgres / Neon · Manticore</text>
+        <text x="332" y="130">API + MCP</text>
+        <line x1="260" y1="105" x2="318" y2="105" stroke="currentColor" marker-end="url(#ar2)"/>
+        <text x="289" y="122" text-anchor="middle" font-size="11" fill="var(--ink3)">ws</text>
+        <text x="20" y="190" font-size="11" fill="var(--ink3)">+ nul ops, motian-tasks porten direct, dashboard/alerts ingebouwd</text>
+        <text x="20" y="208" font-size="11" fill="var(--ink3)">− TS-only, run-state buiten je box, prijs stijgt lineair met volume</text>
+        <text x="20" y="226" font-size="11" fill="var(--ink3)">− self-host (~€60–80 + Redis + registry + MinIO) als exit boven ~$150–200/mnd</text>
+
+        <text x="600" y="26" font-weight="600" font-size="13">B · Temporal self-hosted — ~€20–30/mnd hardware (alternatief)</text>
+        <rect x="600" y="50" width="500" height="150" rx="3" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="850" y="72" text-anchor="middle" font-weight="600" fill="var(--accent)">één Hetzner-box, 16 GB</text>
+        <rect x="614" y="86" width="150" height="50" rx="2" fill="none" stroke="currentColor"/>
+        <text x="689" y="106" text-anchor="middle">Temporal server</text>
+        <text x="689" y="122" text-anchor="middle" fill="var(--ink3)">+ lokale Postgres</text>
+        <rect x="780" y="86" width="150" height="50" rx="2" fill="none" stroke="currentColor"/>
+        <text x="855" y="106" text-anchor="middle">Workers (TS)</text>
+        <text x="855" y="122" text-anchor="middle" fill="var(--ink3)">workflow per bron</text>
+        <rect x="946" y="86" width="140" height="50" rx="2" fill="none" stroke="currentColor"/>
+        <text x="1016" y="106" text-anchor="middle">Chromium</text>
+        <text x="1016" y="122" text-anchor="middle" fill="var(--ink3)">3–4 tabs, 2–4 GB</text>
+        <line x1="764" y1="111" x2="778" y2="111" stroke="currentColor" marker-end="url(#ar2)"/>
+        <line x1="930" y1="111" x2="944" y2="111" stroke="currentColor" marker-end="url(#ar2)"/>
+        <text x="614" y="160">activities per page-batch · heartbeat-cursor 60–120 s · continueAsNew</text>
+        <text x="614" y="178">workflow-id scrape:{bron}:{sweep} = exactly-once · schedules: OverlapPolicy Skip</text>
+        <text x="600" y="226" font-size="11" fill="var(--ink3)">+ goedkoopst, state op eigen box, event-sourced en herspeelbaar, polyglot indien ooit nodig</text>
+        <text x="600" y="244" font-size="11" fill="var(--ink3)">− leercurve (determinisme, versioning), alerts via Prometheus; Cloud Frankfurt $100–125</text>
+        <text x="20" y="280" font-size="11" fill="var(--ink3)">In beide: Chromium on-box, ScrapeRun + freshness in Postgres, Browserbase/Firecrawl als per-bord fallback. Het verschil is wie de queue-state bezit en wat het kost.</text>
+      </g>
+    </svg>
+    <figcaption>Optie A verplaatst alleen de <em>orkestratie</em> naar buiten; al het zware werk (Chromium, Postgres, Manticore) staat sowieso op de box. Optie B trekt ook de queue-state naar binnen voor een tiende van de prijs, tegen een leercurve. Beide zijn TypeScript; de Go/Rust-reden voor Temporal is met het workers-onderzoek vervallen.</figcaption>
+  </figure>
+  <p class="aside"><strong>Besluit: A — Trigger.dev, omdat de runtime TypeScript blijft.</strong> Cloud nu (de motian-tasks porten in dagen); self-host pas als de rekening structureel boven ~$150–200 komt. De $230–250 in het diagram was gerekend op 6M fetches (recheck per vacature); de bronmatrix — polling op listings, detail alleen bij gewijzigde hash — komt op ~1–1,2M en dus ~$50–100/mnd. Wat we uit optie B wél meenemen: fan-out per bron via <span class="n">batchTrigger</span> met <span class="n">concurrencyKey</span>, <span class="n">idempotencyKey</span> per (bron, sweep), <span class="n">ttl</span>, per-task <span class="n">maxDuration</span> — dat levert JI-ING-02 ("één trage bron houdt nooit de rest vast") zonder Temporal's leercurve. Temporal blijft de gedocumenteerde route als er ooit Go/Rust-workers komen.</p>
+</section>
+
+<section>
+  <div class="section-head"><h2>4 · Human-in-the-loop nu, score later — zonder herbouw</h2><span class="eyebrow">Beleid als data</span></div>
+  <figure>
+    <svg viewBox="0 0 1120 250" role="img" aria-label="Dezelfde pipeline in twee fases. Fase 1: snapshot naar approval-record met beleid 'mens', een recruiter keurt goed, dan export. Fase 2: hetzelfde pad, maar het beleid is 'score ≥ drempel' en alleen aanvragen onder de drempel gaan naar een mens. Alleen de policy-rij verandert; snapshot, receipt, audit en idempotency blijven identiek.">
+      <defs><marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+      <g font-size="12" fill="currentColor">
+        <text x="20" y="26" font-weight="600" font-size="13">Fase 1 · vandaag</text>
+        <rect x="20" y="44" width="150" height="46" rx="3" fill="none" stroke="currentColor"/><text x="95" y="63" text-anchor="middle">QuerySnapshot</text><text x="95" y="79" text-anchor="middle" fill="var(--ink3)">ids · index_version</text>
+        <line x1="170" y1="67" x2="208" y2="67" stroke="currentColor" marker-end="url(#ar3)"/>
+        <rect x="210" y="44" width="190" height="46" rx="3" fill="none" stroke="var(--accent)" stroke-width="1.5"/><text x="305" y="63" text-anchor="middle" fill="var(--accent)" font-weight="600">policy = "mens"</text><text x="305" y="79" text-anchor="middle" fill="var(--ink3)">approval_policy-rij</text>
+        <line x1="400" y1="67" x2="438" y2="67" stroke="currentColor" marker-end="url(#ar3)"/>
+        <rect x="440" y="44" width="150" height="46" rx="3" fill="none" stroke="currentColor"/><text x="515" y="63" text-anchor="middle">Recruiter keurt</text><text x="515" y="79" text-anchor="middle" fill="var(--ink3)">actor · motivatie</text>
+        <line x1="590" y1="67" x2="628" y2="67" stroke="currentColor" marker-end="url(#ar3)"/>
+        <rect x="630" y="44" width="150" height="46" rx="3" fill="none" stroke="currentColor"/><text x="705" y="63" text-anchor="middle">export_approved</text><text x="705" y="79" text-anchor="middle" fill="var(--ink3)">idempotent · receipt</text>
+
+        <text x="20" y="146" font-weight="600" font-size="13">Fase 2 · later</text>
+        <rect x="20" y="164" width="150" height="46" rx="3" fill="none" stroke="currentColor"/><text x="95" y="183" text-anchor="middle">QuerySnapshot</text><text x="95" y="199" text-anchor="middle" fill="var(--ink3)">ids · index_version</text>
+        <line x1="170" y1="187" x2="208" y2="187" stroke="currentColor" marker-end="url(#ar3)"/>
+        <rect x="210" y="164" width="190" height="46" rx="3" fill="none" stroke="var(--accent)" stroke-width="1.5"/><text x="305" y="183" text-anchor="middle" fill="var(--accent)" font-weight="600">policy = "score ≥ 0,8"</text><text x="305" y="199" text-anchor="middle" fill="var(--ink3)">zelfde rij, andere waarde</text>
+        <line x1="400" y1="180" x2="628" y2="180" stroke="currentColor" marker-end="url(#ar3)"/>
+        <text x="514" y="172" text-anchor="middle" font-size="11" fill="var(--ink3)">≥ drempel: auto, met reden + versie</text>
+        <line x1="400" y1="196" x2="438" y2="196" stroke="currentColor" stroke-dasharray="4 3" marker-end="url(#ar3)"/>
+        <rect x="440" y="214" width="150" height="30" rx="3" fill="none" stroke="currentColor" stroke-dasharray="4 3"/><text x="515" y="233" text-anchor="middle" fill="var(--ink3)">&lt; drempel: mens</text>
+        <line x1="515" y1="214" x2="515" y2="200" stroke="currentColor" stroke-dasharray="4 3"/>
+        <rect x="630" y="164" width="150" height="46" rx="3" fill="none" stroke="currentColor"/><text x="705" y="183" text-anchor="middle">export_approved</text><text x="705" y="199" text-anchor="middle" fill="var(--ink3)">identiek</text>
+        <text x="810" y="60" font-size="11" fill="var(--ink3)">Wat nooit verandert:</text>
+        <text x="810" y="78" font-size="11" fill="var(--ink3)">· snapshot bindt approval aan exacte ids</text>
+        <text x="810" y="94" font-size="11" fill="var(--ink3)">· ApprovalRecord: actor = mens | policy@versie</text>
+        <text x="810" y="110" font-size="11" fill="var(--ink3)">· reden + model + promptversie (JI-SEC-07)</text>
+        <text x="810" y="126" font-size="11" fill="var(--ink3)">· menselijke markeringen voeden de score-evals</text>
+        <text x="810" y="180" font-size="11" fill="var(--ink3)">Wat je nu al bouwt voor fase 2:</text>
+        <text x="810" y="198" font-size="11" fill="var(--ink3)">· score + reden op elke aanvraag vanaf dag één</text>
+        <text x="810" y="214" font-size="11" fill="var(--ink3)">· approval_policy als tabel, niet code-constante</text>
+        <text x="810" y="230" font-size="11" fill="var(--ink3)">· eval-set uit fase 1 (precisie per drempel)</text>
+      </g>
+    </svg>
+    <figcaption>De overgang naar score-gestuurd is één UPDATE op <span class="n">approval_policy</span>, geen release. Omdat elke menselijke goedkeuring in fase 1 een gelabeld voorbeeld is, weet je vóór de omslag welke drempel welke precisie geeft — en de AI Act-eis (menselijk toezicht, zichtbare reden, model/promptversie) blijft in beide fases identiek vervuld.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <div class="section-head"><h2>5 · Schaal en kosten bij 600k/maand</h2><span class="eyebrow">Getallen</span></div>
+  <div class="numbers">
+    <div><b>~1–1,2M</b><span>fetches/mnd: listing-polls 5–15 min + detail bij gewijzigde hash (was 6M bij recheck per vacature)</span></div>
+    <div><b>7,5M → 15M</b><span>documenten na 12 / 24 mnd (~3 KB tekst elk, alles bewaard)</span></div>
+    <div><b>32 → 64 GB</b><span>box-RAM; search-only box splitsen bij ~15M</span></div>
+    <div><b>≤ 100 ms</b><span>p95 selectieve Boolean+facets; 100–300 ms bij 5+ facets over miljoenen hits — load-test eerst</span></div>
+  </div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Component</th><th>Plan</th><th>€/mnd P0 → jaar 1</th><th>Geverifieerd op</th></tr></thead>
+    <tbody>
+      <tr><td>Hetzner CCX33 (8 vCPU dedicated, 32 GB) — <strong>geen 32 GB dedicated lijn</strong></td><td class="n">cloud</td><td class="n">€43,49</td><td>hetzner.com/cloud/general-purpose</td></tr>
+      <tr><td>Hetzner AX42 (64 GB DDR5 ECC) — search-box jaar 2</td><td class="n">dedicated</td><td class="n">€99 (+€49 setup)</td><td>hetzner.com/dedicated-rootserver</td></tr>
+      <tr><td>Hetzner Object Storage (1 TB incl.)</td><td class="n">base</td><td class="n">€6,49</td><td>hetzner.com/storage/object-storage</td></tr>
+      <tr><td>Neon</td><td class="n">Launch</td><td class="n">€60 → €160 (jaar 2: €250)</td><td>neon.com/pricing — dít is het on-box-argument</td></tr>
+      <tr><td>Trigger.dev</td><td class="n">Hobby → Pro</td><td class="n">€16 → €62</td><td>trigger.dev/pricing — 1,1M s + 1,2M runs</td></tr>
+      <tr><td>Upstash Redis</td><td class="n">PAYG</td><td class="n">€3 → €12</td><td>upstash.com/pricing/redis</td></tr>
+      <tr><td>Firecrawl — geen pay-per-use, geen rollover</td><td class="n">Standard → Growth</td><td class="n">€91 → €367</td><td>firecrawl.dev/pricing — 100k→200k pagina's kost 4×</td></tr>
+      <tr><td>Browserbase (Circle8-klasse borden)</td><td class="n">Developer → Startup</td><td class="n">€0–18 → €91</td><td>browserbase.com/pricing</td></tr>
+      <tr><td>Manticore · DuckDB/DuckLake · Coolify · Stagehand · Grafana Cloud</td><td class="n">OSS / free</td><td class="n">€0</td><td>GPLv3 · MIT · gratis · MIT · free tier</td></tr>
+      <tr><td>Langfuse (Core; self-host MIT = €0) · Sentry Team</td><td class="n">Core · Team</td><td class="n">€27–56 → €130 · €24</td><td>langfuse.com/pricing · sentry.io/pricing</td></tr>
+      <tr><td><strong>LLM — Claude Haiku 4.5</strong> (extractie 20 % + scoring 100 %)</td><td class="n">API / Batch</td><td class="n"><strong>€975 → €2.926</strong> (batch: €490 → €1.463)</td><td>docs.anthropic.com pricing — $1/$5, batch $0,50/$2,50; ≈ €0,005/aanvraag (JI-NFR-06 &lt; €0,02 ✓)</td></tr>
+    </tbody>
+  </table></div>
+  <div class="numbers">
+    <div><b>≈ €1.250</b><span>P0-slice/mnd (200k docs) — infra €270 + Haiku €975; ≈ €765 met Batch API</span></div>
+    <div><b>≈ €3.825</b><span>jaar 1/mnd (600k docs, 32 GB) — infra €900 + LLM €2.926; ≈ €2.360 met Batch</span></div>
+    <div><b>≈ €4.015</b><span>jaar 2/mnd (+64 GB search-box, Neon 3 CU); ≈ €2.550 met Batch</span></div>
+    <div><b>75–80 %</b><span>van de rekening is LLM-tokens — niet infra</span></div>
+  </div>
+  <p class="aside">Drie hefbomen, in volgorde van gewicht: <strong>(1) LLM</strong> — Batch API halveert Claude; scoring naar een mini-klasse-model (gpt-5.6-luna is 5× goedkoper dan Haiku); prompt-prefix cachen; elk procentpunt minder LLM-extractie ≈ €120/mnd — deterministische parsers eerst. <strong>(2) Firecrawl</strong> — JS-borden ≤ 100k/mnd houden, of die vijf borden on-box renderen en terug naar Hobby ($19). <strong>(3) Neon</strong> — €160–250 in jaar 1–2 tegen €0 extra on-box: de open Neon-vs-on-box-beslissing is hiermee een rekensom. Volledige tabel met vergelijkingsrijen (Temporal Cloud, Browserless, Modal, MotherDuck, Lakebase) in <span class="n">de interne kostenkaart</span>.</p>
+</section>
+
+<section>
+  <div class="section-head"><h2>6 · Afgewezen — en waarom</h2><span class="eyebrow">Onderzocht</span></div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Kandidaat</th><th>Verdict</th><th>Reden</th></tr></thead>
+    <tbody>
+      <tr><td>Postgres FTS alleen</td><td><span class="tag note">fallback</span></td><td>Haalt 750 ms, niet 100 ms met facets op miljoenen; motian's 200k-cliff was overigens een index-mismatch (<span class="n">to_tsvector(search_text)</span> vs index op concat), geen Postgres-limiet. Blijft rebuild-pad.</td></tr>
+      <tr><td>ParadeDB pg_search</td><td><span class="tag warn">runner-up tot 7,5M</span></td><td>Tantivy ín Postgres, nul lag; maar Neon heeft pg_search dichtgezet (mrt 2026), plain count 770 ms op 10M, facet-zwaar breekt 100 ms op 15M.</td></tr>
+      <tr><td>Meilisearch · Typesense</td><td><span class="tag no">nee</span></td><td>Instant by design, maar géén geneste Boolean in de query; client-side unionen breekt facets en determinisme.</td></tr>
+      <tr><td>DuckDB als search</td><td><span class="tag no">nee</span></td><td>FTS zonder phrases/Boolean-syntax, index alleen herbouwbaar, één schrijver per bestand. Wél als analytics-engine op DuckLake (§2).</td></tr>
+      <tr><td>LanceDB</td><td><span class="tag note">2027, vector-sidecar</span></td><td>Docs: "doesn't support AND/OR in the search string", geen facets. Sterk voor hybride vector later — via SearchAdapter.</td></tr>
+      <tr><td>Lakebase</td><td><span class="tag no">nee</span></td><td>Neon-klasse managed Postgres met Databricks-rekening en uur-tokens; geen pg_search. Alleen als Databricks al je analyticsplatform is.</td></tr>
+      <tr><td>OpenSearch</td><td><span class="tag note">upgrade-pad</span></td><td>2–4× Manticore's RAM voor dezelfde p95 (3,98 vs 36,98 GB op 10M). Pas bij HA/multi-node; AST-emitter maakt het een nieuwe adapter.</td></tr>
+      <tr><td>Eigen Rust/Tantivy-service</td><td><span class="tag note">escape hatch</span></td><td>5–7 persoonsweken vs ~1 week integratie; loont alleen bij Boolean-semantiek die geen engine biedt.</td></tr>
+      <tr><td>Go/Rust workers</td><td><span class="tag no">nee</span></td><td>Gemeten: 168 CPU-s/mnd te winnen; anti-bot-ecosysteem is Node/Python; 4–10 pw port + permanente belasting.</td></tr>
+      <tr><td>Stagehand op het hot path</td><td><span class="tag no">nee</span></td><td>$2k–20k/mnd; cache mist bij elke layoutwijziging. Wél bij onboarding (observe → scrapingStrategy) en reparatie.</td></tr>
+      <tr><td>Firecrawl self-host</td><td><span class="tag no">nee</span></td><td>AGPL, Postgres+Redis+RabbitMQ+Playwright, en juist zónder de anti-bot-engine die de reden was.</td></tr>
+      <tr><td>pg-boss als orkestratie</td><td><span class="tag no">nee</span></td><td>Lost queueing op, niet durability of observability; 2,3 jobs/s met tabel-churn.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <div class="section-head"><h2>7 · Bewezen patronen — kopiëren op dag één</h2><span class="eyebrow">Geleerd</span></div>
+  <p>Deze patronen komen uit een productie-platform dat hetzelfde probleem al een jaar oplost — agents en mensen op één tool-oppervlak, effecten achter goedkeuring — inclusief de littekens. Eén nuance: dat platform dwingt layering af met CI-guards in plaats van met Effect-TS. De Effect-keuze blijft; de guards komen erbij, want ze bewaken wat een typesysteem niet ziet.</p>
+  <div class="two">
+    <div class="card">
+      <h3>Patronen — letterlijk overnemen</h3>
+      <ul class="tight">
+        <li><strong>Capability registry</strong> (<span class="n">packages/application/registry/</span>): één entry per gebruikersuitkomst, gebonden aan één handler, met <span class="n">sideEffectClass: read | proposal | commit</span>, <span class="n">approval</span>, <span class="n">auditClass</span>, <span class="n">idempotency</span>, <span class="n">wiredTransports[]</span>. UI, REST en MCP zijn adapters die het id refereren — nooit eigenaar van gedrag. Dit ís §4: approval is data op de capability, met een <em>verplichte reden om eruit te stappen</em>.</li>
+        <li><strong>Bidirectionele drift-gates</strong>: <span class="n">check-capability-registry</span> faalt als een adapter ontbreekt ("een gepland transport kan nooit uitvoerbaar lijken"); <span class="n">check-capability-coverage</span> faalt als een UI-actie geen agent-pad heeft. Dat is agent-native pariteit (G2) mechanisch afgedwongen.</li>
+        <li><strong>Proposal → acceptance → commit</strong>, getypeerd: <span class="n">acceptanceEvent {accepted: true, acceptedBy, acceptedAt}</span>, <span class="n">commitInput {proposal, acceptance?, idempotencyKey}</span>, gesloten error-enum incl. <span class="n">acceptance_required</span>. Doctrine: "MCP is protocol aan de rand; de applicatiegrens is een getypeerde interne tool-registry."</li>
+        <li><strong>mock / sandbox / real</strong> voor elke externe provider — contract-suite draait altijd op mock; "de app boot en slaagt met alleen mocks." Voor ons: elke job-board-connector, Manticore, Spott.io.</li>
+        <li><strong>Boundary-guards zonder allowlist</strong>; waar schuld al bestaat een <em>krimpende</em> allowlist (gemigreerd-maar-nog-gelist faalt ook). Plus <span class="n">check-phantom-delegation</span> (~40 regels): blokkeert commentaar dat een component gedrag toedicht dat nergens bestaat.</li>
+        <li><strong>Visual evidence als merge-gate</strong>: Playwright <span class="n">video: 'on'</span>, één test per claim, H.264/MP4, nooit op productbranches.</li>
+        <li><strong>Repo bezit het waarom</strong>: <span class="n">docs/decisions/</span>-register met ADR-promotie, <span class="n">docs/PROGRESS.md</span> append-only incl. "wat je bewust níet deed".</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Anti-patronen — gedocumenteerd, dus vermijdbaar</h3>
+      <ul class="tight">
+        <li><strong>"De dialect-flag was een fout"</strong>: een tweede database achter een <span class="n">DB_DIALECT</span>-vlag werd na een jaar ingetrokken en verboden. Voor ons: Postgres en Manticore zonder engine-abstractie. De <span class="n">SearchAdapter</span> is een <em>vervangings</em>-naad (één actieve implementatie, AST-emitter), geen gelijktijdige-engines-laag — anders wordt hij de dialect-flag.</li>
+        <li><strong>Migraties die alleen op een lege DB werken</strong>: CI migreert een verse tenant, dus de backfill draait over nul rijen; live incident: een migratie dropte kolommen en Drizzle's <span class="n">db.select()</span> emitteert élke schema-kolom → <span class="n">column does not exist</span> op echte tenants. Voor ons: migratietests op een gevulde fixture (JI-005-import), en assert dat een echte <span class="n">select</span> resolvet, niet alleen metadata.</li>
+        <li><strong>Groen is geen bewijs</strong>: een slice slaagde met 1.290 ongewijzigde tests terwijl een echte API-gedragswijziging in de diff zat; alleen de opname liet het zien. "Een refactor die inert claimt te zijn is niet vrijgesteld."</li>
+        <li><strong>Tracker-automatisering liegt over deelwerk</strong>: een PR "slice 1" zette een tien-criteria-ticket op Done. Mitigatie: verplichte <span class="n">## Partial</span>-sectie + check.</li>
+        <li><strong>Score-drempels zijn onbruikbaar als gate</strong>: één slordig bestand verschoof de boomscore 100→97 van 1.625 bestanden. Gate op error-level bevindingen in gewijzigde bestanden; backlog zichtbaar via SARIF.</li>
+        <li><strong>Directe DB-toegang in routes groeide 25→33 op één dag</strong> — groei, niet omvang, maakt het onbegrensd. Vandaar de ratchet.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="aside">Niet overnemen: een gegenereerde wiki (vraagt een volwassen boom), een duizenden-regels capability-bestand vooraf (laten groeien), en worktree-wildgroei.</p>
+</section>
+
+<section>
+  <div class="section-head"><h2>8 · Wat nu vastligt, wat open staat</h2><span class="eyebrow">Besluiten</span></div>
+  <div class="two">
+    <div class="card">
+      <h3>Vast</h3>
+      <ul class="tight">
+        <li>Bun/TS/Effect; motian-scrapers hergebruikt; alle 28 connectors in eigen beheer op de per-bord ladder</li>
+        <li>Trigger.dev als orkestratie (TS-runtime); Cloud nu, self-host ingepland; fan-out per bron met idempotency-keys</li>
+        <li>DuckLake als analytics/export-laan naast Postgres-marts; capability registry + drift-gates vanaf dag één</li>
+        <li>Hetzner + Coolify; Chromium on-box; Browserbase/Firecrawl per vijandig bord</li>
+        <li>Postgres SoR met zones + outbox; Manticore achter SearchAdapter; Redis voor rate-limit + geversioneerde cache</li>
+        <li>API + MCP als enig datapad; approval-beleid als data; score + reden vanaf dag één</li>
+        <li>600k/mnd is de ontwerpschaal; JI-NFR-02 aangescherpt naar p95 ≤ 100 ms</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Open — jouw besluit</h3>
+      <ul class="tight">
+        <li><strong>Postgres:</strong> Neon blijven tot ~7,5M of meteen on-box (Manticore-buffers, ParadeDB-optie, latency naar drainer)</li>
+        <li><strong>DEC-002 bronmatrix — geverifieerd:</strong> 29 rijen = 23 echte bronnen (<span class="n">docs/SOURCE_MATRIX.md</span>); 12 publiek via feed/API/JSON-LD (rung 1–2, geen browser), 6 achter eigen leveranciersaccount, 4 invitation-only/geblokkeerd (Magnit, Randstad — ToS verbiedt, Circle8 — Vercel-challenge, OneStopSourcing — geen DNS). Nog nodig van Robbie: accounts (Striive, StaffingNow, Mercell, Circle8) en ToS-besluiten (Mercell robots, Striive 4.6). TenderNed-recept staat in <span class="n">docs/sources/tenderned.md</span>.</li>
+        <li><strong>Spott.io-contract:</strong> naam/URL, API of MCP, write-scope, sandbox (DEC-006)</li>
+        <li><strong>Requirements-herschrijving:</strong> JI-DAT-01 (Pydantic→Effect Schema), JI-INT-01 (FastAPI→Effect HTTP), JI-OPS-07 (Alembic→Drizzle), JI-ING-02 (SKIP LOCKED→queues), JI-DAT-08/JI-SRC-01 (tsvector→SearchAdapter), JI-INT-04 (push via approval-snapshot)</li>
+      </ul>
+    </div>
+  </div>
+  <p class="aside">Volgende stap: dit document + de requirements-deltas naar <span class="n">docs/brainstorms/2026-08-27-techstack-brainstorm.md</span> in de Job-Intelligence-repo, en van daaruit de bouwbrief §5 ("Technische keuzes") bijwerken — die noemt nog Postgres FTS als P0-search en laat orkestratie open.</p>
+</section>
+
+<footer>Bronnen: vier onderzoeksagents (search-architectuur incl. 13 engines; Trigger.dev/Temporal; Rust/Go/TS + Browserbase/Stagehand/Firecrawl met lokale benchmarks; motian-profiel) · alleen opgehaalde URL's geciteerd · prijzen geverifieerd op gerenderde pagina's via headless Chrome (de interne kostenkaart) · bronnen geverifieerd read-only zonder logins (docs/SOURCE_MATRIX.md) · 27-08-2026</footer>
+</div>

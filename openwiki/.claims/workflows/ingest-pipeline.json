@@ -1,0 +1,334 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:eb8d6dc210ecd537f46cf3ae334d6d3e44f78a656eef39bc1880ebfa6b13a53c",
+  "claims": [
+    {
+      "id": "claim_6bbb0a242e504b289507ecbc7864bb99",
+      "statement": "The on-box poller (apps/worker/src/poller/main.ts) is the sole driver of ingest; it holds a singleton pg_advisory_lock keyed by the literal 613_204_877 (distinct from the projector's 847_732_991), re-asserts the lock each cycle, writes heartbeats, schedules due bronnen by cron interval, and runs each source through runBronIngestPipeline.",
+      "evidence": [
+        {
+          "resource": "repo://apps/worker/src/poller/main.ts#L192-L238",
+          "version": "repo-lines-v1:sha256:1602290af3ac7f680ab2c2cdaad4159685f6abb4ab5434902cb1ec25d7eef143:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiOTgzODBlMGI2ZjA0N2RlMTljMTZkMzY2NzJjYTU2MjcwNDEwOTI4MDAyMmRiYTU3M2M5NDE3MzZiYmE4OTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliNjJmNjBkODU5MGE1NzljZjQ2ZjhkNjczNzhjNGM1NzJiOTYyY2VjY2RiOTBjN2E1ZjdiNDJiOTYwNzgyYTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxZTM3MjVkYTAwMmI0NmVkOGI0ZGU4ODAwM2FkOTcxMGRjYWYxOGQ1N2M0NzAxZGMzYmVmZjBiMmM1Y2IxM2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjNmQ2OWMwMjhmN2MzOTkwMTQ5YjUzODA0ZTE5MTY0OGYyY2IxZDM4MWMyNTBjNTNlYjM5NGJjZDJlNDBiYjcifQ"
+        },
+        {
+          "resource": "repo://apps/worker/src/poller/main.ts#L254-L296",
+          "version": "repo-lines-v1:sha256:84ecc6d5a0423f055fb8622f9aac6016fe5c5e6d46c2c9bfc598ce08f94faf95:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNhOTllYzg5ZmQ5ZGUzNWY3NjhmNTRiZmI2OWFlYzkxNzhiZDU2N2Q4ZThlYjYwN2NhZGY4MDNkYzVlNDMyNmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlZDk5NjY1OGY4MzkzZTAyNDc1ZDZmNTI0N2NhMDJlMjU4NGQ5ZDg0YzBjMDZlZmZlMmRjZGM0ZDc2MjA0YWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3NTE3NGIxZGFlZGU5NDdmM2I5NTM3MjA1NDAxYzQ4ZTI1NjIxNTBlYWEzYzliY2RhYmM2NjNmOThmMTVmMzEifQ"
+        },
+        {
+          "resource": "repo://apps/worker/src/poller/main.ts#L34-L44",
+          "version": "repo-lines-v1:sha256:ff03fdcce38846b329a9b819789fef48147611f912a21bb968d704030eb4a9c8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyMDYyYTJkZDgzY2MzMTI1OTRiN2VlY2U5NTBlYjU5YjU2ZTIwYmVhYzIyNzQwMjg4N2NlY2VhZmI0MjMzNjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3YTRmMzA2OGQyMjQ4Y2MxYzgwNjE2NzQ4NWE3YzVlYjQ0YTYwMjk5MjQ5YzhkMjUzYjM5Y2U5NDdiNThlYmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiODRmN2I4ODA3N2M2NGEwNmUyNGM1NWJkYjg0ZjYwMjU5YjcyYzE5Y2YwZjk5N2E4NDk1MjNlNTY1MGNmMjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNkZjZlNDIzYWQwMTBlMTRmNmE1ODMzMDFkMjI3NGY3YTljODc2MTNlY2E0ZWRhNjcwMjViNTg3YjU3NWNiNjIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cb14bd984d72426fafca05eab378fe8c",
+      "statement": "After a poll completes, drainBacklog keeps curating one source under a per-source time budget (POLLER_CURATE_BUDGET_MS) until the backlog is empty, the budget expires, shutdown is requested, or a pass fails to shrink curateScrapeRun's remaining count.",
+      "evidence": [
+        {
+          "resource": "repo://apps/worker/src/poller/main.ts#L112-L157",
+          "version": "repo-lines-v1:sha256:23da54014640fd3c537431897aee66b7f31eef8fb73d37acc1b382bfcce1eb82:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlNTEyZGM5YjcyZjBiN2Y1YWFkN2ZiNzFhNjM4NGZhMTU1M2JjMDI3YzdjMWUxZDAwZTExYTJkNjRjMzZhZGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRiMGMzNjIxODcwMDc1NGQ3MmNmYjc1NjhlZjkxYzA0MDc1OTkyMzIyMDczY2E1OGQ2M2ViNWExNmMwNzQ5ODEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI5NzM4ODUxOGFhZjBiMjg4ZTU5MGNmMzVmYzQ0ZGJiNWNiOGVhNDg0ZGMzNWM1ZTljNDBjZTUyZTE1ZGI1OWQifQ"
+        },
+        {
+          "resource": "repo://apps/worker/src/poller/main.ts#L83-L102",
+          "version": "repo-lines-v1:sha256:3263f8b0dcd41817e17f45bb6c9625a5d2c42c2d61d5b3fbf6e5928d42a3fe51:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjY2M4Y2ZjNTcwODFjNTI1MmQ0OWIxMzA4ZGFkYmZkNTliZTRjODY5NmViZmY5MDhhYWU3MmUyYTUzYTcwZjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNkOWU0NTA3YWNlNzhkNTgyODM5YmE3ODNiMmVkOWZmNmYyMjI3NDY1YTU2ZTliMGM5MDZkMjI4ODhmYmE2YjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBhOTdjNDZkNTUxOWRmMGUyNzY1ZTYwOGZjYmFmNThmNzE0YjJhMjEyYmVmOTYyMTY5OWMzM2NiYTE0MDcyZGMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1bdf84639a1b44edaaa1e5f08cb667ba",
+      "statement": "In production, partitionByLiveFlag skips any source whose liveEnv flag is unset so a healthy container never commits fixture-backed data as live; outside production all candidates run because fixture-backed connectors are the point.",
+      "evidence": [
+        {
+          "resource": "repo://apps/worker/src/poller/schedule.ts#L42-L67",
+          "version": "repo-lines-v1:sha256:bff88669f449d2c6e13c73dc533d539e623e58fa14c5c36b988fa1ae0b2bb030:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ1MzBmYWQxY2I2MTUyMTcwOTAwYzlkYzI4YmNkM2UwNWIwZDkyY2FmOGZiYmU1M2ZhYzNiMzI1OTc2NWE3MTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ2OGY2MDljNjZjYjAzNzU5ZjVlYWIyMzlkM2Q2YWFhZDg3YWZiZmUwYWE1NmVmNmZkYjZjMTY5ODc3N2JjNjIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b82a5cb31509462fa47d33fbe0b03dc5",
+      "statement": "Adding a source means one SourceDefinition file in packages/application/src/sources plus one line in the SOURCES registry; each SourceDefinition bundles bronId, createConnector, listingHashCoversDetail, liveEnv, normalise, seed, and slug.",
+      "evidence": [
+        {
+          "resource": "repo://packages/application/src/sources/definition.ts#L21-L47",
+          "version": "repo-lines-v1:sha256:de32949aeec8f18f19df3444327f5d694b21d187eb0f808385d9a521d740128f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI0MzA0YTc4MGZkOGE2MWU1YTQ5ZDY1MjAwMmU5YzU4YTE5MzcwMTQwOWMyM2Q0OTZiYzM4MGQ0NDE5ODU1OTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2ZGRmMTY4OGRjNTAzYjIwNjYwYjU0NzdjNjg0YzJjYzVjMDdkYzg3YzZmMWUzOTdjNGYwNjk3OTA0NTUwMzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUwMzRmMmQ4MzY5OTQxZDllZDU5YzI0MDA5MDBjYzZkYjNjMjU4NWI0NjkwY2EzMDA1YWI0N2U0YjgwNTEzOTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        },
+        {
+          "resource": "repo://packages/application/src/sources/registry.ts#L21-L35",
+          "version": "repo-lines-v1:sha256:aa7fb04c5edad31c9799bd93e73d45cd03e11a4df54d9da87d7217a9bbd8fba9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1NTFiZTBjMmE1MWJmMjI1MWU1NzYyMjU1MmNhMmZmMWRjZDY2ZDNlMmQ3MzY5YjIyNzU4ZDIxOTRlNjkxOWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1YTEwODExMjJiZGJkYzI0Y2RiYzE3YzIyOTBlYWFlNDJiZjY2M2Q1NjZiYWY0ODFhYjUwMmM4YTAwYjBiZTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5NjIyY2NhOTZiY2JmYzA4NWM1NTI1NTJkM2I4YWJiNmNiNjkxMGRhZTEyM2Y4NDdhMjUxN2JhN2M4N2FkZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE0MzQyNGJjODNlZjA0M2FiZDNiOGVlYjY5NDlhNzU4ODcwNTUyMTExMDYwMjFjNDgxZWQwMWZiY2UyMjE5ZTQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_65488569f19d4fa4833c5935d1bca241",
+      "statement": "listingHashCoversDetail gates whether knownHashes are forwarded to the connector: only when the listing-tier hash demonstrably covers every field the normaliser reads may the known-hash short-circuit skip a fetch, so a skip cannot freeze detail-only changes (e.g. a moved sluitingsdatum) into the curated aanvraag.",
+      "evidence": [
+        {
+          "resource": "repo://packages/application/src/sources/definition.ts#L24-L36",
+          "version": "repo-lines-v1:sha256:294ca47c4f6d8ef4d1a87b75e96dbbbbe9128b5a56cc4cb86107ac71a3e38e95:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmMmEyZjk5NmYwOGU2ODBiZDI5MjEzNWE2ZmE0OTc4YmRhMjZlNjAyZDg0ZjMzY2IxZDU5NDc3NWQ0MzA0YjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZTNhNjA3NmZlOWRmMTk4YmFlOGIzOGRjZTFlYzljNzg1YTMzMjNhZTdhOTNhYzgzZDAwZWNhYmNmMDkxMDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAyY2MyYWMwYjk1ZmVhZTJlYWJiODhlOGYwNjg4ZTVmMTVkM2M3YjA3MDU1YjNhMzY2ZjdhYzYwOWI3MjY1YWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU3MmVhNDhkNjY0YzUyNWY5MzEwOWI5M2E4YTE3NTJhN2I1Nzk3YWNiMTAxZjBmOTQyY2VhMDg0YjNkMzBlMTMifQ"
+        },
+        {
+          "resource": "repo://packages/application/src/sources/inhuurdesk.ts#L19-L20",
+          "version": "repo-lines-v1:sha256:9f19e344a2ebc6e82eab0057d1e188eb2264c60fdfcc6b718f93fa8604fa321b:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWQzY2I5ODJjZTI1NTQ2OWFmZTI0NDNlZmVlYWVlNzljZmU4ZDg3OWQ1ZmJjYmE1NjUwNmQ1MGI2NGViYTY3YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmRkNWM4MWM3NzEyNjExODJmODA4MDVhMzliMjkxNjAwNGNlMWJkZTZiYzYyNTI2MGRmMmRiZTJjM2JkMGU2ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTNiNzNjYTU0MGYzYzNjYTg4Yjc0MjNlZmRlMDEzOGU0NzQ1ZmJkZWVjNWE1OTExMGYyNDhmNTViNzkxZmRjZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDhiZWZmYWY2NDBjYzAzODM5ZmIxZDc2MGM0NDcyNzE0ZDNlODk0Yzg0NTM1NDc1YWNkNTA5MDVjZjU4YjMzOCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_1b0b66713f984f748bd96a92cb870a72",
+      "statement": "A Connector implements discover(checkpoint) returning items, checkpoint, hasMore, and optional truncated, and fetch(item) returning fetched/rejected or null to skip (the known-hash short-circuit returns null when the listing hash matches the stored hash); the stable hand-off to the rest of the pipeline is a ConnectorObservation with contractVersion connector-observation/v1.",
+      "evidence": [
+        {
+          "resource": "repo://packages/connectors/src/contract.ts#L22-L97",
+          "version": "repo-lines-v1:sha256:84cd7cd874822f3c3aca10693b74a88cdfd4298c7fdad7cddd710db0219be707:eyJzZWxlY3RlZExpbmVDb3VudCI6NzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZkMzUyMDk4NWQ2ZmJmYTFjNzM4ODliMzIxODc3YjJkYmZmMzFiMGYwZWI1MzdkYTEwOThjZWQ3MWVlYzRmOTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI4YjlhOWJhNzExOWJkM2M2NGY3Nzc1NDY3ZmNkNmEzZTZlNWM0OTY5NDMyZGMwY2Q4YWIxMGI4ZTAwZGQ3Y2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM1MGEyOTE0ZjFjZGY3YzU4OGNiYmVkODkyOTlhZWIzZGI3YjZkZTQ0YWJlM2UzYTAzMzhiZWQ3MzRiYTI2NWUifQ"
+        },
+        {
+          "resource": "repo://packages/connectors/src/inhuurdesk/connector.ts#L97-L106",
+          "version": "repo-lines-v1:sha256:c5521ff6028ece6657c8453183849e4475cd6489415fa0d852e600192b322b47:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyMjQ2NGY3YTI5OWE3MzJiMTZhY2NkYTgyZGVkYWI2MjYxMTdjMmJiNDZhYjhhYmQyMTE1Mjc1YTM2Zjc2ODkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliNjJmNjBkODU5MGE1NzljZjQ2ZjhkNjczNzhjNGM1NzJiOTYyY2VjY2RiOTBjN2E1ZjdiNDJiOTYwNzgyYTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRkOWM1MTIyYTgxZmU2ZTE5M2VlNTAzODUzMmU0OTliMmVkZDgxMmIxYTEzZDE1MDM1ZTA1YzJiMTE5ZTBhMmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgwZmUzYmRkMWNmMWE2OTY5MTExZTgzODZkZmM1Mzg0ODczMTU1Zjc4Njg5YWZmYTBmZTcyODkxZTRiYTA1ZGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_687ebc3cca9248f8854a1fa75e7d8657",
+      "statement": "DEC-008 minimisation requires connectors to whitelist fields on the way out by building a fresh object naming each field explicitly, so unlisted upstream fields (recruiter PII, internal ids, zero-valued tariff fields) never reach listingPayload or the stored body; each source has a DEC-008 test asserting the whitelisted shape.",
+      "evidence": [
+        {
+          "resource": "repo://packages/connectors/src/inhuurdesk/connector.ts#L21-L47",
+          "version": "repo-lines-v1:sha256:0746405153ed15f3b568e8a0a6fc553c5e73141b5aac5ac940467c4888a2d949:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5Y2Y2MjM5NmYwMWEwNWM3MzYwMDBiZDViNDQ4NzlkZTljNzg1Y2RkZjhiMzk0NDkyNTM5NjgwMzNjYjQxNzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzNWY2Yjg1ZjE0NGY2MGU4NmU0NGU2ZmZlMWI2ZTJmNmY1YmE0Mjg1NTk5YzYzNzc4ZTQ5YzFlMzkzYzE5YWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhiMDlkMTBmMWUzMWFkOTc3ODBlZjVjYjlhMmY5MjgzZmE2NjRlMTExOTQ5MjcxYTA2Y2U5ZDQzNGU4MDk3NmUifQ"
+        },
+        {
+          "resource": "repo://packages/connectors/src/inhuurdesk/inhuurdesk.spec.ts#L67-L67",
+          "version": "repo-lines-v1:sha256:290da24b5d1411b077fa7ce32df5da6f87b1e627b69386c97d40423f1be6e0a5:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjkwZGEyNGI1ZDE0MTFiMDc3ZmE3Y2UzMmRmNWRhNmY4N2IxZTYyN2I2OTM4NmM5N2Q0MDQyM2YxYmU2ZTBhNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjkwZGEyNGI1ZDE0MTFiMDc3ZmE3Y2UzMmRmNWRhNmY4N2IxZTYyN2I2OTM4NmM5N2Q0MDQyM2YxYmU2ZTBhNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjE2NDhiYzJhYTI4OWQ2YzZjNzBmZDZmMjEyZjU4ZDAwNTliZjMyNTMxZTRhNDUzZGU3NzY2MzI5NmZkMTUzMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzczMDU1NmZjNzAxOWNhOGQ5NTI5ZmMyZjc1NzRlODBkNDlmMTdlYTU1ZDlkYTA1MWM0NjU1YjEwOWIyNTBmOSJ9"
+        },
+        {
+          "resource": "repo://packages/connectors/src/striive/connector.ts#L22-L45",
+          "version": "repo-lines-v1:sha256:e2804d3ef8e43002f4d9c85e84b69230798eba80af48ab0b3609f36791db5c1d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiMjU3ZTY5NDEwMThlMGQ2YTBiODM5MDExMDNlNWI4NmE2N2E5MmE5YTJmNzVkMDZlNzVhZTAyMTA5YWZiMmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzNWY2Yjg1ZjE0NGY2MGU4NmU0NGU2ZmZlMWI2ZTJmNmY1YmE0Mjg1NTk5YzYzNzc4ZTQ5YzFlMzkzYzE5YWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM4ZTNiNjgzMDZjNmFkMDMxMjRjNmFkODEyYjc2ZGE4Y2U4ZDI5YWJmM2FhMWI4ZDU3ODg4NmJjMzI3YzIzNzcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0972e2a1b944407490b280b52eb1e3ea",
+      "statement": "runConnector pages through discovery, persists each changed body to the object store under a content-addressed rawPayloadRef (buildContentAddressedRawObjectPath, digest-verified on readback), records the observation plus source record via the ObservationRecorder, checkpoints progress under a fenceToken, and reports RunCompleteness that is incomplete when the run resumed, was truncated, or (via guardEmptyListing) saw zero items.",
+      "evidence": [
+        {
+          "resource": "repo://packages/application/src/bronnen/execute.ts#L130-L139",
+          "version": "repo-lines-v1:sha256:9e61a7e448078f2af9852dd5d5200db13440bc8c0b3bd874d5573d21c5d15c6e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU3MDc0M2NjNGRjZjkwODE0MTcxNGFhNTQyN2VkMTc4MGY5NmE5ZjEwMGU1NjNkOTYzYjEzNmQwYWRhZDViODkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcyMTI5YzI3MzUyYjQ5NTU0OGIwNzFhZTM0YWI5MDgxMTcyODczNDI4ZjZmODdmNTRiNTgwZTUxNTNjOWFhMDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwY2JhMDRmNmM3YTIzZTFmMjY0MDAxZDM5MDI3OWYyNmVmZTc2YThmODdjZDEyZWY5NGZkYzRiOGExN2I5MzQifQ"
+        },
+        {
+          "resource": "repo://packages/connectors/src/run.ts#L124-L152",
+          "version": "repo-lines-v1:sha256:424c523e7dfba3e030412227af5e54bf0d22442143b79d34fb839314435f67f4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM4OThlMTgzYWE2MGI1MjliOTVmZjY3OTVlYjZhY2Q1OWYyZTA0ZGEzNDI2NDA3MDZhNGQ2NTczODIwNWIzNzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRjYjhmMzAzODRkNTM5ODhkODE2YzNlMjRjZGFkZmJhNjM5NzI0MThiYTZiNDdjNjIxOGYzMTgyZWQ0MzYxNzcifQ"
+        },
+        {
+          "resource": "repo://packages/connectors/src/run.ts#L181-L380",
+          "version": "repo-lines-v1:sha256:24fe69c33bd164a81fb0a818ce63cee52cbbf3da46dbd91741c660f9443f278d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJhMWNjZjQzY2E2MDc3YTkzMjM5M2Q3MjRlNWMxY2M0YzY3OTY4YmY4OWMzMDhiODM4NmFhNzNiNTcxODMxNTE1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0ODkzZjQwZTM3ODFlYjg5NmM4MmQwNDZhMDgwNjdhMTFlMzVjZGYyZjFkZmFmMjZmZWE5MGI4ZGI2Njc2NDEzIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjNDJjY2Y3MzdjMTRhZTQ2ZGEyNWU1OTVhNTdjMjYyNTdkODY5MGE4NDhmZTZiODY2ZDRlZDkzN2RlMjdiYWIwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlMjc1Yjk3MjdkNGNmMjNlYTIxMzMyYzY4OWNiOTM0MTBkMGJiYzI4OTM0NmQxZWUxOTZmM2NlOGI3ZjEyZGNlIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_2aae056667214c3fa2f4269e69f942e5",
+      "statement": "The connector run lifecycle is fenced by a monotonically increasing fenceToken minted at start; checkpoint, complete, and fail must present the same token or RunOwnershipLostError is thrown, a terminal run cannot be reused, and a run cannot be resumed with a different runKind; phase failures are wrapped in typed RunFailureEnvelopes.",
+      "evidence": [
+        {
+          "resource": "repo://packages/connectors/src/run-lifecycle.ts#L147-L187",
+          "version": "repo-lines-v1:sha256:fbd462cc6b26044f0bcaa54c4ab92d8147c4e3f7e3cbca29cd30c5fcf90cc7b3:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmMDk2ZWI0N2YxMTBhYTYzOTRkNGQ5ZjFiNGE4NzE0ODI2OTY3MTBjN2VmYmUwYTNjZWMxOTY0M2JhMmYwOGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZTU3ODhkNWQ5ZDczZDI0YTgxZGJjMGE1YTc0YmZhODJjOWMzYjNhZjk5ZTUyYWY3OTZlOTBiNDY4YThhM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFkYjNlN2NkMGMzYTYyMzA0NzY2ODE2MWQxMDRlOTlkODYyMDljYTNlNzc1NGEyNWIxMTlhNDkwNzg3ODA0MjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhNTlmMjJkM2YyYjM5ZGFiYmVhYjRlMTM0Mzg0Yzg2OGE3MmUwYWUyMmMwN2RlNzQ1MTE2NTYwMjA2NGRjZTMifQ"
+        },
+        {
+          "resource": "repo://packages/connectors/src/run-lifecycle.ts#L60-L115",
+          "version": "repo-lines-v1:sha256:a1559e8dff4b244ea8c82f896dfd973eb4bd25af5580b62f3ed1cd1d5d38571a:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwMjZkYWZkZWUxOGFlNWE5YzM2Yzg3MDc4ZTI2MGY4YWIxNzBhMzZkYzU1Mzk3NDNiNWU2ZGQzZjE0ODFkNWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ5MDIxZDk4OWI0NTI4NTgxMjA0YTNlMzUwMGRhMmRjZDEyMzM0ODllNTNkMDk1YTNhMmI4NWY3ZGFkZTY0OGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY5NDc3Y2MyNTRkNDMyZTU5YTllNmM4NzkyOTc3MjM3ZGE4MDFiOWYzZTJhNDVhZTYyZjJkMzQzYzQzNWMzYzMifQ"
+        },
+        {
+          "resource": "repo://packages/connectors/src/run.ts#L43-L103",
+          "version": "repo-lines-v1:sha256:7cc570e86b03382e0e5cdf3b439147ecb8d39c01ccf16c72b1dde63b1f977005:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxODZlM2I3ZTJmMGI0ZTY1N2NiZDExZjIyYmRjZTk0MmQ2Y2VhNDE5YWU4YmY0ZDVkZGZiNzNlOGQyM2ZkN2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVmYmM4OGNkMjA0YWVkNmQzNjgzZmIxZmM0OWMzOGIxYWUyYmY0M2RjMWNjNjE3MzEzNDk3ZGI2YWYxOTJkMjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc0ZmQ0OTM3OGY1Y2I4OWU4MmIxMDcyOTAzNWYxYjI5ZDBjZjk0OTg2MTA0NTEzZTRkZmI2NGMwOWE4OWJjYTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3b31327b830b4f29816b56c9ab026ce4",
+      "statement": "executeBronRun loads the durable bron record, enforces pollability/voorwaarden, acquires a per-bron CrawlDelayLimiter (refusing a policy change mid-run), runs runConnector, and for poll runs with lifecycle ports runs reconcileMissedPolls afterward, setting metrics.closed to the number of staled aanvragen.",
+      "evidence": [
+        {
+          "resource": "repo://packages/application/src/bronnen/execute.ts#L147-L216",
+          "version": "repo-lines-v1:sha256:7b5cc46d76b8fad729fdf1a62042234644d6c1a7cb9722e720de4410c6ac3656:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3ZGUzNzk3OGRhNzI4ZDQ2NGQyNDBlOGIyZTdlNTY2MGRlODFjNjYzOTUzMWMzY2VhZTU2ZWIwMDg5ODljMGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNhMDk4ZTQ5M2YyOTIzMDc3ODEyZTM0MWQzMDA2MjdlOTY1ZTE4NzA3YzVlY2I0OTRkMDQ3MmQyOTQ0YmY0YmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://packages/application/src/bronnen/execute.ts#L52-L78",
+          "version": "repo-lines-v1:sha256:747ccd19528cbe1d4de1e71d73620d9b89c477787a11335731879f94fb339376:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmMWMwYzljYWQ0N2E0ZTVlNmJlNDVmNTUwMjIzMzYxYzIyZTAyNDgzMTQ5ZTkzYzU5ZDMxZTBjOGYwNjRjMDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMxYzFlZjFkMTAwYmUwMTg5NmEyMmE4YjM0NmIzZDllNDdmNWY1MTgwOTA2Njk0NjhhZGRjYjBjMmM1ODNiNzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE2ZTViZDBjN2ExYTM0MTExN2NmMWU1ZjIxYzQ1ODk3M2M0MjQ5NjI5Y2E3MzdmNjRiYjVmMjgxOGQ3ODgxOTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2d5aaae60e6a4517b08ba37f4fcbbec5",
+      "statement": "New raw object writes use the content-addressed scheme: buildContentAddressedRawObjectPath validates bronSlug ([a-z0-9-]+, no slashes) and contentHash (64-char hex SHA-256) and builds raw/<slug>/<year>/<month>/<hash>.<contentType>, so same bytes always resolve to the same key and readback is digest-verified (RawObjectDigestMismatchError on tamper, RawObjectMetadataMissingError on a body without its .ji-meta.json sidecar).",
+      "evidence": [
+        {
+          "resource": "repo://packages/connectors/src/object-store.ts#L98-L176",
+          "version": "repo-lines-v1:sha256:4fd5c422f09292503ffa80f471b45496598ada6601146ae9a16f0cf633e2e526:eyJzZWxlY3RlZExpbmVDb3VudCI6NzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2ODA2M2E0YmRhOWM0ODEwYmZmNzliYTE4MTM5NWM0NGQ5NTMxM2ZmNDA0ZGM2MDBhODYyMzY2NDU5ZWYzN2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY1ZmRhYzc5MzFkZjlkZGUyZDc5MTc3YTAxNzg3MmJmYWU5N2ZiYTBhOWM5M2ZiNjc1OTI5OTAzZTkxYmMzNTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMTZlNTg2YzFmZDA1Zjc4OWQ2MWFlNGI2ZmQzNDFjNjliYjg4M2UxODM4NjNkNTYyY2I4Y2NjNmZlYzJmNzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_69e3cb6295e7453d926024109ed00f97",
+      "statement": "The poller runtime selects the same raw object store factory as the server and refuses to start in production if the selected backend is the worker-local filesystem, because a raw payload written to the wrong backend would read back null on the server.",
+      "evidence": [
+        {
+          "resource": "repo://apps/worker/src/poll-bron-run.ts#L114-L145",
+          "version": "repo-lines-v1:sha256:696b56a6e00b96196355c5a63ff6791883f69dffbd49e859f40fe6a710b15095:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM4MTBhZDE3OWFmNmZjNWFkN2MzN2Q3ZWRjYzA2NGE1ZTg4OTZiZmM4Mzk5ZmMxNjgxNGQ4YjFkOTQ0ZTQ5NTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZTU3ODhkNWQ5ZDczZDI0YTgxZGJjMGE1YTc0YmZhODJjOWMzYjNhZjk5ZTUyYWY3OTZlOTBiNDY4YThhM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQzZGEzNDNjOTA5NDg3ODRlNjhmODJmNjZjM2IwYzMxNjAxZWQyZDBlYjMyODdmOGQxYjNjZTU5MzQxZGI3ODgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ0YjFhOWVkNTBiN2FhN2FmYTYyMGU3MzQxNzY0MzIzZjhiM2UyNzYwMTYzMDE5MTI4YmU2MmM2NTUyZWIxZDMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_999cb5e68ef8496cb4bdd60659447a57",
+      "statement": "ObservationRecorder.record atomically classifies a source record and appends its immutable observation, guarding the fenceToken, checking the observation run key matches the payload, deduping by replay key (scrapeRunId, bronId, bronReferentie, contentHash), and returning outcome new/changed/unchanged by comparing the incoming contentHash to the existing source record hash.",
+      "evidence": [
+        {
+          "resource": "repo://packages/connectors/src/observation-recorder.ts#L21-L85",
+          "version": "repo-lines-v1:sha256:0844b5843c9739c5ebf08e48e48ab165cce1cf952650570a36375ecfcd7ac7ac:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5OGNlOGFhMGM2YjMzZmY3N2E2NjE5NmU3MTg2YjU1ZjQ0MDkwNWMzYmVmYTFkOTlkOWU4YWQyZDYyZDgzNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZTU3ODhkNWQ5ZDczZDI0YTgxZGJjMGE1YTc0YmZhODJjOWMzYjNhZjk5ZTUyYWY3OTZlOTBiNDY4YThhM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkwODk1ZmFkNjYwNmYwMTQ1MTEwMGUwZTNmMDliZWI0ZmFiODIxYzk1YTM1OGY2N2Q2Mjc4ZTU2ZjU3YmU2YjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6bcb40832af24bb6a531804b309e1691",
+      "statement": "Normalisation is per-source: each source's normalise(body, contentHash) maps its raw payload to the shared NormalisedAanvraagDraft (NormalisedField values with provenance, a NormalisedTarief, and lifecycle fields), backed by shared helpers classifyContractAndWork, tarief, hours, buildDedupKey, and validateNormalisedDraft.",
+      "evidence": [
+        {
+          "resource": "repo://packages/application/src/normalise/index.ts#L1-L66",
+          "version": "repo-lines-v1:sha256:de8691c53ae039e76b8a816387975034a7e8813933eef22e4c51fa4e318d85dd:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjExNzQ0MjkwOTg3MDNlNjM0Y2M2NjRlNDk3NWQxNGFjNDkxMjc0OWU1MTYyNGFiMWEzNTNiZTI0NzNmOWMxMGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlNDA5OWUyZDUxNTVlM2Y4MTMzMTQzZTE2NmZkNWE2M2I2MzhiMjBmODdkYjBhZGRlNDhiMzk0N2Y4ZGYxNjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA1MTk5MDA1NDI4MWFlMGNmYjQ0ZTBiYjRmMDdkZTNhZDYxNzM3OWE3NzcwNzEyZTdkYTk2NTgwYzgwZmUxYTMifQ"
+        },
+        {
+          "resource": "repo://packages/application/src/normalise/types.ts#L50-L95",
+          "version": "repo-lines-v1:sha256:f969c0cc1efb44c266ca3c773173cbd14aee82012e61278de662ac5479ea517b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmI5ZmEzYjY1YmY1ZTYwOWIzZTRmMWExZmNmMDc2YmQwMDk2ZjFiM2Q2NGM5YTAxNTMzZTUyYTZhZTdlYzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQzMmEyNGY4N2ZhZjBmODg5MWYzMzc2ZDllNDljYzExZTQyOGRlODg3MGM4NmI0Zjc0YjI4MGZlNDUwNmVjMmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI0ZGRkOTFlYjhlMWY0NTRmZjVkNjM3YWYyMDVkZmEyZjQwZTIwMTM3YmEzYWM5ODIzNjU1MDg0Y2IzMzg1YTUifQ"
+        },
+        {
+          "resource": "repo://packages/application/src/sources/definition.ts#L40-L40",
+          "version": "repo-lines-v1:sha256:049978072fc6017040432ce6a596374082655ad294843a60dc3ba0d91b22c1c7:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDQ5OTc4MDcyZmM2MDE3MDQwNDMyY2U2YTU5NjM3NDA4MjY1NWFkMjk0ODQzYTYwZGMzYmEwZDkxYjIyYzFjNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDQ5OTc4MDcyZmM2MDE3MDQwNDMyY2U2YTU5NjM3NDA4MjY1NWFkMjk0ODQzYTYwZGMzYmEwZDkxYjIyYzFjNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTcyZWE0OGQ2NjRjNTI1ZjkzMTA5YjkzYThhMTc1MmE3YjU3OTdhY2IxMDFmMGY5NDJjZWEwODRiM2QzMGUxMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDNkNzEzNDg3NDQzNjg2OGQxMTI2N2YyMDhmNjY4ZjY3MjkxY2RkYmE3MDYxZDgxN2EyYWYwYzg5N2RjYzcyNCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_feda0653592b460c9a4d391b78181b1e",
+      "statement": "processObservation runs the source's normalise, validates the draft (quarantining on missing titel/beschrijving/bron_referentie), then calls curateObservation, which is the single writer of curated aanvraag state.",
+      "evidence": [
+        {
+          "resource": "repo://packages/application/src/identity/process.ts#L35-L69",
+          "version": "repo-lines-v1:sha256:4896139a6ef61991271e28e7dddd1eaa3b4db6d504b9cda437936af27eb14a74:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQwMjFhNmUyNTRjMjdhMmQ5NWEyOTEzYzBhNDkwNGQzNjM1YjE5M2QwYmVkZjM4MWNmMzI5YmMwYjc3YzJiODkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyYTJjYjI1YTEyMmI0NDIyMWE2MjM0ZWM2NjBhN2I1ZmI3ZjliZGU3YjNiOWUyYjNjNTU5YTBkOTZmYWM3MzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk4ZDM3OGFhZDM0NzY1NzRhMDlkNjdmNTI2MjUzNTkwODZlNmJmYjA1NjIxNTU3NzUxZTAyZTcyMGQ1YzhhNTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
+        },
+        {
+          "resource": "repo://packages/application/src/normalise/types.ts#L78-L95",
+          "version": "repo-lines-v1:sha256:e779fb67cb887eab3e552dba63c177acb2ad80115671f01e5193b1189005435e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBiMGYwYjU2NTJkNGI2ZjM1M2NiMjdmYmM0YTA5YjdlNTllNzgwNzQwYTYxMDk1MDFkYWQxNTc3YmViNDBlZGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY2NDBmNjc0YTU4MDViMzc0MWRiM2ZmZWJhODlmNDFkNDVlZjNhNGY0Zjk5NDExODNjM2NhODg2OWIzMmQ1ZmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI0ZGRkOTFlYjhlMWY0NTRmZjVkNjM3YWYyMDVkZmEyZjQwZTIwMTM3YmEzYWM5ODIzNjU1MDg0Y2IzMzg1YTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d3f881cd32334da59f4a5e7bff4c3ae3",
+      "statement": "curateObservation writes SCD2 aanvraag rows, dedupes via dedup_groep keys (buildDedupKey over opdrachtgever + start + titel, ensureDedupGroep safe under concurrency via a unique index), and emits outbox events (aanvraag.nieuw, aanvraag.gewijzigd, aanvraag.status_gewijzigd) for the projector.",
+      "evidence": [
+        {
+          "resource": "repo://packages/application/src/identity/curate.ts#L567-L577",
+          "version": "repo-lines-v1:sha256:9885bd34b92d3b5bf7f4582ae4a9788a2a962440d4edf97b78959d159e416682:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2ZDRjMDhjMDYzN2E3ZDMwM2NmMDJiZmJkZTQ3ZjFkNmFhMzM5YTkwMTg2OTQwNmE5MWVmNTA5NTUxNTAxNTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNhM2U0NmY5NDI3NmI2ZjZmNGVkMWYwMmFmNzhiZWY2YTJlZTFjNDM5ZGQ1NTg0Yjk3Mzk0ODMxMzIxNGQyYjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFkMzcxMTUzNTRkNzBkNTMwNjVhODA5NWQxNzQ2NGE4ODFkMDA3ZjViZjRkMGFjZjAwMjNjMjk5YzY0ZDZkZGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUxZDA2ZjgxYzA1MDEwMDg5MzI4OTRiNjRiYTYzMzE0Zjk5NjliM2YzYzBiZjg4YmUzZThiNDJkOThkYzcyYWEifQ"
+        },
+        {
+          "resource": "repo://packages/application/src/identity/curate.ts#L765-L923",
+          "version": "repo-lines-v1:sha256:48d4bead76825b88dbd461b1fdfa789553da2e306bff264420db9833deddf6ee:eyJzZWxlY3RlZExpbmVDb3VudCI6MTU5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlZWY0OWFmMGFhYmE0MTQ2OTg2N2FjOGFkYTRhY2U4MzJlMTY4OTI1YWZlODg4MTFiMmJkYjdiZTM3ZWI4NzY2IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJhYTFkMWE2MzM5MDIyOWM3OTgzNDdlODNhMDQwNTQ0MWM5NDAwMDM1Mjg0YWQxNjhjMWJmNmNkZjFkNzBhMzcwIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIxMzgzYWMxOTk4YWQ4ODI4ODQ1YzcwZWRmZjlkMjVmY2M3ODk1N2Y1NTMwYTc5ODM4ZDUxODRhMWUxNzBmZTQyIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI1OWFhYzY4ZDczYmE5NWExOGQzZGE3OWY3YjYzMzEwN2YzNDM4NDNmOGIzYmVlOTM1MDAwMmU4NmQzYjJhOGQ4In0"
+        },
+        {
+          "resource": "repo://packages/application/src/identity/curate.ts#L89-L117",
+          "version": "repo-lines-v1:sha256:4098637ae8ae70fbcc0302b31054150b74d2f35f8c00382b78802ee11f694b1f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkyMWU1ZjA4MDk0YzBkNWM1YzI3MzZjMjAzMWNlZWFmYTAwZGU5NDZlMTdmMTA5YTllN2ExOWM5YTliYmM3YTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2MmIyNzk2ZGNhNzdmOGZiZDg0YjczODlhZTQxYzk4Y2MyZjI1NDA4NTE2MDZkNTlmNjg3Y2I3MDMzZDk3Y2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBlMmI5ZmFiMjU3OWNmODA5MTAwNzAxMTVkYmY2MDU1ZWI0ZDY4Y2RhZTY0YmZhMjc2ODcxM2IxMDU4Nzc0ZDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI2ZGVhY2U1ZjBkNWM1YWExYWM3YmViMzc0NTlmNWQ1MmZlMmJkM2QxOTUzZjEzOWQ2OGQwNDg4OGI2YzA5ODMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_82d9a436192b4bf793a17eb025275db8",
+      "statement": "Every curate mutation is one transaction (withTransaction, RJC-399): the SCD2 versie, the aanvraag row, and the outbox event commit together with the outbox insert last, so a crash can never leave Postgres on a new status while the search index keeps the old.",
+      "evidence": [
+        {
+          "resource": "repo://packages/application/src/identity/curate.ts#L122-L131",
+          "version": "repo-lines-v1:sha256:ef86cd0bac8320628635965d5dce17bf2bb9c65f86239832e551a8dac674f77b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiMjM5YWQ4NjI5ZTNiY2ViYjEyYjcxYzI3YjgwMjhlMTgxNGFhM2QzYjgyMmU0MmI5MWNjODdmNzFhMDA2MzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMxOTU0NTFkYTcxYzI4ZDYzNGVhNjA4NjUxNTcxODRjMzEzMjNlYjQ1NTk2YmU0OTc3ZmVjN2YyODg0YzUyZTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3M2U0MzE2Njc3NWM3MDk2Y2QwNTk1NTcyOWIxYTkwMmUzZjNmMWMyNmY2NzdmMTgwNTEwZWQ1YjBlYTBiMTYifQ"
+        },
+        {
+          "resource": "repo://packages/application/src/identity/curate.ts#L779-L822",
+          "version": "repo-lines-v1:sha256:1339e2e7199df156bbabf8f02ffda4a7cb09dcd03fb92ac7c032091d682291a8:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA3YzA2YmE4NDE0NGUxMzU1YWQ3YjIwMzhiZDQ1NTZlYTZmNzEyNmMyY2E1ZWRmZTY4ZGVhNjY1MzQ5NzBiODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZTU3ODhkNWQ5ZDczZDI0YTgxZGJjMGE1YTc0YmZhODJjOWMzYjNhZjk5ZTUyYWY3OTZlOTBiNDY4YThhM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzNDkwNWE0ZGNjNTI0MTdiYmM1MzU3NjQxOWNkNmQ3ZDJjZjFjNzY1N2UzNGVkNGEzNmQ0NWE1Mjc0NzI4YzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBmYTMyOWUyMTEyYzA5YTcwMDk0Mjk1Yjg3M2Y0ZDMwYzI5MDE0OWVjOTY2MDhkNTU5MTlhMjYzNmRmMWFkY2QifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f1249f97c8d74a05904b4a5203892ba3",
+      "statement": "For an unchanged content hash, curateUnchangedContent applies a sparse patch only where the draft has a value (so a source that stops publishing a deadline never erases an earlier value), opens a new SCD2 versie only on a status flip, and always enqueues an outbox event because every field this path can move is part of the search projection hash.",
+      "evidence": [
+        {
+          "resource": "repo://packages/application/src/identity/curate.ts#L579-L745",
+          "version": "repo-lines-v1:sha256:171e5ec99322d186f1718271e96428b62e7e8072eeb8ca96dd6ebd2bd4761f4c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTY3LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlYWYyMmNmMDczMjU5MmMyNDcxNDFjYmU2MWVmYTExMDEyNjEyZjVhMzEyMmI5YWY5YmJhZjUyZjU3MjRkMTk0IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJhYTFkMWE2MzM5MDIyOWM3OTgzNDdlODNhMDQwNTQ0MWM5NDAwMDM1Mjg0YWQxNjhjMWJmNmNkZjFkNzBhMzcwIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI5NTg2MDMwZDViM2JiNDdhYzdlNjNmZTYxNDk2OGE0ODllM2Q1MTRjYmVjMmVkYjljMzU5OTkxZWRjMmIyY2ViIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI1MmQxNmIwYWYxNThmYWRkNzk5MmNhN2U1YTk4OGJjOTU5NmVmMzE5ZmJlODUzZTY4MjE1ZjE1YzU0YmZlZTg0In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_fe69bbbd384044f99a61c16133e1191a",
+      "statement": "curateScrapeRun drains recorded observations for one bron through processObservation, loading candidates in recoverable statuses (awaiting_curation, pending, blocked_ordering*, deferred_missing_raw*), ordering them fairly oldest-first per identity, and processing each inside a transaction that takes FOR KEY SHARE on the run and FOR UPDATE on the source record and observation row.",
+      "evidence": [
+        {
+          "resource": "repo://packages/db/src/curate-scrape-run.ts#L30-L44",
+          "version": "repo-lines-v1:sha256:2aaf06fefe1187469ed4072ee66aa13c757ab973863cc9004d0cbd76ee9425d6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4NDc3MWQ4ZmYwZTUyNzg0NmJjMTUxNzBjZDQyNWM0OTQ4MGNiOGViOTY2ODg5ODExMmI3NjQ4NDBjYzhhMmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiMWE5ZjFjZTVmODAzZjdmZjQ2MTllYjUxYjI0NGMxYmNmZTYwNDMwZTAyZDk1MTY5ZDE0NGUxOTI0OTgyMTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRiZmI1ODM3ZDA0YzNkNTgyMmIzMDM3MzdkNDI0NWVhODdiYTNkMzNjMGZjZTc3ZDdkY2QyYWRjMmQxYjZmZDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ4ODI4MTNhN2ExOTE2ZTkzY2I5Yzg2MmY4MzcxYjQyNmFlZmE1YWVjZGQxNzgyNDI0MWNkYzkyYmE2NDZmNDYifQ"
+        },
+        {
+          "resource": "repo://packages/db/src/curate-scrape-run.ts#L404-L441",
+          "version": "repo-lines-v1:sha256:e66dbf1c6dbdbc5d04666c3cf336ee834a773adab30544daff12c964118b862a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4MWZhZjhmYTJjNmY4ZGViNzAwNTNlMTNhZGNhYmZmODZiYTJmZDc0YjA1Y2YzYTA3OTAxMjg3NzRjMzJiN2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcxY2Q0NzVmOGExMTk1ZTI2YmE2ZTNiMWFkNjBhZTc5ODgwMzJiYjBlOGY2OTRhNGUyZWJlOTkzOTJhOWNiNDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUzMzlhNzM5YjM4MTgzNjVmYTY2YzQ1MDA3NmQ1NWQ1ZDIyMDZmMTBmY2I3OWEzOWM0MTMxMGRhNmM1ZWIxYzAifQ"
+        },
+        {
+          "resource": "repo://packages/db/src/curate-scrape-run.ts#L821-L930",
+          "version": "repo-lines-v1:sha256:6a1e28452f991d883ab45cc6980831067e8f915f8bf214319a6f52fdc9d275ae:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmMTZjYTc1ZjY2OTBmODhiM2FkYjE0MWViNzJjZmQ3ZWYyYjY3ODQ1M2M1NTQzMmU0NmY0ZmNiZGQwMWY3OWU1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIzYTNlNDZmOTQyNzZiNmY2ZjRlZDFmMDJhZjc4YmVmNmEyZWUxYzQzOWRkNTU4NGI5NzM5NDgzMTMyMTRkMmI3IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIxNmVmMTViNGU0MWFlMWY2ZmUzN2Y1ZTk3NjQ5ZjE3YWQ5ZTlmNWQxYmFlOTc3NjQ2NmI2MmEyYzljYjM5MjUyIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI0YjgwYmMyNWE4Y2EwMWEyODk1MDZmNGIzZjk3YWM2YTZlNmVmNDc4NmFiMzFkYmQxYzJmYzViYTBiM2Y1NDE3In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_2a547a204bd34f7e84b0b4a852222e6f",
+      "statement": "Curation failure semantics distinguish infrastructure failures from row failures: transient Postgres SQLSTATE classes (08, 40, 53, 57) and client-side connection codes abort the pass leaving rows recoverable; an unreachable object store (RawReadError) aborts rather than deferring; a genuinely absent object defers to deferred_missing_raw; a row-specific failure parks the observation on terminal curation_failed (outside RECOVERABLE_STATUSES so it is never re-selected), and after MAX_PARKED_PER_PASS (5) parked rows the pass throws TooManyParkedObservationsError in case the failure is systemic.",
+      "evidence": [
+        {
+          "resource": "repo://packages/db/src/curate-scrape-run.ts#L1041-L1083",
+          "version": "repo-lines-v1:sha256:6508f4a89cbda841cf8bd00592c11dc19e6491c2816071d16d3a675f612ef319:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM1NWQyYTY0ZjFlYWYyOTUyMjU1MmQxNWU4ZTViMDY3OWE2YzAxYTJlOWIyMTFkMjg3NGQzZTk5OTc2ZGUwMTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZTU3ODhkNWQ5ZDczZDI0YTgxZGJjMGE1YTc0YmZhODJjOWMzYjNhZjk5ZTUyYWY3OTZlOTBiNDY4YThhM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmZTMxMmNkMDg2NGM3NjdmNTUzMTMxMjhhNzA5MDc0MTQwNDFiYmY1NDUxMWFjNDZhOWQ1ZGI2NGRmZTMwZDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEyNDIzODhlYzZlMjk2MDZjNzNjNTJhZjUyZDQ5MDFkOWFiY2FjNzYzNmQ5NjA2MmJjZGMwY2MzOTAwODEyZDQifQ"
+        },
+        {
+          "resource": "repo://packages/db/src/curate-scrape-run.ts#L46-L119",
+          "version": "repo-lines-v1:sha256:1a44385d8825de0fb5e76f952513f3b375094c64c93cd5f5f73ae0cf34ecde55:eyJzZWxlY3RlZExpbmVDb3VudCI6NzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1ZTI2Y2Q5MjM2NmY2MGQ4ZWQ5MmQwMjM5ZjA3ZmVmNzRjYWMxNGFhNjlhZGRmOWMyY2MwZDExZWIwMGE0NjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiMjA3OWZmODA5MTEzMjNjZGM2YWIzYWNhMTZmNTZlNjg2M2JiMDg4NmJhYjIzYjJlZWMwNzU4NzczMTNlNTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJkMGFjM2E3NzQxMTQxNDJhNDhlZjE3YWM1OTI2NzMxNzNmOTRiODk1MjIyNzQxZGJlNWQzNTg1NmQ0MTJkZWUifQ"
+        },
+        {
+          "resource": "repo://packages/db/src/curate-scrape-run.ts#L750-L820",
+          "version": "repo-lines-v1:sha256:887b7200e57730b569bdff65e2e7bdd83755b3c1624530a37cd6c241986ed430:eyJzZWxlY3RlZExpbmVDb3VudCI6NzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAxZmFhZTExNjNkMWQwZGNmM2ExYWEyZDNjZDYzMjBlMmVkMjhhZWRiOWE2NzZhY2Q0YzY3N2Y5NTU0ZDZhZDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVjYjgxMjc1NTdlMjBjMGQ2NjYwMGE4YjNmNTU0ZTQyMTQzZjUxOWQ0OWQwNjkyOTYxYWI5YTMyN2ZjZmU4M2UifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_29abf958908d42f292f78ec209e18553",
+      "statement": "runBronIngestPipeline orchestrates the whole flow: it loads/derives the poll result, calls handleSilenceAndHealth, runs curateScrapeRun, then drainOrDeferToProjector; in onbox mode it drains nothing and returns indexVersion null because a separate projector process drains the outbox, so the poller never constructs a ManticoreSearchEngine or needs MANTICORE_URL.",
+      "evidence": [
+        {
+          "resource": "repo://apps/worker/src/poll-bron-run.ts#L247-L276",
+          "version": "repo-lines-v1:sha256:415049bcbfb15beceb7cc2060115338dd7714e024534db7308722ba87d14a9ea:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI5YWY0Mjg0MTEzYWY5MDJmNDkxNTJkZDllMTZmODdlZDcwOGZjNTM2YTUwZjQ5NzYzZDY2NDcwMDQ3NDgwM2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVlYjBjYjhmOWNhOTJjYzRkZGQ4NGEwNTQ3NDE2YjM5MmNkNDEwMGIyMTVmY2ZiMjllYjBmYjQzZmQ0Y2U4ZWUifQ"
+        },
+        {
+          "resource": "repo://apps/worker/src/poll-bron-run.ts#L351-L445",
+          "version": "repo-lines-v1:sha256:b1a29f6bed5f69e00c44362215f2794236662c1332bd683a81ba0ea69bf7b69f:eyJzZWxlY3RlZExpbmVDb3VudCI6OTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViN2UyNDEzNTUxNGIyMDk5MjY2NmE3Yzk1ZjY0MWMzYjA5OTU0NmU5Zjc1YjAwYTg2NTk2M2U0ZDcxMWIwMTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0YTc2MDI3ZDY4ZTM2ZDRiYTczYmE0ZTJkNzRjNTczMjJjMTQwMWZjZTg0NzNhOWJjMWUxZWEyNmI3ZmQ2NjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3MzA5M2Q0MjRlZDhjYTJmZDgxMTU2NjlmMDMxMDZlNzI1YWRjNGU5MjE2ZDRhMTAxODBhYzBhZjhhNzI5YTYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_14e1a7e8e1144983b31167ab0752c26f",
+      "statement": "Fixtures are real recordings with capturedAt from file mtime, never invented markup; a connector whose liveEnv flag is unset reads from a repo fixture and the pipeline commits it into curated as if it were the real source, which is the basis of replay, smoke seed, and test-import runs.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L44-L44",
+          "version": "repo-lines-v1:sha256:f2cac1225816a8bea5ccad312a473477c806ee03ea56f05d29289ef6a20ed7ae:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjJjYWMxMjI1ODE2YThiZWE1Y2NhZDMxMmE0NzM0NzdjODA2ZWUwM2VhNTZmMDVkMjkyODllZjZhMjBlZDdhZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjJjYWMxMjI1ODE2YThiZWE1Y2NhZDMxMmE0NzM0NzdjODA2ZWUwM2VhNTZmMDVkMjkyODllZjZhMjBlZDdhZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzRlY2UzZGI0N2QxYmM0YzEyMjRkMjg2OGZlMjVhYmIyNzIwZDNmZTYxYTlmOTk5OTAyYmUzOWNiMDI0NWJmOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGU5MzcyNDAwNGYxNmU1Mjg5Nzk0NjFkYzhkMWQ3NWFjNGFkYmFlODNlMzE0MDUxNmJlZDU5ZTgwZTVhYzdjYiJ9"
+        },
+        {
+          "resource": "repo://apps/worker/src/poller/schedule.ts#L42-L52",
+          "version": "repo-lines-v1:sha256:4360bc779896c9e933db40c8b2b30d0c7d46a69bc822f0958d084b614855e785:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzYzE4Nzc5NDkyMzMwNzBmNmRhN2EwY2JmODI2MjMxZTMxNzc1OTRhYjU1NzI5YmFmZjk3MmMxNGZkNjIwYWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ1MzBmYWQxY2I2MTUyMTcwOTAwYzlkYzI4YmNkM2UwNWIwZDkyY2FmOGZiYmU1M2ZhYzNiMzI1OTc2NWE3MTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU5MzZjYTVlOGY2NzFlYWQwYjhiMmViM2I1NmQyM2Q4MzI5YTNhMDE2N2YwYWFhMzFiZDlmMTZkNDUzNTcyYWEifQ"
+        },
+        {
+          "resource": "repo://packages/application/src/sources/inhuurdesk.ts#L11-L18",
+          "version": "repo-lines-v1:sha256:0854ce3ad39f3acca476094bb9ca55d859558bf1506cdb2b28beb38021b2f52c:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjFlMmY5YWJmMGIzNDc1MzA3NGEyZWRhNmI1YzUwYmM1ZjRhZDcwNTAzZTU1MTE4NDUyNDY5YmRmNjY4YTA5MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDk5MGViNmNjZGIwZmVmY2MzYzlhODgzYzg3OWM5ODY2YmUzMzkzMWNhYWFiZjM2NjJkN2FjNGM0MTNlYzhiMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTI2YjA1N2MxZmM4NDEwYzFhOTgzNzI1MDI4YzQwZWI3YzE1ZDExZGIyM2FiY2Q4NDBmYzhmNTFlN2JhZmUwZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWRlNTQzY2NiYjVkMTU0MDQzMzU2N2IzZDE3NTdkZGIxNjdkYTAzOTYwZjQwODQ3ZmQzNDc5NTRlZjkwZDk1OSJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.4.3",
+    "at": "2026-09-14T14:34:20.891Z"
+  }
+}

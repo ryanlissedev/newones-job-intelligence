@@ -1,0 +1,30 @@
+{
+  "name": "@ji/search",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./adapter": "./src/adapter.ts",
+    "./projector": "./src/projector.ts",
+    "./manticore": "./src/manticore/index.ts"
+  },
+  "scripts": {
+    "check-types": "PATH=\"./node_modules/.bin:$PATH\" tsc --noEmit"
+  },
+  "dependencies": {
+    "@ji/domain": "workspace:*",
+    "@ji/env": "workspace:*",
+    "@ji/performance": "workspace:*",
+    "effect": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@ji/config": "workspace:*",
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  },
+  "optionalDependencies": {
+    "redis": "^5.10.0"
+  }
+}

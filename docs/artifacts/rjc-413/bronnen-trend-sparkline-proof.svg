@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-label="RJC-413 visual proof mock: Bronnen trend + sparkline">
+  <rect width="960" height="540" fill="#0b1220"/>
+  <text x="32" y="40" fill="#9ecbff" font-family="ui-sans-serif,system-ui" font-size="18">Bronnen · trend + sparkline (RJC-413 / D7)</text>
+  <text x="32" y="64" fill="#8b9bb4" font-family="ui-sans-serif,system-ui" font-size="12">Stacked nieuw / gewijzigd / rejected · failed line · per-card sparkline (shared width)</text>
+  <rect x="32" y="88" width="896" height="220" rx="8" fill="#121a2b" stroke="#243149"/>
+  <polyline points="60,260 140,210 220,230 300,160 380,180 460,140 540,170 620,130 700,150 780,120 860,145" fill="none" stroke="#5b8cff" stroke-width="2"/>
+  <polyline points="60,270 140,250 220,255 300,240 380,245 460,235 540,238 620,230 700,232 780,228 860,225" fill="none" stroke="#f07178" stroke-width="2"/>
+  <text x="48" y="112" fill="#8b9bb4" font-size="11" font-family="ui-sans-serif,system-ui">Trend (ComposedChart)</text>
+  <g transform="translate(32,340)">
+    <rect width="280" height="150" rx="8" fill="#121a2b" stroke="#243149"/>
+    <text x="16" y="28" fill="#e7ecf5" font-size="13" font-family="ui-sans-serif,system-ui">TenderNed</text>
+    <polyline points="16,110 50,95 90,100 130,80 170,88 210,70 250,78" fill="none" stroke="#5b8cff" stroke-width="1.5"/>
+    <text x="16" y="140" fill="#8b9bb4" font-size="10" font-family="ui-sans-serif,system-ui">Sparkline · nieuw</text>
+  </g>
+  <g transform="translate(340,340)">
+    <rect width="280" height="150" rx="8" fill="#121a2b" stroke="#243149"/>
+    <text x="16" y="28" fill="#e7ecf5" font-size="13" font-family="ui-sans-serif,system-ui">CTM</text>
+    <polyline points="16,100 50,105 90,92 130,98 170,85 210,90 250,82" fill="none" stroke="#5b8cff" stroke-width="1.5"/>
+    <text x="16" y="140" fill="#8b9bb4" font-size="10" font-family="ui-sans-serif,system-ui">Sparkline · nieuw</text>
+  </g>
+  <g transform="translate(648,340)">
+    <rect width="280" height="150" rx="8" fill="#121a2b" stroke="#243149"/>
+    <text x="16" y="28" fill="#e7ecf5" font-size="13" font-family="ui-sans-serif,system-ui">Inhuurdesk</text>
+    <polyline points="16,120 50,110 90,115 130,100 170,108 210,95 250,102" fill="none" stroke="#5b8cff" stroke-width="1.5"/>
+    <text x="16" y="140" fill="#8b9bb4" font-size="10" font-family="ui-sans-serif,system-ui">Sparkline · nieuw</text>
+  </g>
+</svg>

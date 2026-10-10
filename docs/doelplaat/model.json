@@ -1,0 +1,1728 @@
+{
+  "meta": {
+    "naam": "Catapulze IT-architectuur staffing & recruitment (to-be)",
+    "versie": "1.1",
+    "datum": "2026-08-25",
+    "afgeleidVan": "FUUSE — Ideale IT-architectuur (to-be) v4, 20 augustus 2026",
+    "eigenaar": "Robbie Sakkers (Catapulze BV)",
+    "project": "Catapulze - Development (Claude-project)",
+    "plaat": "https://claude.ai/code/artifact/29929046-d135-4e70-a64a-ac805864dc02",
+    "legenda": {
+      "live": "Aanwezig / live",
+      "werk": "Werk in zit — gekozen, in inrichting of te valideren",
+      "open": "Keuze open — te onderzoeken",
+      "nieuw": "Ontbreekt — nieuw op te bouwen"
+    }
+  },
+  "groepen": [
+    {
+      "id": "agents",
+      "laag": 4,
+      "naam": "Agentlaag",
+      "kicker": "Laag 4 · Agents",
+      "status": "nieuw",
+      "statusLabel": "Nieuw op te bouwen",
+      "sub": "Digitale collega's die afgebakende taken uitvoeren in de staffingprocessen — gebouwd met welk platform dan ook",
+      "logica": "Pas bovenop de drie lagen eronder worden agents echt waardevol — ze erven de kwaliteit van alles eronder.",
+      "koppelvlakOnder": "Agents handelen & leren uitsluitend via het Company OS"
+    },
+    {
+      "id": "os",
+      "laag": 3,
+      "naam": "Company OS — besturingslaag",
+      "kicker": "Laag 3 · Middellaag",
+      "status": "nieuw",
+      "statusLabel": "Nieuw op te bouwen",
+      "sub": "De tussenlaag waar agents en mensen veilig en gestandaardiseerd bij de core-applicaties kunnen",
+      "logica": "De besturingslaag die agents en mensen gecontroleerd toegang geeft tot de core, met feedback loop en memory als lerend mechanisme.",
+      "koppelvlakOnder": "MCP-koppelingen naar de core-applicaties"
+    },
+    {
+      "id": "core",
+      "laag": 2,
+      "naam": "Core-systemen",
+      "kicker": "Laag 2 · Uitvoering",
+      "status": "werk",
+      "statusLabel": "Deels aanwezig",
+      "sub": "De applicaties waarin het dagelijkse werk gebeurt — elk systeem werkt met unieke identifiers richting de datalaag",
+      "logica": "De gekozen en aanvullende applicaties voeden de datalaag via gedeelde identifiers en blijven de plek waar het werk gebeurt.",
+      "koppelvlakOnder": "Identifiers, events & datastromen voeden de datalaag — inzichten stromen terug omhoog"
+    },
+    {
+      "id": "data",
+      "laag": 1,
+      "naam": "Datalaag",
+      "kicker": "Laag 1 · Fundament",
+      "status": "nieuw",
+      "statusLabel": "Nu niet aanwezig — gepland",
+      "sub": "Eén centrale plek waar alle data uit het ecosysteem samenkomt, gekoppeld en bruikbaar — cloud-agnostisch opgezet",
+      "logica": "Alles begint bij één centrale, schone datalaag; zonder dit fundament blijft elke AI-toepassing gokwerk."
+    },
+    {
+      "id": "compliance",
+      "laag": 0,
+      "naam": "Compliance & security",
+      "kicker": "Over alle lagen heen",
+      "status": "dwars",
+      "statusLabel": "Randvoorwaarde",
+      "sub": "Randvoorwaarden, dwars door elke laag",
+      "logica": "AVG, EU AI Act (matching = hoog risico), identiteit & toegang voor mensen én agents, centrale audit/logging via het Company OS, en bronvoorwaarden & arbeidsrecht voor staffing."
+    },
+    {
+      "id": "harness",
+      "laag": 0,
+      "naam": "Harness",
+      "kicker": "Over alle lagen heen",
+      "status": "dwars",
+      "statusLabel": "AI-toegangslaag",
+      "sub": "AI-toegangslaag voor mensen",
+      "logica": "De menselijke ingang tot het geheel, dwars door alle lagen, inwisselbaar van leverancier; klassieke BI en dashboards bestaan ernaast, rechtstreeks op de gecureerde datazone."
+    }
+  ],
+  "componenten": [
+    {
+      "id": "spott",
+      "groep": "core",
+      "rol": "ATS/CRM",
+      "naam": "Spott.io",
+      "leverancier": "Spott",
+      "status": "werk",
+      "statusLabel": "Gekozen",
+      "samenvatting": "De recruitmentkern: professionals, opdrachtgevers, aanvragen, voorstellen en plaatsingen. Gekozen als ATS/CRM voor de staffing-kant.",
+      "werk": "Inrichting, identifier-afspraak vanaf dag één, en de koppeling naar de datalaag en naar Job Intelligence.",
+      "entiteiten": [
+        "professional",
+        "opdrachtgever",
+        "aanvraag",
+        "voorstel",
+        "plaatsing"
+      ],
+      "stromen": [
+        {
+          "richting": "in",
+          "met": "ji",
+          "wat": "Gekwalificeerde aanvragen (genormaliseerd) als nieuwe job/aanvraag in het ATS",
+          "type": "API (te onderzoeken)",
+          "frequentie": "near-realtime",
+          "status": "to-be"
+        },
+        {
+          "richting": "uit",
+          "met": "datalaag",
+          "wat": "Professionals, aanvragen, voorstellen, plaatsingen + statuswijzigingen (events)",
+          "type": "API/export",
+          "frequentie": "continu",
+          "status": "to-be"
+        },
+        {
+          "richting": "uit",
+          "met": "please",
+          "wat": "Plaatsing (professional, opdrachtgever, tarief, start/einde) voor contractering",
+          "type": "handmatig → later koppeling",
+          "frequentie": "per plaatsing",
+          "status": "to-be"
+        },
+        {
+          "richting": "in",
+          "met": "clay",
+          "wat": "Verrijkte bedrijfs- en contactdata van opdrachtgevers",
+          "type": "API/CSV",
+          "frequentie": "per lijst",
+          "status": "to-be"
+        }
+      ],
+      "identifiers": "Spott-ID's voor professional, opdrachtgever, aanvraag en plaatsing worden leidend zolang de datalaag geen eigen sleutels uitgeeft; datalaag bewaart de mapping.",
+      "vragen": [
+        "Welke API-mogelijkheden biedt Spott.io (lezen/schrijven, webhooks) voor de koppeling met Job Intelligence en de datalaag?",
+        "Contractstatus en go-live-datum?"
+      ],
+      "documenten": [
+        {
+          "type": "doc",
+          "titel": "IT-architectuur staffing (projectdoc)",
+          "ref": "projects/it-architectuur-staffing.md"
+        },
+        {
+          "type": "link",
+          "titel": "Spott.io",
+          "ref": "https://spott.io"
+        }
+      ],
+      "herkomst": "Aanlevering Robbie, 25-08-2026"
+    },
+    {
+      "id": "ji",
+      "groep": "core",
+      "rol": "Vacaturebronnen",
+      "naam": "Catapulze Job Intelligence",
+      "leverancier": "Eigen module",
+      "status": "werk",
+      "statusLabel": "v1 live · v2 in spec (0.2)",
+      "samenvatting": "Eigen module die aanvragen en vacatures scrapet van brokers, MSP's, overheidsportalen, jobboards én werkenbij-sites, normaliseert naar één datamodel en naar de datalaag schrijft; analyse en search erop.",
+      "werk": "Vandaag v1 op 7 platformen (cron-gebaseerd, dashboard met circuit breaker). Werk: 23 extra bronnen uit het Source Register, uniform datamodel (generiek vs. bron-specifiek), betrouwbare scheduling, DWH-load.",
+      "entiteiten": [
+        "aanvraag",
+        "bron",
+        "opdrachtgever"
+      ],
+      "stromen": [
+        {
+          "richting": "in",
+          "met": "extern",
+          "wat": "Aanvragen/vacatures van 28 bronnen (7 v1 + 23 nieuw) + werkenbij-sites",
+          "type": "Playwright / HTML / API / RSS (per bron)",
+          "frequentie": "5 min – dagelijks, per bron",
+          "status": "v1 deels"
+        },
+        {
+          "richting": "uit",
+          "met": "datalaag",
+          "wat": "Ruwe payload (raw-zone) + genormaliseerde aanvraag (gecureerde zone) + run-metadata",
+          "type": "batch/upsert",
+          "frequentie": "per run",
+          "status": "to-be"
+        },
+        {
+          "richting": "uit",
+          "met": "spott",
+          "wat": "Gekwalificeerde aanvragen naar het ATS",
+          "type": "API (te onderzoeken)",
+          "frequentie": "near-realtime",
+          "status": "to-be"
+        },
+        {
+          "richting": "uit",
+          "met": "harness",
+          "wat": "Search en analyse op de verzamelde aanvragen",
+          "type": "query op gecureerde zone",
+          "frequentie": "on demand",
+          "status": "to-be"
+        }
+      ],
+      "identifiers": "Per aanvraag: bron-ID + bron-referentie als natuurlijke sleutel; eigen aanvraag-ID in de datalaag; ontdubbeling over bronnen (dezelfde aanvraag via meerdere brokers) is een expliciete stap.",
+      "vragen": [
+        "Welke datapunten zijn generiek (canoniek model) en welke bron-specifiek? (categorie-niveau gedaan; per bron te valideren bij onboarding)",
+        "Welke DWH-technologie en welk laadpatroon? (voorstel: Postgres + object storage, fase 1)",
+        "Welke werkenbij-sites hebben prioriteit?",
+        "Spott.io-push automatisch boven een drempel of altijd na menselijke markering? (JI-INT-04 / JI-SEC-07)",
+        "Rolmodel viewer / recruiter / beheerder voldoende? (JI-SEC-01)"
+      ],
+      "documenten": [
+        {
+          "type": "doc",
+          "titel": "Projectdoc Catapulze Job Intelligence",
+          "ref": "projects/vacature-scraper.md"
+        },
+        {
+          "type": "doc",
+          "titel": "Specificatie v2 (architectuur, canoniek model, datalaag)",
+          "ref": "projects/job-intelligence-specificatie.md",
+          "open": "ji/overzicht"
+        },
+        {
+          "type": "doc",
+          "titel": "IT-requirements v2 (110 requirements, veldmapping v1 → v2)",
+          "ref": "projects/job-intelligence-requirements.md",
+          "open": "ji/requirements"
+        },
+        {
+          "type": "ref",
+          "titel": "Neon-schema v1 (33 tabellen, 432 kolommen, 26-08-2026)",
+          "ref": "neonschema.json / neonschema.md",
+          "where": "Aangeleverd door Robbie; samengevat in de tab v1-analyse",
+          "open": "ji/v1"
+        },
+        {
+          "type": "link",
+          "titel": "v1-app Jobs Intelligence (Lovable)",
+          "ref": "https://neon-data-whisperer.lovable.app/"
+        },
+        {
+          "type": "doc",
+          "titel": "Bronnenregister (28 bronnen)",
+          "ref": "projects/vacature-scraper-bronnen.md"
+        },
+        {
+          "type": "data",
+          "titel": "Catapulze Source Register.xlsx (23 nieuwe bronnen)",
+          "ref": "bronnen"
+        },
+        {
+          "type": "data",
+          "titel": "v1-dashboard, stand 25-08-2026",
+          "ref": "dashboard"
+        }
+      ],
+      "herkomst": "Aanlevering Robbie (screenshot v1-dashboard + Source Register), 25-08-2026"
+    },
+    {
+      "id": "m365",
+      "groep": "core",
+      "rol": "Workspace / identiteit",
+      "naam": "Microsoft 365",
+      "leverancier": "Microsoft",
+      "status": "live",
+      "statusLabel": "Aanwezig",
+      "samenvatting": "E-mail, agenda, documenten en samenwerking; tevens de identiteitsbron (SSO) voor mensen én agents.",
+      "werk": "Nog geen onderdeel van integraties of identifiers. Mailrouting naar mappen (Finance, Legal, Marketing, Operations, Sales, Tools) loopt al als AI-taak.",
+      "entiteiten": [
+        "professional",
+        "opdrachtgever"
+      ],
+      "stromen": [
+        {
+          "richting": "uit",
+          "met": "harness",
+          "wat": "Agenda en mail als context voor dagvoorbereiding",
+          "type": "Graph API (via connector)",
+          "frequentie": "dagelijks",
+          "status": "live (los)"
+        },
+        {
+          "richting": "uit",
+          "met": "os",
+          "wat": "Identiteiten en rechten (SSO) voor mensen en agents",
+          "type": "Entra ID",
+          "frequentie": "continu",
+          "status": "to-be"
+        }
+      ],
+      "identifiers": "Entra-identiteit als bron voor 'wie deed wat' in audit & logging.",
+      "vragen": [
+        "Worden agents als eigen identiteiten (service principals) in Entra ingericht?"
+      ],
+      "documenten": [
+        {
+          "type": "link",
+          "titel": "Microsoft 365",
+          "ref": "https://www.microsoft.com/microsoft-365"
+        }
+      ],
+      "herkomst": "Aanlevering Robbie, 25-08-2026"
+    },
+    {
+      "id": "linkedin",
+      "groep": "core",
+      "rol": "Sourcing",
+      "naam": "LinkedIn",
+      "leverancier": "LinkedIn",
+      "status": "live",
+      "statusLabel": "Aanwezig",
+      "samenvatting": "Kanaal voor het vinden en benaderen van AI- en platform engineers en voor de opbouw van de community.",
+      "werk": "Staat los — outreach en reacties landen niet centraal in ATS of datalaag.",
+      "entiteiten": [
+        "professional"
+      ],
+      "stromen": [
+        {
+          "richting": "uit",
+          "met": "spott",
+          "wat": "Gesourcete professionals en outreach-status",
+          "type": "handmatig / extensie",
+          "frequentie": "ad hoc",
+          "status": "to-be"
+        }
+      ],
+      "identifiers": "LinkedIn-profiel-URL als extern kenmerk van een professional; nooit als primaire sleutel.",
+      "vragen": [
+        "Welke licentievorm (Recruiter, Sales Navigator, standaard) en hoeveel seats?",
+        "Geautomatiseerde outreach: binnen de gebruiksvoorwaarden houden."
+      ],
+      "documenten": [
+        {
+          "type": "link",
+          "titel": "LinkedIn",
+          "ref": "https://www.linkedin.com"
+        }
+      ],
+      "herkomst": "Aanlevering Robbie, 25-08-2026"
+    },
+    {
+      "id": "clay",
+      "groep": "core",
+      "rol": "Verrijking & prospecting",
+      "naam": "Clay",
+      "leverancier": "Clay",
+      "status": "live",
+      "statusLabel": "Aanwezig",
+      "samenvatting": "Bedrijfs- en contactdata, prospectlijsten en verrijking van opdrachtgevers en professionals.",
+      "werk": "Verrijkte data centraal laten landen in plaats van per lijst of gebruiker.",
+      "entiteiten": [
+        "opdrachtgever",
+        "professional"
+      ],
+      "stromen": [
+        {
+          "richting": "uit",
+          "met": "datalaag",
+          "wat": "Verrijkte bedrijfs- en contactrecords",
+          "type": "API/CSV",
+          "frequentie": "per lijst",
+          "status": "to-be"
+        },
+        {
+          "richting": "uit",
+          "met": "spott",
+          "wat": "Opdrachtgevers en contacten als accounts in het ATS/CRM",
+          "type": "API",
+          "frequentie": "per lijst",
+          "status": "to-be"
+        },
+        {
+          "richting": "uit",
+          "met": "harness",
+          "wat": "Achtergrond van gesprekspartners voor dagvoorbereiding",
+          "type": "connector",
+          "frequentie": "dagelijks",
+          "status": "live (los)"
+        }
+      ],
+      "identifiers": "Bedrijf: KvK-nummer of domein als natuurlijke sleutel; persoon: e-mail + LinkedIn-URL.",
+      "vragen": [],
+      "documenten": [
+        {
+          "type": "link",
+          "titel": "Clay",
+          "ref": "https://www.clay.com"
+        }
+      ],
+      "herkomst": "Aanlevering Robbie, 25-08-2026"
+    },
+    {
+      "id": "please",
+      "groep": "core",
+      "rol": "Detachering backoffice",
+      "naam": "Please",
+      "leverancier": "Please (externe partner)",
+      "status": "werk",
+      "statusLabel": "Externe partner",
+      "samenvatting": "Outsource-partner voor detachering: contractering, verloning en facturatie van gedetacheerde professionals; sluitstuk van plaatsing → contract → uren → factuur.",
+      "werk": "SNA-certificering regelen; vaststellen welke data (plaatsing, uren, marge) terugkomt richting de datalaag.",
+      "entiteiten": [
+        "plaatsing",
+        "contract",
+        "factuur",
+        "professional"
+      ],
+      "stromen": [
+        {
+          "richting": "in",
+          "met": "spott",
+          "wat": "Plaatsingsgegevens voor contractering",
+          "type": "handmatig → later koppeling",
+          "frequentie": "per plaatsing",
+          "status": "to-be"
+        },
+        {
+          "richting": "uit",
+          "met": "moneybird",
+          "wat": "Facturen/afrekening richting de administratie",
+          "type": "te bepalen",
+          "frequentie": "maandelijks",
+          "status": "to-be"
+        },
+        {
+          "richting": "uit",
+          "met": "datalaag",
+          "wat": "Uren, contractstatus en marge per plaatsing",
+          "type": "export/API (te bepalen)",
+          "frequentie": "maandelijks",
+          "status": "to-be"
+        }
+      ],
+      "identifiers": "Plaatsing-ID uit Spott meegeven op elk contract en elke factuur, zodat marge per plaatsing herleidbaar is.",
+      "vragen": [
+        "Welke data levert Please terug en in welke vorm?",
+        "Wie is contracthouder richting de professional en de opdrachtgever?"
+      ],
+      "documenten": [
+        {
+          "type": "doc",
+          "titel": "Catapulze services-sessie (detachering via externe partner, SNA)",
+          "ref": "memory: catapulze — services"
+        }
+      ],
+      "herkomst": "Aanlevering Robbie, 25-08-2026"
+    },
+    {
+      "id": "moneybird",
+      "groep": "core",
+      "rol": "Administratie",
+      "naam": "Moneybird",
+      "leverancier": "Moneybird",
+      "status": "live",
+      "statusLabel": "Aanwezig",
+      "samenvatting": "Boekhouding, verkoop- en inkoopfacturen; de financiële waarheid per plaatsing en per opdrachtgever.",
+      "werk": "Plaatsing-ID op facturen; bankkoppeling met Revolut bevestigen.",
+      "entiteiten": [
+        "factuur",
+        "opdrachtgever"
+      ],
+      "stromen": [
+        {
+          "richting": "in",
+          "met": "revolut",
+          "wat": "Banktransacties",
+          "type": "bankkoppeling",
+          "frequentie": "dagelijks",
+          "status": "te valideren"
+        },
+        {
+          "richting": "uit",
+          "met": "datalaag",
+          "wat": "Facturen, betalingen, omzet per opdrachtgever/plaatsing",
+          "type": "API",
+          "frequentie": "dagelijks",
+          "status": "to-be"
+        }
+      ],
+      "identifiers": "Contact-ID Moneybird ↔ opdrachtgever-ID; factuurreferentie bevat plaatsing-ID.",
+      "vragen": [],
+      "documenten": [
+        {
+          "type": "link",
+          "titel": "Moneybird",
+          "ref": "https://www.moneybird.nl"
+        }
+      ],
+      "herkomst": "Aanlevering Robbie, 25-08-2026"
+    },
+    {
+      "id": "revolut",
+      "groep": "core",
+      "rol": "Bank",
+      "naam": "Revolut",
+      "leverancier": "Revolut Business",
+      "status": "live",
+      "statusLabel": "Aanwezig",
+      "samenvatting": "Betalingsverkeer en bankkoppeling richting Moneybird.",
+      "werk": "",
+      "entiteiten": [
+        "factuur"
+      ],
+      "stromen": [
+        {
+          "richting": "uit",
+          "met": "moneybird",
+          "wat": "Transacties voor afletteren",
+          "type": "bankkoppeling",
+          "frequentie": "dagelijks",
+          "status": "te valideren"
+        }
+      ],
+      "identifiers": "—",
+      "vragen": [],
+      "documenten": [
+        {
+          "type": "link",
+          "titel": "Revolut Business",
+          "ref": "https://www.revolut.com/business/"
+        }
+      ],
+      "herkomst": "Aanlevering Robbie, 25-08-2026"
+    },
+    {
+      "id": "metaview",
+      "groep": "core",
+      "rol": "Gespreksnotities",
+      "naam": "Metaview (wellicht)",
+      "leverancier": "Metaview",
+      "status": "open",
+      "statusLabel": "Te onderzoeken",
+      "samenvatting": "Intake- en kwalificatiegesprekken met professionals en opdrachtgevers opnemen en gestructureerd naar de datalaag schrijven voor betere matching. Nog te onderzoeken of Metaview de juiste keuze is.",
+      "werk": "Onderzoek: kosten, integratie met Spott.io en Teams, AVG (opname-toestemming), datalocatie.",
+      "entiteiten": [
+        "professional",
+        "opdrachtgever",
+        "aanvraag"
+      ],
+      "stromen": [
+        {
+          "richting": "uit",
+          "met": "spott",
+          "wat": "Gespreksnotities en gestructureerde kenmerken bij de professional/aanvraag",
+          "type": "integratie (te onderzoeken)",
+          "frequentie": "per gesprek",
+          "status": "open"
+        },
+        {
+          "richting": "uit",
+          "met": "datalaag",
+          "wat": "Transcript + gestructureerde extractie",
+          "type": "API/export",
+          "frequentie": "per gesprek",
+          "status": "open"
+        }
+      ],
+      "identifiers": "Gesprek koppelen aan professional-ID en aanvraag-ID.",
+      "vragen": [
+        "Is Metaview de juiste keuze, of een alternatief?",
+        "Toestemming en bewaartermijn van opnames (AVG)."
+      ],
+      "documenten": [
+        {
+          "type": "link",
+          "titel": "Metaview",
+          "ref": "https://www.metaview.ai"
+        }
+      ],
+      "herkomst": "Aanlevering Robbie, 25-08-2026 ('wellicht, moet nog onderzocht worden')"
+    },
+    {
+      "id": "koppelingen",
+      "groep": "core",
+      "breed": true,
+      "rol": "Huidige koppelingen",
+      "naam": "Nog geen keten",
+      "leverancier": "—",
+      "status": "werk",
+      "statusLabel": "Aanname — te valideren",
+      "samenvatting": "Job Intelligence v1 is vandaag de enige geautomatiseerde datastroom; alle overige systemen staan los van elkaar.",
+      "werk": "De keten aanvraag (Job Intelligence) → voorstel en plaatsing (Spott.io) → contract en verloning (Please) → factuur (Moneybird) → betaling (Revolut) ontwerpen als één samenhangend proces met gedeelde identifiers.",
+      "entiteiten": [
+        "aanvraag",
+        "voorstel",
+        "plaatsing",
+        "contract",
+        "factuur"
+      ],
+      "stromen": [
+        {
+          "richting": "uit",
+          "met": "spott",
+          "wat": "Aanvraag → voorstel/plaatsing",
+          "type": "te ontwerpen",
+          "frequentie": "—",
+          "status": "to-be"
+        },
+        {
+          "richting": "uit",
+          "met": "please",
+          "wat": "Plaatsing → contract/verloning",
+          "type": "te ontwerpen",
+          "frequentie": "—",
+          "status": "to-be"
+        },
+        {
+          "richting": "uit",
+          "met": "moneybird",
+          "wat": "Contract/uren → factuur",
+          "type": "te ontwerpen",
+          "frequentie": "—",
+          "status": "to-be"
+        },
+        {
+          "richting": "uit",
+          "met": "revolut",
+          "wat": "Factuur → betaling",
+          "type": "bankkoppeling",
+          "frequentie": "—",
+          "status": "te valideren"
+        }
+      ],
+      "identifiers": "Plaatsing-ID loopt door de hele keten mee.",
+      "vragen": [
+        "Welke koppelingen bestaan er vandaag al (bv. Revolut ↔ Moneybird)?"
+      ],
+      "documenten": [],
+      "herkomst": "Aanname Claude op basis van aanlevering; door Robbie te valideren"
+    },
+    {
+      "id": "identifiers",
+      "groep": "core",
+      "breed": true,
+      "rol": "Eén taal",
+      "naam": "Unieke identifiers",
+      "leverancier": "—",
+      "status": "ink",
+      "statusLabel": "Afspraak",
+      "samenvatting": "Elke professional, opdrachtgever, aanvraag, broker/platform en plaatsing heeft één uniek ID dat in álle core-systemen wordt meegegeven. Dat is de afspraak die de datalaag betrouwbaar maakt — zonder gedeelde identifiers geen bruikbare koppeling van bronnen.",
+      "werk": "De Spott.io-inrichting en de Job Intelligence-specificatie zijn hét moment om de identifier-afspraak vanaf het begin in te voeren — er is nog geen legacy om te migreren.",
+      "entiteiten": [
+        "professional",
+        "opdrachtgever",
+        "aanvraag",
+        "bron",
+        "plaatsing"
+      ],
+      "stromen": [],
+      "identifiers": "Voorstel: UUID per entiteit uitgegeven door de datalaag; systeem-ID's (Spott, Moneybird, bron-referenties) als aliassen in een mappingtabel.",
+      "vragen": [
+        "Wie geeft de sleutel uit: het ATS of de datalaag?"
+      ],
+      "documenten": [],
+      "herkomst": "FUUSE-doelplaat, toegepast op Catapulze"
+    },
+    {
+      "id": "dwh",
+      "groep": "data",
+      "rol": "Data warehouse / lakehouse",
+      "naam": "Postgres + object storage",
+      "leverancier": "Cloud-agnostisch",
+      "status": "nieuw",
+      "statusLabel": "Gepland",
+      "samenvatting": "Centrale opslag in zones — van ruw via geschoond naar gecureerd — zodat de lake geen moeras wordt. De single source waarop agents, matching en rapportage bouwen.",
+      "werk": "Gekozen richting: Postgres + object storage in open formaten; exacte DWH-technologie nog te kiezen.",
+      "entiteiten": [
+        "aanvraag",
+        "professional",
+        "opdrachtgever",
+        "plaatsing",
+        "bron"
+      ],
+      "stromen": [
+        {
+          "richting": "in",
+          "met": "ji",
+          "wat": "Eerste bron: aanvragen (raw + gecureerd)",
+          "type": "batch/upsert",
+          "frequentie": "per run",
+          "status": "to-be"
+        },
+        {
+          "richting": "in",
+          "met": "spott",
+          "wat": "ATS-entiteiten en events",
+          "type": "API",
+          "frequentie": "continu",
+          "status": "to-be"
+        },
+        {
+          "richting": "uit",
+          "met": "harness",
+          "wat": "BI, dashboards en search op de gecureerde zone",
+          "type": "SQL/query",
+          "frequentie": "on demand",
+          "status": "to-be"
+        }
+      ],
+      "identifiers": "Datalaag bewaart de mapping tussen systeem-ID's en de eigen sleutel per entiteit.",
+      "vragen": [
+        "Managed Postgres (Supabase/Neon/RDS) of eigen beheer?",
+        "Zones: raw / staging / gecureerd — welke formaten (Parquet/JSON)?"
+      ],
+      "documenten": [
+        {
+          "type": "doc",
+          "titel": "Projectdoc Job Intelligence — DWH-integratie",
+          "ref": "projects/vacature-scraper.md"
+        }
+      ],
+      "herkomst": "Eerder besproken cloud-agnostische stack; bevestigd door Robbie 25-08-2026"
+    },
+    {
+      "id": "pipelines",
+      "groep": "data",
+      "rol": "Instroom & pipelines",
+      "naam": "Pipelines",
+      "leverancier": "Eigen",
+      "status": "nieuw",
+      "statusLabel": "Gepland",
+      "samenvatting": "Koppelingen vullen de datalaag continu vanuit de core-systemen en externe bronnen. Job Intelligence wordt de eerste bron; Spott.io, Clay en Please volgen.",
+      "werk": "Per bron koppeltype, richting en frequentie vaststellen (deep dive datastromen).",
+      "entiteiten": [],
+      "stromen": [],
+      "identifiers": "Elke run schrijft run-metadata (bron, tijdstip, aantal records, fouten).",
+      "vragen": [
+        "Orkestratie: cron, Airflow/Dagster, of scheduler binnen de eigen module?"
+      ],
+      "documenten": [],
+      "herkomst": "FUUSE-doelplaat, toegepast op Catapulze"
+    },
+    {
+      "id": "sleutels",
+      "groep": "data",
+      "rol": "Sleutelbeheer",
+      "naam": "Sleutelbeheer",
+      "leverancier": "Eigen",
+      "status": "nieuw",
+      "statusLabel": "Gepland",
+      "samenvatting": "Bewaakt dat de unieke identifiers uit laag 2 overal kloppen en records uit verschillende bronnen aan elkaar geknoopt kunnen worden — inclusief ontdubbeling van dezelfde aanvraag via meerdere brokers.",
+      "werk": "Identifier-afspraak vastleggen vóór de Spott.io-inrichting.",
+      "entiteiten": [
+        "aanvraag",
+        "professional",
+        "opdrachtgever",
+        "plaatsing"
+      ],
+      "stromen": [],
+      "identifiers": "Eén ID per professional, opdrachtgever, aanvraag, broker/platform en plaatsing; systeem-ID's als aliassen.",
+      "vragen": [
+        "Wie geeft de sleutel uit: het ATS of de datalaag?"
+      ],
+      "documenten": [],
+      "herkomst": "FUUSE-doelplaat, toegepast op Catapulze"
+    },
+    {
+      "id": "kwaliteit",
+      "groep": "data",
+      "rol": "Datakwaliteit & governance",
+      "naam": "Datakwaliteit & governance",
+      "leverancier": "Eigen",
+      "status": "nieuw",
+      "statusLabel": "Gepland",
+      "samenvatting": "Meten, schonen en bewaken bij de bron — inclusief retentie- en verwijderbeleid, zodat AI op schone én rechtmatige data draait.",
+      "werk": "Retentie per entiteit (o.a. gescrapete vacatures, persoonsgegevens in aanvragen) technisch afdwingen.",
+      "entiteiten": [],
+      "stromen": [],
+      "identifiers": "—",
+      "vragen": [],
+      "documenten": [],
+      "herkomst": "FUUSE-doelplaat, toegepast op Catapulze"
+    },
+    {
+      "id": "gecureerd",
+      "groep": "data",
+      "breed": true,
+      "rol": "Gecureerde zone",
+      "naam": "Datamodel als definitielaag",
+      "leverancier": "Eigen",
+      "status": "nieuw",
+      "statusLabel": "Startpunt beschikbaar",
+      "samenvatting": "De gecureerde zone spreekt de taal van het bedrijf — professional, aanvraag/vacature, opdrachtgever, broker/platform, plaatsing — met eenduidige definities per veld.",
+      "werk": "Het canonieke vacature-model uit de Job Intelligence-specificatie is het startpunt; de overige entiteiten volgen bij de Spott.io-inrichting.",
+      "entiteiten": [
+        "professional",
+        "aanvraag",
+        "opdrachtgever",
+        "bron",
+        "voorstel",
+        "plaatsing",
+        "contract",
+        "factuur"
+      ],
+      "stromen": [],
+      "identifiers": "Definitie per veld; bron-specifieke velden apart van het canonieke model.",
+      "vragen": [],
+      "documenten": [
+        {
+          "type": "doc",
+          "titel": "Projectdoc Job Intelligence — canoniek datamodel",
+          "ref": "projects/vacature-scraper.md"
+        }
+      ],
+      "herkomst": "FUUSE-doelplaat, toegepast op Catapulze"
+    },
+    {
+      "id": "mcp",
+      "groep": "os",
+      "rol": "Gestandaardiseerd koppelvlak (MCP)",
+      "naam": "MCP-koppelvlak",
+      "leverancier": "Open standaard",
+      "status": "nieuw",
+      "statusLabel": "Gekozen richting",
+      "samenvatting": "Eén uniforme manier waarop agents functioneren in de core-applicaties: lezen, schrijven en taken uitvoeren via MCP-koppelingen in plaats van losse maatwerk-integraties per tool.",
+      "werk": "Vandaag geen koppelvlak. Per core-systeem een MCP-server (of bestaande connector) inrichten; te beginnen bij Job Intelligence en Spott.io.",
+      "entiteiten": [],
+      "stromen": [],
+      "identifiers": "—",
+      "vragen": [
+        "Welke systemen hebben al een bruikbare MCP-connector (M365, Clay) en welke bouwen we zelf (Spott.io, Job Intelligence, Moneybird)?"
+      ],
+      "documenten": [],
+      "herkomst": "Cloud-agnostische stack: MCP als toolgrens"
+    },
+    {
+      "id": "memory",
+      "groep": "os",
+      "rol": "Feedback loop & memory",
+      "naam": "Feedback loop & memory",
+      "leverancier": "Eigen",
+      "status": "nieuw",
+      "statusLabel": "Nieuw op te bouwen",
+      "samenvatting": "Het OS onthoudt wat agents deden en wat het opleverde. Die terugkoppeling stroomt terug naar de agents én naar de datalaag, zodat het proces zichzelf aantoonbaar verbetert.",
+      "werk": "Uitkomsten (voorgesteld, afgewezen, geplaatst, waarom) gestructureerd terugschrijven.",
+      "entiteiten": [
+        "voorstel",
+        "plaatsing"
+      ],
+      "stromen": [],
+      "identifiers": "—",
+      "vragen": [],
+      "documenten": [],
+      "herkomst": "FUUSE-doelplaat, toegepast op Catapulze"
+    },
+    {
+      "id": "governance",
+      "groep": "os",
+      "rol": "Orkestratie & governance",
+      "naam": "LangGraph / Pydantic AI · LiteLLM",
+      "leverancier": "Open source",
+      "status": "nieuw",
+      "statusLabel": "Gekozen richting",
+      "samenvatting": "Wie of wat mag welke actie in welk systeem: rechten, logging en menselijke goedkeuring op gevoelige stappen (een voorstel indienen, een tarief bevestigen). Dé plek waar AVG-randvoorwaarden afdwingbaar worden.",
+      "werk": "Agentlogica in LangGraph / Pydantic AI, modelrouting via LiteLLM; goedkeuringsstappen definiëren.",
+      "entiteiten": [],
+      "stromen": [],
+      "identifiers": "—",
+      "vragen": [
+        "Welke acties vereisen altijd menselijke goedkeuring?"
+      ],
+      "documenten": [],
+      "herkomst": "Cloud-agnostische stack"
+    },
+    {
+      "id": "observability",
+      "groep": "os",
+      "rol": "Observability & evals",
+      "naam": "Observability & evals",
+      "leverancier": "Te kiezen",
+      "status": "nieuw",
+      "statusLabel": "Nieuw op te bouwen",
+      "samenvatting": "Tracing van agent-acties, kwaliteits- en kostenmetrieken per taak, en evaluaties vóórdat een agent-wijziging live gaat. Maakt de feedback loop meetbaar in plaats van een intentie.",
+      "werk": "Tooling kiezen (bv. Langfuse/OpenTelemetry) en evals per agent-taak opzetten.",
+      "entiteiten": [],
+      "stromen": [],
+      "identifiers": "—",
+      "vragen": [],
+      "documenten": [],
+      "herkomst": "FUUSE-doelplaat, toegepast op Catapulze"
+    },
+    {
+      "id": "taakagents",
+      "groep": "agents",
+      "rol": "Taakgerichte agents",
+      "naam": "Agents per procesgebied",
+      "leverancier": "Eigen",
+      "status": "nieuw",
+      "statusLabel": "Nieuw op te bouwen",
+      "samenvatting": "Aanvraag-kwalificatie, matching professional ↔ aanvraag, sourcing en outreach, voorstel- en CV-opmaak, datakwaliteit — zelfstandig, maar altijd via het Company OS.",
+      "werk": "Eerste kandidaat: aanvraag-kwalificatie bovenop Job Intelligence (past een aanvraag bij het profiel en de community?).",
+      "entiteiten": [
+        "aanvraag",
+        "professional",
+        "voorstel"
+      ],
+      "stromen": [],
+      "identifiers": "—",
+      "vragen": [
+        "Welke agent eerst: kwalificatie, matching of outreach?"
+      ],
+      "documenten": [],
+      "herkomst": "FUUSE-doelplaat, toegepast op Catapulze"
+    },
+    {
+      "id": "agnostisch",
+      "groep": "agents",
+      "rol": "Platform-agnostisch gebouwd",
+      "naam": "Platform-agnostisch",
+      "leverancier": "—",
+      "status": "nieuw",
+      "statusLabel": "Ontwerpprincipe",
+      "samenvatting": "Agents kunnen met verschillende applicaties en frameworks gebouwd worden; de onderliggende lagen bepalen wat ze kunnen, niet het bouwplatform. Zo blijft Catapulze wendbaar bij leverancierswissels — en wordt het ontwerp herbruikbaar richting klanten.",
+      "werk": "",
+      "entiteiten": [],
+      "stromen": [],
+      "identifiers": "—",
+      "vragen": [],
+      "documenten": [],
+      "herkomst": "FUUSE-doelplaat"
+    },
+    {
+      "id": "lerend",
+      "groep": "agents",
+      "rol": "Lerend via de feedback loop",
+      "naam": "Lerend",
+      "leverancier": "—",
+      "status": "nieuw",
+      "statusLabel": "Ontwerpprincipe",
+      "samenvatting": "Elke agent ziet het resultaat van zijn acties terug (via memory in het Company OS) en verbetert daarmee het proces — matching wordt beter naarmate er meer gestructureerde uitkomsten terugvloeien.",
+      "werk": "",
+      "entiteiten": [],
+      "stromen": [],
+      "identifiers": "—",
+      "vragen": [],
+      "documenten": [],
+      "herkomst": "FUUSE-doelplaat"
+    },
+    {
+      "id": "voorloper",
+      "groep": "agents",
+      "breed": true,
+      "rol": "Vandaag al",
+      "naam": "Losse AI-taken zonder gedeelde data",
+      "leverancier": "Claude (Cowork)",
+      "status": "werk",
+      "statusLabel": "Voorloper aanwezig",
+      "samenvatting": "Geplande AI-taken (dagvoorbereiding op agenda en contacten, mailrouting) draaien al, en Job Intelligence v1 verzamelt aanvragen van zeven platformen.",
+      "werk": "De uitkomsten landen niet gestructureerd in een datalaag en er is geen feedback loop — precies wat laag 1 t/m 3 moeten oplossen.",
+      "entiteiten": [],
+      "stromen": [
+        {
+          "richting": "in",
+          "met": "m365",
+          "wat": "Agenda + mail",
+          "type": "connector",
+          "frequentie": "dagelijks 09:00",
+          "status": "live"
+        },
+        {
+          "richting": "in",
+          "met": "clay",
+          "wat": "Achtergrond gesprekspartners",
+          "type": "connector",
+          "frequentie": "dagelijks",
+          "status": "live"
+        }
+      ],
+      "identifiers": "—",
+      "vragen": [],
+      "documenten": [],
+      "herkomst": "Aanlevering Robbie"
+    },
+    {
+      "id": "avg",
+      "groep": "compliance",
+      "rol": "AVG / GDPR",
+      "naam": "AVG / GDPR",
+      "leverancier": "—",
+      "status": "dwars",
+      "statusLabel": "Randvoorwaarde",
+      "samenvatting": "Verwerkingsregister, grondslagen en verwerkersovereenkomsten op orde — ook voor professionals in de community en voor gescrapete vacaturedata; retentie- en verwijderbeleid technisch afdwingbaar in de datalaag.",
+      "werk": "Verwerkingsregister opstellen; retentie per entiteit in de datalaag.",
+      "entiteiten": [
+        "professional",
+        "aanvraag"
+      ],
+      "stromen": [],
+      "identifiers": "—",
+      "vragen": [],
+      "documenten": [],
+      "herkomst": "FUUSE-doelplaat, toegepast op Catapulze"
+    },
+    {
+      "id": "aiact",
+      "groep": "compliance",
+      "rol": "EU AI Act",
+      "naam": "EU AI Act",
+      "leverancier": "—",
+      "status": "open",
+      "statusLabel": "Hoog risico",
+      "samenvatting": "AI-gedreven matching van professionals op aanvragen valt onder werkgelegenheid en daarmee vrijwel zeker in de hoog-risicocategorie: aantoonbare menselijke oversight, transparantie richting professionals en technische documentatie zijn verplicht.",
+      "werk": "Compliance/AI Act onderzoeken (open actie uit de focus-sessie).",
+      "entiteiten": [
+        "professional",
+        "voorstel"
+      ],
+      "stromen": [],
+      "identifiers": "—",
+      "vragen": [
+        "Welke onderdelen van matching blijven expliciet mensbesluiten?"
+      ],
+      "documenten": [],
+      "herkomst": "FUUSE-doelplaat, toegepast op Catapulze"
+    },
+    {
+      "id": "iam",
+      "groep": "compliance",
+      "rol": "Identiteit & toegang",
+      "naam": "Identiteit & toegang",
+      "leverancier": "Microsoft Entra",
+      "status": "dwars",
+      "statusLabel": "Randvoorwaarde",
+      "samenvatting": "Mensen én agents zijn identiteiten met eigen rechten (autorisatiematrix, SSO via Microsoft 365). Een agent handelt nooit anoniem — elke actie hangt aan een identiteit en een verantwoordelijke.",
+      "werk": "",
+      "entiteiten": [],
+      "stromen": [],
+      "identifiers": "—",
+      "vragen": [],
+      "documenten": [],
+      "herkomst": "FUUSE-doelplaat, toegepast op Catapulze"
+    },
+    {
+      "id": "audit",
+      "groep": "compliance",
+      "rol": "Audit & logging",
+      "naam": "Audit & logging",
+      "leverancier": "Company OS",
+      "status": "dwars",
+      "statusLabel": "Randvoorwaarde",
+      "samenvatting": "Elke actie herleidbaar: wie of welke agent deed wat, in welk systeem, op basis van welke data. Het Company OS is de plek waar dit centraal wordt vastgelegd.",
+      "werk": "",
+      "entiteiten": [],
+      "stromen": [],
+      "identifiers": "—",
+      "vragen": [],
+      "documenten": [],
+      "herkomst": "FUUSE-doelplaat"
+    },
+    {
+      "id": "bronvoorwaarden",
+      "groep": "compliance",
+      "rol": "Bronvoorwaarden & arbeidsrecht",
+      "naam": "Bronvoorwaarden & arbeidsrecht",
+      "leverancier": "—",
+      "status": "dwars",
+      "statusLabel": "Randvoorwaarde",
+      "samenvatting": "Gebruiksvoorwaarden van de vacaturebronnen (portalen, brokers, werkenbij-sites) per bron vastgelegd; detacheringsregels en certificering (SNA) lopen via het Please-traject.",
+      "werk": "Per bron voorwaarden en AVG-implicaties vastleggen in het bronnenregister.",
+      "entiteiten": [
+        "bron"
+      ],
+      "stromen": [],
+      "identifiers": "—",
+      "vragen": [],
+      "documenten": [
+        {
+          "type": "doc",
+          "titel": "Bronnenregister",
+          "ref": "projects/vacature-scraper-bronnen.md"
+        }
+      ],
+      "herkomst": "Toegevoegd voor Catapulze (staffing-specifiek)"
+    },
+    {
+      "id": "gesprek",
+      "groep": "harness",
+      "rol": "Eén gesprek met het hele ecosysteem",
+      "naam": "Conversationele toegang",
+      "leverancier": "Claude (inwisselbaar)",
+      "status": "werk",
+      "statusLabel": "Deels aanwezig",
+      "samenvatting": "Robbie, Julian en het team stellen in gewone taal vragen en krijgen direct toegang tot alle data en systemen binnen het Catapulze-ecosysteem — zonder per applicatie in te loggen.",
+      "werk": "Vandaag: Claude wordt al ingezet (dagvoorbereiding, mailrouting, Clay), maar zonder koppeling op een gedeelde datalaag.",
+      "entiteiten": [],
+      "stromen": [],
+      "identifiers": "—",
+      "vragen": [],
+      "documenten": [],
+      "herkomst": "Aanlevering Robbie"
+    },
+    {
+      "id": "toolagnostisch",
+      "groep": "harness",
+      "rol": "Tool-agnostisch",
+      "naam": "Tool-agnostisch",
+      "leverancier": "—",
+      "status": "dwars",
+      "statusLabel": "Ontwerpprincipe",
+      "samenvatting": "De harness is een AI-assistent naar keuze; welke dat is, is inwisselbaar. De waarde zit in de lagen eronder, niet in de assistent zelf.",
+      "werk": "",
+      "entiteiten": [],
+      "stromen": [],
+      "identifiers": "—",
+      "vragen": [],
+      "documenten": [],
+      "herkomst": "FUUSE-doelplaat"
+    },
+    {
+      "id": "viaos",
+      "groep": "harness",
+      "rol": "Via het Company OS",
+      "naam": "Via het Company OS",
+      "leverancier": "—",
+      "status": "dwars",
+      "statusLabel": "Ontwerpprincipe",
+      "samenvatting": "Ook de harness loopt via de besturingslaag: dezelfde koppelingen, dezelfde rechten, dezelfde logging als de agents.",
+      "werk": "",
+      "entiteiten": [],
+      "stromen": [],
+      "identifiers": "—",
+      "vragen": [],
+      "documenten": [],
+      "herkomst": "FUUSE-doelplaat"
+    },
+    {
+      "id": "bi",
+      "groep": "harness",
+      "rol": "Naast de harness: BI & dashboards",
+      "naam": "BI & dashboards",
+      "leverancier": "Te kiezen",
+      "status": "nieuw",
+      "statusLabel": "Nieuw op te bouwen",
+      "samenvatting": "Niet alle toegang is een gesprek — KPI-rapportage (aanvragen per bron, voorstellen, plaatsingen, marge) en de Job Intelligence-search draaien rechtstreeks op de gecureerde datazone.",
+      "werk": "BI-tool kiezen; eerste dashboard: aanvragen per bron en scraper-gezondheid.",
+      "entiteiten": [
+        "aanvraag",
+        "plaatsing"
+      ],
+      "stromen": [],
+      "identifiers": "—",
+      "vragen": [],
+      "documenten": [],
+      "herkomst": "FUUSE-doelplaat, toegepast op Catapulze"
+    }
+  ],
+  "entiteiten": [
+    {
+      "id": "professional",
+      "naam": "Professional",
+      "omschrijving": "AI-engineer of platform engineer in de Catapulze-community (ZZP, detachering of via partner).",
+      "bronsysteem": "spott",
+      "kenmerken": [
+        "professional_id",
+        "naam",
+        "e-mail",
+        "linkedin_url",
+        "skills",
+        "beschikbaarheid",
+        "tariefindicatie",
+        "inhuurvorm"
+      ],
+      "status": "concept"
+    },
+    {
+      "id": "opdrachtgever",
+      "naam": "Opdrachtgever",
+      "omschrijving": "Eindklant of intermediair waarvoor een aanvraag openstaat.",
+      "bronsysteem": "spott",
+      "kenmerken": [
+        "opdrachtgever_id",
+        "naam",
+        "kvk",
+        "domein",
+        "type (eindklant/broker/MSP)"
+      ],
+      "status": "concept"
+    },
+    {
+      "id": "aanvraag",
+      "naam": "Aanvraag / vacature",
+      "omschrijving": "Een opdracht of vacature uit een externe bron of rechtstreeks van een opdrachtgever — canoniek model uit Job Intelligence.",
+      "bronsysteem": "ji",
+      "kenmerken": [
+        "aanvraag_id",
+        "bron_id",
+        "bron_referentie",
+        "titel",
+        "opdrachtgever",
+        "locatie",
+        "remote",
+        "uren_per_week",
+        "startdatum",
+        "einddatum",
+        "tarief_max",
+        "sluitingsdatum",
+        "inhuurvorm",
+        "eisen",
+        "wensen",
+        "status",
+        "raw_payload_ref"
+      ],
+      "status": "concept — generiek vs. bron-specifiek nog te bepalen"
+    },
+    {
+      "id": "bron",
+      "naam": "Bron / platform",
+      "omschrijving": "Externe vacaturebron: broker, MSP, overheidsportaal, jobboard of werkenbij-site.",
+      "bronsysteem": "ji",
+      "kenmerken": [
+        "bron_id",
+        "naam",
+        "categorie",
+        "website",
+        "ingestie",
+        "polling",
+        "login_vereist",
+        "voorwaarden"
+      ],
+      "status": "concept"
+    },
+    {
+      "id": "voorstel",
+      "naam": "Voorstel",
+      "omschrijving": "Een professional voorgesteld op een aanvraag, met uitkomst en reden.",
+      "bronsysteem": "spott",
+      "kenmerken": [
+        "voorstel_id",
+        "aanvraag_id",
+        "professional_id",
+        "tarief",
+        "status",
+        "uitkomst",
+        "reden"
+      ],
+      "status": "concept"
+    },
+    {
+      "id": "plaatsing",
+      "naam": "Plaatsing",
+      "omschrijving": "Een gewonnen voorstel: professional werkt bij opdrachtgever.",
+      "bronsysteem": "spott",
+      "kenmerken": [
+        "plaatsing_id",
+        "voorstel_id",
+        "start",
+        "einde",
+        "tarief_verkoop",
+        "tarief_inkoop",
+        "marge",
+        "contract_id"
+      ],
+      "status": "concept"
+    },
+    {
+      "id": "contract",
+      "naam": "Contract",
+      "omschrijving": "Contractering van een plaatsing (via Please of rechtstreeks).",
+      "bronsysteem": "please",
+      "kenmerken": [
+        "contract_id",
+        "plaatsing_id",
+        "partij",
+        "looptijd",
+        "status"
+      ],
+      "status": "concept"
+    },
+    {
+      "id": "factuur",
+      "naam": "Factuur",
+      "omschrijving": "Verkoop- of inkoopfactuur gekoppeld aan een plaatsing.",
+      "bronsysteem": "moneybird",
+      "kenmerken": [
+        "factuur_id",
+        "plaatsing_id",
+        "bedrag",
+        "periode",
+        "betaalstatus"
+      ],
+      "status": "concept"
+    }
+  ],
+  "bronnen": [
+    {
+      "naam": "Flextender",
+      "categorie": "Broker / DAS",
+      "website": "https://flextender.nl",
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "v1": true,
+      "schemaV1": "elke 4 uur",
+      "prio": "A",
+      "status": "Researching"
+    },
+    {
+      "naam": "MiPublic",
+      "categorie": "Overheidsportaal",
+      "website": "",
+      "ingestie": "v1",
+      "polling": "",
+      "login": "",
+      "v1": true,
+      "schemaV1": "dagelijks",
+      "prio": "",
+      "status": "v1 (circuit open)"
+    },
+    {
+      "naam": "Nationale Vacaturebank",
+      "categorie": "Jobboard",
+      "website": "https://www.nationalevacaturebank.nl",
+      "ingestie": "v1",
+      "polling": "",
+      "login": "Nee",
+      "v1": true,
+      "schemaV1": "elke 6 uur",
+      "prio": "",
+      "status": "v1"
+    },
+    {
+      "naam": "Opdrachtoverheid",
+      "categorie": "Overheidsportaal",
+      "website": "https://www.opdrachtoverheid.nl",
+      "ingestie": "v1",
+      "polling": "",
+      "login": "",
+      "v1": true,
+      "schemaV1": "elke 4 uur",
+      "prio": "",
+      "status": "v1"
+    },
+    {
+      "naam": "Starapple",
+      "categorie": "IT-broker / platform",
+      "website": "https://www.starapple.nl",
+      "ingestie": "v1",
+      "polling": "",
+      "login": "",
+      "v1": true,
+      "schemaV1": "elke 4 uur",
+      "prio": "",
+      "status": "v1"
+    },
+    {
+      "naam": "Striive / HeadFirst Group",
+      "categorie": "MSP / Broker",
+      "website": "https://striive.com",
+      "ingestie": "Playwright",
+      "polling": "5 min",
+      "login": "Ja",
+      "v1": true,
+      "schemaV1": "elke 4 uur",
+      "prio": "A",
+      "status": "v1 + Researching"
+    },
+    {
+      "naam": "Werkzoeken",
+      "categorie": "Jobboard",
+      "website": "https://www.werkzoeken.nl",
+      "ingestie": "v1",
+      "polling": "",
+      "login": "Nee",
+      "v1": true,
+      "schemaV1": "elke 6 uur",
+      "prio": "",
+      "status": "v1"
+    },
+    {
+      "naam": "Staffing Management Services (SMS)",
+      "categorie": "MSP / Broker",
+      "website": "https://www.headfirst.nl/staffingms",
+      "ingestie": "Playwright",
+      "polling": "5 min",
+      "login": "Ja",
+      "v1": false,
+      "prio": "A",
+      "status": "Researching"
+    },
+    {
+      "naam": "Circle8",
+      "categorie": "MSP / Broker",
+      "website": "https://circle8.nl",
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "v1": false,
+      "prio": "A",
+      "status": "Researching"
+    },
+    {
+      "naam": "BlueTrail",
+      "categorie": "MSP / Broker",
+      "website": "https://www.bluetrail.nl",
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "v1": false,
+      "prio": "A",
+      "status": "Researching"
+    },
+    {
+      "naam": "Harvey Nash",
+      "categorie": "MSP / Broker",
+      "website": "https://www.harveynash.com",
+      "ingestie": "Playwright",
+      "polling": "15 min",
+      "login": "Ja",
+      "v1": false,
+      "prio": "A",
+      "status": "Researching"
+    },
+    {
+      "naam": "Magnit",
+      "categorie": "Global MSP",
+      "website": "https://www.magnitglobal.com",
+      "ingestie": "API waar beschikbaar",
+      "polling": "15 min",
+      "login": "Ja",
+      "v1": false,
+      "prio": "A",
+      "status": "Researching"
+    },
+    {
+      "naam": "Randstad Enterprise",
+      "categorie": "MSP",
+      "website": "https://www.randstadenterprise.com",
+      "ingestie": "Playwright/API",
+      "polling": "15 min",
+      "login": "Ja",
+      "v1": false,
+      "prio": "A",
+      "status": "Researching"
+    },
+    {
+      "naam": "Between Staffing",
+      "categorie": "Broker",
+      "website": "https://between.nl",
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "v1": false,
+      "prio": "A",
+      "status": "Researching"
+    },
+    {
+      "naam": "Brainnet",
+      "categorie": "Broker",
+      "website": "https://brainnet.nl",
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "v1": false,
+      "prio": "A",
+      "status": "Researching"
+    },
+    {
+      "naam": "Hero",
+      "categorie": "Broker",
+      "website": "https://hero.nl",
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "v1": false,
+      "prio": "A",
+      "status": "Researching"
+    },
+    {
+      "naam": "Bconnect",
+      "categorie": "Broker",
+      "website": "https://bconnect.nu",
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "v1": false,
+      "prio": "A",
+      "status": "Researching"
+    },
+    {
+      "naam": "Flinter",
+      "categorie": "Broker",
+      "website": "https://flinter.nl",
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "v1": false,
+      "prio": "A",
+      "status": "Researching"
+    },
+    {
+      "naam": "StaffingNow",
+      "categorie": "Broker",
+      "website": "https://staffingnow.nl",
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "v1": false,
+      "prio": "A",
+      "status": "Researching"
+    },
+    {
+      "naam": "Need Staffing IT",
+      "categorie": "Broker",
+      "website": "https://needstaffingit.com",
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "v1": false,
+      "prio": "A",
+      "status": "Researching"
+    },
+    {
+      "naam": "Onefellow",
+      "categorie": "Broker",
+      "website": "https://onefellow.com",
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "v1": false,
+      "prio": "A",
+      "status": "Researching"
+    },
+    {
+      "naam": "OneStopSourcing",
+      "categorie": "Broker",
+      "website": "https://onestopsourcing.nl",
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "v1": false,
+      "prio": "A",
+      "status": "Researching"
+    },
+    {
+      "naam": "Pro-Act IT",
+      "categorie": "Broker",
+      "website": "https://pro-act.nl",
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "v1": false,
+      "prio": "A",
+      "status": "Researching"
+    },
+    {
+      "naam": "TenderNed",
+      "categorie": "Government DAS",
+      "website": "https://www.tenderned.nl",
+      "ingestie": "Officiële API/RSS",
+      "polling": "Realtime",
+      "login": "Optioneel",
+      "v1": false,
+      "prio": "A",
+      "status": "Researching"
+    },
+    {
+      "naam": "Mercell",
+      "categorie": "Government DAS",
+      "website": "https://www.mercell.com/nl-nl",
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "v1": false,
+      "prio": "A",
+      "status": "Researching"
+    },
+    {
+      "naam": "DigiInhuur",
+      "categorie": "Government Portal",
+      "website": "https://www.digiinhuur.nl",
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "v1": false,
+      "prio": "A",
+      "status": "Researching"
+    },
+    {
+      "naam": "Inhuurdesk",
+      "categorie": "Government Portal",
+      "website": "https://www.inhuurdesk.nl",
+      "ingestie": "HTML/Playwright",
+      "polling": "10 min",
+      "login": "Vaak",
+      "v1": false,
+      "prio": "A",
+      "status": "Researching"
+    },
+    {
+      "naam": "CTM Solution",
+      "categorie": "Tender Platform",
+      "website": "https://www.ctmsolution.nl",
+      "ingestie": "Playwright",
+      "polling": "15 min",
+      "login": "Ja",
+      "v1": false,
+      "prio": "A",
+      "status": "Researching"
+    }
+  ],
+  "beslissingen": [
+    {
+      "datum": "2026-08-25",
+      "beslissing": "Naam datastroom: Catapulze Job Intelligence",
+      "toelichting": "Losse module; platformen + werkenbij-sites; analyse/search erop"
+    },
+    {
+      "datum": "2026-08-25",
+      "beslissing": "Eerst specificeren, dan bouwen (vanaf nul)",
+      "toelichting": "Spec beschrijft de gewenste eindsituatie, los van v1"
+    },
+    {
+      "datum": "2026-08-25",
+      "beslissing": "Uniforme datastructuur + DWH als harde eis",
+      "toelichting": "Essentieel voor Robbie"
+    },
+    {
+      "datum": "2026-08-25",
+      "beslissing": "Spott.io als ATS/CRM",
+      "toelichting": "Gekozen; inrichting volgt"
+    },
+    {
+      "datum": "2026-08-25",
+      "beslissing": "Datalaag/Company OS op cloud-agnostische stack",
+      "toelichting": "Postgres + object storage, MCP, LangGraph/Pydantic AI, LiteLLM"
+    },
+    {
+      "datum": "2026-08-25",
+      "beslissing": "DWH-technologie nog niet gekozen",
+      "toelichting": "Keuze en laadpatroon horen bij de specificatie"
+    }
+  ],
+  "vervolgstappen": [
+    {
+      "nr": 1,
+      "titel": "Job Intelligence specificeren",
+      "tekst": "Canoniek vacature-model (generiek vs. bron-specifiek), bronconfiguratie voor de 28 bronnen en werkenbij-sites, en het laadpatroon naar de datalaag. Dit is de eerste echte datastroom en bepaalt de vorm van de datalaag.",
+      "raakt": [
+        "ji",
+        "dwh",
+        "gecureerd"
+      ]
+    },
+    {
+      "nr": 2,
+      "titel": "Datalaag & identifiers neerzetten",
+      "tekst": "DWH-technologie kiezen binnen de cloud-agnostische stack, zones inrichten en de identifier-afspraak direct meenemen in de Spott.io-inrichting, zodat elke bron aan dezelfde professional, opdrachtgever en aanvraag hangt.",
+      "raakt": [
+        "dwh",
+        "sleutels",
+        "spott"
+      ]
+    },
+    {
+      "nr": 3,
+      "titel": "Keten en applicatie-gaps invullen",
+      "tekst": "De keten Spott.io → Please → Moneybird → Revolut ontwerpen (koppeltype, richting, frequentie per stap) en het Metaview-onderzoek afronden: gesprekken gestructureerd naar de datalaag voor betere matching.",
+      "raakt": [
+        "spott",
+        "please",
+        "moneybird",
+        "revolut",
+        "metaview"
+      ]
+    },
+    {
+      "nr": 4,
+      "titel": "Company OS met feedback loop",
+      "tekst": "De middellaag bouwen — MCP-koppelvlak, LangGraph/Pydantic AI, LiteLLM, memory en governance — als voorwaarde vóórdat agents (kwalificatie, matching, outreach) breed worden uitgerold en de harness op alle data wordt aangesloten.",
+      "raakt": [
+        "mcp",
+        "memory",
+        "governance",
+        "observability",
+        "taakagents"
+      ]
+    }
+  ],
+  "parallel": "Direct oppakken, parallel aan stap 1: de Spott.io-inrichting starten met de identifier-afspraak erin, de SNA-certificering via het Please-traject regelen, en per vacaturebron de gebruiksvoorwaarden en AVG-implicaties vastleggen.",
+  "documenten": [
+    {
+      "type": "artifact",
+      "titel": "Bewerkbare architectuurplaat (design-canvas)",
+      "ref": "https://claude.ai/code/artifact/29929046-d135-4e70-a64a-ac805864dc02"
+    },
+    {
+      "type": "doc",
+      "titel": "Catapulze – context voor intern development",
+      "ref": "claude/catapulze-context.md"
+    },
+    {
+      "type": "doc",
+      "titel": "IT-architectuur staffing & recruitment (to-be)",
+      "ref": "projects/it-architectuur-staffing.md"
+    },
+    {
+      "type": "doc",
+      "titel": "Project: Catapulze Job Intelligence",
+      "ref": "projects/vacature-scraper.md"
+    },
+    {
+      "type": "doc",
+      "titel": "Job Intelligence — specificatie v2",
+      "ref": "projects/job-intelligence-specificatie.md",
+      "open": "ji/overzicht"
+    },
+    {
+      "type": "doc",
+      "titel": "Job Intelligence — IT-requirements v2",
+      "ref": "projects/job-intelligence-requirements.md",
+      "open": "ji/requirements"
+    },
+    {
+      "type": "doc",
+      "titel": "Bronnenregister vacaturebronnen",
+      "ref": "projects/vacature-scraper-bronnen.md"
+    },
+    {
+      "type": "data",
+      "titel": "Catapulze Source Register.xlsx",
+      "ref": "bronnen"
+    },
+    {
+      "type": "ref",
+      "titel": "FUUSE — IT-architectuurplaat to-be v4 (20 aug 2026), basis van deze plaat",
+      "ref": "2026.08.20 FUUSE IT Architectuurplaat TOBE.html"
+    }
+  ]
+}

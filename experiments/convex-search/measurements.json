@@ -1,0 +1,780 @@
+{
+  "boolean": {
+    "groundTruthClientSide": 3,
+    "jsPostFilter": {
+      "ceilingHit": false,
+      "stats": {
+        "iterations": 50,
+        "maxMs": 0.5922089999999685,
+        "meanMs": 0.29228423999999675,
+        "minMs": 0.17191700000000765,
+        "p50Ms": 0.2772499999999809,
+        "p95Ms": 0.4255410000000097
+      },
+      "total": 3
+    },
+    "nativeMultiTerm": {
+      "note": "native .search() semantics for 'azure platform engineer' — no operators, match-any ranked",
+      "stats": {
+        "iterations": 50,
+        "maxMs": 1.0486659999999688,
+        "meanMs": 0.3772275399999978,
+        "minMs": 0.1818749999999909,
+        "p50Ms": 0.3512499999999932,
+        "p95Ms": 0.5728340000000003
+      },
+      "total": 8
+    },
+    "negationAdviseurNotSenior": {
+      "groundTruthClientSide": 2,
+      "stats": {
+        "iterations": 50,
+        "maxMs": 0.6638339999999516,
+        "meanMs": 0.2603058400000009,
+        "minMs": 0.16199999999997772,
+        "p50Ms": 0.22970900000001393,
+        "p95Ms": 0.3811670000000049
+      },
+      "total": 1
+    }
+  },
+  "corpusSize": 33,
+  "countAll": 33,
+  "facets": {
+    "fullScanNoTerm": {
+      "facets": {
+        "bron_id": [
+          {
+            "count": 2,
+            "value": "00000000-0000-4000-8000-000000000006"
+          },
+          {
+            "count": 5,
+            "value": "00000000-0000-4000-8000-00000000000b"
+          },
+          {
+            "count": 1,
+            "value": "00000000-0000-4000-8000-00000000000a"
+          },
+          {
+            "count": 1,
+            "value": "00000000-0000-4000-8000-000000000007"
+          },
+          {
+            "count": 2,
+            "value": "00000000-0000-4000-8000-000000000004"
+          },
+          {
+            "count": 2,
+            "value": "00000000-0000-4000-8000-000000000002"
+          },
+          {
+            "count": 1,
+            "value": "00000000-0000-4000-8000-000000000003"
+          },
+          {
+            "count": 6,
+            "value": "00000000-0000-4000-8000-000000000009"
+          },
+          {
+            "count": 5,
+            "value": "00000000-0000-4000-8000-0000000000ad"
+          },
+          {
+            "count": 2,
+            "value": "00000000-0000-4000-8000-000000000005"
+          },
+          {
+            "count": 5,
+            "value": "00000000-0000-4000-8000-000000000008"
+          },
+          {
+            "count": 1,
+            "value": "00000000-0000-4000-8000-000000000001"
+          }
+        ],
+        "contracttype": [
+          {
+            "count": 33,
+            "value": "UNKNOWN"
+          }
+        ],
+        "locatie_land": [
+          {
+            "count": 33,
+            "value": "NL"
+          }
+        ],
+        "status": [
+          {
+            "count": 28,
+            "value": "active"
+          },
+          {
+            "count": 5,
+            "value": "closed"
+          }
+        ]
+      },
+      "scanned": 33,
+      "stats": {
+        "iterations": 50,
+        "maxMs": 0.30670800000001464,
+        "meanMs": 0.1837183399999992,
+        "minMs": 0.15079199999996717,
+        "p50Ms": 0.172916999999984,
+        "p95Ms": 0.25275000000004866
+      }
+    },
+    "withSearchTerm": {
+      "ceilingHit": false,
+      "facets": {
+        "bron_id": [
+          {
+            "count": 3,
+            "value": "00000000-0000-4000-8000-000000000009"
+          }
+        ],
+        "contracttype": [
+          {
+            "count": 3,
+            "value": "UNKNOWN"
+          }
+        ],
+        "locatie_land": [
+          {
+            "count": 3,
+            "value": "NL"
+          }
+        ],
+        "status": [
+          {
+            "count": 3,
+            "value": "active"
+          }
+        ]
+      },
+      "scanned": 3,
+      "stats": {
+        "iterations": 50,
+        "maxMs": 0.6242080000000101,
+        "meanMs": 0.19951671999999804,
+        "minMs": 0.14174999999994498,
+        "p50Ms": 0.17366699999996627,
+        "p95Ms": 0.41720800000001645
+      }
+    }
+  },
+  "filteredSearch": {
+    "stats": {
+      "iterations": 50,
+      "maxMs": 0.8712919999999826,
+      "meanMs": 0.20426999999999793,
+      "minMs": 0.14316700000000537,
+      "p50Ms": 0.17354199999999764,
+      "p95Ms": 0.3027080000000524
+    },
+    "total": 0
+  },
+  "goldenSet": {
+    "meanRecallAt20": 0.6317829457364341,
+    "p50Ms": 2.131791000000021,
+    "p95Ms": 3.9305420000000026,
+    "perCategoryMeanRecallAt20": {
+      "exact-skill": 1,
+      "nl-morphology": 0.35714285714285715,
+      "compound": 0.42857142857142855,
+      "semantic-synonym": 0.6875,
+      "phrase-filter": 0.880952380952381,
+      "nl-en-mix": 0.3333333333333333
+    },
+    "perQuery": {
+      "es-azure": {
+        "category": "exact-skill",
+        "found": 3,
+        "hardNegativesInTop20": 0,
+        "query": "azure",
+        "recallAt20": 1,
+        "relevant": 3,
+        "total": 3
+      },
+      "es-java": {
+        "category": "exact-skill",
+        "found": 2,
+        "hardNegativesInTop20": 0,
+        "query": "java",
+        "recallAt20": 1,
+        "relevant": 2,
+        "total": 2
+      },
+      "es-devops": {
+        "category": "exact-skill",
+        "found": 1,
+        "hardNegativesInTop20": 2,
+        "query": "devops engineer",
+        "recallAt20": 1,
+        "relevant": 1,
+        "total": 7
+      },
+      "es-intune": {
+        "category": "exact-skill",
+        "found": 1,
+        "hardNegativesInTop20": 0,
+        "query": "intune",
+        "recallAt20": 1,
+        "relevant": 1,
+        "total": 1
+      },
+      "es-scrum": {
+        "category": "exact-skill",
+        "found": 3,
+        "hardNegativesInTop20": 0,
+        "query": "scrum",
+        "recallAt20": 1,
+        "relevant": 3,
+        "total": 3
+      },
+      "es-etl": {
+        "category": "exact-skill",
+        "found": 1,
+        "hardNegativesInTop20": 0,
+        "query": "etl",
+        "recallAt20": 1,
+        "relevant": 1,
+        "total": 1
+      },
+      "es-firewall": {
+        "category": "exact-skill",
+        "found": 1,
+        "hardNegativesInTop20": 0,
+        "query": "firewall",
+        "recallAt20": 1,
+        "relevant": 1,
+        "total": 1
+      },
+      "es-bpmn": {
+        "category": "exact-skill",
+        "found": 1,
+        "hardNegativesInTop20": 0,
+        "query": "bpmn",
+        "recallAt20": 1,
+        "relevant": 1,
+        "total": 1
+      },
+      "mo-ontwikkelaars": {
+        "category": "nl-morphology",
+        "found": 0,
+        "hardNegativesInTop20": 0,
+        "query": "ontwikkelaars",
+        "recallAt20": 0,
+        "relevant": 5,
+        "total": 0
+      },
+      "mo-systeembeheerders": {
+        "category": "nl-morphology",
+        "found": 0,
+        "hardNegativesInTop20": 0,
+        "query": "systeembeheerders",
+        "recallAt20": 0,
+        "relevant": 1,
+        "total": 0
+      },
+      "mo-testers": {
+        "category": "nl-morphology",
+        "found": 1,
+        "hardNegativesInTop20": 1,
+        "query": "testers",
+        "recallAt20": 0.5,
+        "relevant": 2,
+        "total": 2
+      },
+      "mo-projectleiders": {
+        "category": "nl-morphology",
+        "found": 0,
+        "hardNegativesInTop20": 0,
+        "query": "projectleiders",
+        "recallAt20": 0,
+        "relevant": 2,
+        "total": 0
+      },
+      "mo-archeologen": {
+        "category": "nl-morphology",
+        "found": 1,
+        "hardNegativesInTop20": 0,
+        "query": "archeologen",
+        "recallAt20": 1,
+        "relevant": 1,
+        "total": 1
+      },
+      "mo-vergunningverleners": {
+        "category": "nl-morphology",
+        "found": 1,
+        "hardNegativesInTop20": 0,
+        "query": "vergunningverleners",
+        "recallAt20": 1,
+        "relevant": 1,
+        "total": 1
+      },
+      "mo-beheerders": {
+        "category": "nl-morphology",
+        "found": 0,
+        "hardNegativesInTop20": 0,
+        "query": "beheerders",
+        "recallAt20": 0,
+        "relevant": 2,
+        "total": 0
+      },
+      "co-frontendontwikkelaar": {
+        "category": "compound",
+        "found": 0,
+        "hardNegativesInTop20": 0,
+        "query": "frontendontwikkelaar",
+        "recallAt20": 0,
+        "relevant": 1,
+        "total": 0
+      },
+      "co-databaseontwikkelaar": {
+        "category": "compound",
+        "found": 0,
+        "hardNegativesInTop20": 0,
+        "query": "databaseontwikkelaar",
+        "recallAt20": 0,
+        "relevant": 1,
+        "total": 0
+      },
+      "co-brandmeldinstallaties": {
+        "category": "compound",
+        "found": 0,
+        "hardNegativesInTop20": 0,
+        "query": "brandmeldinstallaties",
+        "recallAt20": 0,
+        "relevant": 1,
+        "total": 0
+      },
+      "co-winstallaties": {
+        "category": "compound",
+        "found": 2,
+        "hardNegativesInTop20": 0,
+        "query": "w-installaties",
+        "recallAt20": 1,
+        "relevant": 2,
+        "total": 4
+      },
+      "co-schuldhulpverlening": {
+        "category": "compound",
+        "found": 2,
+        "hardNegativesInTop20": 0,
+        "query": "schuldhulpverlening",
+        "recallAt20": 1,
+        "relevant": 2,
+        "total": 2
+      },
+      "co-erfgoedbeleid": {
+        "category": "compound",
+        "found": 1,
+        "hardNegativesInTop20": 1,
+        "query": "erfgoedbeleid",
+        "recallAt20": 1,
+        "relevant": 1,
+        "total": 2
+      },
+      "co-elektrotechniek": {
+        "category": "compound",
+        "found": 0,
+        "hardNegativesInTop20": 0,
+        "query": "elektrotechniek",
+        "recallAt20": 0,
+        "relevant": 1,
+        "total": 0
+      },
+      "se-sysadmin": {
+        "category": "semantic-synonym",
+        "found": 0,
+        "hardNegativesInTop20": 0,
+        "query": "sysadmin",
+        "recallAt20": 0,
+        "relevant": 1,
+        "total": 0
+      },
+      "se-softwaredev": {
+        "category": "semantic-synonym",
+        "found": 4,
+        "hardNegativesInTop20": 1,
+        "query": "software developer",
+        "recallAt20": 1,
+        "relevant": 4,
+        "total": 5
+      },
+      "se-hrsystemen": {
+        "category": "semantic-synonym",
+        "found": 1,
+        "hardNegativesInTop20": 0,
+        "query": "hr systemen",
+        "recallAt20": 1,
+        "relevant": 1,
+        "total": 5
+      },
+      "se-iam": {
+        "category": "semantic-synonym",
+        "found": 0,
+        "hardNegativesInTop20": 0,
+        "query": "identity and access management",
+        "recallAt20": 0,
+        "relevant": 1,
+        "total": 7
+      },
+      "se-jeugdzorg": {
+        "category": "semantic-synonym",
+        "found": 1,
+        "hardNegativesInTop20": 0,
+        "query": "gemeente jeugdzorg",
+        "recallAt20": 0.5,
+        "relevant": 2,
+        "total": 5
+      },
+      "se-duurzameenergie": {
+        "category": "semantic-synonym",
+        "found": 1,
+        "hardNegativesInTop20": 0,
+        "query": "duurzame energie",
+        "recallAt20": 1,
+        "relevant": 1,
+        "total": 4
+      },
+      "se-dataengineer": {
+        "category": "semantic-synonym",
+        "found": 1,
+        "hardNegativesInTop20": 0,
+        "query": "data engineer",
+        "recallAt20": 1,
+        "relevant": 1,
+        "total": 11
+      },
+      "se-brandbeveiliging": {
+        "category": "semantic-synonym",
+        "found": 2,
+        "hardNegativesInTop20": 0,
+        "query": "aanbesteding brandbeveiliging",
+        "recallAt20": 1,
+        "relevant": 2,
+        "total": 4
+      },
+      "pf-platformengineer": {
+        "category": "phrase-filter",
+        "found": 1,
+        "hardNegativesInTop20": 1,
+        "query": "\"platform engineer\"",
+        "recallAt20": 1,
+        "relevant": 1,
+        "total": 7
+      },
+      "pf-userstories": {
+        "category": "phrase-filter",
+        "found": 2,
+        "hardNegativesInTop20": 0,
+        "query": "\"user stories\"",
+        "recallAt20": 1,
+        "relevant": 2,
+        "total": 2
+      },
+      "pf-seniorjava": {
+        "category": "phrase-filter",
+        "found": 2,
+        "hardNegativesInTop20": 0,
+        "query": "\"senior java developer\"",
+        "recallAt20": 1,
+        "relevant": 2,
+        "total": 10
+      },
+      "pf-projectleider-closed": {
+        "category": "phrase-filter",
+        "found": 1,
+        "hardNegativesInTop20": 0,
+        "query": "projectleider",
+        "recallAt20": 1,
+        "relevant": 1,
+        "total": 2
+      },
+      "pf-ontwikkelaar-tarief": {
+        "category": "phrase-filter",
+        "found": 1,
+        "hardNegativesInTop20": 0,
+        "query": "ontwikkelaar",
+        "recallAt20": 0.5,
+        "relevant": 2,
+        "total": 1
+      },
+      "pf-nationaalarchief": {
+        "category": "phrase-filter",
+        "found": 1,
+        "hardNegativesInTop20": 1,
+        "query": "\"nationaal archief\"",
+        "recallAt20": 1,
+        "relevant": 1,
+        "total": 3
+      },
+      "pf-scrumteam-active": {
+        "category": "phrase-filter",
+        "found": 2,
+        "hardNegativesInTop20": 0,
+        "query": "scrumteam",
+        "recallAt20": 0.6666666666666666,
+        "relevant": 3,
+        "total": 2
+      },
+      "mx-elektrisch-ingenieur": {
+        "category": "nl-en-mix",
+        "found": 0,
+        "hardNegativesInTop20": 1,
+        "query": "elektrisch ingenieur",
+        "recallAt20": 0,
+        "relevant": 1,
+        "total": 1
+      },
+      "mx-frontend-ontwikkelaar": {
+        "category": "nl-en-mix",
+        "found": 1,
+        "hardNegativesInTop20": 0,
+        "query": "front-end ontwikkelaar",
+        "recallAt20": 1,
+        "relevant": 1,
+        "total": 2
+      },
+      "mx-lab-analist": {
+        "category": "nl-en-mix",
+        "found": 0,
+        "hardNegativesInTop20": 0,
+        "query": "laboratorium analist",
+        "recallAt20": 0,
+        "relevant": 1,
+        "total": 2
+      },
+      "mx-database-developer": {
+        "category": "nl-en-mix",
+        "found": 1,
+        "hardNegativesInTop20": 1,
+        "query": "database developer",
+        "recallAt20": 1,
+        "relevant": 1,
+        "total": 6
+      },
+      "mx-endpoint-beheer": {
+        "category": "nl-en-mix",
+        "found": 0,
+        "hardNegativesInTop20": 1,
+        "query": "endpoint beheer",
+        "recallAt20": 0,
+        "relevant": 2,
+        "total": 7
+      },
+      "mx-hydrogen": {
+        "category": "nl-en-mix",
+        "found": 0,
+        "hardNegativesInTop20": 0,
+        "query": "hydrogen network",
+        "recallAt20": 0,
+        "relevant": 1,
+        "total": 0
+      }
+    },
+    "queries": 43,
+    "source": "/private/tmp/claude-501/-Users-cortex-air-Documents-ChatGPT-Catapulze---Job-intelligence-platform/f79efff0-aab9-4ff4-9254-45e90fba0a1f/scratchpad/wt/striive/benchmarks/relevance/queries.jsonl"
+  },
+  "ingest": {
+    "created": 33,
+    "ms": 50.852375,
+    "updated": 0
+  },
+  "iterationsPerQuery": 50,
+  "morphology": {
+    "ontwikkelaar/ontwikkelaars": {
+      "corpusWordCounts": {
+        "ontwikkelaars": 0,
+        "ontwikkelaar": 1
+      },
+      "searchPluralTotal": 0,
+      "searchSingularTotal": 1
+    },
+    "adviseur/adviseurs": {
+      "corpusWordCounts": {
+        "adviseurs": 1,
+        "adviseur": 2
+      },
+      "searchPluralTotal": 1,
+      "searchSingularTotal": 3
+    },
+    "gemeente/gemeenten": {
+      "corpusWordCounts": {
+        "gemeenten": 3,
+        "gemeente": 4
+      },
+      "searchPluralTotal": 3,
+      "searchSingularTotal": 7
+    },
+    "applicatie/applicaties": {
+      "corpusWordCounts": {
+        "applicaties": 1,
+        "applicatie": 0
+      },
+      "searchPluralTotal": 1,
+      "searchSingularTotal": 2
+    }
+  },
+  "pagination": {
+    "offset_0": {
+      "hits": 3,
+      "stats": {
+        "iterations": 50,
+        "maxMs": 0.2336249999999893,
+        "meanMs": 0.1708124800000013,
+        "minMs": 0.14816600000000335,
+        "p50Ms": 0.16529199999999378,
+        "p95Ms": 0.2122500000000116
+      }
+    },
+    "offset_20": {
+      "hits": 0,
+      "stats": {
+        "iterations": 50,
+        "maxMs": 0.2562499999999659,
+        "meanMs": 0.16774839999999586,
+        "minMs": 0.14370800000000372,
+        "p50Ms": 0.16116699999997763,
+        "p95Ms": 0.21062499999999318
+      }
+    },
+    "offset_100": {
+      "hits": 0,
+      "stats": {
+        "iterations": 50,
+        "maxMs": 0.5834159999999997,
+        "meanMs": 0.1797132599999975,
+        "minMs": 0.12891700000000128,
+        "p50Ms": 0.16004199999997581,
+        "p95Ms": 0.2433749999999577
+      }
+    }
+  },
+  "plainSearch": {
+    "ontwikkelaar": {
+      "ceilingHit": false,
+      "stats": {
+        "iterations": 50,
+        "maxMs": 0.39475000000001614,
+        "meanMs": 0.2391916400000011,
+        "minMs": 0.1635830000000169,
+        "p50Ms": 0.23725000000000307,
+        "p95Ms": 0.32629199999999514
+      },
+      "topHits": ["needstaffing:15520"],
+      "total": 1
+    },
+    "projectleider": {
+      "ceilingHit": false,
+      "stats": {
+        "iterations": 50,
+        "maxMs": 0.7200829999999883,
+        "meanMs": 0.20983169999999746,
+        "minMs": 0.1507919999999956,
+        "p50Ms": 0.18512499999999932,
+        "p95Ms": 0.31245899999998983
+      },
+      "topHits": [
+        "striive:6f84e40f-7072-4ded-b15c-417159ed54d3",
+        "opdrachtoverheid:amstelveenhuurtin_1458"
+      ],
+      "total": 2
+    },
+    "beleidsadviseur": {
+      "ceilingHit": false,
+      "stats": {
+        "iterations": 50,
+        "maxMs": 0.4711250000000007,
+        "meanMs": 0.22652333999999769,
+        "minMs": 0.15500000000000114,
+        "p50Ms": 0.20537500000000364,
+        "p95Ms": 0.31666699999999537
+      },
+      "topHits": ["opdrachtoverheid:amstelveenhuurtin_1460"],
+      "total": 1
+    },
+    "engineer": {
+      "ceilingHit": false,
+      "stats": {
+        "iterations": 50,
+        "maxMs": 0.29199999999997317,
+        "meanMs": 0.1805408199999988,
+        "minMs": 0.15666699999999878,
+        "p50Ms": 0.17404099999998834,
+        "p95Ms": 0.21999999999999886
+      },
+      "topHits": [
+        "striive:6d3b7262-62aa-4604-9c52-3a01cbd71882",
+        "tenderned:TN563214",
+        "hero:interim-opdrachten/devops-engineer-1f2fde9f",
+        "pro-act:vacatures/senior-azure-operations-engineer-8793",
+        "ctm:459876"
+      ],
+      "total": 7
+    },
+    "jurist": {
+      "ceilingHit": false,
+      "stats": {
+        "iterations": 50,
+        "maxMs": 0.8050839999999937,
+        "meanMs": 0.2157726999999983,
+        "minMs": 0.1489170000000115,
+        "p50Ms": 0.18258300000002237,
+        "p95Ms": 0.3034589999999753
+      },
+      "topHits": ["flinter:vergunningverlener-agrarisch"],
+      "total": 1
+    },
+    "adviseur": {
+      "ceilingHit": false,
+      "stats": {
+        "iterations": 50,
+        "maxMs": 0.49183400000001143,
+        "meanMs": 0.20827499999999988,
+        "minMs": 0.14879199999998605,
+        "p50Ms": 0.17866700000001856,
+        "p95Ms": 0.3370830000000069
+      },
+      "topHits": ["onefellow:944", "onefellow:1030", "onefellow:1029"],
+      "total": 3
+    },
+    "gemeente": {
+      "ceilingHit": false,
+      "stats": {
+        "iterations": 50,
+        "maxMs": 0.35829200000000583,
+        "meanMs": 0.18454084000000306,
+        "minMs": 0.1560000000000059,
+        "p50Ms": 0.1732499999999959,
+        "p95Ms": 0.248958000000016
+      },
+      "topHits": [
+        "onefellow:1032",
+        "onefellow:1029",
+        "onefellow:1030",
+        "opdrachtoverheid:amstelveenhuurtin_1461",
+        "opdrachtoverheid:amstelveenhuurtin_1460"
+      ],
+      "total": 7
+    },
+    "inkoop": {
+      "ceilingHit": false,
+      "stats": {
+        "iterations": 50,
+        "maxMs": 1.8709580000000017,
+        "meanMs": 0.2671633399999996,
+        "minMs": 0.15687500000001364,
+        "p50Ms": 0.211166999999989,
+        "p95Ms": 0.3532920000000104
+      },
+      "topHits": ["onefellow:944", "onefellow:1030"],
+      "total": 2
+    }
+  },
+  "startedAt": "2026-08-31T19:25:56.254Z"
+}

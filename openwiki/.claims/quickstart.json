@@ -1,0 +1,240 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:86d18ee8162f278ffd52227adf82439153db65dd67a9b0c987d8be6f75bc243c",
+  "claims": [
+    {
+      "id": "claim_bb602964ed9047c895ec8b7096bc1ce4",
+      "statement": "The repository is a Bun monorepo (workspace scope @ji) for Catapulze Job Intelligence that collects job vacancies from ~23 Dutch sources, normalises, deduplicates, makes them searchable with Boolean queries plus facets, and exports the approved subset idempotently to Spott.io after human approval; it is agent-native with REST, tRPC, and MCP on the same capability surface.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L1-L4",
+          "version": "repo-lines-v1:sha256:701960d83a3fc3f9b11021a7716e23f9ba6622832936de3e6ba7fb409ea85bfb:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzFhYjEzMzJkNGI0NjgxNDBmY2FkY2E3MzJmNmJjMDVmYmRmYTJjN2M4MTMxNjg4ZmVjMzE4YmNkYTY4OWVkMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzQyMDQ4M2Q4NmIzOWE5NDVhNTdiN2QxM2JjZjA3YWIyZWRmYzJmM2IxYzNiNjIxYjRlNjZhY2QwZjcwMGU1OCJ9"
+        },
+        {
+          "resource": "repo://README.md#L1-L3",
+          "version": "repo-lines-v1:sha256:e96d245d418b53d1d118da5b4fbd861f1098fb75241f0ce244f3283cb096eff7:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzFhYjEzMzJkNGI0NjgxNDBmY2FkY2E3MzJmNmJjMDVmYmRmYTJjN2M4MTMxNjg4ZmVjMzE4YmNkYTY4OWVkMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2IzNTE0YmRlMDVjNzgyYTc3ZDVmOWNlZDNjODJmMDdjYzg0Y2UyOTFlYTg1MDI3ZTM3NTdhMTYzNzc3ZjBlMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWM4NzE3MGFlNTFmMDNhNDlhM2UyMTUwYTQ4ZGQyNjc4OTYzM2NjZDRlYzE0YjViY2UwZTlkYmRhMmY2OWJmNiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_727d9f21bc114ec190d6e7defa1aa87f",
+      "statement": "The monorepo has three runtime apps: apps/web (Next.js UI on port 3001), apps/server (Hono + tRPC API on port 3000, also hosting MCP and REST capability handlers and the on-box projector), and apps/worker (an on-box poller process run via bun src/poller/main.ts that replaces the Trigger.dev schedule-slice-a-polls fan-out).",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L5-L17",
+          "version": "repo-lines-v1:sha256:b2c0d9765e8281e4af1dd9d7ffe292affc25c7ef526e7ab14bd8a27ab37e72e6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3ZDM4MGY0ZTRjZDU3MjBlYWViNzcwMjhjYjUxMzQ1ZTNkYjQ2ZTUzYzg3ZGFlODVhYzljYmVhYzM4OGNjYjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZkMzZkMDcwZmVlMWE2NjQyMjIyNDY1NDcwMGRiOGQyOGYwZTg4NDkwMjAwNDVmZGRiOGE2ZDFjOWY4YzY2ZmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNmNWY0MTlmMGJkMmExOWJlYzg3MjNjOTc5ZjRhMjExNGZlOGVkOTUxMjA0NjEwYmM2MjJmODZlY2FjNTk1MzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlmZmJiN2U5YzcwZjdhZWJhODM2MTY0OTQwMGFlM2E1ZWM0NGQxZjcyY2M4NTgyZmIxNDQ0MmVlZTc1ZmM4ZjEifQ"
+        },
+        {
+          "resource": "repo://apps/server/src/index.ts#L154-L157",
+          "version": "repo-lines-v1:sha256:844deca9f14551551ee5eec2c74a25eeaee645d575db1c64fed9f9f9170452bc:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmQ1OGE5MTJiNzY3NjFiMmQ5OTY2ZjQxNzVlMTZmYWQwODlmOWJkMmU2MzRmZGQ5NGMwMjRiYmNkYmE4ODkwZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjZmNWI0MGIxNTg0NTdkMTc4NjRmMjE3OTA3ODZkZDVhMmVjZGI2NGI2NmE2NTFmNzg4ZDRlMjVjZDMzMDNkMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzAxNTJkNzg1NWVhNzAyNTliMDY0ZWQ5Y2FlZWNhNDYxMDRiMzA2MjIzYWQ0M2Q3NGUyZjAzNTE2ODgzYjU5YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjM2NmM2NGE5MDYyMThjNzI3OWY5MTE4NTYxMTg2NWQ2ZWE3NDdhOWI1YmFiMDIyMTEwODEyNjM4NDhlNjYxZCJ9"
+        },
+        {
+          "resource": "repo://apps/web/package.json#L5-L9",
+          "version": "repo-lines-v1:sha256:9bcbc732bfdaacaaaa59fdc064e5631670c534410a73f62365c7f4934fdd1fe2:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzQ4MzNkNTk0OWMwM2E0MGNhOTUyNDkxNjEwYTY2NTk2NDRiM2FhNDY2MzYyZjc5OTAyMGRiZjE5ODE1NDdkYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzAwNWYzNmQzNDA2MzczZDA5NmUyZGJjZTBkNzA4NmZkNzc3MDAzMjNkNzAzMTA5MWE3ZGNiMjQwNzMyOGQ2NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTBkZTcyYWI5MzIxMDgwZmRjZjJkNjJiOTdjZDBmM2YwOTYyMGE5YzYyMDk2ZjZhZGZiYzIxYjVkZWEyMDBjOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTEyMjY0ZWZjN2JkZGJmMzYxYTY3M2FiYWRiMjg1M2IyYjdhYjVhMzM1Yjc0ZDhlYmMwMmZhZmNiMzhlYzQxOSJ9"
+        },
+        {
+          "resource": "repo://apps/worker/src/poller/main.ts#L7-L18",
+          "version": "repo-lines-v1:sha256:4cbaf1c3b7c4eb7e9c6bb441785a8d4e60e01e670ef340c7d0cc43acb9d0e83a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk3MmE0MjkzODJiMmUxNDcxOGUwZTM3YjA1NzBhOGExNzAyOTkxZmNkODQ5OGNkODQwNjBhOGJmNGYwNTAxN2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZiN2FhMmUwMzYyNWNkNGYwOTg0ZTVhZDU3YzAwMDZhNzMxNDU0OGEzYzJlNmQ1MGMwMjkwNzI5N2VkYjMyMDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYyOGEyODdmYjU1ZDMxNjQ0NmFhNjA2NDNmOWUyNDA5ZGI4NDY0NTNmMDRmYzYwNTA5NzA2MWIzMzQ1YWUwMTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ebfcd39b168b49598a4d65442d3f66d8",
+      "statement": "Workspace packages under the @ji scope include api (tRPC router/procedures), application (use-case/bronregister), auth (Better Auth), connectors, db (Drizzle + postgres-js), domain (types and Boolean parser), env, search, performance, ui, and config.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L5-L17",
+          "version": "repo-lines-v1:sha256:b2c0d9765e8281e4af1dd9d7ffe292affc25c7ef526e7ab14bd8a27ab37e72e6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3ZDM4MGY0ZTRjZDU3MjBlYWViNzcwMjhjYjUxMzQ1ZTNkYjQ2ZTUzYzg3ZGFlODVhYzljYmVhYzM4OGNjYjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZkMzZkMDcwZmVlMWE2NjQyMjIyNDY1NDcwMGRiOGQyOGYwZTg4NDkwMjAwNDVmZGRiOGE2ZDFjOWY4YzY2ZmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNmNWY0MTlmMGJkMmExOWJlYzg3MjNjOTc5ZjRhMjExNGZlOGVkOTUxMjA0NjEwYmM2MjJmODZlY2FjNTk1MzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlmZmJiN2U5YzcwZjdhZWJhODM2MTY0OTQwMGFlM2E1ZWM0NGQxZjcyY2M4NTgyZmIxNDQ0MmVlZTc1ZmM4ZjEifQ"
+        },
+        {
+          "resource": "repo://package.json#L4-L29",
+          "version": "repo-lines-v1:sha256:4ebf2a25e3c81f5cbf26541f10d866798df32272f45653acab66205c7547b481:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5ZGM3MDQyMzk1NzM3NWZmOWE5MGUyZTc1MmUwMzU1ZDVlNGRiMTM4N2UzYzI1NzUzMGViNjAzNjFjOWE3NWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkNWNkMmZiNGYzZGY4ODQ1MTUyNTViMzk1MjNmMmY4YjU0NzJiZWVhOWY1NjZmZmNhMjA0ZGI4MDI1NjEwNDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdlZTllMGQzNTVmMTdiYzA4MjU4MjhjMWQ4ZjM0NTlkY2JjZTU2YjhhZWJkMDE5Yzc1N2I4NDNiMjEyZGEwODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU5MjQ0MWQ2M2JjNmQwYmE2YTdkMjhjMjc5ZjI5M2ZkMGJkNTEwNTRiNDFkOWNlZmZhYmQ5YzA4MjdkOWRkZmUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5c140486a35a4e84801672dd07fab5eb",
+      "statement": "apps/server is the single integration boundary: it assembles the production Slice A capability registry (createProductionSliceARegistry) and binds it to REST (/v1/*), MCP (/mcp), tRPC (/trpc/*), and health (/health, /livez, /readyz) handlers, resolving the session principal through Better Auth.",
+      "evidence": [
+        {
+          "resource": "repo://apps/server/src/index.ts#L55-L152",
+          "version": "repo-lines-v1:sha256:04ff27b20d006d716379c9013683e7d06ff5af34cb6142fa38eff3325e6d4b12:eyJzZWxlY3RlZExpbmVDb3VudCI6OTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1YzcwMjM0YmJjYmRhZDQ2ZTA0OWMyNzc1NmJhNDJmZGRhMmI5ZDczMjAzYWU3NWRlYjg3MWJkZTQyNzQ5ODciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5OTRlYjRhYWQ5YzI3OTVjMmYyYjhiMDVkMmQ2OGFlNTNjZWZmNTE2OWFkYzU2ZDY1ODQyNDVlODIxZGNmNmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBjNWQzNDQ3MDQwNzM4MzE5NjJhOTNjYjc0MGVhM2ExMWMyNGZlYjc5NmMzM2ZiNzcwMjZkYjdkMGNlMWI5ZmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRmYjUzYThkZDgxMmM2OGRhNWU2Nzc4YmJkZWVkNjhmYzc0ZWRhZTY2YjUzMTIwMWIxZDEwYzhkN2ZiN2Q5YWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_32536d007fee49d0a3df20f1ff95115b",
+      "statement": "Local run requires Bun 1.3.14+ and the sequence: bun install --frozen-lockfile, copy .env.example files into apps/server/.env and apps/web/.env (plus root .env), fill BETTER_AUTH_SECRET, bun run docker:volume:create, docker compose up -d postgres, bun run db:migrate, bun run dev; web runs on http://localhost:3001 and API on http://localhost:3000.",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L34-L59",
+          "version": "repo-lines-v1:sha256:2d6f35fbb841cc6384fa5df28e33fbf7426880ebbc55d9ed85a68cbb9220f98a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU2ZmE0NjNmMDdjODkzNWQ2MzkwZDFkMGZmNzAxN2VlNjkzNTVhNTVlZWU5OTViNTIyMTU3YTQxYjM1ZTMyMWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNhZjQ2ZmQ4YTIwNzE5ODQzYzY1Mjc3ZjA5MTZjZWYzNTVjNTljZTM3MTUwZjI0ODM3YjhkZjg3MWQ4NDgzYjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhlZmZmOTkyNTdjYTNhMjJiZjY3M2M3MTVmMWFhMmJhNzJlNjBiYWIyM2ZlZjllNGU3NmI4NzZmN2E1Y2ZiNDYifQ"
+        },
+        {
+          "resource": "repo://package.json#L31-L48",
+          "version": "repo-lines-v1:sha256:fddd2de13b51efb760ee98fc9d8d5e1de426503570e4b0405789ddb3faa79a88:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0ODMzZDU5NDljMDNhNDBjYTk1MjQ5MTYxMGE2NjU5NjQ0YjNhYTQ2NjM2MmY3OTkwMjBkYmYxOTgxNTQ3ZGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjMDNiNTc2YTY3NGFlY2MwYTQ4ZjFjMzc3YjM5ODhjMjBmMDZjYTMwZjNkZTg0MmU5MDc5YjA0ZGVjNWUwMjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3MjUwYzI2ZTNlMmNlZDAwYzRiNGMwOGM5OGYwMDkzZDFjYTVjNDU2ODBiYzNhYmJlNWMxNDRkNWM2NDUzMTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY1MzJjNDMyMDBiMDI5ZmU2ZTEyMjdkOTkxNjEyNDNkMjk5MGY4N2YzOGY4MmE0ODVjODAxZWM4ZDlmZWM3ZTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_61250238e9304fd4acd2d77d2b874129",
+      "statement": "The local Compose postgres service uses an external protected volume created by bun run docker:volume:create; docker compose down is permitted but docker compose down -v is forbidden, and admin/migrator/runtime are separate Postgres roles with the runtime app role not a superuser and limited to schema use plus DML on migrator-owned objects; Drizzle migrates via MIGRATION_DATABASE_URL while the server uses the restricted app role via DATABASE_URL.",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L60-L73",
+          "version": "repo-lines-v1:sha256:9f083fde372e434bb8b5ab373664108ae302f9a2872e69ab8bf6cfcd5cb2d4b0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM1NzIyNDllZTZlMTk3MmMwNDU5NzkzNTdlNDYwYjBhZjNjZmEyYTUzMTFkMGZiM2EwNmNlNTlhMTlmNjA1ZTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkNGY5ZDIxNTg4NWQzYzY0YjEzMmVmNGViODZhMDQxNWViYWMxMjg3NGY2OGRjY2E5NzkwNDIwNDhjZjgzMzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRjMGVjNjYxYTA1MTFhZTAwNTgyMjc1NmEyNzQyNTUwMDIxZTM2YjA1YzUzMWFhZTc2ODY3MDllMmMyNTFjMzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJjYzkwZDM2OTJjOTZhNzY4OWFlNzUzOTQ3ZmEwMDAzZDc5ZDdiMmE3NTg0YmFlNTYzZTc3NGExZjdlMmNlMmUifQ"
+        },
+        {
+          "resource": "repo://docker-compose.yml#L4-L34",
+          "version": "repo-lines-v1:sha256:ebc4b702c99d06a96e51f36a9fd1cfb5d36144f2c8593598696e7a5a9b29d366:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhNzNmY2NkYzk5ZWE4MzU5NjdjN2RlZTdlZmJlZDFmM2NhODcyNjBkOTI5MzE4NTBmZGQ2NmRhOGNiMTJmMWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MzFlMjYwMzk4YWQ2MTA5MTRkZmMyOGYwNDhkMzkyNjRiYTdkNTAzMjc4ZGQyZjhiYjFjNGMxNGI0OTlkOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg3ZTk3YzJlYWRiMzhmNTQwMjQ1YzMwNzRlZTBkMmJjMjBiNTUwZDMzZTEwYTdmMWI5MWJjOWFlYTk0NDhlNWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM3ZjE5NDJhYzRiMTVlNDdhOTRhZTYzNTI4Y2U1NjQ2YmZlMzE3NWVhNGQ5ODkyZmNjYTM5NTBhYzRmNGZjOWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_90d1d51c418a4440b5dc70ced2f23de5",
+      "statement": "bun test does not type-check; a change can pass all tests and still fail check-types, so bun run gate (or at minimum bun run check-types) must run before a change is considered done.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L31-L33",
+          "version": "repo-lines-v1:sha256:da0ff99d67a5a894effa70e1463c14adb920c6a638283d0d7fe13c5b4fd95422:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjY3MDNiYjUyMDViNjM0YjIxMWIzZGU2ZDExNTJlNGJkMjAxY2NjZDJlODg4MGRhNTlmZDNmODcyYTk0ZTIwZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjU0ZDllYjVkOTZlNDExODc3NDlmOTJjNWM3YzdiYmYwNDg4OGY4MGIzNGUwZDAzZWY1YTY3ZDIyZGM0YzY1MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTJkMGNmNjVhZWUwMjljYTQzOTBmMGQ3ZTBlNjI5MDdlMTE0NTE2NjVkY2JhYmMyOTliM2JiYzU0YzBhNjI0MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWU3MmViZDhlMzE4NWExNjE0MTQ1ODc5MDI3ZDMyZjIxY2I3ZjQ2MjlhOTI1ZTk5ODcyNjdkYjBmNzkwNzA1NiJ9"
+        },
+        {
+          "resource": "repo://README.md#L90-L104",
+          "version": "repo-lines-v1:sha256:f425c10d9a17b2c59c6c88849f59fc49c5665eff405700a2221c17fde050822a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwOGY1ZGJhN2EzYjBlNjc5M2QxMjJhNmQ2YmEyYTU5NDM5MTM5ZWZmYTA5MTEyNWQ4NzM4MjA5Mjg2Y2M2YzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0MmE3NTY3OWE1NDQ1NWYyNDhkZTYyZGY5ZGNjMzAxNjNlNDcwY2EzODVjOTA1MTBlMDlkNjU0MmRjMDQ5NzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJhZjU4MzU1NTk0ODFlY2Y0MjBiODQ1YmUxODFmZWQ1MWU3ZGZiNjZhMzAxZTkzZWEwY2JmYTU1NjJkODVjYjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFkMDJkYWEyMDU2Yjc5Nzg5ZTZiZWUwN2MzNjJmZWM5OTk4ZjQyMmRmNmViZmM0MGY4NmQ2MWU2NzhlZTMzZTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0484d1a2ef8c4943be6d649320c31dce",
+      "statement": "The web app must never import @ji/db, drizzle-orm, or packages/infra; all DB access goes through apps/server / packages/api, and bun run check-layering refuses such imports from apps/web.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L19-L25",
+          "version": "repo-lines-v1:sha256:6bec3eaaf2a701a1f00d14c08a726bc5555bf9e6ed20ad74a0248d7390dd42bc:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjI2ZGYyZGM4MmJjZjVmMWRkZjNiNjMxMmI1N2Y2NzUyODdiYTNhNDA4ZTJkNmFkOTFiMjE3NmVlMjJhNTVhMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTM2YTYwNDM4Nzk1NWJjOTQ5YWZiN2U3ZWY2Mjk5MmM1MGZjMTE2N2ZjNzRmN2FmYmM2Y2ZkNTY3ZjEyNjg2MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMThjZTE2ZjMxY2I2YmM3MzA0MmRjMDAwMWQyNThhMjk4ODQxYjgzMTkyMjA2MWE5MDdjY2E1NGU1NzI4ZWUwOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGZiZTQ1NTk0OTJjMzRhOWRiYWE5YjczNWE1OTg3ZGQzODM0ZjlmNWEyYzY1Y2VhMWUwNmY1NDkwMGNjNzRlOCJ9"
+        },
+        {
+          "resource": "repo://package.json#L81-L82",
+          "version": "repo-lines-v1:sha256:454c2b83ac3b766c919f3e647b8f139478a3ee0b2d060f7575e6e732cde47477:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDViZWVkYjYyN2E0ZmNhZDg5YzJiMDUxZjk2MGI5NmExZmI5ODQ4NDgyOGE2Y2IwNzFmOGM3MDM1MDcxMjUxNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWZlN2RiNzY3NTM0NDRmYTBlNzA0YWY2ZTM0NWQ1OGY3OWVlNmNmNzJjMGU5MWZjNWJjOTI1ZDU0YmRmNzE3MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2NiOTQ4MjA1OWMwNWMxMDliNzI2YzVmMTY3YzcyZGJlNWI3NjEzNTE4MDVjNmM0ZGUxMDNjMjM4NDlmOWE3MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDcxN2U2NDgwZmRhY2NkM2JlMjQ4NjkyYzM5ZDZjZmY4M2ZiOWU5Y2FhMGExNDJmNWNjNzIxNWM3YjQ4Njc1MSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_9d98639a8acb45e797f060b5538ea260",
+      "statement": "bun run check and bun run gate require the Qlty CLI and fail intentionally when it is missing, so a missing quality owner is never reported green; bun run gate additionally requires a reachable test Postgres and runs the migration and constraint tests for real, creating a ji_migration_upgrade_test_* database via tools/postgres/ensure-migration-upgrade-db.ts when Postgres is available and explicitly skipping that suite otherwise.",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L86-L92",
+          "version": "repo-lines-v1:sha256:28c4de8a5e16d1b067830ac0cfbeedeb31a16b7d6cccb881cbdd9d368acc15f2:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjZiNTA1MmQ4YmRiZmZlMjU2ZTNjNjFlNTk0MjAzMTFjNzBjMzQwMGExNjRhYjcxNjQ0OTcxZWVmMDM4MzU4YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmRkMzY1YmU3YjUxNDU0OTYxYTFmYzEyYjE1ZTkyOGE3ZTlmMzM3ZmYxNDFlZTM1NTQ4YTc0Y2FhYzdkZmYzYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2U2OWVjZGIzYTlkZWE3MTYwZmU4MjQyN2EwZDE0NzUzMjQ3YTljZjg3MDMzNjcwOGIwNTg3MmEyYmIwYTkwNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWQzNDg3NjU2MmFiZjI3Nzc5ZDA3YmVhMjcyZjg2NjhjMmQxNmYyM2I3YzUxMTY0YTRmYWVhOGU3ODJiMDM5OCJ9"
+        },
+        {
+          "resource": "repo://package.json#L68-L73",
+          "version": "repo-lines-v1:sha256:db2c3c212c067a08136cf8ffb938114dc9e0a546f182d521334358f375c9e6d9:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjc4MjBhOTFkMmE0OWFkYzkxNDQyZTQ1YzZiZWRlNzAxNDYxMTFjOGNjYTc3ZjE1ZTQ2MmE2NWZhZjNhZmYwYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjBhZjhmNGE1ZWU3NmE5YzJiMzFlZTQ0YTBjM2IwMDBlMjc1MzVlNDAxYTM2MGMyYjhkYmM5YjRlZTE3MGQwMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTAxZTk1MzEyYzQ4YmU3NGQyNGNkZmU1YmUzYjA0OWViNmY5ZjdhZjZkNjk3ZDA2YzE0ODk3MzFhYTVlZDA5MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDQ0MzI4NTc2ODUyYjdiMjM2YWMyMjlhNDEyZjJjOGEwOTQ4YmNlMWNlMGYzYWI2NDhkZjk5MGUyMzEyZDhkNyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_fb2ec1629c6340b988796a5d6cbbf39b",
+      "statement": "Package scripts prepend ./node_modules/.bin to PATH because the parent directory name (clients:catapulze) contains a colon that would split an absolute node_modules/.bin path in Unix PATH; these scripts must not be switched back to bare tsc/turbo/ultracite.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L19-L22",
+          "version": "repo-lines-v1:sha256:8c4c8e0f3d5e8c0ca94591a3fc71a67f0098bcb0d9cd665a22d290da83ca9216:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjI2ZGYyZGM4MmJjZjVmMWRkZjNiNjMxMmI1N2Y2NzUyODdiYTNhNDA4ZTJkNmFkOTFiMjE3NmVlMjJhNTVhMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMThjZTE2ZjMxY2I2YmM3MzA0MmRjMDAwMWQyNThhMjk4ODQxYjgzMTkyMjA2MWE5MDdjY2E1NGU1NzI4ZWUwOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2Q4NDhjM2I2NjIyMWQzMTI1NTYyOGMxYzA2MjQ4OGIxZjkzNTgwNDZlZjRlMDk4Zjc1N2QyY2NhOTFlMWVlNCJ9"
+        },
+        {
+          "resource": "repo://README.md#L106-L106",
+          "version": "repo-lines-v1:sha256:648b94ab5cdfb9216b9deee88641435dbd1a2ad56537842d9d9146a3178bf405:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjQ4Yjk0YWI1Y2RmYjkyMTZiOWRlZWU4ODY0MTQzNWRiZDFhMmFkNTY1Mzc4NDJkOWQ5MTQ2YTMxNzhiZjQwNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjQ4Yjk0YWI1Y2RmYjkyMTZiOWRlZWU4ODY0MTQzNWRiZDFhMmFkNTY1Mzc4NDJkOWQ5MTQ2YTMxNzhiZjQwNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmMyYjMxZmRkMThhYmQyNzYxMzZlNDM4YmVkOTRhZjk4ZDUxNjMzZWVmNmM4NzhlZjRkZGYwNWI4MGYyMzVmMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_a0b0806b429e433ea4008869a6ef0728",
+      "statement": "Secrets stay out of git; .env.example contains only names and placeholders and bun run check-secrets scans tracked files for obvious secret patterns.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L19-L25",
+          "version": "repo-lines-v1:sha256:6bec3eaaf2a701a1f00d14c08a726bc5555bf9e6ed20ad74a0248d7390dd42bc:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjI2ZGYyZGM4MmJjZjVmMWRkZjNiNjMxMmI1N2Y2NzUyODdiYTNhNDA4ZTJkNmFkOTFiMjE3NmVlMjJhNTVhMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTM2YTYwNDM4Nzk1NWJjOTQ5YWZiN2U3ZWY2Mjk5MmM1MGZjMTE2N2ZjNzRmN2FmYmM2Y2ZkNTY3ZjEyNjg2MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMThjZTE2ZjMxY2I2YmM3MzA0MmRjMDAwMWQyNThhMjk4ODQxYjgzMTkyMjA2MWE5MDdjY2E1NGU1NzI4ZWUwOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGZiZTQ1NTk0OTJjMzRhOWRiYWE5YjczNWE1OTg3ZGQzODM0ZjlmNWEyYzY1Y2VhMWUwNmY1NDkwMGNjNzRlOCJ9"
+        },
+        {
+          "resource": "repo://README.md#L104-L104",
+          "version": "repo-lines-v1:sha256:842a75679a54455f248de62df9dcc30163e470ca385c90510e09d6542dc04974:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODQyYTc1Njc5YTU0NDU1ZjI0OGRlNjJkZjlkY2MzMDE2M2U0NzBjYTM4NWM5MDUxMGUwOWQ2NTQyZGMwNDk3NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODQyYTc1Njc5YTU0NDU1ZjI0OGRlNjJkZjlkY2MzMDE2M2U0NzBjYTM4NWM5MDUxMGUwOWQ2NTQyZGMwNDk3NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzcxZmE4MWRkNmQ3ZGIyYTE2MzBkOGViNzU4YjQzMTY0MWJkMTYyYWIxNDIxZGE4MGI0ZDIwYjJiYTVkOWJlZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjIsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWQwMmRhYTIwNTZiNzk3ODllNmJlZTA3YzM2MmZlYzk5OThmNDIyZGY2ZWJmYzQwZjg2ZDYxZTY3OGVlMzNlMSJ9"
+        },
+        {
+          "resource": "repo://package.json#L82-L82",
+          "version": "repo-lines-v1:sha256:9fe7db76753444fa0e704af6e345d58f79ee6cf72c0e91fc5bc925d54bdf7171:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWZlN2RiNzY3NTM0NDRmYTBlNzA0YWY2ZTM0NWQ1OGY3OWVlNmNmNzJjMGU5MWZjNWJjOTI1ZDU0YmRmNzE3MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWZlN2RiNzY3NTM0NDRmYTBlNzA0YWY2ZTM0NWQ1OGY3OWVlNmNmNzJjMGU5MWZjNWJjOTI1ZDU0YmRmNzE3MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmUzNzJkNTA0ZDdmNjgwZWZhNDM5YmRlN2MzNDJiMDYxNDNkMTMyYmVkMjFhN2I1MjQ2N2IxODRhY2U2YmQ2ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDcxN2U2NDgwZmRhY2NkM2JlMjQ4NjkyYzM5ZDZjZmY4M2ZiOWU5Y2FhMGExNDJmNWNjNzIxNWM3YjQ4Njc1MSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_bf57974e998c482f9113622d6f6de1e2",
+      "statement": "The Claude Code Stop hook and lefthook pre-push both call the same bun run gate; tools/quality/gate.sh loads missing POSTGRES_* from .env (falling back to .env.example) so hooks see the same Compose credentials as the running Postgres without overriding already-set env vars.",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L92-L93",
+          "version": "repo-lines-v1:sha256:e2cb3793f1858ad5c51550511e75fc33f9288963cc03be833beb7cc88284d880:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmRkMzY1YmU3YjUxNDU0OTYxYTFmYzEyYjE1ZTkyOGE3ZTlmMzM3ZmYxNDFlZTM1NTQ4YTc0Y2FhYzdkZmYzYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTE0ZTg0YWY0NzJkZDRhZTkxMWIxZTllMGYyNmZmOTRlNmVlYmZjZTgwZGY3YWZkYWYxMWJiYTYxMTJmMDJmNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGNmMGYxYTg2ZWZkMmJmNGRjNmVjMjc3ZTJkYjYxNmJmZGEzN2QzMDA5N2U2MWVlNTgxOThlYmU4ZDJkYWUwOCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_21fa26ed53da45dcb0ecbb07fa2f8c4c",
+      "statement": "openwiki/ is an evidence index generated from source code and tests, not a product spec; source code and tests are authoritative, it is updated locally via bun run wiki, and private paths are listed in .openwikiignore.",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L86-L89",
+          "version": "repo-lines-v1:sha256:1a55e0cba6629f38d5c1c1493439d6ff042cc816b79f69ecc02eb4f84ef44540:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjZiNTA1MmQ4YmRiZmZlMjU2ZTNjNjFlNTk0MjAzMTFjNzBjMzQwMGExNjRhYjcxNjQ0OTcxZWVmMDM4MzU4YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2U2OWVjZGIzYTlkZWE3MTYwZmU4MjQyN2EwZDE0NzUzMjQ3YTljZjg3MDMzNjcwOGIwNTg3MmEyYmIwYTkwNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGE5NGNkNDRlOTU4YzAxYTQ5NDgyZWM0NjVhMTI1NGU1MjA3ZjQxNGIyNTg3YTI2ZTEyYTBiNmRjMTU3OGU5YSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_26cbf708c55e418d98831f37f58b3c5b",
+      "statement": "A commit in a linked worktree may run without hooks because bun install fails on its lefthook install --reset-hooks-path step; until installed, git commit silently skips pre-commit, so the gates must be re-run by hand after a worktree commit and --no-verify must never be used.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L34-L35",
+          "version": "repo-lines-v1:sha256:85b394df8ced4cbd4777600f46ba955abcbba2c65f605ae40cb88e65f2e0d301:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGU3ZTdmNDUxMWI3ZTNkOTIwOGM4MmYyNTNlNWU1MGI0MGZkN2YwYmVlYmIxMTQ4ZTBiMjk2MDliZWUzZDM5MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZGEwZmY5OWQ2N2E1YTg5NGVmZmE3MGUxNDYzYzE0YWRiOTIwYzZhNjM4MjgzZDBkN2ZlMTNjNWI0ZmQ5NTQyMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTk5YWQ3MjU3ODcyMTBlNjc3ODU2YWJiZjNiZTBlMGZjMWI5YmQwMjEzNmY2YzY2NDBhZDdmMjk3MjczYmE0NyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_5ce74ec17cca4e45a70d55f0d8321f57",
+      "statement": "Quality verbs are bun run fix (auto-fix on changed files via Ultracite/Oxlint/Oxfmt), bun run check (lint on changed files plus Qlty --no-formatters), bun run gate (full pre-push gate), and bun run wiki (local OpenWiki update); fix:all and check:all operate on the whole tree and are escape hatches not for daily use.",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L77-L89",
+          "version": "repo-lines-v1:sha256:0f0fe1bb4e6718d7afecdb94195fa1d7d7d1226580a51f17150aef6c0f353827:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkNjU3N2I2ODEwMWFkMGM5MjE3NTNmYjFlYmRlNTNiOTBjMTM3YWJmMTUyZDgxMDU0NDJkODJmNzlmODE3ZTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJjYzkwZDM2OTJjOTZhNzY4OWFlNzUzOTQ3ZmEwMDAzZDc5ZDdiMmE3NTg0YmFlNTYzZTc3NGExZjdlMmNlMmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRhOTRjZDQ0ZTk1OGMwMWE0OTQ4MmVjNDY1YTEyNTRlNTIwN2Y0MTRiMjU4N2EyNmUxMmEwYjZkYzE1NzhlOWEifQ"
+        },
+        {
+          "resource": "repo://package.json#L68-L74",
+          "version": "repo-lines-v1:sha256:17f801f5d13b54cab4cba08cdd3e6306407d13007b151ec4aba5c9953b36c33e:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjc4MjBhOTFkMmE0OWFkYzkxNDQyZTQ1YzZiZWRlNzAxNDYxMTFjOGNjYTc3ZjE1ZTQ2MmE2NWZhZjNhZmYwYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDFiMmI3MDEzOTliMmFkYjczY2NkZDdkZjlhYTdlOTgyMGJmZmQ0MjJiMGRkZmE4ODJmZWQwM2NiOGY0ZjdjMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTAxZTk1MzEyYzQ4YmU3NGQyNGNkZmU1YmUzYjA0OWViNmY5ZjdhZjZkNjk3ZDA2YzE0ODk3MzFhYTVlZDA5MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2Q5ZjFiYWI3ODcwNDA2ODdkN2UwOGNhNGFiOTNlZTg3YTg5OGM4ZmFjNDRjM2VhYWMzZTAzYWI4OTEyMGYyNiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_23378469de72470e836f9157fdb3bcf4",
+      "statement": "The task-routing map directs readers to architecture/overview for monorepo layout and layering, architecture/data-model for Postgres zones and schema, concepts/capability-registry for the application boundary, concepts/domain-model for domain concepts and the Boolean parser, workflows/ingest-pipeline for ingest, workflows/search-projection for the search projection, workflows/export-approval for the Spott.io export, operations/quality-gates for the pre-push gate, operations/deployment-and-readiness for Docker Compose and DEC-005, and testing/test-strategy for test structure.",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L1-L22",
+          "version": "repo-lines-v1:sha256:7597448db3bcefeb055886b34ff339731271fde04e28509d4cd60c412f3c68df:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxYWIxMzMyZDRiNDY4MTQwZmNhZGNhNzMyZjZiYzA1ZmJkZmEyYzdjODEzMTY4OGZlYzMxOGJjZGE2ODllZDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM5NmJkMTgwNzYyMTNiYzBmNzczYTIwOGZiMzYzYjJhZmI2ZThlMDI0ZjdlNjAzMTFkMjZlMDFhYTVhMzZlOGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI5YWQ1NGRkYWZhYWQxY2Q4M2UwYjY2OGJjYTA4YmExZjgzZDhjZDQ4ZDZhYjQxM2Y0MTYzNTM3MGMyODI2NDUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_316a696e583f44ef8f8f16df83542309",
+      "statement": "For minimal validation of a non-runtime change, run bun install --frozen-lockfile, bun test, bun run check-types, bun run check-layering, and bun run check-secrets; for changes that may touch runtime behaviour or cross a layer boundary, run bun run gate instead, which runs the same steps plus the Postgres-gated suites and migration-upgrade test.",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L94-L104",
+          "version": "repo-lines-v1:sha256:5c2a9b6c7a4baa4535e4331c80c175e36a9dbd68b7b241b5c2bfd27bd5a7d8ed:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiN2FhOWNiY2FkNGU4MjYxOGZjNjIzN2MyYjZiMzNiOTU1N2MxNTg1NjU3MTdjNmM5NTFhNzJjNGYxMjk4OGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0MmE3NTY3OWE1NDQ1NWYyNDhkZTYyZGY5ZGNjMzAxNjNlNDcwY2EzODVjOTA1MTBlMDlkNjU0MmRjMDQ5NzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg2MmU0YmIzZWU2MmY2ZWE5Yzg4YjRiZmRkOGE0MjUxY2M4YjA0ZmQ1NTkxYTE5MjAzNzBkOWQ3ZWE1OTFkOGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFkMDJkYWEyMDU2Yjc5Nzg5ZTZiZWUwN2MzNjJmZWM5OTk4ZjQyMmRmNmViZmM0MGY4NmQ2MWU2NzhlZTMzZTEifQ"
+        },
+        {
+          "resource": "repo://package.json#L75-L82",
+          "version": "repo-lines-v1:sha256:4deb59da7868d4827c4555c4ee53b3ff359971664a8a0bb07b18f9704b13c440:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWM4MjAxZmFhNTNhYWE0ZjhiMmI0ZjAwODFiOWZkOWQzMzAxMDgyZjNmMWQ4YWMzMzkxMThlZmRlNzMwNDg5MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWZlN2RiNzY3NTM0NDRmYTBlNzA0YWY2ZTM0NWQ1OGY3OWVlNmNmNzJjMGU5MWZjNWJjOTI1ZDU0YmRmNzE3MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzFhNGM2N2RjODEzMzBlOTgyMGNlYWRlMDIwZDM0MDE1ZmE2MDc3NDU2OWI0YzRlZWViMTQ2NGNiZjYyMzkxMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDcxN2U2NDgwZmRhY2NkM2JlMjQ4NjkyYzM5ZDZjZmY4M2ZiOWU5Y2FhMGExNDJmNWNjNzIxNWM3YjQ4Njc1MSJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.4.3",
+    "at": "2026-09-14T14:34:20.891Z"
+  }
+}

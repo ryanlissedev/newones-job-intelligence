@@ -1,0 +1,7 @@
+{
+  "contractVersion": "connector-fixture/v1",
+  "source": "hero",
+  "capturedAt": "2026-08-31T10:46:42.000Z",
+  "contentType": "html",
+  "payload": "<html><body>\n<nav><a href=\"/interim-opdrachten\">Alle opdrachten</a></nav>\n<div class=\"listing\">\n<a href=\"/interim-opdrachten/devops-engineer-1f2fde9f\">DevOps Engineer</a>\n<a href=\"/interim-opdrachten/front-end-developer-9c99b237\">Front-end Developer</a>\n<a href=\"/api/internal-status\">status</a>\n</div>\n</body></html>"
+}

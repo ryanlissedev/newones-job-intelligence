@@ -1,0 +1,7 @@
+{
+  "contractVersion": "connector-fixture/v1",
+  "source": "tenmonks",
+  "capturedAt": "2026-09-16T03:42:50.189Z",
+  "contentType": "xml",
+  "payload": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n<url>\n<loc>https://tenmonks.nl/opdrachten/34350/data-analist/</loc>\n</url>\n<url>\n<loc>https://tenmonks.nl/opdrachten/34341/informatieadviseur-informatiebeheer/</loc>\n</url>\n<url>\n<loc>https://tenmonks.nl/opdrachten/34360/strategisch-adviseur-kwaliteit-en-control/</loc>\n</url>\n</urlset>\n"
+}

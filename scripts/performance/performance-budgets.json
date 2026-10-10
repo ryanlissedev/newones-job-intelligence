@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "selectorVersion": 1,
+  "policy": {
+    "mode": "observe-only",
+    "minimumSamples": { "warn": 10, "enforce": 20 },
+    "confirmationCount": 3,
+    "note": "Delivery phases remain observe-only because no CI baseline has been accepted. Product budgets are accepted for measurement and warning, not yet a hard CI gate."
+  },
+  "safetyCap": {
+    "metric": "ci.total.duration",
+    "unit": "minutes",
+    "statistic": "single-run",
+    "absoluteThreshold": 20,
+    "relativeThresholdPercent": null,
+    "enforcement": "hard-timeout",
+    "source": "Existing CI timeout contract"
+  },
+  "deliveryPhases": [
+    "install",
+    "gate",
+    "ultracite",
+    "qlty",
+    "typecheck",
+    "performance-typecheck",
+    "ci-metrics-typecheck",
+    "layering",
+    "secrets",
+    "test",
+    "build"
+  ],
+  "measurementContract": {
+    "metric": "command.duration",
+    "unit": "milliseconds",
+    "statistic": "p95",
+    "cohortSelector": { "version": 1, "match": "exact-cohortFingerprint" },
+    "absoluteThreshold": null,
+    "relativeThresholdPercent": null
+  },
+  "productBudgets": [
+    {
+      "label": "bron-dashboard",
+      "path": "get_dashboard_overview",
+      "window": "30d",
+      "metrics": [
+        {
+          "name": "get_dashboard_overview",
+          "statistic": "p95",
+          "unit": "milliseconds",
+          "absoluteThreshold": 1000,
+          "comparison": "less-than"
+        },
+        {
+          "name": "bronRunStats",
+          "scope": "each-query",
+          "statistic": "p95",
+          "unit": "milliseconds",
+          "absoluteThreshold": 300,
+          "comparison": "less-than"
+        },
+        {
+          "name": "bronRunTimeseries",
+          "scope": "each-query",
+          "statistic": "p95",
+          "unit": "milliseconds",
+          "absoluteThreshold": 300,
+          "comparison": "less-than"
+        }
+      ],
+      "fixture": {
+        "runs": 50000,
+        "bronnen": 12,
+        "days": 60
+      },
+      "postgresRoundTripsMax": 4,
+      "externalHttpInRequestPath": 0,
+      "enforcement": "measure-warn-ready",
+      "source": ["ADR-0003", "docs/evidence/rjc-415", "PR #182"]
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "$schema": "https://react.doctor/schema/config.json",
+  "noScore": true,
+  "share": false,
+  "blocking": "none",
+  "ignore": {
+    "rules": ["deslop/unused-dependency", "deslop/unused-export"]
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "name": "Catapulze Job Intelligence",
+  "install": "bash ./.cursor/install.sh"
+}

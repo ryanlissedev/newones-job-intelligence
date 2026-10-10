@@ -1,0 +1,25 @@
+{
+  "name": "@ji/performance",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./critical-path": "./src/critical-path/index.ts",
+    "./digest": "./src/digest.ts",
+    "./labels": "./src/labels.ts",
+    "./effect": "./src/effect/index.ts"
+  },
+  "scripts": {
+    "check-types": "PATH=\"./node_modules/.bin:$PATH\" tsc --noEmit"
+  },
+  "dependencies": {
+    "@ji/env": "workspace:*",
+    "effect": "catalog:"
+  },
+  "devDependencies": {
+    "@ji/config": "workspace:*",
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  }
+}

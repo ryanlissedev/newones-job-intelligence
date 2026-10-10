@@ -1,0 +1,83 @@
+---
+# WAL archive overlay for isolated backup/restore drills.
+# Usage:
+#   docker compose --env-file .env.example \
+#     -f docker-compose.yml \
+#     -f docker-compose.backup.yml \
+#     up -d --wait postgres minio minio-init
+
+services:
+  minio:
+    image: cgr.dev/chainguard/minio@sha256:bd014394a80898e68c149f2311fdf8d5a2c2f3bb2c33b9327ae6d02b4b065ae1
+    # Runs as root so MinIO can write the Docker-created named volume;
+    # local/CI fixture only (production raw storage is R2).
+    user: "0:0"
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${WALG_S3_ACCESS_KEY:-walg_local}
+      MINIO_ROOT_PASSWORD: ${WALG_S3_SECRET_KEY:-walg_local_secret}
+      # Lets the `mc ready local` healthcheck resolve alias `local` without a
+      # config file (the chainguard image ships mc but no curl).
+      MC_HOST_local: http://${WALG_S3_ACCESS_KEY:-walg_local}:${WALG_S3_SECRET_KEY:-walg_local_secret}@127.0.0.1:9000
+    ports:
+      - target: 9000
+        published: "${MINIO_API_PORT:-9000}"
+        host_ip: 127.0.0.1
+        protocol: tcp
+    volumes:
+      - minio_backup_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    cpus: "0.5"
+    mem_limit: 512m
+    restart: unless-stopped
+
+  minio-init:
+    image: cgr.dev/chainguard/minio@sha256:bd014394a80898e68c149f2311fdf8d5a2c2f3bb2c33b9327ae6d02b4b065ae1
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: ${WALG_S3_ACCESS_KEY:-walg_local}
+      MINIO_ROOT_PASSWORD: ${WALG_S3_SECRET_KEY:-walg_local_secret}
+      WALG_S3_BUCKET: ${WALG_S3_BUCKET:-catapulze-pg-backup}
+    volumes:
+      - ./tools/postgres/minio-init.sh:/minio-init.sh:ro
+    entrypoint: ["/bin/sh", "/minio-init.sh"]
+
+  postgres:
+    build:
+      context: ./tools/postgres
+      dockerfile: Dockerfile.walg
+    image: catapulze-postgres-walg:16
+    environment:
+      AWS_ACCESS_KEY_ID: ${WALG_S3_ACCESS_KEY:-walg_local}
+      AWS_SECRET_ACCESS_KEY: ${WALG_S3_SECRET_KEY:-walg_local_secret}
+      AWS_ENDPOINT: http://minio:9000
+      AWS_REGION: ${WALG_S3_REGION:-us-east-1}
+      AWS_S3_FORCE_PATH_STYLE: "true"
+      WALG_S3_PREFIX: s3://${WALG_S3_BUCKET:-catapulze-pg-backup}/pg
+      WALG_COMPRESSION_METHOD: brotli
+      WALG_RETENTION_POLICY: ${WALG_RETENTION_POLICY:-7d}
+    command:
+      - postgres
+      - -c
+      - wal_level=replica
+      - -c
+      - archive_mode=on
+      - -c
+      - archive_command=wal-g wal-push %p
+      - -c
+      - archive_timeout=60
+      - -c
+      - max_wal_size=1GB
+    depends_on:
+      minio-init:
+        condition: service_completed_successfully
+
+volumes:
+  minio_backup_data:

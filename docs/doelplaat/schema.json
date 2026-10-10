@@ -1,0 +1,492 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://catapulze.com/schemas/job-intelligence/aanvraag.schema.json",
+  "title": "Catapulze Job Intelligence — aanvraag (canoniek)",
+  "version": "0.2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "aanvraag_id",
+    "bron_id",
+    "bron_referentie",
+    "bron_url",
+    "bron_categorie",
+    "eerste_gezien_op",
+    "laatst_gezien_op",
+    "content_hash",
+    "versie",
+    "raw_payload_ref",
+    "scrape_run_id",
+    "taal",
+    "titel",
+    "beschrijving",
+    "functiegroep",
+    "locatie_land",
+    "status",
+    "compleetheid_score",
+    "extractie_methode"
+  ],
+  "properties": {
+    "aanvraag_id": {
+      "type": "string",
+      "description": "Eigen sleutel van de aanvraag in de datalaag.",
+      "x-schemaorg": "identifier",
+      "format": "uuid"
+    },
+    "bron_id": {
+      "type": "string",
+      "description": "Verwijzing naar de bron (bronregister)."
+    },
+    "bron_referentie": {
+      "type": "string",
+      "description": "ID/kenmerk van de aanvraag bij de bron (bv. TN-563355, aanvraagnummer, ATS job id). Natuurlijke sleutel samen met bron_id.",
+      "x-schemaorg": "identifier"
+    },
+    "bron_url": {
+      "type": "string",
+      "description": "Canonieke URL van de aanvraag bij de bron.",
+      "x-schemaorg": "url",
+      "format": "uri"
+    },
+    "bron_categorie": {
+      "type": "string",
+      "description": "msp_broker | global_msp | das_tender | overheidsportaal | jobboard | werkenbij",
+      "enum": [
+        "msp_broker",
+        "global_msp",
+        "das_tender",
+        "overheidsportaal",
+        "jobboard",
+        "werkenbij"
+      ]
+    },
+    "intermediair": {
+      "type": "string",
+      "description": "Broker/MSP die de aanvraag uitzet (bv. HeadFirst), als die afwijkt van de bron."
+    },
+    "gepubliceerd_op": {
+      "type": "string",
+      "description": "Publicatiedatum volgens de bron.",
+      "x-schemaorg": "datePosted",
+      "format": "date"
+    },
+    "eerste_gezien_op": {
+      "type": "string",
+      "description": "Eerste run waarin de aanvraag is waargenomen.",
+      "format": "date-time"
+    },
+    "laatst_gezien_op": {
+      "type": "string",
+      "description": "Laatste run waarin de aanvraag nog zichtbaar was; basis voor status-afleiding.",
+      "format": "date-time"
+    },
+    "content_hash": {
+      "type": "string",
+      "description": "Hash van de genormaliseerde inhoud; wijziging = nieuwe versie."
+    },
+    "versie": {
+      "type": "integer",
+      "description": "Versienummer; historie in aanvraag_versie (SCD2)."
+    },
+    "dedup_groep_id": {
+      "type": "string",
+      "description": "Cluster van dezelfde aanvraag die via meerdere bronnen/brokers binnenkomt.",
+      "format": "uuid"
+    },
+    "raw_payload_ref": {
+      "type": "string",
+      "description": "Object-storage sleutel van de ruwe HTML/JSON van deze versie."
+    },
+    "scrape_run_id": {
+      "type": "string",
+      "description": "Run die deze versie heeft opgehaald (herleidbaarheid).",
+      "format": "uuid"
+    },
+    "taal": {
+      "type": "string",
+      "description": "nl | en | overig — taal van de beschrijving.",
+      "x-schemaorg": "inLanguage",
+      "enum": [
+        "nl",
+        "en",
+        "overig"
+      ]
+    },
+    "titel": {
+      "type": "string",
+      "description": "Functietitel zoals de bron die toont.",
+      "x-schemaorg": "title"
+    },
+    "beschrijving": {
+      "type": "string",
+      "description": "Volledige omschrijving, HTML omgezet naar markdown; secties behouden.",
+      "x-schemaorg": "description"
+    },
+    "functiegroep": {
+      "type": "string",
+      "description": "Classificatie op Catapulze-profielen: ai_engineer | ml_engineer | data_engineer | data_scientist | platform_engineer | cloud_engineer | devops_sre | cloud_architect | security_engineer | software_engineer | overig.",
+      "x-schemaorg": "occupationalCategory",
+      "enum": [
+        "ai_engineer",
+        "ml_engineer",
+        "data_engineer",
+        "data_scientist",
+        "platform_engineer",
+        "cloud_engineer",
+        "devops_sre",
+        "cloud_architect",
+        "security_engineer",
+        "software_engineer",
+        "overig"
+      ]
+    },
+    "vakgebied_bron": {
+      "type": "string",
+      "description": "Categorie/vakgebied zoals de bron die hanteert (bv. 'ICT', 'Data & Analytics').",
+      "x-schemaorg": "occupationalCategory"
+    },
+    "opdrachtgever_naam": {
+      "type": "string",
+      "description": "Eindklant / aanbestedende dienst / werkgever. Bij brokers soms geanonimiseerd ('een gemeente in Zuid-Holland').",
+      "x-schemaorg": "hiringOrganization"
+    },
+    "opdrachtgever_type": {
+      "type": "string",
+      "description": "overheid | semi_overheid | commercieel | onbekend.",
+      "enum": [
+        "overheid",
+        "semi_overheid",
+        "commercieel",
+        "onbekend"
+      ]
+    },
+    "opdrachtgever_kvk": {
+      "type": "string",
+      "description": "KvK-nummer via verrijking (Clay/KvK) — koppelsleutel naar organisatie."
+    },
+    "sector": {
+      "type": "string",
+      "description": "Sector/branche van de opdrachtgever.",
+      "x-schemaorg": "industry"
+    },
+    "aantal_posities": {
+      "type": "integer",
+      "description": "Aantal in te vullen posities (default 1).",
+      "x-schemaorg": "totalJobOpenings"
+    },
+    "locatie_plaats": {
+      "type": "string",
+      "description": "Standplaats.",
+      "x-schemaorg": "jobLocation.address.addressLocality"
+    },
+    "locatie_provincie": {
+      "type": "string",
+      "description": "Provincie (uit bron of afgeleid uit plaats).",
+      "x-schemaorg": "jobLocation.address.addressRegion"
+    },
+    "locatie_land": {
+      "type": "string",
+      "description": "ISO-landcode, default NL.",
+      "x-schemaorg": "jobLocation.address.addressCountry"
+    },
+    "werkplek": {
+      "type": "string",
+      "description": "onsite | hybride | remote | onbekend.",
+      "x-schemaorg": "jobLocationType",
+      "enum": [
+        "onsite",
+        "hybride",
+        "remote",
+        "onbekend"
+      ]
+    },
+    "remote_pct": {
+      "type": "integer",
+      "description": "Percentage remote als de bron dat noemt ('remote werken mogelijk voor 50%')."
+    },
+    "uren_per_week_min": {
+      "type": "number",
+      "description": "Minimale inzet per week.",
+      "x-schemaorg": "workHours"
+    },
+    "uren_per_week_max": {
+      "type": "number",
+      "description": "Maximale inzet per week.",
+      "x-schemaorg": "workHours"
+    },
+    "startdatum": {
+      "type": "string",
+      "description": "Gewenste startdatum ('z.s.m.' → null + vlag start_zsm).",
+      "x-schemaorg": "jobStartDate",
+      "format": "date"
+    },
+    "start_zsm": {
+      "type": "boolean",
+      "description": "Start zo snel mogelijk.",
+      "x-schemaorg": "jobImmediateStart"
+    },
+    "einddatum": {
+      "type": "string",
+      "description": "Einddatum initiële periode.",
+      "format": "date"
+    },
+    "duur_maanden": {
+      "type": "number",
+      "description": "Looptijd in maanden (afgeleid uit start/einde als de bron alleen een duur noemt).",
+      "x-schemaorg": "jobDuration"
+    },
+    "verlenging_mogelijk": {
+      "type": "boolean",
+      "description": "Optie tot verlenging."
+    },
+    "verlenging_tekst": {
+      "type": "string",
+      "description": "Verlengingsopties zoals de bron ze beschrijft ('maximaal 2 × 12 maanden')."
+    },
+    "tarief_min": {
+      "type": "number",
+      "description": "Ondergrens tarief (indien range).",
+      "x-schemaorg": "baseSalary.value.minValue"
+    },
+    "tarief_max": {
+      "type": "number",
+      "description": "Maximumtarief of bovengrens; bij brokers het belangrijkste commerciële veld.",
+      "x-schemaorg": "baseSalary.value.maxValue"
+    },
+    "tarief_eenheid": {
+      "type": "string",
+      "description": "uur | dag | maand.",
+      "x-schemaorg": "baseSalary.value.unitText",
+      "enum": [
+        "uur",
+        "dag",
+        "maand"
+      ]
+    },
+    "tarief_valuta": {
+      "type": "string",
+      "description": "ISO-valuta, default EUR.",
+      "x-schemaorg": "salaryCurrency"
+    },
+    "tarief_type": {
+      "type": "string",
+      "description": "maximum | indicatie | vast | onbekend — wat het genoemde tarief betekent.",
+      "enum": [
+        "maximum",
+        "indicatie",
+        "vast",
+        "onbekend"
+      ]
+    },
+    "tarief_inclusief": {
+      "type": "string",
+      "description": "Wat in het tarief zit (reiskosten, excl. btw, incl. brokerfee)."
+    },
+    "salaris_min": {
+      "type": "number",
+      "description": "Salarisondergrens (vaste functies).",
+      "x-schemaorg": "baseSalary.value.minValue"
+    },
+    "salaris_max": {
+      "type": "number",
+      "description": "Salarisbovengrens (vaste functies).",
+      "x-schemaorg": "baseSalary.value.maxValue"
+    },
+    "salaris_periode": {
+      "type": "string",
+      "description": "maand | jaar.",
+      "x-schemaorg": "baseSalary.value.unitText",
+      "enum": [
+        "maand",
+        "jaar"
+      ]
+    },
+    "inhuurvorm": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "zzp",
+          "detachering",
+          "payroll",
+          "vast",
+          "sow",
+          "onbekend"
+        ]
+      },
+      "description": "zzp | detachering | payroll | vast | sow | onbekend — meerdere mogelijk.",
+      "x-schemaorg": "employmentType"
+    },
+    "zzp_toegestaan": {
+      "type": "boolean",
+      "description": "Expliciet of ZZP is toegestaan (Wet DBA-context)."
+    },
+    "dienstverband": {
+      "type": "string",
+      "description": "fulltime | parttime | onbekend (vaste functies).",
+      "x-schemaorg": "employmentType",
+      "enum": [
+        "fulltime",
+        "parttime",
+        "onbekend"
+      ]
+    },
+    "aantal_kandidaten_per_leverancier": {
+      "type": "integer",
+      "description": "Maximaal aantal kandidaten dat een leverancier mag voorstellen."
+    },
+    "screening": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "VOG, VGB/AIVD-screening, referenties, geheimhoudingsverklaring.",
+      "x-schemaorg": "securityClearanceRequirement"
+    },
+    "taaleisen": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Vereiste talen en niveau ('Nederlands near-native')."
+    },
+    "opleidingsniveau": {
+      "type": "string",
+      "description": "mbo | hbo | wo | onbekend.",
+      "x-schemaorg": "educationRequirements",
+      "enum": [
+        "mbo",
+        "hbo",
+        "wo",
+        "onbekend"
+      ]
+    },
+    "ervaring_jaren_min": {
+      "type": "integer",
+      "description": "Minimaal aantal jaren ervaring uit de eisen.",
+      "x-schemaorg": "experienceRequirements"
+    },
+    "eisen": {
+      "type": "boolean",
+      "description": "Harde eisen (knock-out) als lijst; bij brokers/overheid vrijwel altijd expliciet gescheiden van wensen.",
+      "x-schemaorg": "qualifications"
+    },
+    "wensen": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Wensen met eventuele weging/punten."
+    },
+    "competenties": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Gedragscompetenties zoals de bron ze noemt.",
+      "x-schemaorg": "skills"
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Genormaliseerde technische skills (taxonomie Catapulze: bv. python, kubernetes, azure, langchain).",
+      "x-schemaorg": "skills"
+    },
+    "gunningscriteria": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Beoordelingscriteria met weging (prijs/kwaliteit, interview)."
+    },
+    "interviewdata": {
+      "type": "string",
+      "description": "Geplande gespreksdata/-week."
+    },
+    "procedure_type": {
+      "type": "string",
+      "description": "DAS, minicompetitie, open procedure, marktplaats — vooral overheid."
+    },
+    "sluitingsdatum": {
+      "type": "string",
+      "description": "Deadline voor indienen, inclusief tijdstip als de bron dat noemt.",
+      "x-schemaorg": "validThrough",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "description": "open | gesloten | ingetrokken | vervuld | onbekend — afgeleid uit bronstatus, sluitingsdatum en 'niet meer gezien'.",
+      "enum": [
+        "open",
+        "gesloten",
+        "ingetrokken",
+        "vervuld",
+        "onbekend"
+      ]
+    },
+    "status_bron": {
+      "type": "string",
+      "description": "Status zoals de bron die toont ('Open', 'Gesloten', 'In beoordeling')."
+    },
+    "gesloten_gedetecteerd_op": {
+      "type": "string",
+      "description": "Moment waarop Job Intelligence de aanvraag als gesloten heeft gemarkeerd.",
+      "format": "date-time"
+    },
+    "contact_naam": {
+      "type": "string",
+      "description": "Contactpersoon (PII — beperkte retentie).",
+      "x-schemaorg": "applicationContact.name"
+    },
+    "contact_email": {
+      "type": "string",
+      "description": "E-mail contactpersoon (PII).",
+      "x-schemaorg": "applicationContact.email"
+    },
+    "contact_telefoon": {
+      "type": "string",
+      "description": "Telefoon contactpersoon (PII).",
+      "x-schemaorg": "applicationContact.telephone"
+    },
+    "bijlagen": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Documenten bij de aanvraag (functieprofiel, nota van inlichtingen); kopie in object storage.",
+      "format": "uri"
+    },
+    "bron_specifiek": {
+      "type": "object",
+      "description": "Alle bronvelden die niet in het canonieke model passen, met bronveldnaam als sleutel. Verliesvrij; per bron gedocumenteerd in het bronregister."
+    },
+    "compleetheid_score": {
+      "type": "number",
+      "description": "Aandeel gevulde kernvelden; stuurt datakwaliteit-dashboards."
+    },
+    "relevantie_score": {
+      "type": "number",
+      "description": "Past de aanvraag bij de Catapulze-profielen (AI/platform engineering)? LLM-classificatie met reden."
+    },
+    "relevantie_reden": {
+      "type": "string",
+      "description": "Korte motivatie van de score (transparantie, AI Act)."
+    },
+    "extractie_methode": {
+      "type": "string",
+      "description": "api | jsonld | html_parser | llm — hoe de velden zijn verkregen.",
+      "enum": [
+        "api",
+        "jsonld",
+        "html_parser",
+        "llm"
+      ]
+    },
+    "extractie_confidence": {
+      "type": "number",
+      "description": "Zekerheid van LLM-extractie per record; lage scores gaan naar review."
+    }
+  }
+}

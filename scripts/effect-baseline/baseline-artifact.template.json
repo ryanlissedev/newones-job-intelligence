@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "issue": "CTP-454",
+  "adr": "docs/adr/ADR-0013-effectts-platform-baseline.md",
+  "status": "template",
+  "git": {
+    "headSha": "0000000000000000000000000000000000000000",
+    "dirty": false,
+    "branch": null
+  },
+  "host": {
+    "hostname": "unset",
+    "os": "unset",
+    "arch": "unset",
+    "cpuCount": 1,
+    "memTotalMiB": null
+  },
+  "toolchain": {
+    "bunPackageManager": "bun@1.3.14",
+    "bunHost": "unset",
+    "typescript": "6.0.3",
+    "typesBun": "1.4.0",
+    "effectDirect": null,
+    "effectTransitive": "3.21.0",
+    "compatibilityNotes": [
+      "Effect is not a first-party dependency on peildatum main; transitive via @prisma/config only.",
+      "Official Effect v4 RC install: bun add effect@rc (effect.website, 2026-08-31).",
+      "Do not reuse unrelated historical timings as this baseline."
+    ]
+  },
+  "cohort": {
+    "runKind": "unknown",
+    "cacheState": "unmeasured",
+    "label": "effect-baseline-template"
+  },
+  "workload": {
+    "adapters": [
+      "json-ld-listing",
+      "json-ld-detail",
+      "spott-list",
+      "spott-get"
+    ],
+    "fixtureOnly": true,
+    "liveProviders": false
+  },
+  "metrics": {
+    "latencyMs": {
+      "p50": null,
+      "p95": null,
+      "n": 0,
+      "failures": 0
+    },
+    "attemptCounts": {
+      "requestAttempts": null,
+      "taskAttempts": null
+    },
+    "cancellationLatencyMs": null,
+    "resourceReleaseOk": null,
+    "peakRssMiB": null,
+    "buildDurationMs": null,
+    "typecheckDurationMs": null,
+    "serverBundleBytes": null,
+    "directDependencyCount": null,
+    "adapterLocObserve": null
+  },
+  "retryOwnership": {
+    "requestRetryOwner": "packages/connectors withRetry / poll-bron-run retryPolicy",
+    "triggerTaskRetryOwner": "apps/worker/src/tasks/poll-bron.ts schemaTask.retry",
+    "requestMaxAttempts": 3,
+    "triggerMaxAttempts": 2,
+    "blindWriteRetries": false
+  },
+  "allowedRegressions": [
+    "Latency p95 observe-only until >=20 homogeneous successes (ADR-0003).",
+    "RSS/build/typecheck warn-first without a published absolute budget in this artifact.",
+    "No combined request*task retry ceiling increase without explicit ADR/issue.",
+    "LOC reduction alone is not a success criterion; second adapter must share the wire contract."
+  ],
+  "reviewRubric": {
+    "retryOwnerIdentifiable": null,
+    "cancellationPathIdentifiable": null,
+    "cleanupOwnerIdentifiable": null,
+    "notes": "Fill after independent review of current vs Effect variant."
+  },
+  "notes": "Template only. Populate via harness dry-run or measured cohort; never commit measured PII or live secrets."
+}

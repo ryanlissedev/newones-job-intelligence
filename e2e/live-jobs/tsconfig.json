@@ -1,0 +1,8 @@
+{
+  "extends": "../../packages/config/tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["bun", "@playwright/test"]
+  },
+  "include": ["./**/*.ts", "../../playwright.live*.ts"]
+}

@@ -1,0 +1,7 @@
+{
+  "contractVersion": "connector-fixture/v1",
+  "source": "hero",
+  "capturedAt": "2026-08-31T10:46:53.000Z",
+  "contentType": "html",
+  "payload": "<html><head><title>Front-end Developer</title>\n<script type=\"application/ld+json\">{\"@context\": \"https://schema.org\", \"@type\": \"JobPosting\", \"title\": \"Front-end Developer\", \"description\": \"Voor de Nederlandse Voedsel- en Warenautoriteit (NVWA) in Utrecht zoeken wij een Front-end Developer voor het team Digitale Media en Dienstverlening, in een hecht SCRUM-team met korte lijnen naar de Product Owner.\", \"datePosted\": \"2026-08-28T09:10:27.773+00:00\", \"hiringOrganization\": {\"@type\": \"Organization\", \"name\": \"Hero Interim Professionals\", \"sameAs\": \"https://hero.eu\", \"logo\": \"https://hero.eu/Hero_logo_blauw_oranje.png\"}, \"url\": \"https://hero.eu/interim-opdrachten/front-end-developer-9c99b237\", \"directApply\": false, \"inLanguage\": \"nl\", \"jobLocation\": {\"@type\": \"Place\", \"address\": {\"@type\": \"PostalAddress\", \"addressLocality\": \"Utrecht\", \"addressCountry\": \"NL\"}}, \"employmentType\": \"CONTRACTOR\", \"workHours\": \"32 uur/week\"}</script>\n</head><body></body></html>"
+}

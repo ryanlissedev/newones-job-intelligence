@@ -1,0 +1,8 @@
+{
+  "captureNote": "Recorded by tools/fixtures/record.ts: GET https://www.intermediair.nl/cdn/sitemaps/vacature.xml. Mechanically stripped (elements): script:not([type=\"application/ld+json\"])×0, style×0, svg×0, nav×0, footer×0, redacted:email×0, redacted:phone×0.",
+  "capturedAt": "2026-09-17T20:51:39.525Z",
+  "contentType": "html",
+  "contractVersion": "connector-fixture/v1",
+  "payload": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<sitemapindex xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n  <sitemap>\n    <loc>https://intermediair.nl/cdn/sitemaps/vacature/vacature-1.xml</loc>\n    <lastmod>2026-09-17T20:21:15Z</lastmod>\n  </sitemap>\n</sitemapindex>",
+  "source": "intermediair"
+}

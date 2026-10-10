@@ -1,0 +1,90 @@
+{
+  "attempt": 1,
+  "cohortDimensions": {
+    "arch": "arm64",
+    "bun": "1.4.2",
+    "cacheState": null,
+    "commandFingerprint": "47bf52b1780ff2ff0f2a969a5d4d681445990c84088cc98a8a667addde97441a",
+    "concurrency": 4,
+    "cpuCount": 18,
+    "cpuModel": "Apple M5 Pro",
+    "datasetDigest": "sha256:99132f84ce8b79ba92876e23695faad259ebb2d15b344b3cc69715474e5507a3",
+    "executor": "k5-worker-slots-probe",
+    "indexState": null,
+    "itemCount": 520,
+    "job": "bron-ingest",
+    "label": "ingest-commit",
+    "machine": "k5-probe-box",
+    "memoryBytes": 68719476736,
+    "os": "darwin",
+    "osRelease": "27.0.0",
+    "pipeline": null,
+    "postgresImageDigest": null,
+    "postgresVersion": "16.14",
+    "provider": null,
+    "querysetDigest": null,
+    "region": null,
+    "runKind": "cold",
+    "runner": null,
+    "suite": null,
+    "toolchain": null,
+    "vacuumState": null,
+    "version": 2,
+    "workflow": null,
+    "workloadProfile": null,
+    "workloadVersion": null
+  },
+  "cohortFingerprint": "8f3677f2cd8e2f9906bdb5c28b12070951700abc0579784fd55600ff98d979bf",
+  "command": [
+    "@ji/critical-path",
+    "ingest-commit"
+  ],
+  "commandExitCode": 0,
+  "commandFingerprint": "47bf52b1780ff2ff0f2a969a5d4d681445990c84088cc98a8a667addde97441a",
+  "commandStatus": "passed",
+  "durationMs": 18472,
+  "endedAt": "2026-09-22T16:45:12.500Z",
+  "executor": "k5-worker-slots-probe",
+  "git": {
+    "dirty": true,
+    "sha": "a4383496c18e5a4571a533089af7aef1f7a27b06"
+  },
+  "id": "487033b1-7022-46bf-8fca-eb95c3c15794",
+  "label": "ingest-commit",
+  "measurement": {
+    "boundary": "ingest-commit",
+    "kind": "in-process-monotonic",
+    "unit": "milliseconds"
+  },
+  "measurementError": null,
+  "metadata": {
+    "concurrency": "4",
+    "dataset": "k5-worker-slot-corpus",
+    "dataset-digest": "sha256:99132f84ce8b79ba92876e23695faad259ebb2d15b344b3cc69715474e5507a3",
+    "item-count": "520",
+    "job": "bron-ingest",
+    "machine": "k5-probe-box",
+    "postgres-version": "16.14",
+    "records-per-second": "28"
+  },
+  "resources": {
+    "cpuSystemMicroseconds": null,
+    "cpuUserMicroseconds": null,
+    "maxRssBytes": null,
+    "unsupportedReason": "in-process-phase"
+  },
+  "retryOf": null,
+  "runKind": "cold",
+  "runtime": {
+    "arch": "arm64",
+    "bun": "1.4.2",
+    "cpuCount": 18,
+    "cpuModel": "Apple M5 Pro",
+    "memoryBytes": 68719476736,
+    "os": "darwin",
+    "osRelease": "27.0.0"
+  },
+  "schemaVersion": 1,
+  "startedAt": "2026-09-22T16:44:53.917Z",
+  "wrapperStatus": "complete"
+}

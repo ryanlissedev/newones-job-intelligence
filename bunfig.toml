@@ -1,0 +1,5 @@
+[test]
+# JI-001: bun test must run and exit. Do not pass --watch in scripts or CI.
+# RJC-369: isolate every DB spec onto a fresh per-process database instead
+# of the shared ji_test — see tools/postgres/test-isolation.ts.
+preload = ["./tools/postgres/test-isolation.ts"]

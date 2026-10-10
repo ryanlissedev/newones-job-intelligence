@@ -1,0 +1,7 @@
+{
+  "contractVersion": "connector-fixture/v1",
+  "source": "pro-act",
+  "capturedAt": "2026-08-31T10:48:07.000Z",
+  "contentType": "html",
+  "payload": "<html><head><title>ISO</title>\n<script type=\"application/ld+json\">{\"@context\": \"https://schema.org\", \"@type\": \"JobPosting\", \"datePosted\": \"2026-08-18\", \"title\": \"ISO\", \"description\": \"<p>Voor onze directe eindklant de Algemene Rekenkamer, zijn wij op zoek naar een ISO.</p><ul>\\t<li>Start: 15 oktober 2026\\t<li>Eind: 14 april 2027\\t<li>Inzet: 32 uur per week\\t<li>Tarief: marktconform\\t<li>Locatie: hybride</ul>\", \"hiringOrganization\": {\"@type\": \"Organization\", \"name\": \"Pro-Act IT\"}, \"jobLocation\": {\"@type\": \"Place\", \"address\": {\"@type\": \"PostalAddress\", \"addressCountry\": \"NL\"}}, \"employmentType\": \"FULL_TIME\", \"validThrough\": \"2026-10-01\"}</script>\n</head><body></body></html>"
+}

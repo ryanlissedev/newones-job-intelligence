@@ -1,0 +1,7 @@
+{
+  "contractVersion": "connector-fixture/v1",
+  "source": "pro-act",
+  "capturedAt": "2026-08-31T10:47:41.000Z",
+  "contentType": "html",
+  "payload": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n<url><loc>https://pro-act.nl/vacatures/senior-azure-operations-engineer-8793/</loc></url>\n<url><loc>https://pro-act.nl/vacatures/iso-8783/</loc></url>\n</urlset>"
+}

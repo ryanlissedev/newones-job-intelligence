@@ -1,0 +1,2132 @@
+{
+  "id": "3110ced1-d57d-4603-91bf-b3fc6fc0fd8e",
+  "prevId": "c345ff84-a44a-40a3-936d-aa4150851e61",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.account": {
+      "name": "account",
+      "schema": "",
+      "columns": {
+        "access_token": {
+          "name": "access_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "access_token_expires_at": {
+          "name": "access_token_expires_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "account_id": {
+          "name": "account_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "id_token": {
+          "name": "id_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "issuer": {
+          "name": "issuer",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "password": {
+          "name": "password",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "provider_id": {
+          "name": "provider_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "refresh_token": {
+          "name": "refresh_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "refresh_token_expires_at": {
+          "name": "refresh_token_expires_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "scope": {
+          "name": "scope",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "account_issuer_accountId_uidx": {
+          "name": "account_issuer_accountId_uidx",
+          "columns": [
+            {
+              "expression": "issuer",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "account_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "account_userId_idx": {
+          "name": "account_userId_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "account_user_id_user_id_fk": {
+          "name": "account_user_id_user_id_fk",
+          "tableFrom": "account",
+          "tableTo": "user",
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.session": {
+      "name": "session",
+      "schema": "",
+      "columns": {
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "ip_address": {
+          "name": "ip_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "token": {
+          "name": "token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_agent": {
+          "name": "user_agent",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "session_userId_idx": {
+          "name": "session_userId_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "session_user_id_user_id_fk": {
+          "name": "session_user_id_user_id_fk",
+          "tableFrom": "session",
+          "tableTo": "user",
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "session_token_unique": {
+          "name": "session_token_unique",
+          "nullsNotDistinct": false,
+          "columns": ["token"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.user": {
+      "name": "user",
+      "schema": "",
+      "columns": {
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email_verified": {
+          "name": "email_verified",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "image": {
+          "name": "image",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "user_email_unique": {
+          "name": "user_email_unique",
+          "nullsNotDistinct": false,
+          "columns": ["email"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.verification": {
+      "name": "verification",
+      "schema": "",
+      "columns": {
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "identifier": {
+          "name": "identifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "value": {
+          "name": "value",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "verification_identifier_idx": {
+          "name": "verification_identifier_idx",
+          "columns": [
+            {
+              "expression": "identifier",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "curated.aanvraag": {
+      "name": "aanvraag",
+      "schema": "curated",
+      "columns": {
+        "beschrijving": {
+          "name": "beschrijving",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bron_id": {
+          "name": "bron_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bron_referentie": {
+          "name": "bron_referentie",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bron_specifiek": {
+          "name": "bron_specifiek",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "bron_url": {
+          "name": "bron_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "compleetheid_score": {
+          "name": "compleetheid_score",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "content_hash": {
+          "name": "content_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "dedup_groep_id": {
+          "name": "dedup_groep_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "eerste_gezien_op": {
+          "name": "eerste_gezien_op",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "extractie_methode": {
+          "name": "extractie_methode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "functiegroep": {
+          "name": "functiegroep",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'overig'"
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "laatst_gezien_op": {
+          "name": "laatst_gezien_op",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "locatie_land": {
+          "name": "locatie_land",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'NL'"
+        },
+        "raw_payload_ref": {
+          "name": "raw_payload_ref",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scrape_run_id": {
+          "name": "scrape_run_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'unknown'"
+        },
+        "taal": {
+          "name": "taal",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'nl'"
+        },
+        "tarief_eenheid": {
+          "name": "tarief_eenheid",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tarief_max": {
+          "name": "tarief_max",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tarief_min": {
+          "name": "tarief_min",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tarief_valuta": {
+          "name": "tarief_valuta",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'EUR'"
+        },
+        "titel": {
+          "name": "titel",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "versie": {
+          "name": "versie",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        }
+      },
+      "indexes": {
+        "aanvraag_bron_referentie_uidx": {
+          "name": "aanvraag_bron_referentie_uidx",
+          "columns": [
+            {
+              "expression": "bron_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "bron_referentie",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "aanvraag_dedup_groep_id_idx": {
+          "name": "aanvraag_dedup_groep_id_idx",
+          "columns": [
+            {
+              "expression": "dedup_groep_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "aanvraag_status_idx": {
+          "name": "aanvraag_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "aanvraag_bron_id_bron_id_fk": {
+          "name": "aanvraag_bron_id_bron_id_fk",
+          "tableFrom": "aanvraag",
+          "tableTo": "bron",
+          "schemaTo": "curated",
+          "columnsFrom": ["bron_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "aanvraag_dedup_groep_id_dedup_groep_id_fk": {
+          "name": "aanvraag_dedup_groep_id_dedup_groep_id_fk",
+          "tableFrom": "aanvraag",
+          "tableTo": "dedup_groep",
+          "schemaTo": "curated",
+          "columnsFrom": ["dedup_groep_id"],
+          "columnsTo": ["id"],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "aanvraag_scrape_run_id_scrape_run_id_fk": {
+          "name": "aanvraag_scrape_run_id_scrape_run_id_fk",
+          "tableFrom": "aanvraag",
+          "tableTo": "scrape_run",
+          "schemaTo": "curated",
+          "columnsFrom": ["scrape_run_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "curated.aanvraag_bron_link": {
+      "name": "aanvraag_bron_link",
+      "schema": "curated",
+      "columns": {
+        "aanvraag_id": {
+          "name": "aanvraag_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bron_id": {
+          "name": "bron_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bron_referentie": {
+          "name": "bron_referentie",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "is_primary": {
+          "name": "is_primary",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {
+        "aanvraag_bron_link_aanvraag_bron_uidx": {
+          "name": "aanvraag_bron_link_aanvraag_bron_uidx",
+          "columns": [
+            {
+              "expression": "aanvraag_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "bron_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "aanvraag_bron_link_aanvraag_id_aanvraag_id_fk": {
+          "name": "aanvraag_bron_link_aanvraag_id_aanvraag_id_fk",
+          "tableFrom": "aanvraag_bron_link",
+          "tableTo": "aanvraag",
+          "schemaTo": "curated",
+          "columnsFrom": ["aanvraag_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "aanvraag_bron_link_bron_id_bron_id_fk": {
+          "name": "aanvraag_bron_link_bron_id_bron_id_fk",
+          "tableFrom": "aanvraag_bron_link",
+          "tableTo": "bron",
+          "schemaTo": "curated",
+          "columnsFrom": ["bron_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "curated.aanvraag_versie": {
+      "name": "aanvraag_versie",
+      "schema": "curated",
+      "columns": {
+        "aanvraag_id": {
+          "name": "aanvraag_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content_hash": {
+          "name": "content_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "geldig_tot": {
+          "name": "geldig_tot",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "geldig_van": {
+          "name": "geldig_van",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "raw_payload_ref": {
+          "name": "raw_payload_ref",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scrape_run_id": {
+          "name": "scrape_run_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "snapshot": {
+          "name": "snapshot",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "versie": {
+          "name": "versie",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "aanvraag_versie_aanvraag_versie_uidx": {
+          "name": "aanvraag_versie_aanvraag_versie_uidx",
+          "columns": [
+            {
+              "expression": "aanvraag_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "versie",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "aanvraag_versie_open_idx": {
+          "name": "aanvraag_versie_open_idx",
+          "columns": [
+            {
+              "expression": "aanvraag_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "\"curated\".\"aanvraag_versie\".\"geldig_tot\" IS NULL",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "aanvraag_versie_aanvraag_id_aanvraag_id_fk": {
+          "name": "aanvraag_versie_aanvraag_id_aanvraag_id_fk",
+          "tableFrom": "aanvraag_versie",
+          "tableTo": "aanvraag",
+          "schemaTo": "curated",
+          "columnsFrom": ["aanvraag_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "aanvraag_versie_scrape_run_id_scrape_run_id_fk": {
+          "name": "aanvraag_versie_scrape_run_id_scrape_run_id_fk",
+          "tableFrom": "aanvraag_versie",
+          "tableTo": "scrape_run",
+          "schemaTo": "curated",
+          "columnsFrom": ["scrape_run_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "curated.agent_context": {
+      "name": "agent_context",
+      "schema": "curated",
+      "columns": {
+        "context": {
+          "name": "context",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "entity_id": {
+          "name": "entity_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entity_type": {
+          "name": "entity_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "agent_context_entity_uidx": {
+          "name": "agent_context_entity_uidx",
+          "columns": [
+            {
+              "expression": "entity_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "entity_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "curated.audit_event": {
+      "name": "audit_event",
+      "schema": "curated",
+      "columns": {
+        "action": {
+          "name": "action",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "actor_id": {
+          "name": "actor_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "actor_type": {
+          "name": "actor_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'system'"
+        },
+        "audit_class": {
+          "name": "audit_class",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "entity_id": {
+          "name": "entity_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entity_type": {
+          "name": "entity_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "metadata": {
+          "name": "metadata",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "occurred_at": {
+          "name": "occurred_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "audit_event_entity_idx": {
+          "name": "audit_event_entity_idx",
+          "columns": [
+            {
+              "expression": "entity_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "entity_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "audit_event_occurred_at_idx": {
+          "name": "audit_event_occurred_at_idx",
+          "columns": [
+            {
+              "expression": "occurred_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "curated.bron": {
+      "name": "bron",
+      "schema": "curated",
+      "columns": {
+        "actief": {
+          "name": "actief",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "categorie": {
+          "name": "categorie",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "config_ref": {
+          "name": "config_ref",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "crawl_delay_ms": {
+          "name": "crawl_delay_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "ingestie_type": {
+          "name": "ingestie_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'json-api'"
+        },
+        "interval": {
+          "name": "interval",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0 * * * *'"
+        },
+        "login_vereist": {
+          "name": "login_vereist",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "mapping_ref": {
+          "name": "mapping_ref",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "naam": {
+          "name": "naam",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rate_limit_per_minute": {
+          "name": "rate_limit_per_minute",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "retention_days": {
+          "name": "retention_days",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 90
+        },
+        "schedule": {
+          "name": "schedule",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "secret_ref": {
+          "name": "secret_ref",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'deferred'"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "voorwaarden_status": {
+          "name": "voorwaarden_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'te_toetsen'"
+        },
+        "website": {
+          "name": "website",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "bron_status_idx": {
+          "name": "bron_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "bron_categorie_idx": {
+          "name": "bron_categorie_idx",
+          "columns": [
+            {
+              "expression": "categorie",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "bron_status_check": {
+          "name": "bron_status_check",
+          "value": "\"curated\".\"bron\".\"status\" IN ('ready', 'blocked', 'deferred')"
+        },
+        "bron_voorwaarden_status_check": {
+          "name": "bron_voorwaarden_status_check",
+          "value": "\"curated\".\"bron\".\"voorwaarden_status\" IN ('toegestaan', 'verboden', 'te_toetsen')"
+        },
+        "bron_rate_limit_check": {
+          "name": "bron_rate_limit_check",
+          "value": "\"curated\".\"bron\".\"rate_limit_per_minute\" > 0"
+        },
+        "bron_crawl_delay_check": {
+          "name": "bron_crawl_delay_check",
+          "value": "\"curated\".\"bron\".\"crawl_delay_ms\" >= 0"
+        },
+        "bron_retention_days_check": {
+          "name": "bron_retention_days_check",
+          "value": "\"curated\".\"bron\".\"retention_days\" > 0"
+        },
+        "bron_secret_ref_check": {
+          "name": "bron_secret_ref_check",
+          "value": "\"curated\".\"bron\".\"secret_ref\" IS NULL OR \"curated\".\"bron\".\"secret_ref\" ~ '^(op|vault|trigger)://[^[:space:]/]+(/[^[:space:]]*)?$'"
+        },
+        "bron_ready_policy_check": {
+          "name": "bron_ready_policy_check",
+          "value": "\"curated\".\"bron\".\"status\" <> 'ready' OR \"curated\".\"bron\".\"voorwaarden_status\" = 'toegestaan'"
+        },
+        "bron_active_policy_check": {
+          "name": "bron_active_policy_check",
+          "value": "\"curated\".\"bron\".\"actief\" = false OR (\"curated\".\"bron\".\"status\" = 'ready' AND \"curated\".\"bron\".\"voorwaarden_status\" = 'toegestaan')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "curated.dedup_groep": {
+      "name": "dedup_groep",
+      "schema": "curated",
+      "columns": {
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "handmatig_bevestigd": {
+          "name": "handmatig_bevestigd",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "methode": {
+          "name": "methode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "primaire_aanvraag_id": {
+          "name": "primaire_aanvraag_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "similariteit": {
+          "name": "similariteit",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'reviewable'"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "dedup_groep_status_idx": {
+          "name": "dedup_groep_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "curated.outbox_event": {
+      "name": "outbox_event",
+      "schema": "curated",
+      "columns": {
+        "aggregate_id": {
+          "name": "aggregate_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "aggregate_type": {
+          "name": "aggregate_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "event_type": {
+          "name": "event_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "index_version": {
+          "name": "index_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "payload": {
+          "name": "payload",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "processed_at": {
+          "name": "processed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "outbox_event_unprocessed_idx": {
+          "name": "outbox_event_unprocessed_idx",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "\"curated\".\"outbox_event\".\"processed_at\" IS NULL",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "curated.query_snapshot": {
+      "name": "query_snapshot",
+      "schema": "curated",
+      "columns": {
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "filters": {
+          "name": "filters",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "index_version": {
+          "name": "index_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "parser_version": {
+          "name": "parser_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "query_text": {
+          "name": "query_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "result_ids": {
+          "name": "result_ids",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "saved_search_id": {
+          "name": "saved_search_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "schema_version": {
+          "name": "schema_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "query_snapshot_user_id_idx": {
+          "name": "query_snapshot_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "query_snapshot_saved_search_id_saved_search_id_fk": {
+          "name": "query_snapshot_saved_search_id_saved_search_id_fk",
+          "tableFrom": "query_snapshot",
+          "tableTo": "saved_search",
+          "schemaTo": "curated",
+          "columnsFrom": ["saved_search_id"],
+          "columnsTo": ["id"],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "curated.saved_search": {
+      "name": "saved_search",
+      "schema": "curated",
+      "columns": {
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "filters": {
+          "name": "filters",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "naam": {
+          "name": "naam",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "parser_version": {
+          "name": "parser_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "query_text": {
+          "name": "query_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "schema_version": {
+          "name": "schema_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "saved_search_user_id_idx": {
+          "name": "saved_search_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "curated.scrape_run": {
+      "name": "scrape_run",
+      "schema": "curated",
+      "columns": {
+        "aantal_gevonden": {
+          "name": "aantal_gevonden",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "bron_id": {
+          "name": "bron_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "checkpoint": {
+          "name": "checkpoint",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "circuit_status": {
+          "name": "circuit_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'closed'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "failure_class": {
+          "name": "failure_class",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "failure_code": {
+          "name": "failure_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "failure_message": {
+          "name": "failure_message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "failure_phase": {
+          "name": "failure_phase",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fence_token": {
+          "name": "fence_token",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "fouten": {
+          "name": "fouten",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "geindigd": {
+          "name": "geindigd",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "gesloten": {
+          "name": "gesloten",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "gestart": {
+          "name": "gestart",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "gewijzigd": {
+          "name": "gewijzigd",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "nieuw": {
+          "name": "nieuw",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "rejected": {
+          "name": "rejected",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "run_kind": {
+          "name": "run_kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'poll'"
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'running'"
+        },
+        "versie_adapter": {
+          "name": "versie_adapter",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "scrape_run_bron_id_idx": {
+          "name": "scrape_run_bron_id_idx",
+          "columns": [
+            {
+              "expression": "bron_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "scrape_run_gestart_idx": {
+          "name": "scrape_run_gestart_idx",
+          "columns": [
+            {
+              "expression": "gestart",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "scrape_run_bron_id_bron_id_fk": {
+          "name": "scrape_run_bron_id_bron_id_fk",
+          "tableFrom": "scrape_run",
+          "tableTo": "bron",
+          "schemaTo": "curated",
+          "columnsFrom": ["bron_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "scrape_run_status_check": {
+          "name": "scrape_run_status_check",
+          "value": "\"curated\".\"scrape_run\".\"status\" IN ('running', 'succeeded', 'failed', 'cancelled')"
+        },
+        "scrape_run_kind_check": {
+          "name": "scrape_run_kind_check",
+          "value": "\"curated\".\"scrape_run\".\"run_kind\" IN ('test', 'poll')"
+        },
+        "scrape_run_metrics_nonnegative_check": {
+          "name": "scrape_run_metrics_nonnegative_check",
+          "value": "\"curated\".\"scrape_run\".\"aantal_gevonden\" >= 0 AND \"curated\".\"scrape_run\".\"nieuw\" >= 0 AND \"curated\".\"scrape_run\".\"gewijzigd\" >= 0 AND \"curated\".\"scrape_run\".\"rejected\" >= 0 AND \"curated\".\"scrape_run\".\"gesloten\" >= 0 AND \"curated\".\"scrape_run\".\"fouten\" >= 0"
+        },
+        "scrape_run_completion_check": {
+          "name": "scrape_run_completion_check",
+          "value": "(\"curated\".\"scrape_run\".\"status\" = 'running' AND \"curated\".\"scrape_run\".\"geindigd\" IS NULL) OR (\"curated\".\"scrape_run\".\"status\" <> 'running' AND \"curated\".\"scrape_run\".\"geindigd\" IS NOT NULL)"
+        },
+        "scrape_run_fence_token_check": {
+          "name": "scrape_run_fence_token_check",
+          "value": "\"curated\".\"scrape_run\".\"fence_token\" >= 0 AND \"curated\".\"scrape_run\".\"fence_token\" <= 9007199254740991"
+        },
+        "scrape_run_failure_envelope_check": {
+          "name": "scrape_run_failure_envelope_check",
+          "value": "(\n        \"curated\".\"scrape_run\".\"status\" = 'failed'\n        AND \"curated\".\"scrape_run\".\"failure_phase\" IS NOT NULL\n        AND \"curated\".\"scrape_run\".\"failure_class\" IS NOT NULL\n        AND \"curated\".\"scrape_run\".\"failure_code\" IS NOT NULL\n        AND \"curated\".\"scrape_run\".\"failure_message\" IS NOT NULL\n      ) OR (\n        \"curated\".\"scrape_run\".\"status\" <> 'failed'\n        AND \"curated\".\"scrape_run\".\"failure_phase\" IS NULL\n        AND \"curated\".\"scrape_run\".\"failure_class\" IS NULL\n        AND \"curated\".\"scrape_run\".\"failure_code\" IS NULL\n        AND \"curated\".\"scrape_run\".\"failure_message\" IS NULL\n      )"
+        },
+        "scrape_run_failure_tuple_check": {
+          "name": "scrape_run_failure_tuple_check",
+          "value": "(\"curated\".\"scrape_run\".\"failure_phase\", \"curated\".\"scrape_run\".\"failure_class\", \"curated\".\"scrape_run\".\"failure_code\", \"curated\".\"scrape_run\".\"failure_message\") IN (\n        ('discover', 'connector', 'DISCOVER_FAILED', 'Connector discovery failed'),\n        ('fetch', 'connector', 'FETCH_FAILED', 'Connector fetch failed'),\n        ('raw-store', 'storage', 'RAW_STORE_WRITE_FAILED', 'Raw object persistence failed'),\n        ('observation', 'persistence', 'OBSERVATION_WRITE_FAILED', 'Observation persistence failed'),\n        ('checkpoint', 'persistence', 'CHECKPOINT_WRITE_FAILED', 'Run checkpoint persistence failed'),\n        ('complete', 'persistence', 'COMPLETE_WRITE_FAILED', 'Run completion persistence failed'),\n        ('unknown', 'internal', 'UNEXPECTED_FAILURE', 'Connector run failed'),\n        ('unknown', 'internal', 'LEGACY_FAILURE', 'Legacy run failed' || chr(59) || ' details unavailable')\n      ) OR (\n        \"curated\".\"scrape_run\".\"failure_phase\" IS NULL\n        AND \"curated\".\"scrape_run\".\"failure_class\" IS NULL\n        AND \"curated\".\"scrape_run\".\"failure_code\" IS NULL\n        AND \"curated\".\"scrape_run\".\"failure_message\" IS NULL\n      )"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "staging.aanvraag_observation": {
+      "name": "aanvraag_observation",
+      "schema": "staging",
+      "columns": {
+        "bron_id": {
+          "name": "bron_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content_hash": {
+          "name": "content_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "outcome": {
+          "name": "outcome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "parser_version": {
+          "name": "parser_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "payload": {
+          "name": "payload",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scrape_run_id": {
+          "name": "scrape_run_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_record_id": {
+          "name": "source_record_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        }
+      },
+      "indexes": {
+        "aanvraag_observation_replay_uidx": {
+          "name": "aanvraag_observation_replay_uidx",
+          "columns": [
+            {
+              "expression": "scrape_run_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "source_record_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "content_hash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "aanvraag_observation_source_record_id_idx": {
+          "name": "aanvraag_observation_source_record_id_idx",
+          "columns": [
+            {
+              "expression": "source_record_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "aanvraag_observation_status_idx": {
+          "name": "aanvraag_observation_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "aanvraag_observation_bron_id_bron_id_fk": {
+          "name": "aanvraag_observation_bron_id_bron_id_fk",
+          "tableFrom": "aanvraag_observation",
+          "tableTo": "bron",
+          "schemaTo": "curated",
+          "columnsFrom": ["bron_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "aanvraag_observation_scrape_run_id_scrape_run_id_fk": {
+          "name": "aanvraag_observation_scrape_run_id_scrape_run_id_fk",
+          "tableFrom": "aanvraag_observation",
+          "tableTo": "scrape_run",
+          "schemaTo": "curated",
+          "columnsFrom": ["scrape_run_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "aanvraag_observation_source_record_id_source_record_id_fk": {
+          "name": "aanvraag_observation_source_record_id_source_record_id_fk",
+          "tableFrom": "aanvraag_observation",
+          "tableTo": "source_record",
+          "schemaTo": "staging",
+          "columnsFrom": ["source_record_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "aanvraag_observation_outcome_check": {
+          "name": "aanvraag_observation_outcome_check",
+          "value": "\"staging\".\"aanvraag_observation\".\"outcome\" IN ('new', 'changed', 'unchanged')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "staging.source_record": {
+      "name": "source_record",
+      "schema": "staging",
+      "columns": {
+        "bron_id": {
+          "name": "bron_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bron_referentie": {
+          "name": "bron_referentie",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content_hash": {
+          "name": "content_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "raw_payload_ref": {
+          "name": "raw_payload_ref",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scrape_run_id": {
+          "name": "scrape_run_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "source_record_bron_referentie_uidx": {
+          "name": "source_record_bron_referentie_uidx",
+          "columns": [
+            {
+              "expression": "bron_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "bron_referentie",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "source_record_scrape_run_id_idx": {
+          "name": "source_record_scrape_run_id_idx",
+          "columns": [
+            {
+              "expression": "scrape_run_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "source_record_bron_id_bron_id_fk": {
+          "name": "source_record_bron_id_bron_id_fk",
+          "tableFrom": "source_record",
+          "tableTo": "bron",
+          "schemaTo": "curated",
+          "columnsFrom": ["bron_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "source_record_scrape_run_id_scrape_run_id_fk": {
+          "name": "source_record_scrape_run_id_scrape_run_id_fk",
+          "tableFrom": "source_record",
+          "tableTo": "scrape_run",
+          "schemaTo": "curated",
+          "columnsFrom": ["scrape_run_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {
+    "curated": "curated",
+    "marts": "marts",
+    "staging": "staging"
+  },
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

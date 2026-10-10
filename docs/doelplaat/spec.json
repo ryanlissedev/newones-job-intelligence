@@ -1,0 +1,2371 @@
+{
+  "meta": {
+    "naam": "Catapulze Job Intelligence — specificatie v2 (concept)",
+    "versie": "0.2",
+    "datum": "2026-08-26",
+    "status": "concept — ter review door Robbie en Julian; 0.2 voegt v1-analyse, requirements en veldmapping toe",
+    "principe": "Eén canoniek model voor alle bronnen; alles wat daar niet in past gaat verliesvrij mee in bron_specifiek en blijft herleidbaar naar de ruwe payload."
+  },
+  "broncategorieen": [
+    {
+      "id": "msp_broker",
+      "naam": "MSP / broker-portaal",
+      "omschrijving": "Inhuurplatformen en brokers met een leveranciersportaal achter login. Aanvragen zijn vaak (deels) publiek als kaartje, details achter login.",
+      "voorbeelden": [
+        "Striive / HeadFirst",
+        "SMS",
+        "Circle8",
+        "BlueTrail",
+        "Harvey Nash",
+        "Between",
+        "Brainnet",
+        "Hero",
+        "Bconnect",
+        "Flinter",
+        "StaffingNow",
+        "Need Staffing IT",
+        "Onefellow",
+        "OneStopSourcing",
+        "Pro-Act IT",
+        "Starapple"
+      ],
+      "ingestie": "Playwright (login met eigen leveranciersaccount) of HTML; RSS/API zelden",
+      "juridisch": "Gebruiksvoorwaarden per portaal toetsen — geautomatiseerde toegang is vaak beperkt; alleen met eigen account en binnen de voorwaarden."
+    },
+    {
+      "id": "global_msp",
+      "naam": "Global MSP / VMS",
+      "omschrijving": "Internationale MSP's die met een VMS (bv. SAP Fieldglass, Beeline) werken; requisitions worden via het VMS aan leveranciers gedistribueerd.",
+      "voorbeelden": [
+        "Magnit",
+        "Randstad Enterprise"
+      ],
+      "ingestie": "VMS-API of e-mailnotificaties waar beschikbaar; anders Playwright",
+      "juridisch": "Leverancierscontract bepaalt datagebruik."
+    },
+    {
+      "id": "das_tender",
+      "naam": "DAS / tenderplatform",
+      "omschrijving": "Dynamische aankoopsystemen en aanbestedingsplatformen van de overheid. Gestructureerde publicaties met procedure-, CPV- en gunningsinformatie.",
+      "voorbeelden": [
+        "TenderNed",
+        "Mercell / Negometrix",
+        "CTM Solution",
+        "Flextender"
+      ],
+      "ingestie": "Officiële API/RSS (TenderNed: JSON-webservice + RSS, CC-0), anders Playwright",
+      "juridisch": "TenderNed-data is open data (CC-0); overige platforms: voorwaarden toetsen."
+    },
+    {
+      "id": "overheidsportaal",
+      "naam": "Overheidsinhuurportaal",
+      "omschrijving": "Portalen waarop (semi-)overheden inhuuraanvragen publiceren, vaak met tariefindicatie en deadline.",
+      "voorbeelden": [
+        "Opdrachtoverheid",
+        "MiPublic",
+        "DigiInhuur",
+        "Inhuurdesk"
+      ],
+      "ingestie": "HTML/Playwright; listing vaak publiek",
+      "juridisch": "Publieke pagina's; robots.txt en rate limits respecteren."
+    },
+    {
+      "id": "jobboard",
+      "naam": "Jobboard",
+      "omschrijving": "Vacaturebanken voor vaste en tijdelijke functies; pagina's bevatten meestal schema.org JobPosting (JSON-LD).",
+      "voorbeelden": [
+        "Nationale Vacaturebank",
+        "Werkzoeken"
+      ],
+      "ingestie": "HTML + JSON-LD; soms XML-feeds voor partners",
+      "juridisch": "Voorwaarden toetsen; JSON-LD is bedoeld voor machines (zoekmachines) maar valt onder de sitevoorwaarden."
+    },
+    {
+      "id": "werkenbij",
+      "naam": "Werkenbij-site / ATS",
+      "omschrijving": "Carrièrepagina's van bedrijven, vrijwel altijd gevoed door een ATS met een publieke JSON-API of JSON-LD.",
+      "voorbeelden": [
+        "Recruitee",
+        "Greenhouse",
+        "Lever",
+        "Workable",
+        "Homerun",
+        "Personio",
+        "Teamtailor",
+        "AFAS",
+        "Ubeeo"
+      ],
+      "ingestie": "ATS-API (publiek) → JSON-LD → sitemap + LLM-extractie",
+      "juridisch": "Publieke data; ATS-API's zijn bedoeld voor embedding op de eigen site — gebruik binnen redelijke limieten."
+    }
+  ],
+  "veldgroepen": [
+    {
+      "id": "herkomst",
+      "naam": "Identificatie & herkomst"
+    },
+    {
+      "id": "kern",
+      "naam": "Kern van de aanvraag"
+    },
+    {
+      "id": "locatie",
+      "naam": "Locatie & werkplek"
+    },
+    {
+      "id": "omvang",
+      "naam": "Omvang & looptijd"
+    },
+    {
+      "id": "tarief",
+      "naam": "Tarief & vergoeding"
+    },
+    {
+      "id": "voorwaarden",
+      "naam": "Inhuurvorm & voorwaarden"
+    },
+    {
+      "id": "eisen",
+      "naam": "Eisen, wensen & beoordeling"
+    },
+    {
+      "id": "tijdlijn",
+      "naam": "Tijdlijn & status"
+    },
+    {
+      "id": "contact",
+      "naam": "Contact (PII)"
+    },
+    {
+      "id": "extensie",
+      "naam": "Bijlagen & bron-specifiek"
+    },
+    {
+      "id": "kwaliteit",
+      "naam": "Kwaliteit & verrijking (afgeleid)"
+    }
+  ],
+  "dekkingLegenda": {
+    "J": "verwacht aanwezig",
+    "D": "deels / soms aanwezig",
+    "N": "meestal niet aanwezig",
+    "A": "afgeleid door Job Intelligence",
+    "L": "alleen achter login"
+  },
+  "velden": [
+    {
+      "naam": "aanvraag_id",
+      "groep": "herkomst",
+      "type": "uuid",
+      "verplicht": true,
+      "scope": "generiek",
+      "bron": "eigen",
+      "omschrijving": "Eigen sleutel van de aanvraag in de datalaag.",
+      "schemaorg": "identifier",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "A",
+        "das_tender": "A",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "bron_id",
+      "groep": "herkomst",
+      "type": "text",
+      "verplicht": true,
+      "scope": "generiek",
+      "bron": "config",
+      "omschrijving": "Verwijzing naar de bron (bronregister).",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "A",
+        "das_tender": "A",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "bron_referentie",
+      "groep": "herkomst",
+      "type": "text",
+      "verplicht": true,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "ID/kenmerk van de aanvraag bij de bron (bv. TN-563355, aanvraagnummer, ATS job id). Natuurlijke sleutel samen met bron_id.",
+      "schemaorg": "identifier",
+      "dekking": {
+        "msp_broker": "J",
+        "global_msp": "J",
+        "das_tender": "J",
+        "overheidsportaal": "J",
+        "jobboard": "J",
+        "werkenbij": "J"
+      }
+    },
+    {
+      "naam": "bron_url",
+      "groep": "herkomst",
+      "type": "url",
+      "verplicht": true,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Canonieke URL van de aanvraag bij de bron.",
+      "schemaorg": "url",
+      "dekking": {
+        "msp_broker": "J",
+        "global_msp": "L",
+        "das_tender": "J",
+        "overheidsportaal": "J",
+        "jobboard": "J",
+        "werkenbij": "J"
+      }
+    },
+    {
+      "naam": "bron_categorie",
+      "groep": "herkomst",
+      "type": "enum",
+      "verplicht": true,
+      "scope": "generiek",
+      "bron": "config",
+      "omschrijving": "msp_broker | global_msp | das_tender | overheidsportaal | jobboard | werkenbij",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "A",
+        "das_tender": "A",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "intermediair",
+      "groep": "herkomst",
+      "type": "text",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron/config",
+      "omschrijving": "Broker/MSP die de aanvraag uitzet (bv. HeadFirst), als die afwijkt van de bron.",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "J",
+        "global_msp": "J",
+        "das_tender": "D",
+        "overheidsportaal": "D",
+        "jobboard": "D",
+        "werkenbij": "N"
+      }
+    },
+    {
+      "naam": "gepubliceerd_op",
+      "groep": "herkomst",
+      "type": "date",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Publicatiedatum volgens de bron.",
+      "schemaorg": "datePosted",
+      "dekking": {
+        "msp_broker": "J",
+        "global_msp": "J",
+        "das_tender": "J",
+        "overheidsportaal": "J",
+        "jobboard": "J",
+        "werkenbij": "D"
+      }
+    },
+    {
+      "naam": "eerste_gezien_op",
+      "groep": "herkomst",
+      "type": "timestamptz",
+      "verplicht": true,
+      "scope": "generiek",
+      "bron": "eigen",
+      "omschrijving": "Eerste run waarin de aanvraag is waargenomen.",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "A",
+        "das_tender": "A",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "laatst_gezien_op",
+      "groep": "herkomst",
+      "type": "timestamptz",
+      "verplicht": true,
+      "scope": "generiek",
+      "bron": "eigen",
+      "omschrijving": "Laatste run waarin de aanvraag nog zichtbaar was; basis voor status-afleiding.",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "A",
+        "das_tender": "A",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "content_hash",
+      "groep": "herkomst",
+      "type": "text",
+      "verplicht": true,
+      "scope": "generiek",
+      "bron": "eigen",
+      "omschrijving": "Hash van de genormaliseerde inhoud; wijziging = nieuwe versie.",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "A",
+        "das_tender": "A",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "versie",
+      "groep": "herkomst",
+      "type": "int",
+      "verplicht": true,
+      "scope": "generiek",
+      "bron": "eigen",
+      "omschrijving": "Versienummer; historie in aanvraag_versie (SCD2).",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "A",
+        "das_tender": "A",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "dedup_groep_id",
+      "groep": "herkomst",
+      "type": "uuid",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "eigen",
+      "omschrijving": "Cluster van dezelfde aanvraag die via meerdere bronnen/brokers binnenkomt.",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "A",
+        "das_tender": "A",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "raw_payload_ref",
+      "groep": "herkomst",
+      "type": "text",
+      "verplicht": true,
+      "scope": "generiek",
+      "bron": "eigen",
+      "omschrijving": "Object-storage sleutel van de ruwe HTML/JSON van deze versie.",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "A",
+        "das_tender": "A",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "scrape_run_id",
+      "groep": "herkomst",
+      "type": "uuid",
+      "verplicht": true,
+      "scope": "generiek",
+      "bron": "eigen",
+      "omschrijving": "Run die deze versie heeft opgehaald (herleidbaarheid).",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "A",
+        "das_tender": "A",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "taal",
+      "groep": "herkomst",
+      "type": "enum",
+      "verplicht": true,
+      "scope": "generiek",
+      "bron": "afgeleid",
+      "omschrijving": "nl | en | overig — taal van de beschrijving.",
+      "schemaorg": "inLanguage",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "A",
+        "das_tender": "A",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "titel",
+      "groep": "kern",
+      "type": "text",
+      "verplicht": true,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Functietitel zoals de bron die toont.",
+      "schemaorg": "title",
+      "dekking": {
+        "msp_broker": "J",
+        "global_msp": "J",
+        "das_tender": "J",
+        "overheidsportaal": "J",
+        "jobboard": "J",
+        "werkenbij": "J"
+      }
+    },
+    {
+      "naam": "beschrijving",
+      "groep": "kern",
+      "type": "text (markdown)",
+      "verplicht": true,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Volledige omschrijving, HTML omgezet naar markdown; secties behouden.",
+      "schemaorg": "description",
+      "dekking": {
+        "msp_broker": "L",
+        "global_msp": "L",
+        "das_tender": "J",
+        "overheidsportaal": "J",
+        "jobboard": "J",
+        "werkenbij": "J"
+      }
+    },
+    {
+      "naam": "functiegroep",
+      "groep": "kern",
+      "type": "enum",
+      "verplicht": true,
+      "scope": "generiek",
+      "bron": "afgeleid",
+      "omschrijving": "Classificatie op Catapulze-profielen: ai_engineer | ml_engineer | data_engineer | data_scientist | platform_engineer | cloud_engineer | devops_sre | cloud_architect | security_engineer | software_engineer | overig.",
+      "schemaorg": "occupationalCategory",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "A",
+        "das_tender": "A",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "vakgebied_bron",
+      "groep": "kern",
+      "type": "text",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Categorie/vakgebied zoals de bron die hanteert (bv. 'ICT', 'Data & Analytics').",
+      "schemaorg": "occupationalCategory",
+      "dekking": {
+        "msp_broker": "J",
+        "global_msp": "J",
+        "das_tender": "D",
+        "overheidsportaal": "J",
+        "jobboard": "J",
+        "werkenbij": "D"
+      }
+    },
+    {
+      "naam": "opdrachtgever_naam",
+      "groep": "kern",
+      "type": "text",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Eindklant / aanbestedende dienst / werkgever. Bij brokers soms geanonimiseerd ('een gemeente in Zuid-Holland').",
+      "schemaorg": "hiringOrganization",
+      "dekking": {
+        "msp_broker": "D",
+        "global_msp": "L",
+        "das_tender": "J",
+        "overheidsportaal": "J",
+        "jobboard": "J",
+        "werkenbij": "J"
+      }
+    },
+    {
+      "naam": "opdrachtgever_type",
+      "groep": "kern",
+      "type": "enum",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "afgeleid",
+      "omschrijving": "overheid | semi_overheid | commercieel | onbekend.",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "A",
+        "das_tender": "A",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "opdrachtgever_kvk",
+      "groep": "kern",
+      "type": "text",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "verrijking",
+      "omschrijving": "KvK-nummer via verrijking (Clay/KvK) — koppelsleutel naar organisatie.",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "N",
+        "global_msp": "N",
+        "das_tender": "D",
+        "overheidsportaal": "N",
+        "jobboard": "N",
+        "werkenbij": "N"
+      }
+    },
+    {
+      "naam": "sector",
+      "groep": "kern",
+      "type": "text",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron/afgeleid",
+      "omschrijving": "Sector/branche van de opdrachtgever.",
+      "schemaorg": "industry",
+      "dekking": {
+        "msp_broker": "D",
+        "global_msp": "D",
+        "das_tender": "D",
+        "overheidsportaal": "J",
+        "jobboard": "J",
+        "werkenbij": "D"
+      }
+    },
+    {
+      "naam": "aantal_posities",
+      "groep": "kern",
+      "type": "int",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Aantal in te vullen posities (default 1).",
+      "schemaorg": "totalJobOpenings",
+      "dekking": {
+        "msp_broker": "D",
+        "global_msp": "J",
+        "das_tender": "D",
+        "overheidsportaal": "D",
+        "jobboard": "N",
+        "werkenbij": "N"
+      }
+    },
+    {
+      "naam": "locatie_plaats",
+      "groep": "locatie",
+      "type": "text",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Standplaats.",
+      "schemaorg": "jobLocation.address.addressLocality",
+      "dekking": {
+        "msp_broker": "J",
+        "global_msp": "J",
+        "das_tender": "D",
+        "overheidsportaal": "J",
+        "jobboard": "J",
+        "werkenbij": "J"
+      }
+    },
+    {
+      "naam": "locatie_provincie",
+      "groep": "locatie",
+      "type": "text",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron/afgeleid",
+      "omschrijving": "Provincie (uit bron of afgeleid uit plaats).",
+      "schemaorg": "jobLocation.address.addressRegion",
+      "dekking": {
+        "msp_broker": "J",
+        "global_msp": "D",
+        "das_tender": "A",
+        "overheidsportaal": "J",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "locatie_land",
+      "groep": "locatie",
+      "type": "text",
+      "verplicht": true,
+      "scope": "generiek",
+      "bron": "afgeleid",
+      "omschrijving": "ISO-landcode, default NL.",
+      "schemaorg": "jobLocation.address.addressCountry",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "J",
+        "das_tender": "J",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "werkplek",
+      "groep": "locatie",
+      "type": "enum",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron/afgeleid",
+      "omschrijving": "onsite | hybride | remote | onbekend.",
+      "schemaorg": "jobLocationType",
+      "dekking": {
+        "msp_broker": "D",
+        "global_msp": "D",
+        "das_tender": "D",
+        "overheidsportaal": "D",
+        "jobboard": "D",
+        "werkenbij": "J"
+      }
+    },
+    {
+      "naam": "remote_pct",
+      "groep": "locatie",
+      "type": "int (0-100)",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "afgeleid",
+      "omschrijving": "Percentage remote als de bron dat noemt ('remote werken mogelijk voor 50%').",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "D",
+        "global_msp": "N",
+        "das_tender": "D",
+        "overheidsportaal": "D",
+        "jobboard": "N",
+        "werkenbij": "D"
+      }
+    },
+    {
+      "naam": "uren_per_week_min",
+      "groep": "omvang",
+      "type": "numeric",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Minimale inzet per week.",
+      "schemaorg": "workHours",
+      "dekking": {
+        "msp_broker": "J",
+        "global_msp": "J",
+        "das_tender": "J",
+        "overheidsportaal": "J",
+        "jobboard": "J",
+        "werkenbij": "D"
+      }
+    },
+    {
+      "naam": "uren_per_week_max",
+      "groep": "omvang",
+      "type": "numeric",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Maximale inzet per week.",
+      "schemaorg": "workHours",
+      "dekking": {
+        "msp_broker": "J",
+        "global_msp": "J",
+        "das_tender": "J",
+        "overheidsportaal": "J",
+        "jobboard": "J",
+        "werkenbij": "D"
+      }
+    },
+    {
+      "naam": "startdatum",
+      "groep": "omvang",
+      "type": "date",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Gewenste startdatum ('z.s.m.' → null + vlag start_zsm).",
+      "schemaorg": "jobStartDate",
+      "dekking": {
+        "msp_broker": "J",
+        "global_msp": "J",
+        "das_tender": "J",
+        "overheidsportaal": "J",
+        "jobboard": "D",
+        "werkenbij": "N"
+      }
+    },
+    {
+      "naam": "start_zsm",
+      "groep": "omvang",
+      "type": "bool",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "afgeleid",
+      "omschrijving": "Start zo snel mogelijk.",
+      "schemaorg": "jobImmediateStart",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "A",
+        "das_tender": "A",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "einddatum",
+      "groep": "omvang",
+      "type": "date",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Einddatum initiële periode.",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "J",
+        "global_msp": "J",
+        "das_tender": "J",
+        "overheidsportaal": "J",
+        "jobboard": "N",
+        "werkenbij": "N"
+      }
+    },
+    {
+      "naam": "duur_maanden",
+      "groep": "omvang",
+      "type": "numeric",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron/afgeleid",
+      "omschrijving": "Looptijd in maanden (afgeleid uit start/einde als de bron alleen een duur noemt).",
+      "schemaorg": "jobDuration",
+      "dekking": {
+        "msp_broker": "J",
+        "global_msp": "J",
+        "das_tender": "J",
+        "overheidsportaal": "J",
+        "jobboard": "D",
+        "werkenbij": "N"
+      }
+    },
+    {
+      "naam": "verlenging_mogelijk",
+      "groep": "omvang",
+      "type": "bool",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Optie tot verlenging.",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "J",
+        "global_msp": "D",
+        "das_tender": "J",
+        "overheidsportaal": "J",
+        "jobboard": "N",
+        "werkenbij": "N"
+      }
+    },
+    {
+      "naam": "verlenging_tekst",
+      "groep": "omvang",
+      "type": "text",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Verlengingsopties zoals de bron ze beschrijft ('maximaal 2 × 12 maanden').",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "J",
+        "global_msp": "D",
+        "das_tender": "J",
+        "overheidsportaal": "J",
+        "jobboard": "N",
+        "werkenbij": "N"
+      }
+    },
+    {
+      "naam": "tarief_min",
+      "groep": "tarief",
+      "type": "numeric",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Ondergrens tarief (indien range).",
+      "schemaorg": "baseSalary.value.minValue",
+      "dekking": {
+        "msp_broker": "D",
+        "global_msp": "L",
+        "das_tender": "D",
+        "overheidsportaal": "J",
+        "jobboard": "N",
+        "werkenbij": "N"
+      }
+    },
+    {
+      "naam": "tarief_max",
+      "groep": "tarief",
+      "type": "numeric",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Maximumtarief of bovengrens; bij brokers het belangrijkste commerciële veld.",
+      "schemaorg": "baseSalary.value.maxValue",
+      "dekking": {
+        "msp_broker": "L",
+        "global_msp": "L",
+        "das_tender": "D",
+        "overheidsportaal": "J",
+        "jobboard": "N",
+        "werkenbij": "N"
+      }
+    },
+    {
+      "naam": "tarief_eenheid",
+      "groep": "tarief",
+      "type": "enum",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "uur | dag | maand.",
+      "schemaorg": "baseSalary.value.unitText",
+      "dekking": {
+        "msp_broker": "J",
+        "global_msp": "J",
+        "das_tender": "D",
+        "overheidsportaal": "J",
+        "jobboard": "N",
+        "werkenbij": "N"
+      }
+    },
+    {
+      "naam": "tarief_valuta",
+      "groep": "tarief",
+      "type": "text",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "afgeleid",
+      "omschrijving": "ISO-valuta, default EUR.",
+      "schemaorg": "salaryCurrency",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "J",
+        "das_tender": "A",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "tarief_type",
+      "groep": "tarief",
+      "type": "enum",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "afgeleid",
+      "omschrijving": "maximum | indicatie | vast | onbekend — wat het genoemde tarief betekent.",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "A",
+        "das_tender": "A",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "tarief_inclusief",
+      "groep": "tarief",
+      "type": "text",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Wat in het tarief zit (reiskosten, excl. btw, incl. brokerfee).",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "L",
+        "global_msp": "L",
+        "das_tender": "D",
+        "overheidsportaal": "D",
+        "jobboard": "N",
+        "werkenbij": "N"
+      }
+    },
+    {
+      "naam": "salaris_min",
+      "groep": "tarief",
+      "type": "numeric",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Salarisondergrens (vaste functies).",
+      "schemaorg": "baseSalary.value.minValue",
+      "dekking": {
+        "msp_broker": "N",
+        "global_msp": "N",
+        "das_tender": "N",
+        "overheidsportaal": "D",
+        "jobboard": "D",
+        "werkenbij": "D"
+      }
+    },
+    {
+      "naam": "salaris_max",
+      "groep": "tarief",
+      "type": "numeric",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Salarisbovengrens (vaste functies).",
+      "schemaorg": "baseSalary.value.maxValue",
+      "dekking": {
+        "msp_broker": "N",
+        "global_msp": "N",
+        "das_tender": "N",
+        "overheidsportaal": "D",
+        "jobboard": "D",
+        "werkenbij": "D"
+      }
+    },
+    {
+      "naam": "salaris_periode",
+      "groep": "tarief",
+      "type": "enum",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "maand | jaar.",
+      "schemaorg": "baseSalary.value.unitText",
+      "dekking": {
+        "msp_broker": "N",
+        "global_msp": "N",
+        "das_tender": "N",
+        "overheidsportaal": "D",
+        "jobboard": "D",
+        "werkenbij": "D"
+      }
+    },
+    {
+      "naam": "inhuurvorm",
+      "groep": "voorwaarden",
+      "type": "enum[]",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron/afgeleid",
+      "omschrijving": "zzp | detachering | payroll | vast | sow | onbekend — meerdere mogelijk.",
+      "schemaorg": "employmentType",
+      "dekking": {
+        "msp_broker": "J",
+        "global_msp": "J",
+        "das_tender": "D",
+        "overheidsportaal": "J",
+        "jobboard": "J",
+        "werkenbij": "J"
+      }
+    },
+    {
+      "naam": "zzp_toegestaan",
+      "groep": "voorwaarden",
+      "type": "bool",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Expliciet of ZZP is toegestaan (Wet DBA-context).",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "J",
+        "global_msp": "D",
+        "das_tender": "D",
+        "overheidsportaal": "J",
+        "jobboard": "N",
+        "werkenbij": "N"
+      }
+    },
+    {
+      "naam": "dienstverband",
+      "groep": "voorwaarden",
+      "type": "enum",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "fulltime | parttime | onbekend (vaste functies).",
+      "schemaorg": "employmentType",
+      "dekking": {
+        "msp_broker": "N",
+        "global_msp": "N",
+        "das_tender": "N",
+        "overheidsportaal": "N",
+        "jobboard": "J",
+        "werkenbij": "J"
+      }
+    },
+    {
+      "naam": "aantal_kandidaten_per_leverancier",
+      "groep": "voorwaarden",
+      "type": "int",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Maximaal aantal kandidaten dat een leverancier mag voorstellen.",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "L",
+        "global_msp": "L",
+        "das_tender": "D",
+        "overheidsportaal": "D",
+        "jobboard": "N",
+        "werkenbij": "N"
+      }
+    },
+    {
+      "naam": "screening",
+      "groep": "voorwaarden",
+      "type": "text[]",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron/afgeleid",
+      "omschrijving": "VOG, VGB/AIVD-screening, referenties, geheimhoudingsverklaring.",
+      "schemaorg": "securityClearanceRequirement",
+      "dekking": {
+        "msp_broker": "D",
+        "global_msp": "D",
+        "das_tender": "D",
+        "overheidsportaal": "D",
+        "jobboard": "N",
+        "werkenbij": "N"
+      }
+    },
+    {
+      "naam": "taaleisen",
+      "groep": "voorwaarden",
+      "type": "text[]",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron/afgeleid",
+      "omschrijving": "Vereiste talen en niveau ('Nederlands near-native').",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "D",
+        "global_msp": "D",
+        "das_tender": "D",
+        "overheidsportaal": "D",
+        "jobboard": "D",
+        "werkenbij": "D"
+      }
+    },
+    {
+      "naam": "opleidingsniveau",
+      "groep": "voorwaarden",
+      "type": "enum",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron/afgeleid",
+      "omschrijving": "mbo | hbo | wo | onbekend.",
+      "schemaorg": "educationRequirements",
+      "dekking": {
+        "msp_broker": "J",
+        "global_msp": "D",
+        "das_tender": "D",
+        "overheidsportaal": "J",
+        "jobboard": "J",
+        "werkenbij": "D"
+      }
+    },
+    {
+      "naam": "ervaring_jaren_min",
+      "groep": "voorwaarden",
+      "type": "int",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "afgeleid",
+      "omschrijving": "Minimaal aantal jaren ervaring uit de eisen.",
+      "schemaorg": "experienceRequirements",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "A",
+        "das_tender": "A",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "eisen",
+      "groep": "eisen",
+      "type": "jsonb[] {tekst, knockout:bool}",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Harde eisen (knock-out) als lijst; bij brokers/overheid vrijwel altijd expliciet gescheiden van wensen.",
+      "schemaorg": "qualifications",
+      "dekking": {
+        "msp_broker": "J",
+        "global_msp": "D",
+        "das_tender": "J",
+        "overheidsportaal": "J",
+        "jobboard": "D",
+        "werkenbij": "D"
+      }
+    },
+    {
+      "naam": "wensen",
+      "groep": "eisen",
+      "type": "jsonb[] {tekst, weging}",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Wensen met eventuele weging/punten.",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "J",
+        "global_msp": "D",
+        "das_tender": "J",
+        "overheidsportaal": "J",
+        "jobboard": "D",
+        "werkenbij": "D"
+      }
+    },
+    {
+      "naam": "competenties",
+      "groep": "eisen",
+      "type": "text[]",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Gedragscompetenties zoals de bron ze noemt.",
+      "schemaorg": "skills",
+      "dekking": {
+        "msp_broker": "D",
+        "global_msp": "N",
+        "das_tender": "D",
+        "overheidsportaal": "D",
+        "jobboard": "D",
+        "werkenbij": "D"
+      }
+    },
+    {
+      "naam": "skills",
+      "groep": "eisen",
+      "type": "text[]",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "afgeleid",
+      "omschrijving": "Genormaliseerde technische skills (taxonomie Catapulze: bv. python, kubernetes, azure, langchain).",
+      "schemaorg": "skills",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "A",
+        "das_tender": "A",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "gunningscriteria",
+      "groep": "eisen",
+      "type": "jsonb[] {criterium, weging_pct}",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Beoordelingscriteria met weging (prijs/kwaliteit, interview).",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "L",
+        "global_msp": "N",
+        "das_tender": "J",
+        "overheidsportaal": "D",
+        "jobboard": "N",
+        "werkenbij": "N"
+      }
+    },
+    {
+      "naam": "interviewdata",
+      "groep": "eisen",
+      "type": "text",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Geplande gespreksdata/-week.",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "L",
+        "global_msp": "N",
+        "das_tender": "D",
+        "overheidsportaal": "D",
+        "jobboard": "N",
+        "werkenbij": "N"
+      }
+    },
+    {
+      "naam": "procedure_type",
+      "groep": "eisen",
+      "type": "text",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "DAS, minicompetitie, open procedure, marktplaats — vooral overheid.",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "D",
+        "global_msp": "N",
+        "das_tender": "J",
+        "overheidsportaal": "D",
+        "jobboard": "N",
+        "werkenbij": "N"
+      }
+    },
+    {
+      "naam": "sluitingsdatum",
+      "groep": "tijdlijn",
+      "type": "timestamptz",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Deadline voor indienen, inclusief tijdstip als de bron dat noemt.",
+      "schemaorg": "validThrough",
+      "dekking": {
+        "msp_broker": "J",
+        "global_msp": "J",
+        "das_tender": "J",
+        "overheidsportaal": "J",
+        "jobboard": "D",
+        "werkenbij": "N"
+      }
+    },
+    {
+      "naam": "status",
+      "groep": "tijdlijn",
+      "type": "enum",
+      "verplicht": true,
+      "scope": "generiek",
+      "bron": "afgeleid",
+      "omschrijving": "open | gesloten | ingetrokken | vervuld | onbekend — afgeleid uit bronstatus, sluitingsdatum en 'niet meer gezien'.",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "A",
+        "das_tender": "A",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "status_bron",
+      "groep": "tijdlijn",
+      "type": "text",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Status zoals de bron die toont ('Open', 'Gesloten', 'In beoordeling').",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "J",
+        "global_msp": "J",
+        "das_tender": "J",
+        "overheidsportaal": "D",
+        "jobboard": "N",
+        "werkenbij": "N"
+      }
+    },
+    {
+      "naam": "gesloten_gedetecteerd_op",
+      "groep": "tijdlijn",
+      "type": "timestamptz",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "eigen",
+      "omschrijving": "Moment waarop Job Intelligence de aanvraag als gesloten heeft gemarkeerd.",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "A",
+        "das_tender": "A",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "contact_naam",
+      "groep": "contact",
+      "type": "text",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Contactpersoon (PII — beperkte retentie).",
+      "schemaorg": "applicationContact.name",
+      "dekking": {
+        "msp_broker": "L",
+        "global_msp": "L",
+        "das_tender": "J",
+        "overheidsportaal": "D",
+        "jobboard": "D",
+        "werkenbij": "D"
+      }
+    },
+    {
+      "naam": "contact_email",
+      "groep": "contact",
+      "type": "text",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "E-mail contactpersoon (PII).",
+      "schemaorg": "applicationContact.email",
+      "dekking": {
+        "msp_broker": "L",
+        "global_msp": "L",
+        "das_tender": "J",
+        "overheidsportaal": "D",
+        "jobboard": "D",
+        "werkenbij": "D"
+      }
+    },
+    {
+      "naam": "contact_telefoon",
+      "groep": "contact",
+      "type": "text",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Telefoon contactpersoon (PII).",
+      "schemaorg": "applicationContact.telephone",
+      "dekking": {
+        "msp_broker": "L",
+        "global_msp": "L",
+        "das_tender": "D",
+        "overheidsportaal": "D",
+        "jobboard": "D",
+        "werkenbij": "D"
+      }
+    },
+    {
+      "naam": "bijlagen",
+      "groep": "extensie",
+      "type": "jsonb[] {naam, url, mime, ref}",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "bron",
+      "omschrijving": "Documenten bij de aanvraag (functieprofiel, nota van inlichtingen); kopie in object storage.",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "L",
+        "global_msp": "L",
+        "das_tender": "J",
+        "overheidsportaal": "D",
+        "jobboard": "N",
+        "werkenbij": "N"
+      }
+    },
+    {
+      "naam": "bron_specifiek",
+      "groep": "extensie",
+      "type": "jsonb",
+      "verplicht": false,
+      "scope": "uniek",
+      "bron": "bron",
+      "omschrijving": "Alle bronvelden die niet in het canonieke model passen, met bronveldnaam als sleutel. Verliesvrij; per bron gedocumenteerd in het bronregister.",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "J",
+        "global_msp": "J",
+        "das_tender": "J",
+        "overheidsportaal": "J",
+        "jobboard": "J",
+        "werkenbij": "J"
+      }
+    },
+    {
+      "naam": "compleetheid_score",
+      "groep": "kwaliteit",
+      "type": "numeric (0-1)",
+      "verplicht": true,
+      "scope": "generiek",
+      "bron": "eigen",
+      "omschrijving": "Aandeel gevulde kernvelden; stuurt datakwaliteit-dashboards.",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "A",
+        "das_tender": "A",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "relevantie_score",
+      "groep": "kwaliteit",
+      "type": "numeric (0-1)",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "AI",
+      "omschrijving": "Past de aanvraag bij de Catapulze-profielen (AI/platform engineering)? LLM-classificatie met reden.",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "A",
+        "das_tender": "A",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "relevantie_reden",
+      "groep": "kwaliteit",
+      "type": "text",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "AI",
+      "omschrijving": "Korte motivatie van de score (transparantie, AI Act).",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "A",
+        "das_tender": "A",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "extractie_methode",
+      "groep": "kwaliteit",
+      "type": "enum",
+      "verplicht": true,
+      "scope": "generiek",
+      "bron": "eigen",
+      "omschrijving": "api | jsonld | html_parser | llm — hoe de velden zijn verkregen.",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "A",
+        "das_tender": "A",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    },
+    {
+      "naam": "extractie_confidence",
+      "groep": "kwaliteit",
+      "type": "numeric (0-1)",
+      "verplicht": false,
+      "scope": "generiek",
+      "bron": "eigen",
+      "omschrijving": "Zekerheid van LLM-extractie per record; lage scores gaan naar review.",
+      "schemaorg": "—",
+      "dekking": {
+        "msp_broker": "A",
+        "global_msp": "A",
+        "das_tender": "A",
+        "overheidsportaal": "A",
+        "jobboard": "A",
+        "werkenbij": "A"
+      }
+    }
+  ],
+  "uniekePerCategorie": {
+    "msp_broker": [
+      "aanvraagnummer broker",
+      "maximumtarief (incl./excl. brokerfee)",
+      "aantal kandidaten per leverancier",
+      "ZZP toegestaan / alleen detachering",
+      "deadline met tijdstip",
+      "aantal ontvangen aanbiedingen (soms zichtbaar)",
+      "inhurende manager / recruiter (achter login)",
+      "CV- en motivatie-eisen (format, taal)",
+      "beoordelingsmatrix eisen/wensen met punten",
+      "verlengingsopties (aantal × duur)",
+      "screening (VOG, AIVD/VGB)",
+      "interviewplanning",
+      "raamovereenkomst / perceel van de broker"
+    ],
+    "global_msp": [
+      "requisition ID (VMS)",
+      "VMS-type (Fieldglass, Beeline)",
+      "bill rate vs. pay rate, rate card",
+      "MSP-fee / markup",
+      "worker classification",
+      "job template / category code",
+      "cost center / business unit",
+      "hiring manager (login)",
+      "distribution list / tier",
+      "onboarding-eisen (background check, badge)"
+    ],
+    "das_tender": [
+      "TenderNed-nummer (TN-xxxxxx) / tender-ID",
+      "CPV-codes",
+      "NUTS-code",
+      "procedure (DAS, minicompetitie, openbaar)",
+      "perceel",
+      "aanbestedende dienst + type",
+      "publicatietype (aankondiging, rectificatie, gunning)",
+      "geraamde waarde",
+      "looptijd raamovereenkomst",
+      "gunningscriteria met weging (prijs/kwaliteit)",
+      "vragenronde-deadline / nota van inlichtingen",
+      "uitsluitingsgronden, UEA",
+      "documentenset"
+    ],
+    "overheidsportaal": [
+      "tariefindicatie (bandbreedte)",
+      "inhuurdesk-ID / aanvraagnummer",
+      "organisatietype (gemeente, provincie, ZBO)",
+      "schaalniveau (soms)",
+      "SROI-eis",
+      "inzet via broker of rechtstreeks",
+      "regio-indeling van het portaal",
+      "deadline + tijdstip"
+    ],
+    "jobboard": [
+      "vacaturenummer",
+      "salaris (bandbreedte, periode)",
+      "dienstverband (fulltime/parttime)",
+      "carrièreniveau",
+      "opleidingsniveau",
+      "branche",
+      "werkgever + logo + bedrijfsprofiel",
+      "arbeidsvoorwaarden/benefits",
+      "sollicitatie-URL / directApply",
+      "JSON-LD JobPosting (volledig)",
+      "aantal views/sollicitaties (soms)"
+    ],
+    "werkenbij": [
+      "ATS job-ID + ATS-type",
+      "afdeling/team",
+      "employment type (ATS-enum)",
+      "remote policy",
+      "salary range (soms)",
+      "recruiter",
+      "apply URL",
+      "benefits / 'why work here'",
+      "office/locatie-ID",
+      "JSON-LD JobPosting",
+      "publicatiedatum via API"
+    ]
+  },
+  "bronnen": [
+    {
+      "naam": "Striive / HeadFirst Group",
+      "categorie": "msp_broker",
+      "v1": true,
+      "ingestie": "Playwright",
+      "polling": "5 min",
+      "login": "Ja (details)",
+      "publiek": "Listing met titel, opdrachtgever en locatie is publiek (gecheckt 25-08); details en tarief achter login",
+      "uniek": [
+        "HeadFirst-aanvraagnummer",
+        "maximumtarief",
+        "aantal kandidaten per leverancier",
+        "ZZP toegestaan",
+        "remote-percentage",
+        "verlengingen (max aantal)",
+        "taaleis"
+      ],
+      "confidence": "publiek gecheckt + supportpagina",
+      "voorwaarden": "toetsen"
+    },
+    {
+      "naam": "Staffing Management Services (SMS)",
+      "categorie": "msp_broker",
+      "v1": false,
+      "ingestie": "Playwright",
+      "polling": "5 min",
+      "login": "Ja",
+      "publiek": "Onbekend",
+      "uniek": [
+        "zie categorie"
+      ],
+      "confidence": "aanname categorie",
+      "voorwaarden": "toetsen"
+    },
+    {
+      "naam": "Circle8",
+      "categorie": "msp_broker",
+      "v1": false,
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "publiek": "Onbekend",
+      "uniek": [
+        "zie categorie"
+      ],
+      "confidence": "aanname categorie",
+      "voorwaarden": "toetsen"
+    },
+    {
+      "naam": "BlueTrail",
+      "categorie": "msp_broker",
+      "v1": false,
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "publiek": "Onbekend",
+      "uniek": [
+        "zie categorie"
+      ],
+      "confidence": "aanname categorie",
+      "voorwaarden": "toetsen"
+    },
+    {
+      "naam": "Harvey Nash",
+      "categorie": "msp_broker",
+      "v1": false,
+      "ingestie": "Playwright",
+      "polling": "15 min",
+      "login": "Ja",
+      "publiek": "Onbekend",
+      "uniek": [
+        "zie categorie"
+      ],
+      "confidence": "aanname categorie",
+      "voorwaarden": "toetsen"
+    },
+    {
+      "naam": "Magnit",
+      "categorie": "global_msp",
+      "v1": false,
+      "ingestie": "API waar beschikbaar",
+      "polling": "15 min",
+      "login": "Ja",
+      "publiek": "Nee",
+      "uniek": [
+        "requisition ID",
+        "VMS-velden",
+        "rate card"
+      ],
+      "confidence": "aanname categorie",
+      "voorwaarden": "leverancierscontract"
+    },
+    {
+      "naam": "Randstad Enterprise",
+      "categorie": "global_msp",
+      "v1": false,
+      "ingestie": "Playwright/API",
+      "polling": "15 min",
+      "login": "Ja",
+      "publiek": "Nee",
+      "uniek": [
+        "requisition ID",
+        "VMS-velden"
+      ],
+      "confidence": "aanname categorie",
+      "voorwaarden": "leverancierscontract"
+    },
+    {
+      "naam": "Between Staffing",
+      "categorie": "msp_broker",
+      "v1": false,
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "publiek": "Onbekend",
+      "uniek": [
+        "zie categorie"
+      ],
+      "confidence": "aanname categorie",
+      "voorwaarden": "toetsen"
+    },
+    {
+      "naam": "Brainnet",
+      "categorie": "msp_broker",
+      "v1": false,
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "publiek": "Onbekend",
+      "uniek": [
+        "zie categorie"
+      ],
+      "confidence": "aanname categorie",
+      "voorwaarden": "toetsen"
+    },
+    {
+      "naam": "Flextender",
+      "categorie": "das_tender",
+      "v1": true,
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja (details)",
+      "publiek": "Zoekpagina met filters vakgebied, regio, opleidingsniveau, uren is publiek (gecheckt 25-08); opdrachten zelf achter login",
+      "uniek": [
+        "DAS-procedure",
+        "gunningscriteria met weging",
+        "aanbestedende dienst",
+        "opleidingsniveau-filter",
+        "vragenronde"
+      ],
+      "confidence": "publiek gecheckt (filters) + v1",
+      "voorwaarden": "toetsen"
+    },
+    {
+      "naam": "Hero",
+      "categorie": "msp_broker",
+      "v1": false,
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "publiek": "Onbekend",
+      "uniek": [
+        "zie categorie"
+      ],
+      "confidence": "aanname categorie",
+      "voorwaarden": "toetsen"
+    },
+    {
+      "naam": "Bconnect",
+      "categorie": "msp_broker",
+      "v1": false,
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "publiek": "Onbekend",
+      "uniek": [
+        "zie categorie"
+      ],
+      "confidence": "aanname categorie",
+      "voorwaarden": "toetsen"
+    },
+    {
+      "naam": "Flinter",
+      "categorie": "msp_broker",
+      "v1": false,
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "publiek": "Onbekend",
+      "uniek": [
+        "zie categorie"
+      ],
+      "confidence": "aanname categorie",
+      "voorwaarden": "toetsen"
+    },
+    {
+      "naam": "StaffingNow",
+      "categorie": "msp_broker",
+      "v1": false,
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "publiek": "Onbekend",
+      "uniek": [
+        "zie categorie"
+      ],
+      "confidence": "aanname categorie",
+      "voorwaarden": "toetsen"
+    },
+    {
+      "naam": "Need Staffing IT",
+      "categorie": "msp_broker",
+      "v1": false,
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "publiek": "Onbekend",
+      "uniek": [
+        "zie categorie"
+      ],
+      "confidence": "aanname categorie",
+      "voorwaarden": "toetsen"
+    },
+    {
+      "naam": "Onefellow",
+      "categorie": "msp_broker",
+      "v1": false,
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "publiek": "Onbekend",
+      "uniek": [
+        "zie categorie"
+      ],
+      "confidence": "aanname categorie",
+      "voorwaarden": "toetsen"
+    },
+    {
+      "naam": "OneStopSourcing",
+      "categorie": "msp_broker",
+      "v1": false,
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "publiek": "Onbekend",
+      "uniek": [
+        "zie categorie"
+      ],
+      "confidence": "aanname categorie",
+      "voorwaarden": "toetsen"
+    },
+    {
+      "naam": "Pro-Act IT",
+      "categorie": "msp_broker",
+      "v1": false,
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "publiek": "Onbekend",
+      "uniek": [
+        "zie categorie"
+      ],
+      "confidence": "aanname categorie",
+      "voorwaarden": "toetsen"
+    },
+    {
+      "naam": "TenderNed",
+      "categorie": "das_tender",
+      "v1": false,
+      "ingestie": "Officiële API/RSS",
+      "polling": "Realtime",
+      "login": "Optioneel",
+      "publiek": "Ja — JSON-webservice https://www.tenderned.nl/papi/tenderned-rs-tns/publicaties?page=0&size=20, RSS laatste-publicatie.rss, per publicatie ook PDF via /v2/publicaties/{id}/pdf; open data CC-0 (data.overheid.nl)",
+      "uniek": [
+        "TN-nummer",
+        "CPV-codes",
+        "NUTS",
+        "procedure",
+        "perceel",
+        "aanbestedende dienst",
+        "publicatietype",
+        "geraamde waarde",
+        "documenten"
+      ],
+      "confidence": "gecheckt (data.overheid.nl)",
+      "voorwaarden": "CC-0"
+    },
+    {
+      "naam": "Mercell",
+      "categorie": "das_tender",
+      "v1": false,
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "publiek": "Beperkt",
+      "uniek": [
+        "tender-ID",
+        "DAS-categorie",
+        "documentenset",
+        "vragenronde"
+      ],
+      "confidence": "aanname categorie",
+      "voorwaarden": "toetsen"
+    },
+    {
+      "naam": "DigiInhuur",
+      "categorie": "overheidsportaal",
+      "v1": false,
+      "ingestie": "Playwright",
+      "polling": "10 min",
+      "login": "Ja",
+      "publiek": "Onbekend",
+      "uniek": [
+        "aanvraagnummer",
+        "organisatietype",
+        "schaal"
+      ],
+      "confidence": "aanname categorie",
+      "voorwaarden": "toetsen"
+    },
+    {
+      "naam": "Inhuurdesk",
+      "categorie": "overheidsportaal",
+      "v1": false,
+      "ingestie": "HTML/Playwright",
+      "polling": "10 min",
+      "login": "Vaak",
+      "publiek": "Per inhuurdesk verschillend",
+      "uniek": [
+        "inhuurdesk-ID",
+        "organisatie",
+        "regio"
+      ],
+      "confidence": "aanname categorie",
+      "voorwaarden": "toetsen per desk"
+    },
+    {
+      "naam": "CTM Solution",
+      "categorie": "das_tender",
+      "v1": false,
+      "ingestie": "Playwright",
+      "polling": "15 min",
+      "login": "Ja",
+      "publiek": "Onbekend",
+      "uniek": [
+        "tender-ID",
+        "procedure",
+        "documentenset"
+      ],
+      "confidence": "aanname categorie",
+      "voorwaarden": "toetsen"
+    },
+    {
+      "naam": "Opdrachtoverheid",
+      "categorie": "overheidsportaal",
+      "v1": true,
+      "ingestie": "v1 (HTML)",
+      "polling": "elke 4 uur (v1)",
+      "login": "Nee",
+      "publiek": "Ja — zoekfilters vakgebied, locatie, tarief per uur, uren per week, regio (gecheckt 25-08); listing laadt dynamisch",
+      "uniek": [
+        "tarief per uur (filter/indicatie)",
+        "regio",
+        "organisatietype"
+      ],
+      "confidence": "publiek gecheckt (filters) + v1",
+      "voorwaarden": "robots/rate limits"
+    },
+    {
+      "naam": "MiPublic",
+      "categorie": "overheidsportaal",
+      "v1": true,
+      "ingestie": "v1",
+      "polling": "dagelijks (v1)",
+      "login": "Onbekend",
+      "publiek": "Onbekend (v1 circuit breaker open)",
+      "uniek": [
+        "zie categorie"
+      ],
+      "confidence": "v1",
+      "voorwaarden": "toetsen"
+    },
+    {
+      "naam": "Nationale Vacaturebank",
+      "categorie": "jobboard",
+      "v1": true,
+      "ingestie": "v1 (HTML/JSON-LD)",
+      "polling": "elke 6 uur (v1)",
+      "login": "Nee",
+      "publiek": "Ja",
+      "uniek": [
+        "vacaturenummer",
+        "salaris",
+        "dienstverband",
+        "carrièreniveau",
+        "werkgeverprofiel",
+        "JSON-LD"
+      ],
+      "confidence": "v1 + categorie",
+      "voorwaarden": "toetsen"
+    },
+    {
+      "naam": "Werkzoeken",
+      "categorie": "jobboard",
+      "v1": true,
+      "ingestie": "v1 (HTML/JSON-LD)",
+      "polling": "elke 6 uur (v1)",
+      "login": "Nee",
+      "publiek": "Ja",
+      "uniek": [
+        "salaris",
+        "dienstverband",
+        "opleidingsniveau",
+        "JSON-LD",
+        "aggregator-bron (oorspronkelijke site)"
+      ],
+      "confidence": "v1 + categorie",
+      "voorwaarden": "toetsen"
+    },
+    {
+      "naam": "Starapple",
+      "categorie": "msp_broker",
+      "v1": true,
+      "ingestie": "v1",
+      "polling": "elke 4 uur (v1)",
+      "login": "Nee (publiek)",
+      "publiek": "Ja (IT-vacatures en freelance opdrachten)",
+      "uniek": [
+        "techstack-tags",
+        "salaris/tarief",
+        "freelance vs. vast"
+      ],
+      "confidence": "v1 + categorie",
+      "voorwaarden": "toetsen"
+    },
+    {
+      "naam": "Werkenbij-sites (per bedrijf)",
+      "categorie": "werkenbij",
+      "v1": false,
+      "ingestie": "ATS-API → JSON-LD → sitemap+LLM",
+      "polling": "dagelijks",
+      "login": "Nee",
+      "publiek": "Ja",
+      "uniek": [
+        "ATS job-ID",
+        "afdeling",
+        "remote policy",
+        "benefits"
+      ],
+      "confidence": "categorie",
+      "voorwaarden": "publiek; ATS-API's binnen redelijk gebruik"
+    }
+  ],
+  "pipeline": [
+    {
+      "nr": 1,
+      "id": "discover",
+      "naam": "Discover",
+      "wat": "Vind nieuwe en gewijzigde aanvragen per bron: API-paginering, RSS, listing-crawl (Playwright/HTTP), sitemap of ATS-endpoint.",
+      "output": "Lijst van (bron_referentie, url, listing-hash)",
+      "faalmodus": "Login verlopen, layout gewijzigd, rate limit → circuit breaker per bron"
+    },
+    {
+      "nr": 2,
+      "id": "fetch",
+      "naam": "Fetch & bewaar ruw",
+      "wat": "Haal detailpagina/JSON op (alleen bij nieuw of gewijzigde listing-hash) en schrijf de ruwe payload onveranderd naar de raw-zone.",
+      "output": "Object in object storage: raw/{bron}/{jjjj}/{mm}/{dd}/{run}/{hash}.html|json",
+      "faalmodus": "Blokkade/anti-bot → backoff, proxy-beleid per bron"
+    },
+    {
+      "nr": 3,
+      "id": "extract",
+      "naam": "Extract",
+      "wat": "Structureer de payload: (a) API/JSON-LD direct mappen, (b) HTML-parser per adapter, (c) LLM-extractie naar het canonieke JSON Schema als fallback of voor vrije tekst (eisen/wensen, tarief in lopende tekst).",
+      "output": "Bron-gevormd record in staging + extractie_methode + confidence",
+      "faalmodus": "Parser breekt → automatisch terugvallen op LLM + alert 'adapter drift'"
+    },
+    {
+      "nr": 4,
+      "id": "normalize",
+      "naam": "Normaliseer",
+      "wat": "Eenheden, datums, enums, valuta, locaties (plaats→provincie), taal; HTML→markdown; skills naar taxonomie; PII-velden markeren.",
+      "output": "Canoniek record (Pydantic-model)",
+      "faalmodus": "Onbekende enumwaarde → 'onbekend' + registratie voor taxonomie-onderhoud"
+    },
+    {
+      "nr": 5,
+      "id": "validate",
+      "naam": "Valideer & score",
+      "wat": "JSON Schema-validatie, verplichte velden, plausibiliteit (tarief 20–250 €/u, uren 4–40), compleetheid_score.",
+      "output": "Geaccepteerd record of quarantaine met reden",
+      "faalmodus": "Quarantaine loopt op → dashboardsignaal per bron"
+    },
+    {
+      "nr": 6,
+      "id": "dedup",
+      "naam": "Ontdubbel",
+      "wat": "Exact op (bron_id, bron_referentie); over bronnen heen fuzzy op titel + opdrachtgever + startdatum + uren (+ embedding-similariteit) → dedup_groep_id. Nooit samenvoegen, alleen groeperen.",
+      "output": "dedup_groep + 'primaire' bron per groep",
+      "faalmodus": "Fout-positieven → groepering handmatig te corrigeren; audit-log"
+    },
+    {
+      "nr": 7,
+      "id": "classify",
+      "naam": "Classificeer & verrijk",
+      "wat": "functiegroep, relevantie_score + reden (LLM via LiteLLM), skills, opdrachtgever_type; optioneel organisatie-verrijking (Clay/KvK).",
+      "output": "Verrijkt canoniek record",
+      "faalmodus": "Model-drift → evals op vaste set; menselijke steekproef"
+    },
+    {
+      "nr": 8,
+      "id": "load",
+      "naam": "Laad in de datalaag",
+      "wat": "Upsert in curated.aanvraag; bij gewijzigde content_hash nieuwe rij in aanvraag_versie (SCD2); run-metadata in scrape_run; marts verversen.",
+      "output": "Curated + marts actueel",
+      "faalmodus": "Transactie mislukt → run gemarkeerd als 'partial', herstart idempotent"
+    },
+    {
+      "nr": 9,
+      "id": "serve",
+      "naam": "Serve",
+      "wat": "Search-API (full-text + vector + filters), MCP-tools voor agents, dashboards op marts, push van relevante aanvragen naar Spott.io en notificaties.",
+      "output": "Zoekresultaten, ATS-records, alerts",
+      "faalmodus": "Spott-API onbeschikbaar → outbox-patroon, retry"
+    },
+    {
+      "nr": 10,
+      "id": "monitor",
+      "naam": "Monitor",
+      "wat": "Per bron: laatste succesvolle run, freshness-SLA, foutpercentage, aantal nieuw/gewijzigd/gesloten, circuit-breakerstatus; alerts via mail/Teams.",
+      "output": "Dashboard + alerts",
+      "faalmodus": "Scheduler zelf valt uit → externe heartbeat-check (dead man's switch)"
+    }
+  ],
+  "zones": [
+    {
+      "id": "raw",
+      "naam": "Raw",
+      "opslag": "Object storage (S3-compatibel)",
+      "inhoud": "Onbewerkte HTML/JSON/PDF per fetch, immutable, pad per bron/datum/run/hash; bijlagen.",
+      "retentie": "12 maanden (daarna alleen hash + metadata)",
+      "gebruik": "Herverwerken bij nieuwe parser, audit, herleidbaarheid"
+    },
+    {
+      "id": "staging",
+      "naam": "Staging",
+      "opslag": "Postgres, schema staging.*",
+      "inhoud": "Eén tabel per bron in bronvorm (JSONB) + extractie-metadata; quarantaine-tabel.",
+      "retentie": "90 dagen",
+      "gebruik": "Debuggen van adapters, herverwerken zonder opnieuw fetchen"
+    },
+    {
+      "id": "curated",
+      "naam": "Curated (gecureerde zone)",
+      "opslag": "Postgres, schema curated.*",
+      "inhoud": "aanvraag (huidige versie), aanvraag_versie (SCD2), bron, organisatie, aanvraag_eis, aanvraag_skill, aanvraag_bijlage, dedup_groep, scrape_run.",
+      "retentie": "Onbeperkt voor niet-PII; contactvelden 90 dagen na sluiting",
+      "gebruik": "Single source of truth voor search, agents, Spott-push"
+    },
+    {
+      "id": "marts",
+      "naam": "Marts",
+      "opslag": "Postgres views / materialized views",
+      "inhoud": "open_aanvragen, aanvragen_per_bron_per_dag, tarieven_per_functiegroep, bron_gezondheid, tijd_tot_sluiting.",
+      "retentie": "Afgeleid",
+      "gebruik": "Dashboards (Metabase/Grafana), KPI's, harness-vragen"
+    }
+  ],
+  "tabellen": [
+    {
+      "naam": "curated.bron",
+      "sleutel": "bron_id",
+      "kolommen": "naam, categorie, website, ingestie_type, schedule, login_vereist, voorwaarden_status, actief, config_ref"
+    },
+    {
+      "naam": "curated.aanvraag",
+      "sleutel": "aanvraag_id; unique (bron_id, bron_referentie)",
+      "kolommen": "alle canonieke velden (huidige versie) + bron_specifiek jsonb + zoekvector (tsvector) + embedding (vector)"
+    },
+    {
+      "naam": "curated.aanvraag_versie",
+      "sleutel": "aanvraag_id, versie",
+      "kolommen": "snapshot canonieke velden, content_hash, raw_payload_ref, geldig_van, geldig_tot"
+    },
+    {
+      "naam": "curated.organisatie",
+      "sleutel": "organisatie_id",
+      "kolommen": "naam, kvk, type, domein, sector, verrijking_ref (Clay), aliases[]"
+    },
+    {
+      "naam": "curated.aanvraag_eis",
+      "sleutel": "aanvraag_id, volgnr",
+      "kolommen": "soort (eis|wens|gunningscriterium), tekst, knockout, weging"
+    },
+    {
+      "naam": "curated.aanvraag_skill",
+      "sleutel": "aanvraag_id, skill",
+      "kolommen": "skill (taxonomie), bron (tekst|afgeleid), confidence"
+    },
+    {
+      "naam": "curated.aanvraag_bijlage",
+      "sleutel": "bijlage_id",
+      "kolommen": "aanvraag_id, naam, mime, bron_url, raw_ref"
+    },
+    {
+      "naam": "curated.dedup_groep",
+      "sleutel": "dedup_groep_id",
+      "kolommen": "primaire_aanvraag_id, methode, similariteit, handmatig_bevestigd"
+    },
+    {
+      "naam": "curated.scrape_run",
+      "sleutel": "scrape_run_id",
+      "kolommen": "bron_id, gestart, geëindigd, status, aantal_gevonden, nieuw, gewijzigd, gesloten, fouten, circuit_status, versie_adapter"
+    }
+  ],
+  "bronconfig": {
+    "bron_id": "striive",
+    "naam": "Striive / HeadFirst Group",
+    "categorie": "msp_broker",
+    "actief": true,
+    "ingestie": {
+      "type": "playwright",
+      "listing_url": "https://striive.com/nl/opdrachten",
+      "detail_selector": "a[href*='/opdrachten/']",
+      "auth": {
+        "type": "form",
+        "secret_ref": "vault://striive/leverancier"
+      },
+      "rate_limit": {
+        "requests_per_min": 20,
+        "concurrency": 2
+      },
+      "respect_robots": true
+    },
+    "schedule": {
+      "cron": "*/5 * * * *",
+      "jitter_sec": 60,
+      "freshness_sla_min": 15
+    },
+    "parser": {
+      "adapter": "striive_v2",
+      "fallback_llm": true,
+      "llm_schema": "aanvraag.schema.json"
+    },
+    "dedup": {
+      "sleutels": [
+        "bron_referentie"
+      ],
+      "cross_source": true
+    },
+    "circuit_breaker": {
+      "open_after_failures": 5,
+      "half_open_after_min": 30
+    },
+    "voorwaarden": {
+      "tos_url": "https://striive.com/nl/algemene-voorwaarden",
+      "status": "te_toetsen",
+      "eigen_account": true
+    },
+    "retentie": {
+      "raw_maanden": 12,
+      "contact_dagen": 90
+    }
+  },
+  "stack": [
+    {
+      "laag": "Taal & modellen",
+      "keuze": "Python 3.12 · Pydantic v2 (canoniek model = één bron van waarheid, genereert JSON Schema)",
+      "waarom": "Eén definitie voor validatie, LLM-structured-output en documentatie"
+    },
+    {
+      "laag": "Fetch",
+      "keuze": "Playwright (Chromium) voor login/JS-sites · httpx voor API/RSS/JSON-LD",
+      "waarom": "v1 draait al op Playwright; httpx is goedkoper waar het kan"
+    },
+    {
+      "laag": "Extractie",
+      "keuze": "Adapters per bron (selectors/JSON-mapping) · LLM-fallback via LiteLLM met structured output",
+      "waarom": "Deterministisch waar mogelijk, LLM waar tekst ongestructureerd is; modelrouting blijft inwisselbaar"
+    },
+    {
+      "laag": "Opslag",
+      "keuze": "Postgres 16 (+ pg_trgm, pgvector) · S3-compatibele object storage (bv. Cloudflare R2, Hetzner Object Storage, MinIO)",
+      "waarom": "Cloud-agnostisch, open formaten, één database voor staging/curated/marts/search in fase 1"
+    },
+    {
+      "laag": "Orkestratie",
+      "keuze": "Eigen scheduler op Postgres-queue (SKIP LOCKED) met per-bron cron, jitter, retries en circuit breaker; later optioneel Prefect/Dagster",
+      "waarom": "Klein en beheersbaar; v1-problemen (achterstallige runs) worden expliciet gemodelleerd"
+    },
+    {
+      "laag": "Search",
+      "keuze": "Postgres full-text (tsvector, Nederlands) + pgvector embeddings + filters; later eventueel OpenSearch/Typesense",
+      "waarom": "Geen extra systeem nodig tot volumes dat vragen"
+    },
+    {
+      "laag": "API & agents",
+      "keuze": "FastAPI (search, aanvraag, bron_status) · MCP-server met tools search_aanvragen, get_aanvraag, bron_status, mark_relevant",
+      "waarom": "Company OS-koppelvlak vanaf dag één"
+    },
+    {
+      "laag": "Dashboards",
+      "keuze": "Metabase of Grafana op marts",
+      "waarom": "BI naast de harness, rechtstreeks op de gecureerde zone"
+    },
+    {
+      "laag": "Observability",
+      "keuze": "OpenTelemetry → Grafana/Loki · Langfuse voor LLM-calls · heartbeat via externe monitor",
+      "waarom": "Observability & evals uit laag 3"
+    },
+    {
+      "laag": "Hosting & secrets",
+      "keuze": "Docker Compose op VPS (bv. Hetzner) of Fly.io · secrets in 1Password/Doppler",
+      "waarom": "Low-risk start; verhuisbaar"
+    }
+  ],
+  "fasen": [
+    {
+      "id": "v2.0",
+      "naam": "Fundament",
+      "inhoud": "Canoniek model (Pydantic + JSON Schema), raw/staging/curated/marts, scheduler met circuit breaker en freshness-SLA, adapters voor de 7 v1-bronnen, bron-gezondheidsdashboard.",
+      "resultaat": "Zelfde bronnen als v1, maar gestructureerd, versiebeheerd en betrouwbaar in de datalaag."
+    },
+    {
+      "id": "v2.1",
+      "naam": "Bronnen uitbreiden",
+      "inhoud": "TenderNed (API/RSS) en Opdrachtoverheid eerst (publiek, laag risico); daarna DAS-platformen en broker-portalen na juridische toets per bron; LLM-fallback voor nieuwe bronnen zonder adapter.",
+      "resultaat": "Source Register grotendeels ontsloten; per bron gedocumenteerde unieke velden."
+    },
+    {
+      "id": "v2.2",
+      "naam": "Werkenbij-sites",
+      "inhoud": "Bedrijvenlijst (Clay) → ATS-detectie → ATS-API/JSON-LD/sitemap+LLM; dagelijkse polling.",
+      "resultaat": "Directe vacatures van doelbedrijven naast broker-aanvragen."
+    },
+    {
+      "id": "v2.3",
+      "naam": "Search & analyse",
+      "inhoud": "Full-text + vector search, filters, MCP-tools, marts en dashboards, alerts op relevante aanvragen.",
+      "resultaat": "Analyse/search voor Robbie, Julian en agents."
+    },
+    {
+      "id": "v2.4",
+      "naam": "Koppeling & agents",
+      "inhoud": "Push van relevante aanvragen naar Spott.io (outbox), kwalificatie-agent via Company OS, feedback (voorgesteld/geplaatst) terug naar de datalaag.",
+      "resultaat": "Gesloten loop van bron tot plaatsing."
+    }
+  ],
+  "compliance": [
+    {
+      "onderwerp": "Gebruiksvoorwaarden per bron",
+      "regel": "Voor elke bron in het bronregister: ToS-URL, status (toegestaan / te toetsen / niet toegestaan) en of een eigen account nodig is. Bronnen met status 'niet toegestaan' worden niet gescrapet."
+    },
+    {
+      "onderwerp": "Publieke sites",
+      "regel": "robots.txt respecteren, rate limits per bron, identificeerbare user-agent met contactadres."
+    },
+    {
+      "onderwerp": "Portalen achter login",
+      "regel": "Alleen met eigen leveranciersaccount, binnen de voorwaarden van het portaal; geen omzeiling van beveiliging; per portaal juridisch toetsen vóór activering."
+    },
+    {
+      "onderwerp": "AVG",
+      "regel": "Contactpersonen zijn persoonsgegevens: minimaal opslaan, 90 dagen na sluiting verwijderen, niet in search-index; verwerkingsregister-entry 'Job Intelligence'."
+    },
+    {
+      "onderwerp": "EU AI Act",
+      "regel": "relevantie_score is ondersteunend, geen besluit; reden altijd zichtbaar; menselijke beoordeling vóór voorstellen aan opdrachtgevers."
+    },
+    {
+      "onderwerp": "Open data",
+      "regel": "TenderNed-data (CC-0) mag vrij hergebruikt worden; bronvermelding als goede praktijk."
+    }
+  ],
+  "openVragen": [
+    "Welke minimale veldenset is nodig om een aanvraag 'werkbaar' te noemen voor het bemiddelingsproces? (voorstel: titel, opdrachtgever of intermediair, locatie of remote, uren, start, sluitingsdatum, tarief_max of tariefindicatie)",
+    "DWH-technologie: Postgres als DWH in fase 1 is voldoende — akkoord, of direct een apart analytisch platform?",
+    "Welke werkenbij-sites (bedrijvenlijst) hebben prioriteit — uit Clay of handmatig?",
+    "Wie beoordeelt de juridische toets per broker-portaal en wat is het besluitproces?",
+    "Moet Job Intelligence ook historische (gesloten) aanvragen bewaren voor tariefanalyse? (voorstel: ja, niet-PII onbeperkt)",
+    "Pushen we aanvragen automatisch naar Spott.io of alleen na menselijke kwalificatie?"
+  ]
+}

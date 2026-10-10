@@ -1,0 +1,121 @@
+{
+  "contractVersion": "connector-fixture/v1",
+  "source": "striive",
+  "capturedAt": "2026-08-31T13:30:58.000Z",
+  "contentType": "json",
+  "payload": {
+    "total": 109,
+    "data": [
+      {
+        "id": "d0ab03db-13d1-42d4-a55d-3d238f02b3c0",
+        "referenceCode": "HFWMD000020",
+        "referenceCodeClient": "",
+        "title": "Functioneel Beheerder Youforce",
+        "content": "<p>Tijdelijke ondersteuning gezocht: Youforce Workflow Specialist</p>\n<p>Voor een periode van enkele weken zoeken wij een ervaren professional die ons kan helpen met het optimaliseren, inrichten en bouwen van HR workflows in Youforce.</p>\n<p>\n <br/>\n •&nbsp;&nbsp;&nbsp;&nbsp;Beschikbaar: 8 tot 24 uur per week\n <br/>\n •&nbsp;&nbsp;&nbsp;&nbsp;Periode: enkele weken tot maanden\n <br/>\n •&nbsp;&nbsp;&nbsp;&nbsp;Voorkeurslocatie: Assen\n <br/>\n •&nbsp;&nbsp;&nbsp;&nbsp;Remote werken is ook mogelijk\n <br/>\n <br/>\n</p>\n<p>Heb jij ervaring met Youforce en workflowoptimalisatie? Dan komen we graag met je in contact.</p>\n<p>\n <br/>\n</p>\n<p><b>Eisen:</b></p>\n<p>Meer dan 3 jaar ervaring met het bouwen en optimaliseren van workflows in youforce.\n <br/>\n <br/></p>",
+        "clientName": "WMD Drinkwater N.V.",
+        "location": "Assen Drenthe",
+        "regionLocation": {
+          "type": "Point",
+          "coordinates": [6.5573497, 53.001656]
+        },
+        "hoursPerWeekMin": 8,
+        "hoursPerWeekMax": 24,
+        "startDate": "2026-09-13T22:00:00",
+        "endDate": "2026-10-11T22:00:00",
+        "closingDateInvoice": "2026-09-02T10:00:00",
+        "closingDateClient": "2026-09-03T10:00:00",
+        "broker": "headfirst-select",
+        "source": "HeadFirst",
+        "brokerUrl": "https://striive.com/nl/opdrachten?id=d0ab03db-13d1-42d4-a55d-3d238f02b3c0"
+      },
+      {
+        "id": "463b7e0b-a1af-4cbb-94ff-e13f950ef44e",
+        "referenceCode": "SNSHL000426",
+        "referenceCodeClient": "1SHLJP00012771SHLJP000127809",
+        "title": "LAB. CHEM. ANALYST JG10",
+        "content": "<p>Het CV en de motivatie dienen aangeboden te worden in het Engels.\n <br/>\n Het CV dient in een Word format aangeleverd te worden.\n <br/></p>\n<p><b>Description: \n  <br/></b></p>\n<p>In the short term, we are looking for an enthusiastic colleague for our Laboratory team. Preferably with experience in Physical testing such as rheometry, distillations, flash point, RON/MON testing etc for release certification of JET-A1, Gasoil, Bitumen and Mogas. This candidate must therefore have 5+ years of experience in refinery products (No lubricants), test equipment knowledge and management, provide clear reports and a real team player. In addition;</p>\n<ul>\n <li><span>Prefer to work full-time</span></li>\n <li><span>HBO and/or MBO course in analytical chemistry</span></li>\n <li><span>Be available on weekends for at least 1x /month</span></li>\n <li><span>Being able to perform routine tasks in the laboratory well independently</span></li>\n <li><span>And for HBO candidate good and accurate reporting of projects and quality documents</span></li>\n</ul>",
+        "clientName": "Shell",
+        "location": "Pernis Zuid-Holland",
+        "regionLocation": {
+          "type": "Point",
+          "coordinates": [4.3885093, 51.88887]
+        },
+        "hoursPerWeekMin": 40,
+        "hoursPerWeekMax": 40,
+        "startDate": "2026-09-30T22:00:00",
+        "endDate": "2027-09-29T22:00:00",
+        "closingDateInvoice": "2026-09-02T07:00:00",
+        "closingDateClient": "2026-09-03T07:00:00",
+        "broker": "headfirst-select",
+        "source": "Source",
+        "brokerUrl": "https://striive.com/nl/opdrachten?id=463b7e0b-a1af-4cbb-94ff-e13f950ef44e"
+      },
+      {
+        "id": "885840cd-4301-4cd1-bb01-73facbddb93e",
+        "referenceCode": "BTICT000290-5",
+        "referenceCodeClient": "T2026-IBS-0316",
+        "title": "BAW Team",
+        "content": "<p><b>Opdrachtomschrijving</b>\n <br/>\n Voor IBS Omzetbelasting (OB) op zoek naar een compleet BAW scrumteam tbv het ontwikkelen en in productie nemen van EU KOR (Europese Kleine Ondernemers Regeling). Het team bouwt mee aan een gemoderniseerd IT landschap onder architectuur. Ze houden zich bezig met uitwerken van features naar user-stories en vervolgens het technisch realiseren van die user-stories. Het team is zelf verantwoordelijk voor de diverse testsoorten die nodig zijn om het product te kunnen opleveren aan het keten-, integratie- en acceptatietestteam. In sprints van 2 weken wordt nauw samengewerkt met de dedicated productowner aan nieuwe functionaliteit en het onderhouden van reeds aanwezige code. Zie bestek voor verdere toelichting op opdracht en competenties. Het gaat hier om een team samgesteld uit het volgende:</p>\n<ul>\n <li>1 business Analist</li>\n <li>1 Lead Developer BAW</li>\n <li>2 Developers BAW</li>\n <li>2 testers</li>\n</ul>\n<p><b>Achtergrond opdracht \n  <br/></b>De IBS Omzetbelasting (De afdeling waar je komt te werken) is verantwoordelijk voor adviesregie, architectuur, ontwerp, bouw, test, integratie, (gebruikers)documentatie en het implementatierijp opleveren van de aangepaste bedrijfsprocessen en informatievoorziening. IBS Omzetbelasting is verantwoordelijk voor de integratie van de gehele oplossing die gerealiseerd kan worden door de eigen teams van IBS OB en door andere teams van verschillende organisatieeenheden zoals STS, GBS en raakvlakken binnen IBS. IBS Omzetbelasting stemt de architectuur af, stuurt de realisatie en de planning via de SAFe releasetrain en verstrekt de opdrachten naar de raakvlakken. IBS OB neemt de lead bij testen over de onderdelen heen en stemt af met productmanagement over prioritering en implementatie- en releasemomenten. De keten omzetbelasting staat de komende jaren voor grote uitdagingen. De Europese en nationale wet- en regelgeving is sterk in ontwikkeling. Daarnaast is het applicatielandschap sterk verouderd. Om aan huidige en nieuwe wet- en regelgeving te kunnen blijven voldoen zal het applicatielandschap moeten worden gemoderniseerd, met gebruikmaking van state-of-the-art architectuurprincipes en technologieën. Hierbij moet voortdurend de afweging worden gemaakt tussen enerzijds het tijdig kunnen voldoen aan de business eisen en het anderzijds realiseren van een robuust en wendbaar applicatielandschap\n <br/></p>\n<p><b>Eisen</b>\n <br/>\n <b>Alleen Nederlandstalige CV’s aanbieden en kandidaten moeten perfect Nederlands kunnen spreken.</b>\n <br/>\n <b>Opdracht is minder geschikt voor ZZP’ers ivm wet DBA</b>\n <br/></p>\n<ul>\n <li>Programmeren</li>\n <li>Methoden en technieken voor Agile ontwerp</li>\n <li>Testen</li>\n <li>2.1.1 APPLICATIEONTWIKKELING</li>\n <li>2.1.2 SYSTEEMONTWIKKELING</li>\n</ul>\n<p>\n <br/>\n</p>\n<p><b>Competenties</b>\n <br/></p>\n<ul>\n <li>Zie bestek</li>\n</ul>\n<p><b>Aanvullende Informatie</b>\n <br/>\n Wanneer u bij ons als leverancier een professional aanbiedt en deze wordt geplaatst, hebben we informatie van u als contractpartij nodig, onder andere met betrekking tot de Wet keten- en inlenersaansprakelijkheid. De ‘WKA’ heeft als doel om misbruik te voorkomen bij de afdracht van loonheffingen bij alle schakels in de keten; van leverancier tot opdrachtgever. Wij dekken deze risico’s voor onze opdrachtgevers af middels een geblokkeerde rekening, de G-rekening. Dit is een rekening waarop een gedeelte van het factuurbedrag wordt gestort en waarvan u de loonheffingen en BTW kunt betalen aan de Belastingdienst. Het af te storten % hangt ervan af of u een SNA-certificering (NEN-4400-1 of NEN-4400-2) heeft of niet en of uw bedrijf in Nederland of daarbuiten is gevestigd. De G-rekening kunt u aanvragen bij de Belastingdienst. Indien u geen G-rekening kunt krijgen (en u kunt hier bewijs van de Belastingdienst van overleggen) dan heeft u ook de mogelijkheid elk kwartaal een accountantsverklaring (assurance report inzake inlening personeel) aan te leveren. Hierin zal een gecertificeerd accountant (AA of RA) een verklaring afgeven over de juistheid, volledigheid en tijdigheid van de afdrachten. Let wel, de kosten voor deze verklaring komen voor uw eigen rekening.</p>",
+        "clientName": "Belastingdienst - ICT",
+        "location": "Apeldoorn Gelderland",
+        "regionLocation": {
+          "type": "Point",
+          "coordinates": [5.9734936, 52.21034]
+        },
+        "hoursPerWeekMin": 32,
+        "hoursPerWeekMax": 40,
+        "startDate": "2026-08-30T22:00:00",
+        "endDate": "2026-12-30T23:00:00",
+        "closingDateInvoice": "2026-09-01T19:00:00",
+        "closingDateClient": "2026-09-01T23:00:00",
+        "broker": "headfirst-select",
+        "source": "Between",
+        "brokerUrl": "https://striive.com/nl/opdrachten?id=885840cd-4301-4cd1-bb01-73facbddb93e"
+      },
+      {
+        "id": "6d3b7262-62aa-4604-9c52-3a01cbd71882",
+        "referenceCode": "HFRWE000100",
+        "referenceCodeClient": "",
+        "title": "Electrical Engineer",
+        "content": "<p><b>Over de functie</b></p>\n<ul>\n <li>Engineering en technische uitwerking van modificaties aan bestaande elektrotechnische installaties.</li>\n <li>&nbsp;Uitwerken van wijzigingen aan elektrische schema's, kabels, voedingen en componenten.</li>\n <li>&nbsp;Maken en controleren van technische specificaties, materiaallijsten, reserve onderdelenvoorstel en engineeringdocumentatie.</li>\n <li>&nbsp;Begeleiden van projecten van initiatief tot uitvoering en oplevering.</li>\n <li>&nbsp;Afstemmen van werkzaamheden met projectmanagement, contractors en de locatie.</li>\n <li>&nbsp;Beoordelen van technische voorstellen van leveranciers en contractors.</li>\n <li>&nbsp;Begeleiden en ondersteunen van uitvoering, testen en inbedrijfstelling.</li>\n <li>&nbsp;Controleren of modificaties correct en volgens de geldende normen en veiligheidseisen worden uitgevoerd.</li>\n <li>&nbsp;Bijwerken van technische documentatie en zorgen voor een goede overdracht naar de onderhoudsorganisatie.</li>\n <li>&nbsp;Een afgerond Hbo-diploma</li>\n <li>&nbsp;Je bent in bezit van een geldig VCA (VOL) diploma.</li>\n</ul>",
+        "clientName": "RWE",
+        "location": "Eemshaven Groningen",
+        "regionLocation": {
+          "type": "Point",
+          "coordinates": [6.83393, 53.441093]
+        },
+        "hoursPerWeekMin": 40,
+        "hoursPerWeekMax": 40,
+        "startDate": "2026-08-31T22:00:00",
+        "endDate": "2027-08-31T22:00:00",
+        "closingDateInvoice": "2026-09-01T12:00:00",
+        "closingDateClient": "2026-09-02T12:00:00",
+        "broker": "headfirst-select",
+        "source": "HeadFirst",
+        "brokerUrl": "https://striive.com/nl/opdrachten?id=6d3b7262-62aa-4604-9c52-3a01cbd71882"
+      },
+      {
+        "id": "6f84e40f-7072-4ded-b15c-417159ed54d3",
+        "referenceCode": "HFWSV000191",
+        "referenceCodeClient": "",
+        "title": "Projectleider",
+        "content": "<p><b>Opdrachtomschrijving</b>\n <br/>\n Om de prestaties van onze rioolwaterzuivering in Ommen op niveau te houden, dienen er een aantal assets vervangen te worden. Wij zoeken een projectleider met ervaring en affiniteit in de waterketen, voor de installatie van een mechanische slibindikker (MII) en een roosterharkinstallatie.\n <br/>\n Als projectleider sta je aan het stuur van het project en zet je de koers uit. Je rapporteert over de voortgang en werkt nauw samen met onze beheerorganisatie en een team van inhoudelijk experts. Samen zorg je ervoor dat de doorvoer van afvalwater ongestoord blijft plaatsvinden tijdens de werkzaamheden. \"\n <br/>\n <br/>\n Parallel aan jouw project loopt er een project op de zuivering voor de vervanging van de elektrotechnische installatie en procesautomatisering. Om niet in elkaars vaarwater te komen, dien je de werkzaamheden af te stemmen met de projectleider van het andere project. Daarnaast wordt gevraagd om eventuele kansen op het gebied van duurzaamheid te signaleren richting jouw opdrachtgever. Tot slot zorg je ervoor dat alle systemen (o.a Citect, Maximo, P&amp;ID, Datawarehouse en Z-info) op de juiste wijze worden aangesloten zodat de datastroom gegarandeerd is en het project op een gestructureerde wijze overgedragen kan worden naar de lijn.</p>\n<p><b>Functie eisen</b>\n <br/>\n • HBO+ of WO werk- en denkniveau;\n <br/>\n • Minimaal 6 jaar werkervaring als projectleider;\n <br/>\n • Ervaring met projecten op RWZI's, bij voorkeur met vergelijkbare werkzaamheden;\n <br/>\n • Goede communicatieve vaardigheden en onderhandelingsvaardigheden;\n <br/>\n • Bij voorkeur ervaring bij Waterschappen&nbsp;\n <br/>\n <br/>\n <br/></p>",
+        "clientName": "Waterschap Vechtstromen",
+        "location": "Almelo Overijssel",
+        "regionLocation": {
+          "type": "Point",
+          "coordinates": [6.661781, 52.356766]
+        },
+        "hoursPerWeekMin": 4,
+        "hoursPerWeekMax": 8,
+        "startDate": "2026-09-13T22:00:00",
+        "endDate": "2029-08-30T22:00:00",
+        "closingDateInvoice": "2026-09-03T09:00:00",
+        "closingDateClient": "2026-09-03T15:00:00",
+        "broker": "headfirst-select",
+        "source": "HeadFirst",
+        "brokerUrl": "https://striive.com/nl/opdrachten?id=6f84e40f-7072-4ded-b15c-417159ed54d3"
+      }
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "extends": "@ji/config/tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "types": ["bun"]
+  },
+  "include": ["src/**/*.ts", "trigger.config.ts"]
+}

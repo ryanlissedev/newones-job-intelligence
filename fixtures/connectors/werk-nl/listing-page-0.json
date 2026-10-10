@@ -1,0 +1,63 @@
+{
+  "contractVersion": "connector-fixture/v1",
+  "source": "werk-nl",
+  "capturedAt": "2026-09-18T07:05:00.000Z",
+  "contentType": "json",
+  "captureNote": "Real POST /api/search page-1 body (unsharded, currentPage=1). items trimmed from 20 to the first 2 records; facets dropped (multi-MB JOB_CATEGORY value list unused by the connector). totalResults is the live count at capture time.",
+  "payload": {
+    "items": [
+      {
+        "key": "2001:L:56790376",
+        "referenceNumber": 56790376,
+        "score": 100,
+        "resultDepth": 0,
+        "internalReferenceNumber": null,
+        "profession": "Verzorgende thuiszorg",
+        "vacatureTitle": "Verzorgende Thuiszorg",
+        "modified": "2026-09-18 00:00:00",
+        "organisation": "Ovus Thuiszorg B.V.",
+        "workLocationCity": null,
+        "workLocationType": "Wisselende werklocatie",
+        "workLocationForeignCountry": null,
+        "workLocationForeignCity": null,
+        "minHours": 16,
+        "maxHours": 40,
+        "contractType": "Mogelijk vast",
+        "studyLevel": "HBO/bachelor",
+        "distance": null,
+        "leerbaan": false,
+        "stageplaats": false
+      },
+      {
+        "key": "2001:L:66198242",
+        "referenceNumber": 66198242,
+        "score": 100,
+        "resultDepth": 0,
+        "internalReferenceNumber": null,
+        "profession": "Meewerkend voorwerker",
+        "vacatureTitle": "Meewerkend voorwerker",
+        "modified": "2026-09-18 00:00:00",
+        "organisation": "SCHOONMAAKBEDRIJF R. JANSSEN",
+        "workLocationCity": "SITTARD",
+        "workLocationType": "Vaste werklocatie",
+        "workLocationForeignCountry": null,
+        "workLocationForeignCity": null,
+        "minHours": 38,
+        "maxHours": 38,
+        "contractType": "Mogelijk vast",
+        "studyLevel": "MBO",
+        "distance": null,
+        "leerbaan": false,
+        "stageplaats": false
+      }
+    ],
+    "facets": [],
+    "totalResults": 240561,
+    "sortOptions": {
+      "standard": [1],
+      "special": [0, 2]
+    },
+    "template": "TitleMatchNC",
+    "totalResultsSuggestedSearch": null
+  }
+}

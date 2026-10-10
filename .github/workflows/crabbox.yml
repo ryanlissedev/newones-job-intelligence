@@ -1,0 +1,212 @@
+---
+name: Crabbox Hydration
+
+"on":
+  # checkov:skip=CKV_GHA_7: Crabbox requires bounded, validated hydration-routing inputs.
+  workflow_dispatch:
+    inputs:
+      crabbox_id:
+        required: true
+        type: string
+      crabbox_runner_label:
+        required: true
+        type: string
+      crabbox_job:
+        required: false
+        default: hydrate
+        type: string
+      crabbox_keep_alive_minutes:
+        required: false
+        default: "45"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  hydrate:
+    if: github.ref == 'refs/heads/main'
+    runs-on:
+      - self-hosted
+      - crabbox
+      - ${{ inputs.crabbox_runner_label }}
+    timeout-minutes: 60
+    env:
+      DATABASE_TEST_URL: postgresql://ji:ji@127.0.0.1:5432/ji_test
+      NEXT_PUBLIC_SERVER_URL: http://localhost:3000
+      PERF_CACHE_STATE: unknown
+      PERF_CONCURRENCY: "2"
+      PERF_JUNIT_PATH: .artifacts/test-results/remote-junit.xml
+      PERF_METRICS_DIR: .artifacts/performance/remote
+      PERF_POSTGRES_IMAGE_DIGEST: sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777
+      PERF_POSTGRES_VERSION: "16"
+    services:
+      postgres:
+        image: postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777
+        env:
+          POSTGRES_DB: ji_test
+          POSTGRES_PASSWORD: ji
+          POSTGRES_USER: ji
+        ports:
+          - 127.0.0.1:5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ji -d ji_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6  # v2
+        with:
+          bun-version: "1.3.14"
+
+      - name: Install Qlty
+        uses: qltysh/qlty-action/install@08a0a862c159eae9b9003081da6663d96efef637  # v2.3.0
+
+      - name: Verify Docker runtime
+        run: |
+          docker version
+          docker compose version
+
+      - name: Install locked dependencies
+        run: bun ci
+
+      - name: Reject persisted GitHub credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          credential_keys="$({
+            git -C "$GITHUB_WORKSPACE" config --local --name-only --list 2>/dev/null || true
+            git -C "$GITHUB_WORKSPACE" config --worktree --name-only --list 2>/dev/null || true
+          } | awk '
+            {
+              key = tolower($0)
+              if (key ~ /^http\..*\.extraheader$/ || key ~ /^credential(\..*)?\.helper$/) {
+                print $0
+              }
+            }
+          ' | sort -u)"
+          if [ -n "$credential_keys" ]; then
+            echo "::error::workspace git config contains persisted credential settings"
+            printf '%s\n' "$credential_keys"
+            exit 1
+          fi
+
+      - name: Mark workspace ready
+        shell: bash
+        env:
+          CRABBOX_ID: ${{ inputs.crabbox_id }}
+          CRABBOX_JOB: ${{ inputs.crabbox_job }}
+        run: |
+          case "$CRABBOX_ID" in
+            ""|*[!A-Za-z0-9_-]*)
+              echo "::error::crabbox_id must match [A-Za-z0-9_-]+"
+              exit 2
+              ;;
+          esac
+          case "$CRABBOX_JOB" in
+            *$'\n'*|*$'\r'*)
+              echo "::error::crabbox_job must not contain line breaks"
+              exit 2
+              ;;
+          esac
+          job="$CRABBOX_JOB"
+          [ -n "$job" ] || job=hydrate
+          mkdir -p "$HOME/.crabbox/actions"
+          state="$HOME/.crabbox/actions/${CRABBOX_ID}.env"
+          env_file="$HOME/.crabbox/actions/${CRABBOX_ID}.env.sh"
+          services_file="$HOME/.crabbox/actions/${CRABBOX_ID}.services"
+          write_export() {
+            key="$1"
+            value="${!key-}"
+            if [ -n "$value" ]; then
+              printf 'export %s=%q\n' "$key" "$value"
+            fi
+          }
+          {
+            for key in \
+              CI \
+              GITHUB_ACTIONS \
+              GITHUB_WORKSPACE \
+              GITHUB_RUN_ID \
+              GITHUB_JOB \
+              RUNNER_TEMP \
+              RUNNER_TOOL_CACHE \
+              PATH \
+              DATABASE_TEST_URL \
+              NEXT_PUBLIC_SERVER_URL \
+              PERF_CACHE_STATE \
+              PERF_CONCURRENCY \
+              PERF_JUNIT_PATH \
+              PERF_METRICS_DIR \
+              PERF_POSTGRES_IMAGE_DIGEST \
+              PERF_POSTGRES_VERSION
+            do
+              write_export "$key"
+            done
+          } > "${env_file}.tmp"
+          mv "${env_file}.tmp" "$env_file"
+          {
+            echo "# Docker containers visible from the hydrated runner"
+            docker ps --format '{{.Names}}\t{{.Image}}\t{{.Ports}}' 2>/dev/null || true
+          } > "${services_file}.tmp"
+          mv "${services_file}.tmp" "$services_file"
+          temporary="${state}.tmp"
+          commit="$(git -C "$GITHUB_WORKSPACE" rev-parse HEAD)"
+          {
+            echo "WORKSPACE=${GITHUB_WORKSPACE}"
+            echo "COMMIT=${commit}"
+            echo "RUN_ID=${GITHUB_RUN_ID}"
+            echo "JOB=${job}"
+            echo "ENV_FILE=${env_file}"
+            echo "SERVICES_FILE=${services_file}"
+            echo "READY_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } > "$temporary"
+          mv "$temporary" "$state"
+
+      - name: Keep runner available for Crabbox command
+        env:
+          CRABBOX_ID: ${{ inputs.crabbox_id }}
+          CRABBOX_KEEP_ALIVE_MINUTES: ${{ inputs.crabbox_keep_alive_minutes }}
+        run: |
+          case "$CRABBOX_ID" in
+            ""|*[!A-Za-z0-9_-]*)
+              echo "::error::crabbox_id must match [A-Za-z0-9_-]+"
+              exit 2
+              ;;
+          esac
+          minutes="$CRABBOX_KEEP_ALIVE_MINUTES"
+          case "$minutes" in
+            ''|*[!0-9]*) minutes=45 ;;
+          esac
+          stop="$HOME/.crabbox/actions/${CRABBOX_ID}.stop"
+          deadline=$(( $(date +%s) + minutes * 60 ))
+          while [ "$(date +%s)" -lt "$deadline" ]; do
+            [ -f "$stop" ] && exit 0
+            sleep 15
+          done
+
+      - name: Clean up validated Crabbox state
+        if: always()
+        shell: bash
+        env:
+          CRABBOX_ID: ${{ inputs.crabbox_id }}
+        run: |
+          set -euo pipefail
+          case "$CRABBOX_ID" in
+            ""|*[!A-Za-z0-9_-]*)
+              echo "::error::crabbox_id must match [A-Za-z0-9_-]+"
+              exit 2
+              ;;
+          esac
+          actions_dir="$HOME/.crabbox/actions"
+          rm -f \
+            "$actions_dir/${CRABBOX_ID}.env" \
+            "$actions_dir/${CRABBOX_ID}.env.sh" \
+            "$actions_dir/${CRABBOX_ID}.services" \
+            "$actions_dir/${CRABBOX_ID}.stop"

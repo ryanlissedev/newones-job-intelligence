@@ -1,0 +1,433 @@
+{
+  "config": {
+    "crawlDelayMs": 5,
+    "levelDeadlineMs": 600000,
+    "maxJobAttempts": 3,
+    "queuePollIntervalMs": 50,
+    "rateLimitPerMinute": 600,
+    "runtimePoolMax": 10
+  },
+  "corpus": {
+    "bronnen": [
+      {
+        "bronId": "00000000-0000-4000-8000-00000000000f",
+        "bronSlug": "asml",
+        "fixtureDetailUrls": 1
+      },
+      {
+        "bronId": "00000000-0000-4000-8000-000000000015",
+        "bronSlug": "bam",
+        "fixtureDetailUrls": 3
+      },
+      {
+        "bronId": "00000000-0000-4000-8000-000000000006",
+        "bronSlug": "bluetrail",
+        "fixtureDetailUrls": 7
+      },
+      {
+        "bronId": "00000000-0000-4000-8000-000000000018",
+        "bronSlug": "datajobs",
+        "fixtureDetailUrls": 3
+      },
+      {
+        "bronId": "00000000-0000-4000-8000-00000000001e",
+        "bronSlug": "eneco",
+        "fixtureDetailUrls": 3
+      },
+      {
+        "bronId": "00000000-0000-4000-8000-000000000016",
+        "bronSlug": "heijmans",
+        "fixtureDetailUrls": 4
+      },
+      {
+        "bronId": "00000000-0000-4000-8000-000000000004",
+        "bronSlug": "hero",
+        "fixtureDetailUrls": 2
+      },
+      {
+        "bronId": "00000000-0000-4000-8000-000000000021",
+        "bronSlug": "ns",
+        "fixtureDetailUrls": 3
+      },
+      {
+        "bronId": "00000000-0000-4000-8000-000000000005",
+        "bronSlug": "pro-act",
+        "fixtureDetailUrls": 2
+      },
+      {
+        "bronId": "00000000-0000-4000-8000-00000000001f",
+        "bronSlug": "unica",
+        "fixtureDetailUrls": 3
+      },
+      {
+        "bronId": "00000000-0000-4000-8000-00000000001d",
+        "bronSlug": "vattenfall",
+        "fixtureDetailUrls": 3
+      },
+      {
+        "bronId": "00000000-0000-4000-8000-000000000014",
+        "bronSlug": "volkerwessels",
+        "fixtureDetailUrls": 3
+      },
+      {
+        "bronId": "00000000-0000-4000-8000-00000000000e",
+        "bronSlug": "werken-voor-nederland",
+        "fixtureDetailUrls": 1
+      }
+    ],
+    "digest": "sha256:99132f84ce8b79ba92876e23695faad259ebb2d15b344b3cc69715474e5507a3",
+    "itemsPerBron": 40,
+    "totalItems": 520
+  },
+  "generatedAt": "2026-09-22T16:45:38.081Z",
+  "git": {
+    "sha": "a4383496c18e5a4571a533089af7aef1f7a27b06"
+  },
+  "hardware": {
+    "arch": "arm64",
+    "cpuCount": 18,
+    "cpuModel": "Apple M5 Pro",
+    "memoryBytes": 68719476736,
+    "os": "darwin",
+    "osRelease": "27.0.0",
+    "postgresVersion": "16.14"
+  },
+  "levels": [
+    {
+      "attempts": 13,
+      "completedJobs": 13,
+      "database": "ji_k5_l1_b46edcf2",
+      "deadlineHit": false,
+      "eventLoop": {
+        "maxMs": 3,
+        "meanMs": 0,
+        "p95Ms": 1,
+        "p99Ms": 1
+      },
+      "failedJobs": 0,
+      "jobErrors": 0,
+      "jobs": {
+        "duration": {
+          "count": 13,
+          "max": 4641,
+          "mean": 4519.308,
+          "p50": 4524,
+          "p95": 4641
+        },
+        "freshness": {
+          "count": 13,
+          "max": 58803,
+          "mean": 31726.231,
+          "p50": 31592,
+          "p95": 58803
+        },
+        "itemsRejected": 10,
+        "itemsWritten": 510
+      },
+      "pgCountersDelta": {
+        "deadlocks": 0,
+        "numbackends": 14,
+        "tupInserted": 4065,
+        "tupReturned": 356036,
+        "xactCommit": 6154
+      },
+      "poolWait": {
+        "count": 2305,
+        "max": 8,
+        "mean": 0.012,
+        "p50": 0,
+        "p95": 0
+      },
+      "resources": {
+        "cpuSystemMicroseconds": 1590383,
+        "cpuUserMicroseconds": 3275437,
+        "cpuUtilisation": 0.083,
+        "lastRssBytes": 204013568,
+        "peakRssBytes": 204013568,
+        "rssSamples": 586
+      },
+      "sentinel": {
+        "backendPeak": 16,
+        "latency": {
+          "count": 1138,
+          "max": 12,
+          "mean": 0.863,
+          "p50": 1,
+          "p95": 1
+        }
+      },
+      "slots": 1,
+      "startedAt": "2026-09-22T16:43:22.407Z",
+      "wallMs": 58813
+    },
+    {
+      "attempts": 13,
+      "completedJobs": 13,
+      "database": "ji_k5_l2_f208669a",
+      "deadlineHit": false,
+      "eventLoop": {
+        "maxMs": 2,
+        "meanMs": 0,
+        "p95Ms": 1,
+        "p99Ms": 1
+      },
+      "failedJobs": 0,
+      "jobErrors": 0,
+      "jobs": {
+        "duration": {
+          "count": 13,
+          "max": 4546,
+          "mean": 4515.231,
+          "p50": 4526,
+          "p95": 4546
+        },
+        "freshness": {
+          "count": 13,
+          "max": 31614,
+          "mean": 17052.923,
+          "p50": 18047,
+          "p95": 31614
+        },
+        "itemsRejected": 10,
+        "itemsWritten": 510
+      },
+      "pgCountersDelta": {
+        "deadlocks": 0,
+        "numbackends": 15,
+        "tupInserted": 4153,
+        "tupReturned": 233419,
+        "xactCommit": 4939
+      },
+      "poolWait": {
+        "count": 1241,
+        "max": 6,
+        "mean": 0.021,
+        "p50": 0,
+        "p95": 0
+      },
+      "resources": {
+        "cpuSystemMicroseconds": 1283226,
+        "cpuUserMicroseconds": 2327378,
+        "cpuUtilisation": 0.114,
+        "lastRssBytes": 235814912,
+        "peakRssBytes": 235814912,
+        "rssSamples": 316
+      },
+      "sentinel": {
+        "backendPeak": 17,
+        "latency": {
+          "count": 611,
+          "max": 6,
+          "mean": 0.877,
+          "p50": 1,
+          "p95": 1
+        }
+      },
+      "slots": 2,
+      "startedAt": "2026-09-22T16:44:21.743Z",
+      "wallMs": 31633
+    },
+    {
+      "attempts": 13,
+      "completedJobs": 13,
+      "database": "ji_k5_l4_4ee9f4a6",
+      "deadlineHit": false,
+      "eventLoop": {
+        "maxMs": 3,
+        "meanMs": 0,
+        "p95Ms": 1,
+        "p99Ms": 1
+      },
+      "failedJobs": 0,
+      "jobErrors": 0,
+      "jobs": {
+        "duration": {
+          "count": 13,
+          "max": 4758,
+          "mean": 4672.846,
+          "p50": 4718,
+          "p95": 4758
+        },
+        "freshness": {
+          "count": 13,
+          "max": 18468,
+          "mean": 10142.308,
+          "p50": 9505,
+          "p95": 18468
+        },
+        "itemsRejected": 10,
+        "itemsWritten": 510
+      },
+      "pgCountersDelta": {
+        "deadlocks": 0,
+        "numbackends": 18,
+        "tupInserted": 4072,
+        "tupReturned": 234765,
+        "xactCommit": 4444
+      },
+      "poolWait": {
+        "count": 724,
+        "max": 7,
+        "mean": 0.026,
+        "p50": 0,
+        "p95": 0
+      },
+      "resources": {
+        "cpuSystemMicroseconds": 1137390,
+        "cpuUserMicroseconds": 1849354,
+        "cpuUtilisation": 0.162,
+        "lastRssBytes": 246169600,
+        "peakRssBytes": 246169600,
+        "rssSamples": 184
+      },
+      "sentinel": {
+        "backendPeak": 19,
+        "latency": {
+          "count": 358,
+          "max": 8,
+          "mean": 0.844,
+          "p50": 1,
+          "p95": 1
+        }
+      },
+      "slots": 4,
+      "startedAt": "2026-09-22T16:44:53.917Z",
+      "wallMs": 18472
+    },
+    {
+      "attempts": 13,
+      "completedJobs": 13,
+      "database": "ji_k5_l6_f26161d4",
+      "deadlineHit": false,
+      "eventLoop": {
+        "maxMs": 3,
+        "meanMs": 0,
+        "p95Ms": 1,
+        "p99Ms": 2
+      },
+      "failedJobs": 0,
+      "jobErrors": 0,
+      "jobs": {
+        "duration": {
+          "count": 13,
+          "max": 4865,
+          "mean": 4819.538,
+          "p50": 4835,
+          "p95": 4865
+        },
+        "freshness": {
+          "count": 13,
+          "max": 14215,
+          "mean": 7801.692,
+          "p50": 9542,
+          "p95": 14215
+        },
+        "itemsRejected": 10,
+        "itemsWritten": 510
+      },
+      "pgCountersDelta": {
+        "deadlocks": 0,
+        "numbackends": 20,
+        "tupInserted": 4053,
+        "tupReturned": 158921,
+        "xactCommit": 4382
+      },
+      "poolWait": {
+        "count": 559,
+        "max": 9,
+        "mean": 0.054,
+        "p50": 0,
+        "p95": 0
+      },
+      "resources": {
+        "cpuSystemMicroseconds": 1111890,
+        "cpuUserMicroseconds": 1746998,
+        "cpuUtilisation": 0.201,
+        "lastRssBytes": 254754816,
+        "peakRssBytes": 254803968,
+        "rssSamples": 143
+      },
+      "sentinel": {
+        "backendPeak": 20,
+        "latency": {
+          "count": 276,
+          "max": 11,
+          "mean": 0.899,
+          "p50": 1,
+          "p95": 1
+        }
+      },
+      "slots": 6,
+      "startedAt": "2026-09-22T16:45:12.923Z",
+      "wallMs": 14245
+    },
+    {
+      "attempts": 13,
+      "completedJobs": 13,
+      "database": "ji_k5_l8_587f7033",
+      "deadlineHit": false,
+      "eventLoop": {
+        "maxMs": 3,
+        "meanMs": 0,
+        "p95Ms": 1,
+        "p99Ms": 1
+      },
+      "failedJobs": 0,
+      "jobErrors": 0,
+      "jobs": {
+        "duration": {
+          "count": 13,
+          "max": 5177,
+          "mean": 4976.154,
+          "p50": 5148,
+          "p95": 5177
+        },
+        "freshness": {
+          "count": 13,
+          "max": 9941,
+          "mean": 6976.308,
+          "p50": 5206,
+          "p95": 9941
+        },
+        "itemsRejected": 10,
+        "itemsWritten": 510
+      },
+      "pgCountersDelta": {
+        "deadlocks": 0,
+        "numbackends": 22,
+        "tupInserted": 3403,
+        "tupReturned": 160280,
+        "xactCommit": 3607
+      },
+      "poolWait": {
+        "count": 394,
+        "max": 9,
+        "mean": 0.066,
+        "p50": 0,
+        "p95": 0
+      },
+      "resources": {
+        "cpuSystemMicroseconds": 1082425,
+        "cpuUserMicroseconds": 1631185,
+        "cpuUtilisation": 0.271,
+        "lastRssBytes": 261783552,
+        "peakRssBytes": 261783552,
+        "rssSamples": 100
+      },
+      "sentinel": {
+        "backendPeak": 22,
+        "latency": {
+          "count": 194,
+          "max": 10,
+          "mean": 0.918,
+          "p50": 1,
+          "p95": 1
+        }
+      },
+      "slots": 8,
+      "startedAt": "2026-09-22T16:45:27.908Z",
+      "wallMs": 10019
+    }
+  ],
+  "schemaVersion": 1
+}

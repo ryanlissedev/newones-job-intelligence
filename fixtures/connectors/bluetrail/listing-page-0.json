@@ -1,0 +1,7 @@
+{
+  "contractVersion": "connector-fixture/v1",
+  "source": "bluetrail",
+  "capturedAt": "2026-08-31T10:45:36.000Z",
+  "contentType": "html",
+  "payload": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n<url><loc>https://www.bluetrail.nl/opdrachten/</loc><lastmod>2026-08-31T10:23:56+00:00</lastmod></url>\n<url><loc>https://www.bluetrail.nl/opdrachten/?order=asc</loc><lastmod>2026-08-20T07:00:00+00:00</lastmod></url>\n<url><loc>https://www.bluetrail.nl/opdrachten/?_sft_categorie=interim</loc><lastmod>2026-08-20T07:00:00+00:00</lastmod></url>\n<url><loc>https://www.bluetrail.nl/opdrachten/Interim/ciam-tester/</loc><lastmod>2026-08-24T08:13:58+00:00</lastmod></url>\n<url><loc>https://www.bluetrail.nl/opdrachten/Interim/systeembeheerder/</loc><lastmod>2026-08-20T07:34:14+00:00</lastmod></url>\n<url><loc>https://www.bluetrail.nl/opdrachten/Interim/adviseur-privacy-ibd/</loc><lastmod>2026-09-15T10:58:56+00:00</lastmod></url>\n</urlset>"
+}

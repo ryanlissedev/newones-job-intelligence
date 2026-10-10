@@ -1,0 +1,12 @@
+# Paths OpenWiki must not read or index (private / PII / local-only).
+
+.env
+.env.*
+**/.env
+**/.env.*
+.fireflies-transcript.json
+.fireflies-request.json
+.cache/
+.omc/
+.openwiki/
+docs/research/bench/

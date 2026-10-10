@@ -1,0 +1,7 @@
+{
+  "contractVersion": "connector-fixture/v1",
+  "source": "asml",
+  "capturedAt": "2026-09-16T04:06:37.365Z",
+  "contentType": "xml",
+  "payload": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n  <url><loc>https://www.asml.com/en/careers/find-your-job/senior-electrical-safety-expert-nominated-person--installatie-verantwoordelijke-euv-factory-j00333473</loc><lastmod>2026-08-17</lastmod></url>\n  <url><loc>https://www.asml.com/en/careers/find-your-job/system-performance-engineer-j00281913</loc><lastmod>2026-09-10</lastmod></url>\n  <url><loc>https://www.asml.com/en/careers/find-your-job</loc><lastmod>2026-09-16</lastmod></url>\n</urlset>\n"
+}

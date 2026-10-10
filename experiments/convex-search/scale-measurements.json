@@ -1,0 +1,113 @@
+{
+  "steps": [
+    {
+      "broadSearchGemeente": {
+        "p50Ms": 0.3426249999999982,
+        "p95Ms": 5.657792000000001,
+        "result": {
+          "ceilingHit": false,
+          "scanned": 7,
+          "total": 7
+        }
+      },
+      "countAll": {
+        "p50Ms": 0.24229199999999196,
+        "p95Ms": 4.844417000000021,
+        "result": {
+          "count": 33
+        }
+      },
+      "fullScanFacets": {
+        "p50Ms": 0.2585420000000056,
+        "p95Ms": 4.729333999999994,
+        "result": {
+          "scanned": 33
+        }
+      },
+      "tableSize": 33
+    },
+    {
+      "broadSearchGemeente": {
+        "p50Ms": 0.3172500000000582,
+        "p95Ms": 46.46383300000002,
+        "result": {
+          "ceilingHit": false,
+          "scanned": 224,
+          "total": 224
+        }
+      },
+      "countAll": {
+        "p50Ms": 0.30674999999973807,
+        "p95Ms": 431.86812499999974,
+        "result": {
+          "count": 1056
+        }
+      },
+      "fullScanFacets": {
+        "p50Ms": 0.6367919999997866,
+        "p95Ms": 1504.7365829999999,
+        "result": {
+          "scanned": 1056
+        }
+      },
+      "tableSize": 1056
+    },
+    {
+      "broadSearchGemeente": {
+        "p50Ms": 0.4837090000000899,
+        "p95Ms": 172.07691599999998,
+        "result": {
+          "ceilingHit": false,
+          "scanned": 448,
+          "total": 448
+        }
+      },
+      "countAll": {
+        "p50Ms": 0.4244169999992664,
+        "p95Ms": 1837.341958,
+        "result": {
+          "count": 2112
+        }
+      },
+      "fullScanFacets": {
+        "p50Ms": 0.2823339999995369,
+        "p95Ms": 1498.3717500000002,
+        "result": {
+          "scanned": 2112
+        }
+      },
+      "tableSize": 2112
+    },
+    {
+      "broadSearchGemeente": {
+        "p50Ms": 0.6248329999998532,
+        "p95Ms": 237.78249999999935,
+        "result": {
+          "ceilingHit": false,
+          "scanned": 672,
+          "total": 672
+        }
+      },
+      "countAll": {
+        "error": "[Request ID: 3e9e320b17164ec7] Server Error\nUncaught Error: Too many bytes read in a single function execution (limit: 16777216 bytes). Consider using smaller limits in your queries, paginating your queries, or using indexed queries with a selective index range expressions.\n    at async handler (../convex/ingest.ts:75:1)\n"
+      },
+      "fullScanFacets": {
+        "error": "[Request ID: 990cf7232875a2f1] Server Error\nUncaught Error: Too many bytes read in a single function execution (limit: 16777216 bytes). Consider using smaller limits in your queries, paginating your queries, or using indexed queries with a selective index range expressions.\n    at async handler (../convex/search.ts:175:11)\n"
+      },
+      "tableSize": 3168
+    },
+    {
+      "broadSearchGemeente": {
+        "error": "[Request ID: eb4ddde5af1f9ccb] Server Error\nUncaught Error: Too many bytes read in a single function execution (limit: 16777216 bytes). Consider using smaller limits in your queries, paginating your queries, or using indexed queries with a selective index range expressions.\n    at async handler (../convex/search.ts:98:23)\n"
+      },
+      "countAll": {
+        "error": "[Request ID: 82159a6a396f2727] Server Error\nUncaught Error: Too many bytes read in a single function execution (limit: 16777216 bytes). Consider using smaller limits in your queries, paginating your queries, or using indexed queries with a selective index range expressions.\n    at async handler (../convex/ingest.ts:75:1)\n"
+      },
+      "fullScanFacets": {
+        "error": "[Request ID: 559e6481808a0742] Server Error\nUncaught Error: Too many bytes read in a single function execution (limit: 16777216 bytes). Consider using smaller limits in your queries, paginating your queries, or using indexed queries with a selective index range expressions.\n    at async handler (../convex/search.ts:175:11)\n"
+      },
+      "tableSize": 8448
+    }
+  ],
+  "timingRunsPerPoint": 10
+}

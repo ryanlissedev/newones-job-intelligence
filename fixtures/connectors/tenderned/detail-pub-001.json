@@ -1,0 +1,29 @@
+{
+  "contractVersion": "connector-fixture/v1",
+  "source": "tenderned",
+  "capturedAt": "2026-08-28T10:00:00.000Z",
+  "contentType": "json",
+  "payload": {
+    "publicatieId": "fixture-pub-001",
+    "kenmerk": "TN563214",
+    "aanbestedingNaam": "Platform engineer Azure DAS",
+    "opdrachtgeverNaam": "Gemeente Amsterdam",
+    "publicatieDatum": "2026-08-28T12:15:00+02:00",
+    "opdrachtBeschrijving": "Volledige detailbeschrijving voor Azure platform engineer binnen een dynamisch aankoopsysteem.",
+    "aankondigingCode": { "code": "AAO", "omschrijving": "Aankondiging" },
+    "numberOfDaysBeforeAanmeldenInschrijven": 14,
+    "cpvCodes": [
+      {
+        "code": "72000000-5",
+        "omschrijving": "IT-diensten: advies, softwareontwikkeling, internet en ondersteuning",
+        "isHoofdOpdracht": true
+      }
+    ],
+    "nutsCodes": ["NL329"],
+    "opdrachtAardCode": {
+      "code": "IDA",
+      "omschrijving": "Dynamisch aankoopsysteem"
+    },
+    "procedureCode": { "code": "OPE", "omschrijving": "Openbaar" }
+  }
+}

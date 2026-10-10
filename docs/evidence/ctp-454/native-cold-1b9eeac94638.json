@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "issue": "CTP-454",
+  "adr": "docs/adr/ADR-0013-effectts-platform-baseline.md",
+  "status": "measured",
+  "git": {
+    "branch": "ryan/ctp-454-live-measurement",
+    "dirty": false,
+    "headSha": "1b9eeac94638136a7953dcb581042078388c467f"
+  },
+  "host": {
+    "arch": "x64",
+    "cpuCount": 2,
+    "hostname": "catapulze",
+    "memTotalMiB": 7935,
+    "os": "linux 6.12.93"
+  },
+  "toolchain": {
+    "bunHost": "1.4.0",
+    "bunPackageManager": "bun@1.3.14",
+    "compatibilityNotes": [
+      "Effect is not a first-party dependency on peildatum main; transitive via @prisma/config only.",
+      "Official Effect v4 RC: bun add effect@rc (https://effect.website/blog/effect-v4-rc-august-recap).",
+      "Do not reuse unrelated historical timings as this baseline (ADR-0001/ADR-0013)."
+    ],
+    "effectDirect": null,
+    "effectTransitive": "3.21.0",
+    "typesBun": "1.4.0",
+    "typescript": "6.0.3"
+  },
+  "cohort": {
+    "cacheState": "fixture-same-process-fresh-clients",
+    "label": "native-cold",
+    "runKind": "cold"
+  },
+  "workload": {
+    "adapters": [
+      "json-ld-listing",
+      "json-ld-detail",
+      "spott-list",
+      "spott-get"
+    ],
+    "fixtureOnly": true,
+    "liveProviders": false
+  },
+  "metrics": {
+    "adapterLocObserve": 969,
+    "attemptCounts": {
+      "requestAttempts": 4,
+      "taskAttempts": 1
+    },
+    "buildDurationMs": 3691.966,
+    "cancellationLatencyMs": 5.682,
+    "directDependencyCount": 25,
+    "latencyMs": {
+      "failures": 0,
+      "n": 12,
+      "p50": 0.134,
+      "p95": 0.3
+    },
+    "peakRssMiB": 32.258,
+    "resourceReleaseOk": true,
+    "serverBundleBytes": 1790228,
+    "typecheckDurationMs": 1027.16
+  },
+  "retryOwnership": {
+    "requestRetryOwner": "packages/connectors withRetry / poll-bron-run retryPolicy",
+    "triggerTaskRetryOwner": "apps/worker/src/tasks/poll-bron.ts schemaTask.retry",
+    "requestMaxAttempts": 3,
+    "triggerMaxAttempts": 2,
+    "blindWriteRetries": false
+  },
+  "allowedRegressions": [
+    "Latency p95 observe-only until >=20 homogeneous successes (ADR-0003).",
+    "RSS/build/typecheck warn-first without a published absolute budget in this artifact.",
+    "No combined request*task retry ceiling increase without explicit ADR/issue.",
+    "LOC reduction alone is not a success criterion; second adapter must share the wire contract."
+  ],
+  "reviewRubric": {
+    "cancellationPathIdentifiable": true,
+    "cleanupOwnerIdentifiable": true,
+    "notes": "Native variant (pre-Effect): retryOwner = packages/connectors withRetry / apps/worker poll-bron-run retryPolicy (request maxAttempts 3); Trigger task retry = apps/worker/src/tasks/poll-bron.ts (maxAttempts 2). cancellationPath = not yet wired into JsonLdClient/SpottClient fetch; harness AbortController race only — CTP-455 must implement AbortSignal on Effect adapters. cleanupOwner = caller/harness clearTimeout + fixture loader; no adapter-owned timers in fixture mode. Effect variant: blocked-on-CTP-455 (no first-party effect@rc pin / runtime).",
+    "retryOwnerIdentifiable": true
+  },
+  "notes": "Native TS fixture cohort (JSON-LD hero listing/detail + Spott list/get). Production activation OFF; fixtureOnly; no live providers; no PII. Effect dual-path comparison blocked: effect is transitive-only (CTP-455 first-party pin). AbortSignal is not plumbed through native JsonLdClient/SpottClient; cancellationLatencyMs is harness race stop time. Iterations=12; runKind=cold. Build ok=true; typecheck ok=true."
+}

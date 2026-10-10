@@ -1,0 +1,7 @@
+{
+  "contractVersion": "connector-fixture/v1",
+  "source": "pro-act",
+  "capturedAt": "2026-08-31T10:47:57.000Z",
+  "contentType": "html",
+  "payload": "<html><head><title>Senior Azure Operations Engineer</title>\n<script type=\"application/ld+json\">{\"@context\": \"https://schema.org\", \"@type\": \"JobPosting\", \"datePosted\": \"2026-08-25\", \"title\": \"Senior Azure Operations Engineer\", \"description\": \"<p>Voor onze directe eindklant, Tweede Kamer der Staten-Generaal, zijn wij op zoek naar een Senior Azure Operations Engineer.</p><ul>\\t<li>Start: 1 oktober 2026\\t<li>Eind: 30 juni 2027\\t<li>Inzet: 36 uur per week\\t<li>Tarief: marktconform\\t<li>Locatie: hybride</ul>\", \"hiringOrganization\": {\"@type\": \"Organization\", \"name\": \"Pro-Act IT\"}, \"jobLocation\": {\"@type\": \"Place\", \"address\": {\"@type\": \"PostalAddress\", \"addressCountry\": \"NL\"}}, \"employmentType\": \"FULL_TIME\", \"validThrough\": \"2026-09-01\"}</script>\n</head><body></body></html>"
+}

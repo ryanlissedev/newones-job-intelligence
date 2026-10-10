@@ -1,0 +1,7 @@
+{
+  "contractVersion": "connector-fixture/v1",
+  "source": "werken-voor-nederland",
+  "capturedAt": "2026-09-16T03:52:01.355Z",
+  "contentType": "html",
+  "payload": "<!DOCTYPE html>\n<html lang=\"nl\">\n<head>\n<meta charset=\"utf-8\"/>\n<title>Kubernetes Software Platform Engineer | Werken voor Nederland</title>\n<script type=\"application/ld+json\">{\"@context\":\"https://schema.org/\",\"@type\":\"JobPosting\",\"title\":\"Kubernetes Software Platform Engineer\",\"description\":\"Kubernetes Software Platform Engineer in Leeuwarden voor 32-36 uur bij Centraal Justitieel Incassobureau\",\"identifier\":{\"@type\":\"PropertyValue\",\"name\":\"Ministerie van Justitie en Veiligheid - Centraal Justitieel Incassobureau\",\"value\":\"69005\"},\"datePosted\":\"2026-09-09\",\"validThrough\":\"2026-11-02\",\"employmentType\":\"TEMPORARY\",\"hiringOrganization\":{\"@type\":\"Organization\",\"name\":\"Centraal Justitieel Incassobureau\",\"sameAs\":\"https://www.werkenvoornederland.nl/\",\"logo\":\"https://www.werkenvoornederland.nl/webfiles/1584547382643/images/rijks-logo.png\"},\"jobLocation\":{\"@type\":\"Place\",\"address\":{\"@type\":\"PostalAddress\",\"addressLocality\":\"Leeuwarden\",\"postalCode\":\"8913HA\",\"addressCountry\":\"NL\"}},\"baseSalary\":{\"@type\":\"MonetaryAmount\",\"currency\":\"EUR\",\"value\":{\"@type\":\"QuantitativeValue\",\"minValue\":4818,\"maxValue\":7094,\"unitText\":\"MONTH\"}}}</script>\n</head>\n<body>\n<h1>Kubernetes Software Platform Engineer</h1>\n<!-- sanitized fixture CTP-584 — no cookies/tokens -->\n</body>\n</html>\n"
+}

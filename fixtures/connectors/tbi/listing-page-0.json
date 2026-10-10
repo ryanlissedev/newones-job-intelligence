@@ -1,0 +1,7 @@
+{
+  "contractVersion": "connector-fixture/v1",
+  "source": "tbi",
+  "capturedAt": "2026-09-16T05:21:11.707Z",
+  "contentType": "xml",
+  "payload": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n  <url><loc>https://werkenbij.tbi.nl/</loc></url>\n  <url><loc>https://werkenbij.tbi.nl/vacatures</loc></url>\n  <url><loc>https://werkenbij.tbi.nl/ondernemingen/croonwolterdros</loc></url>\n  <url><loc>https://werkenbij.tbi.nl/vacatures/service-technicus-w-1280611</loc></url>\n  <url><loc>https://werkenbij.tbi.nl/vacatures/hoofduitvoerder-middenspanning-1148185</loc></url>\n</urlset>\n"
+}

@@ -1,0 +1,136 @@
+{
+  "contractVersion": "connector-fixture/v1",
+  "source": "werk-nl",
+  "capturedAt": "2026-09-18T07:05:12.000Z",
+  "contentType": "json",
+  "captureNote": "Real GET /api/vacature/56790376 response. contactPerson name/phoneNumber/email removed (PII, DEC-008); employer address kept — published business seat, not personal data.",
+  "payload": {
+    "referenceNumber": 56790376,
+    "externalReferenceId": null,
+    "employerInternalVacatureId": null,
+    "title": "Verzorgende Thuiszorg",
+    "expirationDate": "2026-10-02T00:00:00",
+    "modifiedDate": "2026-09-18T00:00:00",
+    "proposition": {
+      "termsOfEmploymentDescription": "Wij bieden doorgroeimogelijkheden die aansluiten bij jouw wensen. De functie is ingeschaald in FWG 35-40 CAO VVT. Verder krijg je doorbetaling van overuren, vakantiedagen, vakantiegeld, reiskosten en oplopende ORT tot wel 160 procent.",
+      "workLocation": {
+        "type": 3,
+        "countryCode": null,
+        "postcode": null,
+        "city": null,
+        "employerLocationDistance": 0
+      },
+      "function": {
+        "code": "14304",
+        "name": "Verzorgende thuiszorg",
+        "description": "Werken bij Ovus Thuiszorg. Dankzij onze toewijding aan diversiteit, heb je bij Ovus Thuiszorg de kans om door middel van persoonsgerichte zorg, de kwaliteit van leven van onze cliënten te verbeteren. Samen met een team van collega's werk je mee om te voldoen aan de wensen en verwachtingen van iedereen die behoefte heeft aan thuiszorg. Hierbij verricht je handelingen zoals aan- en uitkleden, wassen en het aantrekken van steunkousen. Daarnaast behoren het delen en toedienen van medicatie, wondverzorging, zwachtelen en injecteren tot jouw taken. Ook werken met tilliften en het rapporteren van de zorgtaken zijn onderdelen van de werkzaamheden.",
+        "customDescription": "Verzorgende IG, Verpleegkundige & Helpende Plus"
+      },
+      "salary": {
+        "type": 4,
+        "amountIndication": "2500-3000"
+      },
+      "contract": {
+        "type": 2,
+        "startDate": "2024-04-25T00:00:00",
+        "endDate": null
+      },
+      "soortTypes": [],
+      "workhours": {
+        "minimumHours": 16,
+        "maximumHours": 40,
+        "werktijden": 2
+      }
+    },
+    "contactPerson": {
+      "referenceNumber": 1312046,
+      "name": null,
+      "department": null,
+      "phoneNumber": null,
+      "email": null
+    },
+    "description": "Ben jij een gepassioneerde zorgprofessional die graag werkt in een organisatie die gericht is op het verlenen van hoogwaardige zorg en ondersteuning aan mensen? Dan ben je bij ons op het juiste adres.",
+    "createdDate": "2024-04-25T00:00:00",
+    "isEuresPriority": true,
+    "isAcquisitionNotAppreciated": false,
+    "source": "WNL",
+    "isByEmployerDirectly": true,
+    "cvOffer": {
+      "sources": [],
+      "educationLevel": null,
+      "otherRequirements": "Voor deze functie ben je iemand die bereid is om verpleegtechnische handelingen te leren, over een sterk inlevingsvermogen beschikt, nieuwsgierig is naar de persoonlijke wensen van de cliënten, goed zelfstandig en samen kan werken, goede communicatieve en sociale vaardigheden bezit, improviseert bij onverwachte situaties en eventuele risico's goed kan inschatten. Verder beschik je over een relevante zorgdiploma op niveau 2, 3 of 4, een Verklaring Omtrent het Gedrag (VOG) en ben je flexibel inzetbaar voor diensten en werktijden.",
+      "driversLicenses": [2],
+      "languageSkills": [
+        {
+          "language": 1,
+          "verbalLanguageProficiency": 2,
+          "writtenLanguageProficiency": 2
+        }
+      ],
+      "workExperiences": [
+        {
+          "professionName": "Verzorgende thuiszorg",
+          "professionCode": "14304",
+          "amountOfMonths": 12,
+          "description": null
+        },
+        {
+          "professionName": "Verpleegkundige",
+          "professionCode": "1000000519",
+          "amountOfMonths": 12,
+          "description": null
+        },
+        {
+          "professionName": "Verzorgende individuele gezondheidszorg (ig)",
+          "professionCode": "1000406327",
+          "amountOfMonths": 12,
+          "description": null
+        }
+      ],
+      "educations": [
+        {
+          "code": "14914",
+          "name": "verzorgende ig (mbo)"
+        },
+        {
+          "code": "1005000578",
+          "name": "verpleegkundige niveau 4 (mbo)"
+        },
+        {
+          "code": "14167",
+          "name": "verzorgende (vakopl.)"
+        },
+        {
+          "code": "14919",
+          "name": "ziekenverzorgende (mbo)"
+        },
+        {
+          "code": "14082",
+          "name": "verpleegkundige (hbo)"
+        }
+      ]
+    },
+    "applicationMethods": [
+      {
+        "sollicitatieWijze": 3,
+        "urlApplicationForm": ""
+      }
+    ],
+    "employer": {
+      "referenceNumber": 1503631,
+      "organizationName": "Ovus Thuiszorg B.V.",
+      "website": null,
+      "sector": "31146",
+      "addressNetherlands": {
+        "postcode": "1328LK",
+        "city": "ALMERE",
+        "antwoordnummer": null,
+        "postbusnummer": null,
+        "streetName": "Giacomettistraat",
+        "houseNumber": "15",
+        "houseNumberSuffix": null
+      },
+      "addressForeign": null
+    }
+  }
+}

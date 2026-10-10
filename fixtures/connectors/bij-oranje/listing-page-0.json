@@ -1,0 +1,7 @@
+{
+  "contractVersion": "connector-fixture/v1",
+  "source": "bij-oranje",
+  "capturedAt": "2026-09-16T03:26:28.734Z",
+  "contentType": "xml",
+  "payload": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n<url><loc>https://www.bijoranje.nl/vacatures/onbekend/data-analist-noord-holland-65099</loc></url>\n<url><loc>https://www.bijoranje.nl/vacatures/ict-informatievoorziening/lead-engineer-uc-utrecht-65107</loc></url>\n<url><loc>https://www.bijoranje.nl/vacatures/algemeen-projectmanagement/risicoanalist-utrecht-65106</loc></url>\n</urlset>\n"
+}

@@ -1,0 +1,26 @@
+{
+  "name": "@ji/env",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./database": "./src/database.ts",
+    "./poller": "./src/poller.ts",
+    "./projector": "./src/projector.ts",
+    "./projector-database-url": "./src/projector-database-url.ts",
+    "./server": "./src/server.ts",
+    "./web": "./src/web.ts",
+    "./effect-flags": "./src/effect-flags.ts"
+  },
+  "dependencies": {
+    "@t3-oss/env-core": "^0.13.11",
+    "@t3-oss/env-nextjs": "^0.13.11",
+    "dotenv": "catalog:",
+    "effect": "catalog:"
+  },
+  "devDependencies": {
+    "@ji/config": "workspace:*",
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  }
+}

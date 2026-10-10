@@ -1,0 +1,94 @@
+{
+  "contractVersion": "connector-fixture/v1",
+  "source": "werk-nl",
+  "capturedAt": "2026-09-18T12:20:19.004Z",
+  "contentType": "json",
+  "captureNote": "Real GET /api/vacature/66198242 response. contactPerson name/phoneNumber/email removed (PII, DEC-008); employer address kept — published business seat, not personal data.",
+  "payload": {
+    "referenceNumber": 66198242,
+    "externalReferenceId": "WBS2304625",
+    "employerInternalVacatureId": null,
+    "title": "Meewerkend voorwerker",
+    "expirationDate": "2026-11-05T00:00:00",
+    "modifiedDate": "2026-09-18T00:00:00",
+    "proposition": {
+      "termsOfEmploymentDescription": "•\tEen goed salaris conform CAO, afhankelijk van kennis en ervaring\n•\t8% vakantiegeld en 5% eindejaarsuitkering",
+      "workLocation": {
+        "type": 1,
+        "countryCode": null,
+        "postcode": "6135LJ",
+        "city": "SITTARD",
+        "employerLocationDistance": 0
+      },
+      "function": {
+        "code": "11428",
+        "name": "Rayonleider schoonmaak",
+        "description": "Schoonmaakbedrijf R. Janssen is op zoek naar een enthousiaste en betrokken meewerkend voorwerker. In deze veelzijdige rol ondersteun je de dagelijkse operatie van ons schoonmaakteam binnen jouw rayon. Je bent de verbindende schakel tussen medewerkers, objectleiders, rayonleider en klanten.\nWat ga je doen?\n•\tBegeleiden en inwerken van nieuwe collega’s.\n•\tControleren en waarborgen van de kwaliteit van onze dienstverlening.\n•\tOndersteunen bij het opstarten van nieuwe projecten.\n•\tCoördineren van bestellingen en materialen.\n•\tIntensief samenwerken met objectleiders en rayonleider.\n•\tOnderhouden van een goede relatie met onze klanten.\nWat bieden wij jou?\n•\tEen afwisselende functie met veel verantwoordelijkheid.\n•\tEen informele, collegiale en open werksfeer in een familiebedrijf.\n•\tEen fulltime dienstverband (38 uur).\n•\tEen goed salaris conform CAO, afhankelijk van kennis en ervaring.\n•\tProfessionele groei- en opleidingsmogelijkheden.\n•\t26 vakantiedagen per jaar.\n•\t8% vakantiegeld en 5% eindejaarsuitkering.\n•\tEigen jubileumregeling.\n•\tEen bedrijfsauto (privégebruik mogelijk).\n•\tEen smartphone van de zaak.\n•\tGebruik van bedrijfsfitness.\nWie ben jij?\n•\tJe hebt een vriendelijke uitstraling en bent enthousiast.\n•\tJe werkt graag samen met collega’s en hebt klantgerichtheid hoog in het vaandel.\n•\tJe beschikt over basiskennis van Microsoft Office.\n•\tJe beheerst de Nederlandse taal en communiceert duidelijk en professioneel.\n•\tJe hebt een rijbewijs B.\n•\tErvaring in een vergelijkbare functie is een pluspunt, maar jouw motivatie en leergierigheid vinden wij nog belangrijker.\n",
+        "customDescription": "meewerkend voorman schoonmaak"
+      },
+      "salary": {
+        "type": 1,
+        "amountIndication": null
+      },
+      "contract": {
+        "type": 2,
+        "startDate": "2026-09-18T00:00:00",
+        "endDate": "2027-03-18T00:00:00"
+      },
+      "soortTypes": [],
+      "workhours": {
+        "minimumHours": 38,
+        "maximumHours": 38,
+        "werktijden": 1
+      }
+    },
+    "contactPerson": {
+      "referenceNumber": 1329203,
+      "name": null,
+      "department": null,
+      "phoneNumber": null,
+      "email": null
+    },
+    "description": null,
+    "createdDate": "2025-09-12T00:00:00",
+    "isEuresPriority": false,
+    "isAcquisitionNotAppreciated": false,
+    "source": "PGI",
+    "isByEmployerDirectly": true,
+    "cvOffer": {
+      "sources": [],
+      "educationLevel": {
+        "referentieOpleidingsniveau": 5,
+        "name": "Mbo-2",
+        "beroepssector": null
+      },
+      "otherRequirements": "Je beschikt over basiskennis van Microsoft Office.\nJe beheerst de Nederlandse taal en communiceert duidelijk en professioneel.",
+      "driversLicenses": [2],
+      "languageSkills": [],
+      "workExperiences": [],
+      "educations": []
+    },
+    "applicationMethods": [
+      {
+        "sollicitatieWijze": 3,
+        "urlApplicationForm": ""
+      }
+    ],
+    "employer": {
+      "referenceNumber": 1517994,
+      "organizationName": "SCHOONMAAKBEDRIJF R. JANSSEN",
+      "website": null,
+      "sector": null,
+      "addressNetherlands": {
+        "postcode": "6135LJ",
+        "city": "SITTARD",
+        "antwoordnummer": null,
+        "postbusnummer": null,
+        "streetName": "Parijsboulevard",
+        "houseNumber": "305",
+        "houseNumberSuffix": null
+      },
+      "addressForeign": null
+    }
+  }
+}

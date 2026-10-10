@@ -1,0 +1,7 @@
+{
+  "contractVersion": "connector-fixture/v1",
+  "source": "hero",
+  "capturedAt": "2026-08-31T10:46:50.000Z",
+  "contentType": "html",
+  "payload": "<html><head><title>DevOps Engineer</title>\n<script type=\"application/ld+json\">{\"@context\": \"https://schema.org\", \"@type\": \"JobPosting\", \"title\": \"DevOps Engineer\", \"description\": \"Voor het Nationaal Archief zoeken wij een DevOps Engineer. Je werkt aan de digitale toegankelijkheid van bijna duizend jaar Nederlandse geschiedenis, in een hecht scrumteam met een open cultuur.\", \"datePosted\": \"2026-08-25T11:32:08.423+00:00\", \"hiringOrganization\": {\"@type\": \"Organization\", \"name\": \"Hero Interim Professionals\", \"sameAs\": \"https://hero.eu\", \"logo\": \"https://hero.eu/Hero_logo_blauw_oranje.png\"}, \"url\": \"https://hero.eu/interim-opdrachten/devops-engineer-1f2fde9f\", \"directApply\": false, \"inLanguage\": \"nl\", \"jobLocation\": {\"@type\": \"Place\", \"address\": {\"@type\": \"PostalAddress\", \"addressLocality\": \"Den Haag\", \"addressCountry\": \"NL\"}}, \"employmentType\": \"CONTRACTOR\", \"workHours\": \"36 uur/week\"}</script>\n</head><body></body></html>"
+}

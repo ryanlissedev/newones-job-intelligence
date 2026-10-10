@@ -1,0 +1,52 @@
+---
+# React Doctor — advisory React health checks for apps/web.
+# Complements Ultracite/oxlint; does not replace the required CI verify job.
+#
+# Docs: https://www.react.doctor/ci
+# Source: https://github.com/millionco/react-doctor
+
+name: React Doctor
+
+"on":
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "apps/web/**"
+      - ".github/workflows/react-doctor.yml"
+  push:
+    branches: [main]
+    paths:
+      - "apps/web/**"
+      - ".github/workflows/react-doctor.yml"
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: react-doctor-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  react-doctor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      REACT_DOCTOR_NO_TELEMETRY: "true"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan apps/web (advisory)
+        uses: millionco/react-doctor@v2
+        with:
+          directory: apps/web
+          project: web
+          blocking: none
+          scope: changed
+          comment: true
+          review-comments: true
+          commit-status: false

@@ -1,0 +1,1026 @@
+{
+  "corpus": {
+    "documents": 33,
+    "skipped": [
+      {
+        "id": "flinter:bedrijfsjurist",
+        "reason": "permanent-employment vacancy (dienstverband + bruto salaris), not a temporary assignment"
+      }
+    ]
+  },
+  "engines": [
+    {
+      "engine": "in-memory",
+      "overall": {
+        "ndcg10": 0.464922,
+        "recall20": 0.457364
+      },
+      "perCategory": {
+        "exact-skill": {
+          "ndcg10": 1,
+          "recall20": 1
+        },
+        "nl-morphology": {
+          "ndcg10": 0.340979,
+          "recall20": 0.357143
+        },
+        "compound": {
+          "ndcg10": 0.428571,
+          "recall20": 0.428571
+        },
+        "semantic-synonym": {
+          "ndcg10": 0.076643,
+          "recall20": 0.0625
+        },
+        "phrase-filter": {
+          "ndcg10": 0.855951,
+          "recall20": 0.809524
+        },
+        "nl-en-mix": {
+          "ndcg10": 0,
+          "recall20": 0
+        }
+      },
+      "perQuery": [
+        {
+          "category": "exact-skill",
+          "id": "es-azure",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 3
+        },
+        {
+          "category": "exact-skill",
+          "id": "es-java",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 2
+        },
+        {
+          "category": "exact-skill",
+          "id": "es-devops",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "exact-skill",
+          "id": "es-intune",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "exact-skill",
+          "id": "es-scrum",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 3
+        },
+        {
+          "category": "exact-skill",
+          "id": "es-etl",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "exact-skill",
+          "id": "es-firewall",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "exact-skill",
+          "id": "es-bpmn",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "nl-morphology",
+          "id": "mo-ontwikkelaars",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "nl-morphology",
+          "id": "mo-systeembeheerders",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "nl-morphology",
+          "id": "mo-testers",
+          "ndcg10": 0.386853,
+          "recall20": 0.5,
+          "returned": 2
+        },
+        {
+          "category": "nl-morphology",
+          "id": "mo-projectleiders",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "nl-morphology",
+          "id": "mo-archeologen",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "nl-morphology",
+          "id": "mo-vergunningverleners",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "nl-morphology",
+          "id": "mo-beheerders",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "compound",
+          "id": "co-frontendontwikkelaar",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "compound",
+          "id": "co-databaseontwikkelaar",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "compound",
+          "id": "co-brandmeldinstallaties",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "compound",
+          "id": "co-winstallaties",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 2
+        },
+        {
+          "category": "compound",
+          "id": "co-schuldhulpverlening",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 2
+        },
+        {
+          "category": "compound",
+          "id": "co-erfgoedbeleid",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 2
+        },
+        {
+          "category": "compound",
+          "id": "co-elektrotechniek",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "semantic-synonym",
+          "id": "se-sysadmin",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "semantic-synonym",
+          "id": "se-softwaredev",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 1
+        },
+        {
+          "category": "semantic-synonym",
+          "id": "se-hrsystemen",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 4
+        },
+        {
+          "category": "semantic-synonym",
+          "id": "se-iam",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "semantic-synonym",
+          "id": "se-jeugdzorg",
+          "ndcg10": 0.613147,
+          "recall20": 0.5,
+          "returned": 1
+        },
+        {
+          "category": "semantic-synonym",
+          "id": "se-duurzameenergie",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "semantic-synonym",
+          "id": "se-dataengineer",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "semantic-synonym",
+          "id": "se-brandbeveiliging",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "phrase-filter",
+          "id": "pf-platformengineer",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "phrase-filter",
+          "id": "pf-userstories",
+          "ndcg10": 0.613147,
+          "recall20": 0.5,
+          "returned": 1
+        },
+        {
+          "category": "phrase-filter",
+          "id": "pf-seniorjava",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 2
+        },
+        {
+          "category": "phrase-filter",
+          "id": "pf-projectleider-closed",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "phrase-filter",
+          "id": "pf-ontwikkelaar-tarief",
+          "ndcg10": 0.613147,
+          "recall20": 0.5,
+          "returned": 1
+        },
+        {
+          "category": "phrase-filter",
+          "id": "pf-nationaalarchief",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "phrase-filter",
+          "id": "pf-scrumteam-active",
+          "ndcg10": 0.765361,
+          "recall20": 0.666667,
+          "returned": 2
+        },
+        {
+          "category": "nl-en-mix",
+          "id": "mx-elektrisch-ingenieur",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "nl-en-mix",
+          "id": "mx-frontend-ontwikkelaar",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "nl-en-mix",
+          "id": "mx-lab-analist",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "nl-en-mix",
+          "id": "mx-database-developer",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "nl-en-mix",
+          "id": "mx-endpoint-beheer",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "nl-en-mix",
+          "id": "mx-hydrogen",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        }
+      ]
+    },
+    {
+      "engine": "manticore",
+      "overall": {
+        "ndcg10": 0.42452,
+        "recall20": 0.476744
+      },
+      "perCategory": {
+        "exact-skill": {
+          "ndcg10": 0.650263,
+          "recall20": 0.666667
+        },
+        "nl-morphology": {
+          "ndcg10": 0.572994,
+          "recall20": 0.785714
+        },
+        "compound": {
+          "ndcg10": 0.384775,
+          "recall20": 0.428571
+        },
+        "semantic-synonym": {
+          "ndcg10": 0.201643,
+          "recall20": 0.1875
+        },
+        "phrase-filter": {
+          "ndcg10": 0.676388,
+          "recall20": 0.738095
+        },
+        "nl-en-mix": {
+          "ndcg10": 0,
+          "recall20": 0
+        }
+      },
+      "perQuery": [
+        {
+          "category": "exact-skill",
+          "id": "es-azure",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 20
+        },
+        {
+          "category": "exact-skill",
+          "id": "es-java",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 4
+        },
+        {
+          "category": "exact-skill",
+          "id": "es-devops",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "exact-skill",
+          "id": "es-intune",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "exact-skill",
+          "id": "es-scrum",
+          "ndcg10": 0.202107,
+          "recall20": 0.333333,
+          "returned": 5
+        },
+        {
+          "category": "exact-skill",
+          "id": "es-etl",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "exact-skill",
+          "id": "es-firewall",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "exact-skill",
+          "id": "es-bpmn",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "nl-morphology",
+          "id": "mo-ontwikkelaars",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "nl-morphology",
+          "id": "mo-systeembeheerders",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "nl-morphology",
+          "id": "mo-testers",
+          "ndcg10": 0.693426,
+          "recall20": 1,
+          "returned": 3
+        },
+        {
+          "category": "nl-morphology",
+          "id": "mo-projectleiders",
+          "ndcg10": 0.510956,
+          "recall20": 1,
+          "returned": 9
+        },
+        {
+          "category": "nl-morphology",
+          "id": "mo-archeologen",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "nl-morphology",
+          "id": "mo-vergunningverleners",
+          "ndcg10": 0.5,
+          "recall20": 1,
+          "returned": 5
+        },
+        {
+          "category": "nl-morphology",
+          "id": "mo-beheerders",
+          "ndcg10": 0.306574,
+          "recall20": 0.5,
+          "returned": 3
+        },
+        {
+          "category": "compound",
+          "id": "co-frontendontwikkelaar",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "compound",
+          "id": "co-databaseontwikkelaar",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "compound",
+          "id": "co-brandmeldinstallaties",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "compound",
+          "id": "co-winstallaties",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 2
+        },
+        {
+          "category": "compound",
+          "id": "co-schuldhulpverlening",
+          "ndcg10": 0.693426,
+          "recall20": 1,
+          "returned": 3
+        },
+        {
+          "category": "compound",
+          "id": "co-erfgoedbeleid",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 2
+        },
+        {
+          "category": "compound",
+          "id": "co-elektrotechniek",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "semantic-synonym",
+          "id": "se-sysadmin",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "semantic-synonym",
+          "id": "se-softwaredev",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 1
+        },
+        {
+          "category": "semantic-synonym",
+          "id": "se-hrsystemen",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "semantic-synonym",
+          "id": "se-iam",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "semantic-synonym",
+          "id": "se-jeugdzorg",
+          "ndcg10": 0.613147,
+          "recall20": 0.5,
+          "returned": 1
+        },
+        {
+          "category": "semantic-synonym",
+          "id": "se-duurzameenergie",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "semantic-synonym",
+          "id": "se-dataengineer",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 20
+        },
+        {
+          "category": "semantic-synonym",
+          "id": "se-brandbeveiliging",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "phrase-filter",
+          "id": "pf-platformengineer",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 20
+        },
+        {
+          "category": "phrase-filter",
+          "id": "pf-userstories",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 2
+        },
+        {
+          "category": "phrase-filter",
+          "id": "pf-seniorjava",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 4
+        },
+        {
+          "category": "phrase-filter",
+          "id": "pf-projectleider-closed",
+          "ndcg10": 0.356207,
+          "recall20": 1,
+          "returned": 8
+        },
+        {
+          "category": "phrase-filter",
+          "id": "pf-ontwikkelaar-tarief",
+          "ndcg10": 0.613147,
+          "recall20": 0.5,
+          "returned": 1
+        },
+        {
+          "category": "phrase-filter",
+          "id": "pf-nationaalarchief",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "phrase-filter",
+          "id": "pf-scrumteam-active",
+          "ndcg10": 0.765361,
+          "recall20": 0.666667,
+          "returned": 2
+        },
+        {
+          "category": "nl-en-mix",
+          "id": "mx-elektrisch-ingenieur",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "nl-en-mix",
+          "id": "mx-frontend-ontwikkelaar",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "nl-en-mix",
+          "id": "mx-lab-analist",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "nl-en-mix",
+          "id": "mx-database-developer",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "nl-en-mix",
+          "id": "mx-endpoint-beheer",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "nl-en-mix",
+          "id": "mx-hydrogen",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        }
+      ]
+    },
+    {
+      "engine": "manticore29-noinfix",
+      "overall": {
+        "ndcg10": 0.482456,
+        "recall20": 0.488372
+      },
+      "perCategory": {
+        "exact-skill": {
+          "ndcg10": 0.80866,
+          "recall20": 0.791667
+        },
+        "nl-morphology": {
+          "ndcg10": 0.758082,
+          "recall20": 0.785714
+        },
+        "compound": {
+          "ndcg10": 0.428571,
+          "recall20": 0.428571
+        },
+        "semantic-synonym": {
+          "ndcg10": 0,
+          "recall20": 0
+        },
+        "phrase-filter": {
+          "ndcg10": 0.85282,
+          "recall20": 0.880952
+        },
+        "nl-en-mix": {
+          "ndcg10": 0,
+          "recall20": 0
+        }
+      },
+      "perQuery": [
+        {
+          "category": "exact-skill",
+          "id": "es-azure",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 3
+        },
+        {
+          "category": "exact-skill",
+          "id": "es-java",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 2
+        },
+        {
+          "category": "exact-skill",
+          "id": "es-devops",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "exact-skill",
+          "id": "es-intune",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "exact-skill",
+          "id": "es-scrum",
+          "ndcg10": 0.469279,
+          "recall20": 0.333333,
+          "returned": 1
+        },
+        {
+          "category": "exact-skill",
+          "id": "es-etl",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "exact-skill",
+          "id": "es-firewall",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "exact-skill",
+          "id": "es-bpmn",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "nl-morphology",
+          "id": "mo-ontwikkelaars",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "nl-morphology",
+          "id": "mo-systeembeheerders",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "nl-morphology",
+          "id": "mo-testers",
+          "ndcg10": 0.693426,
+          "recall20": 1,
+          "returned": 3
+        },
+        {
+          "category": "nl-morphology",
+          "id": "mo-projectleiders",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 2
+        },
+        {
+          "category": "nl-morphology",
+          "id": "mo-archeologen",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "nl-morphology",
+          "id": "mo-vergunningverleners",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 2
+        },
+        {
+          "category": "nl-morphology",
+          "id": "mo-beheerders",
+          "ndcg10": 0.613147,
+          "recall20": 0.5,
+          "returned": 1
+        },
+        {
+          "category": "compound",
+          "id": "co-frontendontwikkelaar",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "compound",
+          "id": "co-databaseontwikkelaar",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "compound",
+          "id": "co-brandmeldinstallaties",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "compound",
+          "id": "co-winstallaties",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 2
+        },
+        {
+          "category": "compound",
+          "id": "co-schuldhulpverlening",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 2
+        },
+        {
+          "category": "compound",
+          "id": "co-erfgoedbeleid",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 2
+        },
+        {
+          "category": "compound",
+          "id": "co-elektrotechniek",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "semantic-synonym",
+          "id": "se-sysadmin",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "semantic-synonym",
+          "id": "se-softwaredev",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 1
+        },
+        {
+          "category": "semantic-synonym",
+          "id": "se-hrsystemen",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "semantic-synonym",
+          "id": "se-iam",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "semantic-synonym",
+          "id": "se-jeugdzorg",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "semantic-synonym",
+          "id": "se-duurzameenergie",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "semantic-synonym",
+          "id": "se-dataengineer",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "semantic-synonym",
+          "id": "se-brandbeveiliging",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "phrase-filter",
+          "id": "pf-platformengineer",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "phrase-filter",
+          "id": "pf-userstories",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 2
+        },
+        {
+          "category": "phrase-filter",
+          "id": "pf-seniorjava",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 2
+        },
+        {
+          "category": "phrase-filter",
+          "id": "pf-projectleider-closed",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "phrase-filter",
+          "id": "pf-ontwikkelaar-tarief",
+          "ndcg10": 0.204382,
+          "recall20": 0.5,
+          "returned": 9
+        },
+        {
+          "category": "phrase-filter",
+          "id": "pf-nationaalarchief",
+          "ndcg10": 1,
+          "recall20": 1,
+          "returned": 1
+        },
+        {
+          "category": "phrase-filter",
+          "id": "pf-scrumteam-active",
+          "ndcg10": 0.765361,
+          "recall20": 0.666667,
+          "returned": 2
+        },
+        {
+          "category": "nl-en-mix",
+          "id": "mx-elektrisch-ingenieur",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "nl-en-mix",
+          "id": "mx-frontend-ontwikkelaar",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "nl-en-mix",
+          "id": "mx-lab-analist",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "nl-en-mix",
+          "id": "mx-database-developer",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "nl-en-mix",
+          "id": "mx-endpoint-beheer",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        },
+        {
+          "category": "nl-en-mix",
+          "id": "mx-hydrogen",
+          "ndcg10": 0,
+          "recall20": 0,
+          "returned": 0
+        }
+      ]
+    }
+  ],
+  "metrics": {
+    "ndcgDepth": 10,
+    "recallDepth": 20
+  },
+  "queryCount": 43
+}

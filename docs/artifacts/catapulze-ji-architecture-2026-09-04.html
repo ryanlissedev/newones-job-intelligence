@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="nl" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Catapulze Job Intelligence — architectuurkaart</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Source+Serif+4:opsz,wght@0,8..60,400;0,8..60,600&family=JetBrains+Mono:wght@400;600&display=swap">
+  <style>
+    :root {
+      --ground: #eef1f4;
+      --surface: #ffffff;
+      --surface2: #e4e9ee;
+      --ink: #1b222b;
+      --ink2: #4a5563;
+      --ink3: #7a8494;
+      --line: #cfd6de;
+      --accent: #0f6e6b;
+      --accent-soft: #d9eeec;
+      --live: #2e7d5b;
+      --live-soft: #d9efe4;
+      --partial: #9a6a12;
+      --partial-soft: #f5e9cf;
+      --planned: #3d5a80;
+      --planned-soft: #dce6f0;
+      --blocked: #b3261e;
+      --blocked-soft: #f6dedc;
+      --display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+      --body: "Source Serif 4", Georgia, serif;
+      --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+      --panel-w: min(420px, 92vw);
+      --radius: 6px;
+      --shadow: 0 12px 40px rgba(27, 34, 43, 0.12);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --ground: #12171d;
+        --surface: #1b222b;
+        --surface2: #232c36;
+        --ink: #e6eaee;
+        --ink2: #b4bdc8;
+        --ink3: #7f8a98;
+        --line: #2f3944;
+        --accent: #4fb3ae;
+        --accent-soft: #163a39;
+        --live: #5fc194;
+        --live-soft: #173627;
+        --partial: #d9a94a;
+        --partial-soft: #3a2e14;
+        --planned: #7aa2d4;
+        --planned-soft: #1e2a3a;
+        --blocked: #e56a62;
+        --blocked-soft: #3e1f1c;
+        --shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+      }
+    }
+    :root[data-theme="dark"] {
+      --ground: #12171d;
+      --surface: #1b222b;
+      --surface2: #232c36;
+      --ink: #e6eaee;
+      --ink2: #b4bdc8;
+      --ink3: #7f8a98;
+      --line: #2f3944;
+      --accent: #4fb3ae;
+      --accent-soft: #163a39;
+      --live: #5fc194;
+      --live-soft: #173627;
+      --partial: #d9a94a;
+      --partial-soft: #3a2e14;
+      --planned: #7aa2d4;
+      --planned-soft: #1e2a3a;
+      --blocked: #e56a62;
+      --blocked-soft: #3e1f1c;
+      --shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--ground);
+      color: var(--ink);
+      font-family: var(--body);
+      font-size: 17px;
+      line-height: 1.55;
+      font-variant-numeric: tabular-nums;
+    }
+    a { color: var(--accent); }
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 20px 88px;
+    }
+    header {
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 24px;
+      margin-bottom: 28px;
+    }
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: 11.5px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink3);
+    }
+    h1 {
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: clamp(28px, 4.5vw, 48px);
+      line-height: 1.04;
+      letter-spacing: -0.02em;
+      margin: 8px 0 12px;
+      text-wrap: balance;
+    }
+    .lede {
+      font-size: 19px;
+      color: var(--ink2);
+      max-width: 68ch;
+      margin: 0;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 18px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--ink3);
+      margin-top: 14px;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .theme-toggle {
+      font-family: var(--mono);
+      font-size: 12px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink2);
+      border-radius: var(--radius);
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+    .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+    .gaps-strip {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px 18px 14px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .gaps-strip h2 {
+      font-family: var(--display);
+      font-size: 15px;
+      font-weight: 700;
+      margin: 0 0 12px;
+      letter-spacing: -0.01em;
+    }
+    .gaps-scroll {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scroll-snap-type: x mandatory;
+    }
+    .gap-card {
+      flex: 0 0 min(280px, 82vw);
+      scroll-snap-align: start;
+      background: var(--surface2);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+    }
+    .gap-card .id {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .gap-card strong {
+      font-family: var(--display);
+      font-size: 14px;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .gap-card p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--ink2);
+      line-height: 1.45;
+    }
+    .tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .tab {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.02em;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink2);
+      border-radius: var(--radius);
+      padding: 10px 18px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .tab[aria-selected="true"] {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .tab-panel { display: none; }
+    .tab-panel[aria-hidden="false"] { display: block; }
+    .panel-intro {
+      font-size: 15.5px;
+      color: var(--ink2);
+      max-width: 72ch;
+      margin: 0 0 16px;
+    }
+    .diagram-wrap {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px 16px 8px;
+      margin-bottom: 18px;
+      overflow-x: auto;
+    }
+    .diagram-wrap .mermaid {
+      min-width: 640px;
+      display: flex;
+      justify-content: center;
+    }
+    .nodes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .node-btn {
+      text-align: left;
+      font: inherit;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+    }
+    .node-btn:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 14px rgba(15, 110, 107, 0.12);
+      transform: translateY(-1px);
+    }
+    .node-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .node-btn[aria-pressed="true"] {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+    .node-btn .label {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 14px;
+      display: block;
+      margin-bottom: 6px;
+      line-height: 1.2;
+    }
+    .node-btn .hint {
+      font-size: 12.5px;
+      color: var(--ink3);
+      display: block;
+      line-height: 1.35;
+    }
+    .badge {
+      display: inline-block;
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 10.5px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 3px;
+      margin-top: 8px;
+    }
+    .badge.live { color: var(--live); background: var(--live-soft); }
+    .badge.partial { color: var(--partial); background: var(--partial-soft); }
+    .badge.planned { color: var(--planned); background: var(--planned-soft); }
+    .badge.blocked { color: var(--blocked); background: var(--blocked-soft); }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: var(--ink3);
+      margin-bottom: 14px;
+    }
+    .side-panel-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(27, 34, 43, 0.38);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 40;
+    }
+    .side-panel-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .side-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: var(--panel-w);
+      height: 100%;
+      background: var(--surface);
+      border-left: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      transform: translateX(102%);
+      transition: transform 0.22s ease;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .side-panel.open { transform: translateX(0); }
+    .side-panel header {
+      padding: 20px 20px 16px;
+      margin: 0;
+      border-bottom: 1px solid var(--line);
+      flex-shrink: 0;
+    }
+    .side-panel header h2 {
+      font-family: var(--display);
+      font-size: 22px;
+      font-weight: 800;
+      margin: 8px 0 0;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+    }
+    .side-panel .close-btn {
+      font-family: var(--mono);
+      font-size: 12px;
+      border: 1px solid var(--line);
+      background: var(--surface2);
+      color: var(--ink2);
+      border-radius: var(--radius);
+      padding: 6px 10px;
+      cursor: pointer;
+      float: right;
+    }
+    .side-panel .body {
+      padding: 18px 20px 28px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .side-panel .body p {
+      margin: 0 0 12px;
+      font-size: 15.5px;
+      color: var(--ink2);
+    }
+    .side-panel .body ul {
+      margin: 0 0 14px;
+      padding-left: 20px;
+      font-size: 15px;
+      color: var(--ink2);
+    }
+    .side-panel .body li { margin-bottom: 6px; }
+    .side-panel .refs {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--line);
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--ink3);
+    }
+    .stack-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0 0 24px;
+    }
+    .stack-pills span {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 8px 12px;
+      font-size: 13.5px;
+    }
+    .stack-pills b {
+      font-family: var(--display);
+      font-size: 14px;
+      display: block;
+    }
+    .stack-pills small {
+      color: var(--ink3);
+      font-size: 11.5px;
+    }
+    footer {
+      border-top: 1px solid var(--line);
+      padding-top: 16px;
+      margin-top: 36px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--ink3);
+    }
+    @media (max-width: 640px) {
+      .wrap { padding: 24px 14px 72px; }
+      .nodes-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="eyebrow">Catapulze · Job Intelligence · interactieve architectuurkaart</div>
+      <h1>JI productie-architectuur — september 2026</h1>
+      <p class="lede">Eén schrijfpad via Neon, één zoekpad via Manticore 29, één tool-oppervlak voor recruiters en agents. Klik op een knoop voor detail; de gaps-strip benoemt wat nog open staat.</p>
+      <div class="meta">
+        <span>SoR: Neon Postgres (cloud)</span>
+        <span>Compute: Coolify op Hetzner · Tailscale <tailscale-ip></span>
+        <span>Zoeken: Manticore 29.0.2 + on-box projector</span>
+        <span>Orkestratie: Trigger.dev Cloud</span>
+        <span>Raw: Cloudflare R2</span>
+      </div>
+    </header>
+
+    <div class="stack-pills" aria-label="Productiestack">
+      <span><b>Neon</b><small>system of record</small></span>
+      <span><b>Coolify</b><small>Hetzner CX43 · Tailscale</small></span>
+      <span><b>Manticore 29</b><small>RT-index · hybrid gepland</small></span>
+      <span><b>Projector</b><small>on-box · outbox drain</small></span>
+      <span><b>Trigger.dev</b><small>poll-bron worker</small></span>
+      <span><b>R2</b><small>raw payloads</small></span>
+      <span><b>Next.js</b><small>:3001 NL UI</small></span>
+      <span><b>Hono API</b><small>:3000 tRPC/REST/MCP</small></span>
+      <span><b>Spott</b><small>export gated</small></span>
+    </div>
+
+    <section class="gaps-strip" aria-labelledby="gaps-heading">
+      <h2 id="gaps-heading">Open gaps &amp; bewuste keuzes</h2>
+      <div class="gaps-scroll">
+        <article class="gap-card">
+          <div class="id">RJC-403</div>
+          <strong>Launch-evidence gesplitst</strong>
+          <p>Canaray-browser/release-SHA-bewijs is gescheiden van echte-data-completeness (aggregaten, ID-digest). Beide zijn nodig vóór launch-claim.</p>
+        </article>
+        <article class="gap-card">
+          <div class="id">RJC-404</div>
+          <strong>Neon Free 512&nbsp;MB</strong>
+          <p>Backfill stopte bij ~62k rijen (53100 project limit). Volledige Motian-import (~252k) vereist betaald Neon-plan of reclaim + opschoning.</p>
+        </article>
+        <article class="gap-card">
+          <div class="id">DNS</div>
+          <strong>Cutover open</strong>
+          <p><code>api/app.catapulze.com</code> wijst nog naar TransIP (<transip-ip>). Rehearsal liep op sslip.io; definitieve A-records + auth-URL's wachten op GO.</p>
+        </article>
+        <article class="gap-card">
+          <div class="id">Curate</div>
+          <strong>contentHash outbox-skip</strong>
+          <p>Statuswijziging zonder nieuwe hash schrijft geen outbox-event → projector slaat over. Reparatie via <code>search:reconcile-projection</code>.</p>
+        </article>
+        <article class="gap-card">
+          <div class="id">Ingest</div>
+          <strong>Parallel curateScrapeRun</strong>
+          <p>Observaties worden sequentieel verwerkt (<code>no-await-in-loop</code>). Parallel curate is gepland voor backfill-throughput, niet live.</p>
+        </article>
+        <article class="gap-card">
+          <div class="id">Process</div>
+          <strong>Linear hygiene</strong>
+          <p>Issue-status, partial-AC's en GitHub–Linear-automatisering moeten synchroon blijven met werkelijke deploy-bewijs — geen Done zonder AC-dekking.</p>
+        </article>
+        <article class="gap-card">
+          <div class="id">Architectuur</div>
+          <strong>Geen Kafka / RabbitMQ</strong>
+          <p>Bewuste keuze: Postgres-outbox + projector i.p.v. message broker. Outbox in dezelfde transactie als curated writes; geen extra bewegende delen.</p>
+        </article>
+        <article class="gap-card">
+          <div class="id">Agent-ops</div>
+          <strong>SSH + restore voor agent</strong>
+          <p>Cloud agents bereiken Hetzner via SSH/Tailscale + runbooks (restore, migrate, projector). Geen publieke Coolify-8000; operator-credentials in 1Password.</p>
+        </article>
+      </div>
+    </section>
+
+    <div class="toolbar">
+      <div class="legend" aria-label="Statuslegenda">
+        <span><span class="badge live">live</span> in productie</span>
+        <span><span class="badge partial">partial</span> deels / gated</span>
+        <span><span class="badge planned">planned</span> ontwerp / backlog</span>
+        <span><span class="badge blocked">blocked</span> blokkeert cutover</span>
+      </div>
+      <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Thema wisselen">Donker/licht</button>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Architectuurtabs">
+      <button type="button" class="tab" role="tab" id="tab-dataflow" aria-selected="true" aria-controls="panel-dataflow">Dataflow</button>
+      <button type="button" class="tab" role="tab" id="tab-deploy" aria-selected="false" aria-controls="panel-deploy">Deploy</button>
+      <button type="button" class="tab" role="tab" id="tab-agent" aria-selected="false" aria-controls="panel-agent">Agent / MCP</button>
+    </div>
+
+    <section class="tab-panel" id="panel-dataflow" role="tabpanel" aria-labelledby="tab-dataflow" aria-hidden="false">
+      <p class="panel-intro">Ingest schrijft naar Neon en R2; de projector vult Manticore vanuit de outbox. API en web lezen nooit direct uit Postgres vanuit de browser.</p>
+      <div class="diagram-wrap">
+        <pre class="mermaid">
+flowchart LR
+  subgraph sources["Bronnen"]
+    B["28 vacaturebronnen"]
+  end
+  subgraph worker["Trigger.dev worker"]
+    W["poll-bron · executeBronRun"]
+  end
+  subgraph raw["Object store"]
+    R2["Cloudflare R2 raw/"]
+  end
+  subgraph sor["Neon Postgres SoR"]
+    ST["staging.observatie"]
+    CU["curated.aanvraag"]
+    OB["curated.outbox_event"]
+  end
+  subgraph search["On-box zoeken"]
+    PR["projector drain"]
+    MC["Manticore 29 RT"]
+  end
+  subgraph edge["Edge"]
+    API["Hono API :3000"]
+    WEB["Next.js :3001"]
+  end
+  B --> W
+  W --> R2
+  W --> ST
+  ST --> CU
+  CU --> OB
+  OB --> PR
+  PR --> MC
+  MC --> API
+  CU --> API
+  API --> WEB
+        </pre>
+      </div>
+      <div class="nodes-grid" id="nodes-dataflow"></div>
+    </section>
+
+    <section class="tab-panel" id="panel-deploy" role="tabpanel" aria-labelledby="tab-deploy" aria-hidden="true">
+      <p class="panel-intro">Productie draait op Hetzner via Coolify; Neon en Trigger.dev zitten buiten de box. Geen on-box Postgres in productie (ADR-0006).</p>
+      <div class="diagram-wrap">
+        <pre class="mermaid">
+flowchart TB
+  subgraph internet["Internet"]
+    U["Recruiter-browser"]
+    TD["Trigger.dev Cloud"]
+  end
+  subgraph tailscale["Tailscale <tailscale-ip>"]
+    subgraph hetzner["Hetzner CX43 · Coolify"]
+      TR["Traefik TLS"]
+      WEB["web :3001"]
+      SRV["server :3000"]
+      RED["Redis cache"]
+      MC29["manticore-29 :9312"]
+      PROJ["projector worker"]
+      MIG["migrator one-shot"]
+    end
+  end
+  subgraph cloud["Managed cloud"]
+    NEON["Neon Postgres SoR"]
+    R2["Cloudflare R2"]
+  end
+  U --> TR
+  TR --> WEB
+  TR --> SRV
+  WEB --> SRV
+  SRV --> NEON
+  SRV --> MC29
+  SRV --> RED
+  SRV --> R2
+  PROJ --> NEON
+  PROJ --> MC29
+  TD --> NEON
+  TD --> R2
+  MIG --> NEON
+        </pre>
+      </div>
+      <div class="nodes-grid" id="nodes-deploy"></div>
+    </section>
+
+    <section class="tab-panel" id="panel-agent" role="tabpanel" aria-labelledby="tab-agent" aria-hidden="true">
+      <p class="panel-intro">Agents zijn eersteklas burgers: dezelfde capability registry als REST, tRPC en MCP. Export naar Spott blijft human-gated.</p>
+      <div class="diagram-wrap">
+        <pre class="mermaid">
+flowchart LR
+  subgraph clients["Clients"]
+    UI["Recruiter UI"]
+    AG["Company OS / harness"]
+    CA["Cloud agent + MCP"]
+  end
+  subgraph api["apps/server"]
+    AUTH["Better Auth"]
+    REG["Capability registry"]
+    REST["REST /v1"]
+    MCP["MCP tools/list + call"]
+    TRPC["tRPC router"]
+  end
+  subgraph domain["packages/application"]
+    CAP["Handlers · approval · audit"]
+    EXP["commit_export → Spott"]
+  end
+  subgraph data["Data & search"]
+    PG["Neon curated"]
+    SRCH["SearchAdapter → Manticore"]
+  end
+  UI --> TRPC
+  UI --> REST
+  AG --> MCP
+  CA --> MCP
+  TRPC --> AUTH
+  REST --> AUTH
+  MCP --> AUTH
+  AUTH --> REG
+  REG --> CAP
+  CAP --> PG
+  CAP --> SRCH
+  CAP --> EXP
+        </pre>
+      </div>
+      <div class="nodes-grid" id="nodes-agent"></div>
+    </section>
+
+    <footer>
+      <p>Catapulze Job Intelligence · architectuurkaart · 2026-09-04 · geen secrets · bron: repo-runbooks &amp; ADR's · open in browser via <code>docs/artifacts/catapulze-ji-architecture-2026-09-04.html</code></p>
+    </footer>
+  </div>
+
+  <div class="side-panel-backdrop" id="backdrop" hidden></div>
+  <aside class="side-panel" id="side-panel" aria-hidden="true" aria-labelledby="panel-title">
+    <header>
+      <button type="button" class="close-btn" id="close-panel">Sluiten ✕</button>
+      <div class="eyebrow" id="panel-eyebrow">Component</div>
+      <h2 id="panel-title">—</h2>
+      <span class="badge" id="panel-badge">—</span>
+    </header>
+    <div class="body" id="panel-body"></div>
+  </aside>
+
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    let theme = prefersDark ? "dark" : "light";
+    document.documentElement.dataset.theme = theme;
+
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: theme === "dark" ? "dark" : "base",
+      securityLevel: "loose",
+      flowchart: { curve: "basis", htmlLabels: true, padding: 14 },
+    });
+
+    const NODE_DATA = {
+      dataflow: [
+        {
+          id: "bronnen",
+          label: "28 bronnen",
+          hint: "API · HTML · connectors",
+          status: "partial",
+          body: `<p>Vacaturebronnen via <code>packages/connectors</code>. Slice A live: TenderNed en Inhuurdesk; overige bronnen fixtures of backlog.</p><ul><li>Poll via Trigger.dev <code>poll-bron-run</code></li><li>Per-bron <code>*_LIVE=1</code> vlaggen</li><li>Motian-historie via aparte backfill</li></ul>`,
+          refs: "docs/sources/README.md · packages/application/src/sources/",
+        },
+        {
+          id: "trigger-worker",
+          label: "Trigger.dev worker",
+          hint: "executeBronRun · cloud",
+          status: "live",
+          body: `<p>Hosted worker orkestreert scrape-runs. In productie: <code>SEARCH_PROJECTOR=onbox</code> — geen inline Manticore-drain in de cloud.</p><ul><li><code>apps/worker/src/poll-bron-run.ts</code></li><li>Neon pooled <code>DATABASE_URL</code></li><li>R2 voor raw payloads</li></ul>`,
+          refs: "ADR-0005 · docs/runbooks/search-projector.md",
+        },
+        {
+          id: "r2",
+          label: "Cloudflare R2",
+          hint: "raw/{bron}/… immutable",
+          status: "live",
+          body: `<p>S3-compatibele raw store (<code>catapulze-ji-storage</code>). Productie weigert filesystem-backend.</p><ul><li>Content-addressed paths met SHA-256</li><li>Replay zonder her-fetch</li><li>Zelfde credentials op server én worker</li></ul>`,
+          refs: "ADR-0008 · docs/runbooks/raw-object-storage.md",
+        },
+        {
+          id: "neon-sor",
+          label: "Neon Postgres",
+          hint: "staging · curated · outbox",
+          status: "live",
+          body: `<p>System of record in de cloud — géén on-box Postgres in productie. Zones: staging observaties, curated aanvragen (SCD2), outbox voor search.</p><ul><li>Pooled TLS voor API/worker</li><li>Direct endpoint voor projector-lock</li><li>Free-plan 512&nbsp;MB limiet (RJC-404)</li></ul>`,
+          refs: "ADR-0006 · docs/runbooks/neon-migration-catchup.md",
+        },
+        {
+          id: "curate",
+          label: "curateScrapeRun",
+          hint: "sequentieel · identity path",
+          status: "partial",
+          body: `<p>Normaliseert observaties naar <code>curated.aanvraag</code> + versie + outbox in één transactie (RJC-399).</p><ul><li>Observaties sequentieel — parallel nog gepland</li><li>Bekende gap: contentHash-gelijk → geen outbox bij statusflip</li><li>Dedup-groep via unique index</li></ul>`,
+          refs: "packages/db/src/curate-scrape-run.ts · packages/application/src/identity/curate.ts",
+        },
+        {
+          id: "outbox",
+          label: "search_outbox",
+          hint: "zelfde TX als write",
+          status: "live",
+          body: `<p><code>curated.outbox_event</code> koppelt Postgres-writes aan Manticore. Projector leest onverwerkte events; processed_at na succesvolle projectie.</p><ul><li>Geen Kafka/RabbitMQ — bewuste outbox-pattern</li><li>Generation/reindex via <code>search:new-generation</code></li><li>Dead-letter queue voor repair</li></ul>`,
+          refs: "docs/runbooks/search-schema-migration.md",
+        },
+        {
+          id: "projector",
+          label: "On-box projector",
+          hint: "singleton · advisory lock",
+          status: "live",
+          body: `<p>Long-running Coolify-app op Hetzner. Draint outbox naar Manticore 29 via private Docker-netwerk.</p><ul><li><code>PROJECTOR_DATABASE_URL</code> direct (geen pooler)</li><li>Cycle-log: <code>projector_cycle</code></li><li>Tweede instance: lock → exit 0</li></ul>`,
+          refs: "apps/server/Dockerfile.projector · docs/runbooks/search-projector.md",
+        },
+        {
+          id: "manticore29",
+          label: "Manticore 29",
+          hint: "aanvragen_active · archive",
+          status: "live",
+          body: `<p>Productie-engine 29.0.2 (<code>manticore-29</code>). Host HTTP alleen op <code>127.0.0.1:9312</code>; containers via Coolify-netwerk :9308.</p><ul><li>Boolean + facets + prefix</li><li>6.3.8 blijft koude fallback</li><li>Hybrid/embeddings: ADR-0009 proposed</li></ul>`,
+          refs: "tools/manticore/manticore29.conf · docs/research/search-engine-decision-2026-09-03.md",
+        },
+        {
+          id: "hono-api",
+          label: "Hono API",
+          hint: "tRPC · REST · MCP · :3000",
+          status: "live",
+          body: `<p>Enig leespad voor curated data en search. <code>/readyz</code> aggregeert postgres, manticore, redis, R2, projection-lag.</p><ul><li><code>APP_RELEASE_SHA</code> op <code>/version</code></li><li>Scope vast: <code>catapulze</code></li><li>Geen DB-import in web</li></ul>`,
+          refs: "apps/server · packages/api",
+        },
+        {
+          id: "next-web",
+          label: "Next.js web",
+          hint: "NL dashboard · :3001",
+          status: "live",
+          body: `<p>Recruiter-UI op poort 3001. Server-side auth-check via <code>INTERNAL_SERVER_URL</code>; browser praat met publieke API.</p><ul><li><code>NEXT_PUBLIC_SERVER_URL</code> build + runtime</li><li>Cross-subdomain cookies nog open</li><li>Visual verify via verify-job-intelligence skill</li></ul>`,
+          refs: "apps/web · docs/runbooks/live-jobs-e2e.md",
+        },
+        {
+          id: "spott-export",
+          label: "Spott.io export",
+          hint: "gated · propose → commit",
+          status: "partial",
+          body: `<p><code>commit_export</code> naar ATS; default <code>liveEnabled: false</code> — fixtures tot API-key en approval-flow live zijn.</p><ul><li>Idempotent op canonical vacancy id</li><li>Human approval gebonden aan snapshot</li><li>ExternalReceipt terug in Postgres</li></ul>`,
+          refs: "packages/application/src/export/ · docs/AGENT_NATIVE_ARCHITECTURE.md §4",
+        },
+      ],
+      deploy: [
+        {
+          id: "hetzner",
+          label: "Hetzner CX43",
+          hint: "nbg1 · <hetzner-ip> publiek",
+          status: "live",
+          body: `<p>Server <code><hetzner-server-name></code> (ID <hetzner-server-id>). Firewall: 80/443 publiek; 22 tijdelijk operator-/32; Coolify 8000 dicht.</p>`,
+          refs: "docs/runbooks/hetzner-deploy.md §0.5",
+        },
+        {
+          id: "coolify",
+          label: "Coolify 4.3.14",
+          hint: "Traefik · Docker deploy",
+          status: "partial",
+          body: `<p>PaaS op de box. Bekende gap: rolling update markeert soms gezonde containers als unhealthy (2026-09-04). Workaround: handmatige <code>docker run</code> probe.</p><ul><li>Env-dubbelrijen (preview vs prod) controleren</li><li>Migrator: HEALTHCHECK NONE → apart run-pad</li></ul>`,
+          refs: "docs/runbooks/coolify-local.md · hetzner-deploy.md stap 3–4",
+        },
+        {
+          id: "tailscale",
+          label: "Tailscale",
+          hint: "<tailscale-ip> beheer",
+          status: "partial",
+          body: `<p>Duurzame SSH/beheer-route i.p.v. dynamische egress-/32. Cloud agents en operators via Tailscale + SSH naar runbooks.</p>`,
+          refs: "intern operator-document (productie-cutover-handoff) §5, niet in deze repo",
+        },
+        {
+          id: "neon-deploy",
+          label: "Neon (cloud SoR)",
+          hint: "eu-west-2 · pooled TLS",
+          status: "live",
+          body: `<p>15+ migraties live; least-privilege rollen <code>ji_*</code> nog niet toegepast. Backfill botst op 512&nbsp;MB Free-plan (RJC-404).</p>`,
+          refs: "docs/runbooks/motian-neon-backfill.md · neon-restore.md",
+        },
+        {
+          id: "trigger-deploy",
+          label: "Trigger.dev Cloud",
+          hint: "RJC-373 config open",
+          status: "partial",
+          body: `<p>Worker buiten Hetzner. Productie-<code>TRIGGER_SECRET_KEY</code> nog te verifiëren; gedeployd poll-bewijs ontbreekt in runbook.</p>`,
+          refs: "ADR-0006 open punten · hetzner-deploy.md stap 9",
+        },
+        {
+          id: "redis-deploy",
+          label: "Redis on-box",
+          hint: "search result cache",
+          status: "live",
+          body: `<p>Optioneel in dev; in productie met <code>REDIS_URL</code> — boot faalt als Redis geconfigureerd maar onbereikbaar.</p>`,
+          refs: "ADR-0007 · packages/env/src/server.ts",
+        },
+        {
+          id: "dns",
+          label: "DNS cutover",
+          hint: "catapulze.com → Hetzner",
+          status: "blocked",
+          body: `<p><code>api.catapulze.com</code> en <code>app.catapulze.com</code> wijzen nog naar TransIP. Rehearsal op sslip.io met Let's Encrypt bewezen; echte cutover wacht op GO.</p>`,
+          refs: "intern operator-document (productie-cutover-handoff) §1, niet in deze repo · hetzner-deploy.md §0.5.5",
+        },
+        {
+          id: "migrator",
+          label: "Migrator job",
+          hint: "one-shot · MIGRATION_DATABASE_URL",
+          status: "partial",
+          body: `<p><code>apps/server/Dockerfile.migrate</code> — aparte migrator-rol URL. Coolify healthcheck-fout; handmatig <code>docker run</code> pad gedocumenteerd.</p>`,
+          refs: "hetzner-deploy.md stap 3 · packages/db/drizzle.config.ts",
+        },
+        {
+          id: "readyz",
+          label: "/readyz gate",
+          hint: "go/no-go contract",
+          status: "live",
+          body: `<p>503 bij postgres/manticore/schema_hash mismatch; 200 degraded bij projection-lag. Launch-evidence (RJC-403) is méér dan groene readyz.</p>`,
+          refs: "apps/server/src/readiness.ts · hetzner-deploy.md §4",
+        },
+      ],
+      agent: [
+        {
+          id: "registry",
+          label: "Capability registry",
+          hint: "deny-by-default kernel",
+          status: "partial",
+          body: `<p>Kernel geïmplementeerd en getest; productcatalogus deels leeg. Doel: één handler, meerdere transports (UI, REST, MCP).</p>`,
+          refs: "docs/AGENT_NATIVE_ARCHITECTURE.md · packages/application/src/registry/",
+        },
+        {
+          id: "mcp",
+          label: "MCP transport",
+          hint: "tools/list · tools/call",
+          status: "partial",
+          body: `<p>MCP-handler op server; tools gegenereerd uit registry. AE5-pariteitstests voor search en markeren.</p><ul><li>Per-call auth viazelfde pad als REST</li><li>Geen statische tool-per-bron</li></ul>`,
+          refs: "apps/server/src/capabilities/mcp.ts",
+        },
+        {
+          id: "rest-trpc",
+          label: "REST & tRPC",
+          hint: "recruiter UI pad",
+          status: "live",
+          body: `<p>Web gebruikt tRPC; externe clients REST <code>/v1</code>. SearchAdapter achter beide.</p>`,
+          refs: "packages/api · apps/web",
+        },
+        {
+          id: "better-auth",
+          label: "Better Auth",
+          hint: "M365 · sessies",
+          status: "live",
+          body: `<p>Identiteit en rollen; secrets alleen in server-env. Login zelf is mens-only — geen agent-tool.</p>`,
+          refs: "packages/auth · apps/server/.env.example",
+        },
+        {
+          id: "approval",
+          label: "Approval matrix",
+          hint: "snapshot · policy",
+          status: "planned",
+          body: `<p>Commit extern (Spott) vereist mens; later score-drempel via <code>approval_policy</code> data.</p>`,
+          refs: "AGENT_NATIVE_ARCHITECTURE.md §4",
+        },
+        {
+          id: "agents-prompts",
+          label: "Agent prompts",
+          hint: "kwalificatie · bronbewaker",
+          status: "planned",
+          body: `<p>Features als prompts over primitieven — geen workflow-code. P0: aanvraag-kwalificatie en bronbewaker via Trigger <code>run_agent</code>.</p>`,
+          refs: "AGENT_NATIVE_ARCHITECTURE.md §5–§6",
+        },
+        {
+          id: "cloud-agent",
+          label: "Cloud agent toegang",
+          hint: "SSH · restore runbooks",
+          status: "partial",
+          body: `<p>Agents werken via git + MCP (Linear, GitHub). Hetzner-mutaties: SSH/Tailscale, 1Password, runbooks voor migrate/restore/projector — geen secrets in HTML of chat.</p>`,
+          refs: "docs/runbooks/hetzner-deploy.md · docs/runbooks/neon-restore.md",
+        },
+        {
+          id: "no-broker",
+          label: "Geen message broker",
+          hint: "outbox i.p.v. Kafka",
+          status: "live",
+          body: `<p>Bewust géén Kafka, RabbitMQ of vergelijkbaar. Postgres-outbox + projector dekt search-projectie; Trigger.dev dekt async orchestratie.</p>`,
+          refs: "docs/artifacts/techstack-overzicht.html · ADR-0006",
+        },
+      ],
+    };
+
+    const STATUS_LABEL = {
+      live: "live",
+      partial: "partial",
+      planned: "planned",
+      blocked: "blocked",
+    };
+
+    function renderNodeButtons(tabKey, containerId) {
+      const container = document.getElementById(containerId);
+      NODE_DATA[tabKey].forEach((node) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "node-btn";
+        btn.dataset.tab = tabKey;
+        btn.dataset.nodeId = node.id;
+        btn.setAttribute("aria-pressed", "false");
+        btn.innerHTML = `
+          <span class="label">${node.label}</span>
+          <span class="hint">${node.hint}</span>
+          <span class="badge ${node.status}">${STATUS_LABEL[node.status]}</span>
+        `;
+        btn.addEventListener("click", () => openPanel(tabKey, node.id, btn));
+        container.appendChild(btn);
+      });
+    }
+
+    renderNodeButtons("dataflow", "nodes-dataflow");
+    renderNodeButtons("deploy", "nodes-deploy");
+    renderNodeButtons("agent", "nodes-agent");
+
+    const backdrop = document.getElementById("backdrop");
+    const sidePanel = document.getElementById("side-panel");
+    const panelTitle = document.getElementById("panel-title");
+    const panelEyebrow = document.getElementById("panel-eyebrow");
+    const panelBadge = document.getElementById("panel-badge");
+    const panelBody = document.getElementById("panel-body");
+    let activeBtn = null;
+
+    function findNode(tabKey, nodeId) {
+      return NODE_DATA[tabKey].find((n) => n.id === nodeId);
+    }
+
+    function openPanel(tabKey, nodeId, btn) {
+      const node = findNode(tabKey, nodeId);
+      if (!node) return;
+      if (activeBtn) activeBtn.setAttribute("aria-pressed", "false");
+      activeBtn = btn;
+      btn.setAttribute("aria-pressed", "true");
+      panelEyebrow.textContent = tabKey === "dataflow" ? "Dataflow" : tabKey === "deploy" ? "Deploy" : "Agent / MCP";
+      panelTitle.textContent = node.label;
+      panelBadge.className = `badge ${node.status}`;
+      panelBadge.textContent = STATUS_LABEL[node.status];
+      panelBody.innerHTML = `${node.body}<div class="refs">${node.refs}</div>`;
+      backdrop.hidden = false;
+      backdrop.classList.add("open");
+      sidePanel.classList.add("open");
+      sidePanel.setAttribute("aria-hidden", "false");
+    }
+
+    function closePanel() {
+      backdrop.classList.remove("open");
+      sidePanel.classList.remove("open");
+      sidePanel.setAttribute("aria-hidden", "true");
+      if (activeBtn) activeBtn.setAttribute("aria-pressed", "false");
+      activeBtn = null;
+      setTimeout(() => { backdrop.hidden = true; }, 220);
+    }
+
+    document.getElementById("close-panel").addEventListener("click", closePanel);
+    backdrop.addEventListener("click", closePanel);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closePanel();
+    });
+
+    const tabs = document.querySelectorAll(".tab");
+    const panels = document.querySelectorAll(".tab-panel");
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", async () => {
+        tabs.forEach((t) => t.setAttribute("aria-selected", "false"));
+        panels.forEach((p) => p.setAttribute("aria-hidden", "true"));
+        tab.setAttribute("aria-selected", "true");
+        const panel = document.getElementById(tab.getAttribute("aria-controls"));
+        panel.setAttribute("aria-hidden", "false");
+        closePanel();
+        await renderMermaidIn(panel);
+      });
+    });
+
+    async function renderMermaidIn(container) {
+      const blocks = container.querySelectorAll("pre.mermaid:not([data-processed])");
+      for (const block of blocks) {
+        const code = block.textContent.trim();
+        const id = `mmd-${Math.random().toString(36).slice(2, 9)}`;
+        try {
+          const { svg } = await mermaid.render(id, code);
+          block.innerHTML = svg;
+          block.dataset.processed = "true";
+        } catch (err) {
+          block.innerHTML = `<p style="color:var(--blocked);font-family:var(--mono);font-size:13px">Mermaid render mislukt: ${err.message}</p>`;
+        }
+      }
+    }
+
+    document.getElementById("theme-toggle").addEventListener("click", async () => {
+      theme = theme === "dark" ? "light" : "dark";
+      document.documentElement.dataset.theme = theme;
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: theme === "dark" ? "dark" : "base",
+        securityLevel: "loose",
+        flowchart: { curve: "basis", htmlLabels: true, padding: 14 },
+      });
+      document.querySelectorAll("pre.mermaid[data-processed]").forEach((el) => {
+        delete el.dataset.processed;
+        const pre = document.createElement("pre");
+        pre.className = "mermaid";
+        pre.textContent = el.dataset.source || "";
+        el.replaceWith(pre);
+      });
+      for (const panel of panels) {
+        if (panel.getAttribute("aria-hidden") === "false") {
+          await renderMermaidIn(panel);
+        }
+      }
+    });
+
+    document.querySelectorAll("pre.mermaid").forEach((el) => {
+      el.dataset.source = el.textContent.trim();
+    });
+
+    await renderMermaidIn(document.getElementById("panel-dataflow"));
+  </script>
+</body>
+</html>

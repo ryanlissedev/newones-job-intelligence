@@ -1,0 +1,34 @@
+{
+  "name": "worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check-types": "PATH=\"./node_modules/.bin:$PATH\" tsc --noEmit",
+    "dev": "PATH=\"./node_modules/.bin:$PATH\" bunx trigger.dev@4.5.13 dev",
+    "deploy": "PATH=\"./node_modules/.bin:$PATH\" bunx trigger.dev@4.5.13 deploy",
+    "bron:seed-reconcile": "bun scripts/bron-seed-reconcile.ts",
+    "poller": "bun src/poller/main.ts"
+  },
+  "dependencies": {
+    "@ai-sdk/otel": "1.0.97",
+    "@ji/application": "workspace:*",
+    "@ji/connectors": "workspace:*",
+    "@ji/db": "workspace:*",
+    "@ji/domain": "workspace:*",
+    "@ji/env": "workspace:*",
+    "@ji/search": "workspace:*",
+    "@openrouter/ai-sdk-provider": "3.0.0",
+    "@trigger.dev/sdk": "4.5.13",
+    "ai": "7.0.97",
+    "dotenv": "catalog:",
+    "effect": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@ji/config": "workspace:*",
+    "@trigger.dev/build": "4.5.13",
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  }
+}

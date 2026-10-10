@@ -1,0 +1,7 @@
+{
+  "contractVersion": "connector-fixture/v1",
+  "source": "rabobank",
+  "capturedAt": "2026-09-16T04:34:12.464Z",
+  "contentType": "xml",
+  "payload": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n  <url><loc>https://rabobank.jobs/en/job/active-directory-engineer/JR_00144349/</loc><lastmod>2026-09-15T12:35:39.315Z</lastmod></url>\n  <url><loc>https://rabobank.jobs/en/job/business-analyst-data-lineage-platform/JR_00145415/</loc><lastmod>2026-09-15T12:35:39.315Z</lastmod></url>\n  <url><loc>https://rabobank.jobs/nl/vacature/active-directory-engineer/JR_00144349/</loc><lastmod>2026-09-15T12:35:39.315Z</lastmod></url>\n  <url><loc>https://rabobank.jobs/en/jobs/</loc><lastmod>2026-09-15T12:35:39.315Z</lastmod></url>\n  <url><loc>https://rabobank.jobs/nl/vacatures/</loc><lastmod>2026-09-15T12:35:39.315Z</lastmod></url>\n  <url><loc>https://rabobank.jobs/en/search/</loc><lastmod>2026-09-15T12:35:39.315Z</lastmod></url>\n  <url><loc>https://rabobank.jobs/nl/zoeken/</loc><lastmod>2026-09-15T12:35:39.315Z</lastmod></url>\n  <url><loc>https://rabobank.jobs/en/</loc><lastmod>2026-09-15T12:35:39.315Z</lastmod></url>\n  <url><loc>https://rabobank.jobs/nl/</loc><lastmod>2026-09-15T12:35:39.315Z</lastmod></url>\n  <url><loc>https://rabobank.jobs/en/job-alert/</loc><lastmod>2026-09-15T12:35:39.315Z</lastmod></url>\n  <url><loc>https://rabobank.jobs/nl/artikel/hoe-tons-carriere-meebeweegt-met-de-tijd/</loc><lastmod>2026-09-15T12:35:39.315Z</lastmod></url>\n</urlset>\n"
+}

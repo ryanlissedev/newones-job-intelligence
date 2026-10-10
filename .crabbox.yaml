@@ -1,0 +1,216 @@
+---
+# Validated against Crabbox v0.62.0.
+# Credentials, account policy and purchase authority belong in operator config,
+# never in this repository file. GitHub CI remains the required merge gate.
+provider: exe-dev
+target: linux
+architecture: amd64
+profile: performance-evidence
+
+lease:
+  idleTimeout: 10m
+  ttl: 45m
+
+exeDev:
+  controlHost: exe.dev
+  # exe.dev exposes region as operator account state, not as a Crabbox repo
+  # field. The skill reads back FRA before a paid run; it does not mutate the
+  # operator region during preflight. EXE_DEV_REGION=FRA makes the cohort
+  # boundary explicit in run evidence.
+  # Multi-arch exeuntu image resolved on 2026-08-28. It includes Docker,
+  # Compose, Git, rsync, curl, and the exe.dev SSH bootstrap.
+  image: ghcr.io/boldsoftware/exeuntu@sha256:a85bf5d50de2d3dbe079b0a4c5ee5ef03f5c806e88d36eaeb432dddbaca2017f
+  cpus: 2
+  memory: 8GB
+  disk: 40GB
+  workRoot: /tmp/crabbox
+  noEmail: true
+
+sync:
+  delete: true
+  checksum: false
+  gitSeed: true
+  fingerprint: true
+  timeout: 15m
+  warnFiles: 50000
+  warnBytes: 5368709120
+  failFiles: 150000
+  failBytes: 21474836480
+  exclude:
+    - .artifacts
+    - .crabbox
+    # Keep direct `crabbox job run exe-dev-shadow` calls from uploading local
+    # dotenv values. Crabbox applies the rules in order (last match wins),
+    # so only the three tracked placeholder templates are re-included.
+    - ".env*"
+    - "!.env.example"
+    - "!apps/server/.env.example"
+    - "!apps/web/.env.example"
+    - .fireflies-request.json
+    - .fireflies-transcript.json
+    # The launcher runs Crabbox from a clean Git archive that was scanned and
+    # hashed before upload. Only runtime metadata can appear outside that
+    # canonical input set, so no second source-exclusion list is maintained.
+
+run:
+  preflightTools:
+    - bash
+    - curl
+    - docker
+    - git
+    - rsync
+
+env:
+  allow:
+    - CI
+    - CRABBOX_CLIENT_VERSION
+    - CRABBOX_SOURCE_GIT_SHA
+    - CRABBOX_SOURCE_GIT_STATE
+    - CRABBOX_SOURCE_MANIFEST_SHA256
+    - CRABBOX_SOURCE_MANIFEST_FILE_COUNT
+    - CRABBOX_SOURCE_MATERIALIZATION_DURATION_MS
+    - CRABBOX_SOURCE_PREFLIGHT_DURATION_MS
+    - EXE_DEV_REGION
+
+actions:
+  workflow: .github/workflows/crabbox.yml
+  job: hydrate
+  ref: main
+  runnerLabels:
+    - crabbox
+  ephemeral: true
+
+profiles:
+  exe-dev-shadow:
+    env:
+      CI: "1"
+    doctor:
+      enabled: true
+      tools: [docker]
+      minDiskGB: 20
+      requireDocker: true
+      requireCompose: true
+
+  performance-evidence:
+    env:
+      CI: "1"
+      DATABASE_TEST_URL: postgresql://ji:ji@127.0.0.1:5432/ji_test
+      NEXT_PUBLIC_SERVER_URL: http://localhost:3000
+      PERF_CACHE_STATE: unknown
+      PERF_CONCURRENCY: "2"
+      PERF_JUNIT_PATH: .artifacts/test-results/remote-junit.xml
+      PERF_METRICS_DIR: .artifacts/performance/remote
+      PERF_POSTGRES_IMAGE_DIGEST: sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777
+      PERF_POSTGRES_VERSION: "16"
+      PERF_EXECUTOR: crabbox
+      PERF_PROVIDER: exe-dev
+      PERF_RUNNER: exe-dev
+      PERF_MACHINE: 2cpu-8gb-40gb
+      PERF_TOOLCHAIN: bun-1.3.14
+      PERF_WORKFLOW: remote-performance
+      PERF_JOB: ordered-pair
+    artifactGlobs:
+      - ".artifacts/performance/**"
+      - ".artifacts/test-results/**"
+    doctor:
+      enabled: true
+      tools: [bun, docker]
+      minDiskGB: 20
+      requireDocker: true
+      requireCompose: true
+
+jobs:
+  performance-exe-dev:
+    provider: exe-dev
+    target: linux
+    architecture: amd64
+    profile: performance-evidence
+    ttl: 45m
+    idleTimeout: 10m
+    hydrate:
+      actions: true
+      githubRunner: true
+      waitTimeout: 20m
+      keepAliveMinutes: 45
+    actions:
+      workflow: .github/workflows/crabbox.yml
+      job: hydrate
+      ref: main
+    shell: true
+    # The shared hydrated workspace and service do not prove cold/warm state.
+    # Sequence position stays explicit without claiming an unverified cache state.
+    command: |
+      set -e
+      mkdir -p .artifacts/performance/remote .artifacts/test-results
+      echo CRABBOX_PHASE:gate-first
+      PERF_RUN_KIND=unknown \
+        PERF_SEQUENCE_POSITION=1 \
+        PERF_JUNIT_PATH=.artifacts/test-results/remote-junit.first.xml \
+        bun run gate:timed
+      echo CRABBOX_PHASE:build-first
+      PERF_RUN_KIND=unknown PERF_SEQUENCE_POSITION=1 bun run build:timed
+      echo CRABBOX_PHASE:gate-second
+      PERF_RUN_KIND=unknown \
+        PERF_SEQUENCE_POSITION=2 \
+        PERF_JUNIT_PATH=.artifacts/test-results/remote-junit.second.xml \
+        bun run gate:timed
+      echo CRABBOX_PHASE:build-second
+      PERF_RUN_KIND=unknown PERF_SEQUENCE_POSITION=2 bun run build:timed
+      echo CRABBOX_PHASE:report
+      bun scripts/performance/report.ts --output-dir .artifacts/performance/remote
+    junit:
+      - .artifacts/test-results/remote-junit.first.attempt-1.unknown.xml
+      - .artifacts/test-results/remote-junit.second.attempt-1.unknown.xml
+    artifactGlobs:
+      - ".artifacts/performance/**"
+      - ".artifacts/test-results/**"
+    requiredArtifacts:
+      - .artifacts/performance/remote/report.md
+      - .artifacts/test-results/remote-junit.first.attempt-1.unknown.xml
+      - .artifacts/test-results/remote-junit.second.attempt-1.unknown.xml
+    label: catapulze-performance-exe-dev
+    stop: always
+
+  exe-dev-shadow:
+    provider: exe-dev
+    target: linux
+    architecture: amd64
+    profile: exe-dev-shadow
+    ttl: 60m
+    idleTimeout: 15m
+    shell: true
+    command: CRABBOX_CAPTURE_VALIDATION_STATUS=1 bash scripts/crabbox-exe-dev-shadow.sh
+    junit:
+      - crabbox-output/exe-dev-shadow/junit.xml
+      - crabbox-output/exe-dev-shadow/database-junit.xml
+    artifactGlobs:
+      - crabbox-output/exe-dev-shadow/**
+    requiredArtifacts:
+      - crabbox-output/exe-dev-shadow/phases.jsonl
+      - crabbox-output/exe-dev-shadow/execution-fingerprint.json
+      - crabbox-output/exe-dev-shadow/report.md
+      - crabbox-output/exe-dev-shadow/junit.xml
+      - crabbox-output/exe-dev-shadow/database-junit.xml
+      - crabbox-output/exe-dev-shadow/unit-diagnostics.log
+      - crabbox-output/exe-dev-shadow/unit-diagnostics.json
+      - crabbox-output/exe-dev-shadow/validation-exit-status.txt
+      - crabbox-output/exe-dev-shadow/manifest.sha256
+      - crabbox-output/exe-dev-shadow/mcp-edge-smoke/evidence.json
+      - crabbox-output/exe-dev-shadow/mcp-edge-smoke/runtime-identity.json
+      - crabbox-output/exe-dev-shadow/mcp-edge-smoke/route-config.conf
+      - crabbox-output/exe-dev-shadow/mcp-edge-smoke/container-status.txt
+    downloads:
+      - crabbox-output/exe-dev-shadow/phases.jsonl=.artifacts/crabbox/exe-dev-shadow/phases.jsonl
+      - crabbox-output/exe-dev-shadow/execution-fingerprint.json=.artifacts/crabbox/exe-dev-shadow/execution-fingerprint.json
+      - crabbox-output/exe-dev-shadow/report.md=.artifacts/crabbox/exe-dev-shadow/report.md
+      - crabbox-output/exe-dev-shadow/junit.xml=.artifacts/crabbox/exe-dev-shadow/junit.xml
+      - crabbox-output/exe-dev-shadow/database-junit.xml=.artifacts/crabbox/exe-dev-shadow/database-junit.xml
+      - crabbox-output/exe-dev-shadow/unit-diagnostics.log=.artifacts/crabbox/exe-dev-shadow/unit-diagnostics.log
+      - crabbox-output/exe-dev-shadow/unit-diagnostics.json=.artifacts/crabbox/exe-dev-shadow/unit-diagnostics.json
+      - crabbox-output/exe-dev-shadow/validation-exit-status.txt=.artifacts/crabbox/exe-dev-shadow/validation-exit-status.txt
+      - crabbox-output/exe-dev-shadow/manifest.sha256=.artifacts/crabbox/exe-dev-shadow/manifest.sha256
+      - crabbox-output/exe-dev-shadow/mcp-edge-smoke/evidence.json=.artifacts/crabbox/exe-dev-shadow/mcp-edge-smoke/evidence.json
+      - crabbox-output/exe-dev-shadow/mcp-edge-smoke/runtime-identity.json=.artifacts/crabbox/exe-dev-shadow/mcp-edge-smoke/runtime-identity.json
+      - crabbox-output/exe-dev-shadow/mcp-edge-smoke/route-config.conf=.artifacts/crabbox/exe-dev-shadow/mcp-edge-smoke/route-config.conf
+      - crabbox-output/exe-dev-shadow/mcp-edge-smoke/container-status.txt=.artifacts/crabbox/exe-dev-shadow/mcp-edge-smoke/container-status.txt
+    stop: always

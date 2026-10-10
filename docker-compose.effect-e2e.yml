@@ -1,0 +1,218 @@
+---
+name: ${EFFECT_E2E_PROJECT_NAME:?EFFECT_E2E_PROJECT_NAME is required}
+
+services:
+  postgres:
+    image: postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777
+    ports:
+      - target: 5432
+        published: "${EFFECT_E2E_POSTGRES_PORT:-0}"
+        host_ip: 127.0.0.1
+    environment:
+      POSTGRES_USER: ${EFFECT_E2E_ADMIN_USER:?EFFECT_E2E_ADMIN_USER is required}
+      POSTGRES_PASSWORD: ${EFFECT_E2E_ADMIN_PASSWORD:?EFFECT_E2E_ADMIN_PASSWORD is required}
+      POSTGRES_DB: ${EFFECT_E2E_DB_NAME:?EFFECT_E2E_DB_NAME is required}
+      POSTGRES_MIGRATOR_USER: ${EFFECT_E2E_MIGRATOR_USER:?EFFECT_E2E_MIGRATOR_USER is required}
+      POSTGRES_MIGRATOR_PASSWORD: ${EFFECT_E2E_MIGRATOR_PASSWORD:?EFFECT_E2E_MIGRATOR_PASSWORD is required}
+      POSTGRES_APP_USER: ${EFFECT_E2E_APP_USER:?EFFECT_E2E_APP_USER is required}
+      POSTGRES_APP_PASSWORD: ${EFFECT_E2E_APP_PASSWORD:?EFFECT_E2E_APP_PASSWORD is required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./tools/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 3s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+    restart: "no"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - target: 6379
+        published: "${EFFECT_E2E_REDIS_PORT:-0}"
+        host_ip: 127.0.0.1
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: "no"
+
+  manticore:
+    image: manticoresearch/manticore:6.3.8
+    ports:
+      - target: 9308
+        published: "${EFFECT_E2E_MANTICORE_HTTP_PORT:-0}"
+        host_ip: 127.0.0.1
+      - target: 9306
+        published: "${EFFECT_E2E_MANTICORE_MYSQL_PORT:-0}"
+        host_ip: 127.0.0.1
+    volumes:
+      - manticore_data:/var/lib/manticore
+      - ./tools/manticore/manticore.conf:/etc/manticoresearch/manticore.conf
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mysql -h127.0.0.1 -P9306 -e 'SHOW TABLES' | grep -q aanvragen",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 15s
+    restart: "no"
+
+  migrate:
+    image: ${EFFECT_E2E_IMAGE_PREFIX:-ji-effect-e2e-local}-migrate:latest
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile.migrate
+    command: ["bun", "run", "db:migrate"]
+    environment:
+      DATABASE_URL: ${EFFECT_E2E_CONTAINER_DATABASE_URL:?EFFECT_E2E_CONTAINER_DATABASE_URL is required}
+      MIGRATION_DATABASE_URL: ${EFFECT_E2E_CONTAINER_MIGRATION_DATABASE_URL:?EFFECT_E2E_CONTAINER_MIGRATION_DATABASE_URL is required}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  server:
+    image: ${EFFECT_E2E_IMAGE_PREFIX:-ji-effect-e2e-local}-server:latest
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+      args:
+        NEXT_PUBLIC_SERVER_URL: ${EFFECT_E2E_API_URL:?EFFECT_E2E_API_URL is required}
+    ports:
+      - target: 3000
+        published: "${EFFECT_E2E_SERVER_PORT:-0}"
+        host_ip: 127.0.0.1
+    environment:
+      DATABASE_URL: ${EFFECT_E2E_CONTAINER_DATABASE_URL:?EFFECT_E2E_CONTAINER_DATABASE_URL is required}
+      BETTER_AUTH_SECRET: ${EFFECT_E2E_AUTH_SECRET:?EFFECT_E2E_AUTH_SECRET is required}
+      BETTER_AUTH_URL: ${EFFECT_E2E_API_URL:?EFFECT_E2E_API_URL is required}
+      CORS_ORIGIN: ${EFFECT_E2E_WEB_URL:?EFFECT_E2E_WEB_URL is required}
+      NODE_ENV: test
+      APP_RELEASE_SHA: ${EFFECT_E2E_EXPECTED_SHA:?EFFECT_E2E_EXPECTED_SHA is required}
+      MANTICORE_URL: http://manticore:9308
+      REDIS_URL: redis://redis:6379
+      PERF_METRICS_DIR: /tmp/effect-e2e-perf
+      PERF_EFFECT_SPANS: "1"
+      JI_EFFECT_SEARCH: "1"
+      JI_EFFECT_DB: "1"
+      JI_EFFECT_SERVER: "1"
+      JI_EFFECT_WORKER: "1"
+      RAW_OBJECT_STORE_PATH: /tmp/effect-e2e-raw
+    volumes:
+      - ${EFFECT_E2E_PERF_DIR:?EFFECT_E2E_PERF_DIR is required}:/tmp/effect-e2e-perf
+      - ${EFFECT_E2E_RAW_DIR:?EFFECT_E2E_RAW_DIR is required}:/tmp/effect-e2e-raw
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      manticore:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "bun",
+          "-e",
+          "fetch('http://localhost:3000/livez').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+    restart: "no"
+
+  web:
+    image: ${EFFECT_E2E_IMAGE_PREFIX:-ji-effect-e2e-local}-web:latest
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_SERVER_URL: ${EFFECT_E2E_API_URL:?EFFECT_E2E_API_URL is required}
+    ports:
+      - target: 3001
+        published: "${EFFECT_E2E_WEB_PORT:-0}"
+        host_ip: 127.0.0.1
+    environment:
+      INTERNAL_SERVER_URL: http://server:3000
+      NEXT_PUBLIC_SERVER_URL: ${EFFECT_E2E_API_URL:?EFFECT_E2E_API_URL is required}
+      APP_RELEASE_SHA: ${EFFECT_E2E_EXPECTED_SHA:?EFFECT_E2E_EXPECTED_SHA is required}
+    depends_on:
+      server:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:3001/').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+    restart: "no"
+
+  projector:
+    image: ${EFFECT_E2E_IMAGE_PREFIX:-ji-effect-e2e-local}-projector:latest
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile.projector
+    environment:
+      DATABASE_URL: ${EFFECT_E2E_CONTAINER_DATABASE_URL:?EFFECT_E2E_CONTAINER_DATABASE_URL is required}
+      PROJECTOR_DATABASE_URL: ${EFFECT_E2E_CONTAINER_DATABASE_URL:?EFFECT_E2E_CONTAINER_DATABASE_URL is required}
+      MANTICORE_URL: http://manticore:9308
+      APP_RELEASE_SHA: ${EFFECT_E2E_EXPECTED_SHA:?EFFECT_E2E_EXPECTED_SHA is required}
+      SEARCH_HYBRID: "0"
+      PROJECTOR_HEARTBEAT_FILE: /tmp/projector-heartbeat
+      JI_EFFECT_SEARCH: "1"
+      JI_EFFECT_DB: "1"
+      JI_EFFECT_SERVER: "1"
+      JI_EFFECT_WORKER: "1"
+      PERF_EFFECT_SPANS: "1"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      manticore:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "bun", "src/projector/heartbeat.ts", "--check"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+    restart: "no"
+
+  worker:
+    image: ${EFFECT_E2E_IMAGE_PREFIX:-ji-effect-e2e-local}-worker:latest
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile.poller
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: ${EFFECT_E2E_CONTAINER_DATABASE_URL:?EFFECT_E2E_CONTAINER_DATABASE_URL is required}
+      MANTICORE_URL: http://manticore:9308
+      JI_EFFECT_WORKER: "1"
+      JI_EFFECT_SEARCH: "1"
+      JI_EFFECT_DB: "1"
+      JI_EFFECT_SERVER: "1"
+      PERF_EFFECT_SPANS: "1"
+      SEARCH_PROJECTOR: worker
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      manticore:
+        condition: service_healthy
+    restart: "no"
+
+volumes:
+  postgres_data:
+  manticore_data:

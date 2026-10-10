@@ -1,0 +1,7 @@
+{
+  "contractVersion": "connector-fixture/v1",
+  "source": "werken-voor-nederland",
+  "capturedAt": "2026-09-16T03:52:00.771Z",
+  "contentType": "xml",
+  "payload": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n  <url>\n    <loc>https://www.werkenvoornederland.nl/vacatures/kubernetes-software-platform-engineer-CJIB-2026-9570</loc>\n    <lastmod>2026-09-09</lastmod>\n  </url>\n  <url>\n    <loc>https://www.werkenvoornederland.nl/vacatures/database-platform-engineer-dba-postgresql-CJIB-2026-9921</loc>\n    <lastmod>2026-09-01</lastmod>\n  </url>\n</urlset>\n"
+}

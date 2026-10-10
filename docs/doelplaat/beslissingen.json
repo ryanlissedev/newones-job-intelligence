@@ -1,0 +1,32 @@
+[
+  {
+    "datum": "2026-08-25",
+    "beslissing": "Naam datastroom: Catapulze Job Intelligence",
+    "toelichting": "Losse module; platformen + werkenbij-sites; analyse/search erop"
+  },
+  {
+    "datum": "2026-08-25",
+    "beslissing": "Eerst specificeren, dan bouwen (vanaf nul)",
+    "toelichting": "Spec beschrijft de gewenste eindsituatie, los van v1"
+  },
+  {
+    "datum": "2026-08-25",
+    "beslissing": "Uniforme datastructuur + DWH als harde eis",
+    "toelichting": "Essentieel voor Robbie"
+  },
+  {
+    "datum": "2026-08-25",
+    "beslissing": "Spott.io als ATS/CRM",
+    "toelichting": "Gekozen; inrichting volgt"
+  },
+  {
+    "datum": "2026-08-25",
+    "beslissing": "Datalaag/Company OS op cloud-agnostische stack",
+    "toelichting": "Postgres + object storage, MCP, LangGraph/Pydantic AI, LiteLLM"
+  },
+  {
+    "datum": "2026-08-25",
+    "beslissing": "DWH-technologie nog niet gekozen",
+    "toelichting": "Keuze en laadpatroon horen bij de specificatie"
+  }
+]

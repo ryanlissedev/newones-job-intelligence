@@ -1,0 +1,8 @@
+{
+  "captureNote": "Recorded by tools/fixtures/record.ts: GET https://www.werkenbijgasunie.nl/sitemap.vacancy.xml. Mechanically stripped (elements): script:not([type=\"application/ld+json\"])×0, style×0, svg×0, nav×0, footer×0. Sitemap listing capture.",
+  "capturedAt": "2026-09-17T18:15:33.953Z",
+  "contentType": "html",
+  "contractVersion": "connector-fixture/v1",
+  "payload": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" ><url><loc>https://www.werkenbijgasunie.nl/vacature/318/technicus-e-i-warmte-rotterdam-den-haag</loc><lastmod>2026-09-17T20:04:41+02:00</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url><url><loc>https://www.werkenbijgasunie.nl/vacature/319/technicus-wtb-warmte-rotterdam-den-haag</loc><lastmod>2026-09-17T20:04:41+02:00</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url><url><loc>https://www.werkenbijgasunie.nl/vacature/325/adviseur-omgevingsrecht</loc><lastmod>2026-09-17T20:04:41+02:00</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url><url><loc>https://www.werkenbijgasunie.nl/vacature/341/production-lead</loc><lastmod>2026-09-17T20:04:41+02:00</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url></urlset>",
+  "source": "gasunie"
+}

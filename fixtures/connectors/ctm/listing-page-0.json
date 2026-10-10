@@ -1,0 +1,92 @@
+{
+  "contractVersion": "connector-fixture/v1",
+  "source": "ctm",
+  "capturedAt": "2026-08-30T22:04:57.000Z",
+  "contentType": "json",
+  "payload": {
+    "updatedAt": "2026-08-30T22:04:57Z",
+    "entries": [
+      {
+        "aanvraagnummer": "460057",
+        "referentie": "https://eu.eu-supply.com/app/rfq/rwlentrance_s.asp?PID=460057&PP=transactions.asp&B=CTMSOLUTION&PS=1",
+        "titel": "Openbare Europese aanbesteding voor onderhoud blusmiddelen en noodverlichting",
+        "link": "https://eu.eu-supply.com/app/rfq/rwlentrance_s.asp?PID=460057&PP=transactions.asp&B=CTMSOLUTION&PS=1",
+        "organisatie": "Anculus B.V.",
+        "publicatiedatum": "2026-08-26T04:34:00+02:00",
+        "sluitingstijd": "2026-10-13T11:00:00",
+        "procedure": "02 - Openbare procedure",
+        "cpv": [
+          { "code": "35111320-4", "name": "Portable fire-extinguishers" },
+          {
+            "code": "50700000-2",
+            "name": "Repair and maintenance services of building installations"
+          }
+        ]
+      },
+      {
+        "aanvraagnummer": "460060",
+        "referentie": "https://eu.eu-supply.com/app/rfq/rwlentrance_s.asp?PID=460060&PP=transactions.asp&B=CTMSOLUTION&PS=1",
+        "titel": "Openbare Europese aanbesteding voor onderhoud brandmeld-en inbraakinstallaties",
+        "link": "https://eu.eu-supply.com/app/rfq/rwlentrance_s.asp?PID=460060&PP=transactions.asp&B=CTMSOLUTION&PS=1",
+        "organisatie": "Anculus B.V.",
+        "publicatiedatum": "2026-08-26T04:34:00+02:00",
+        "sluitingstijd": "2026-10-13T11:00:00",
+        "procedure": "02 - Openbare procedure",
+        "cpv": [
+          { "code": "31625000-3", "name": "Burglar and fire alarms" },
+          {
+            "code": "50711000-2",
+            "name": "Repair and maintenance services of electrical building installations"
+          }
+        ]
+      },
+      {
+        "aanvraagnummer": "459877",
+        "referentie": "https://eu.eu-supply.com/app/rfq/rwlentrance_s.asp?PID=459877&PP=transactions.asp&B=CTMSOLUTION&PS=1",
+        "titel": "Openbare Europese aanbesteding W-installaties Wereldkidz, STEV, Simon scholen en Het Sticht",
+        "link": "https://eu.eu-supply.com/app/rfq/rwlentrance_s.asp?PID=459877&PP=transactions.asp&B=CTMSOLUTION&PS=1",
+        "organisatie": "Anculus B.V.",
+        "publicatiedatum": "2026-08-20T04:20:00+02:00",
+        "sluitingstijd": "2026-10-13T11:00:00",
+        "procedure": "02 - Openbare procedure",
+        "cpv": [
+          { "code": "45350000-5", "name": "Mechanical installations" },
+          { "code": "71333000-1", "name": "Mechanical engineering services" }
+        ]
+      },
+      {
+        "aanvraagnummer": "459876",
+        "referentie": "https://eu.eu-supply.com/app/rfq/rwlentrance_s.asp?PID=459876&PP=transactions.asp&B=CTMSOLUTION&PS=1",
+        "titel": "Openbare Europese aanbesteding W-installaties Vechtstreek&Venen, VSU, PCBO Amersfoort en Monton",
+        "link": "https://eu.eu-supply.com/app/rfq/rwlentrance_s.asp?PID=459876&PP=transactions.asp&B=CTMSOLUTION&PS=1",
+        "organisatie": "Anculus B.V.",
+        "publicatiedatum": "2026-08-20T04:19:00+02:00",
+        "sluitingstijd": "2026-10-13T11:00:00",
+        "procedure": "02 - Openbare procedure",
+        "cpv": [
+          { "code": "45350000-5", "name": "Mechanical installations" },
+          { "code": "71333000-1", "name": "Mechanical engineering services" }
+        ]
+      },
+      {
+        "aanvraagnummer": "459469",
+        "referentie": "https://eu.eu-supply.com/app/rfq/rwlentrance_s.asp?PID=459469&PP=transactions.asp&B=CTMSOLUTION&PS=1",
+        "titel": "Stichting OSG Twente - raamovereenkomst touringcarvervoer",
+        "link": "https://eu.eu-supply.com/app/rfq/rwlentrance_s.asp?PID=459469&PP=transactions.asp&B=CTMSOLUTION&PS=1",
+        "organisatie": "Anculus B.V.",
+        "publicatiedatum": "2026-08-11T02:19:00+02:00",
+        "sluitingstijd": "2026-09-21T11:00:00",
+        "procedure": "02 - Openbare procedure",
+        "cpv": [
+          { "code": "34121000-1", "name": "Buses and coaches" },
+          { "code": "34121500-6", "name": "Coaches" },
+          {
+            "code": "60172000-4",
+            "name": "Hire of buses and coaches with driver"
+          },
+          { "code": "63515000-2", "name": "Travel services" }
+        ]
+      }
+    ]
+  }
+}

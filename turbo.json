@@ -1,0 +1,53 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "globalDependencies": ["tsconfig.json"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "check-types": {
+      "dependsOn": ["^check-types"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "projector": {
+      "cache": false,
+      "env": [
+        "DATABASE_URL",
+        "MANTICORE_URL",
+        "NODE_ENV",
+        "PROJECTOR_DATABASE_URL",
+        "SEARCH_HYBRID"
+      ],
+      "persistent": true
+    },
+    "db:push": {
+      "cache": false,
+      "env": ["MIGRATION_DATABASE_URL"],
+      "interactive": true
+    },
+    "db:generate": {
+      "cache": false,
+      "env": ["MIGRATION_DATABASE_URL"],
+      "interactive": true
+    },
+    "db:migrate": {
+      "cache": false,
+      "env": ["MIGRATION_DATABASE_URL"],
+      "interactive": false
+    },
+    "db:studio": {
+      "cache": false,
+      "env": ["MIGRATION_DATABASE_URL"],
+      "persistent": true
+    }
+  }
+}

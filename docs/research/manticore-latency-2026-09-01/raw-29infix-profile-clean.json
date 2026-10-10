@@ -1,0 +1,51 @@
+[
+  {
+    "boundary": "SearchAdapter",
+    "documentCount": 20000,
+    "engine": "manticore29-infix-clean (mislabeled by harness default label logic since MANTICORE_URL pointed at :9312 here -- corrected label)",
+    "errorCount": 0,
+    "indexingDocsPerSecond": 61.4,
+    "indexingMs": 325901.6,
+    "maxMs": 40.38,
+    "p50Ms": 2.8,
+    "p95Ms": 5.37,
+    "p99Ms": 36.32,
+    "passed": true,
+    "perQuery": [
+      {
+        "count": 50,
+        "p50Ms": 3.81,
+        "p95Ms": 5.74,
+        "queryId": "ae1-azure-platform-not-intern"
+      },
+      {
+        "count": 50,
+        "p50Ms": 2.94,
+        "p95Ms": 30.03,
+        "queryId": "filter-only"
+      },
+      {
+        "count": 50,
+        "p50Ms": 2.54,
+        "p95Ms": 4.68,
+        "queryId": "or-locatie"
+      },
+      {
+        "count": 50,
+        "p50Ms": 2.57,
+        "p95Ms": 5.37,
+        "queryId": "phrase-devops"
+      },
+      {
+        "count": 50,
+        "p50Ms": 2.23,
+        "p95Ms": 2.91,
+        "queryId": "simple-java"
+      }
+    ],
+    "profile": "/private/tmp/claude-501/-Users-cortex-air-Documents-ChatGPT-Catapulze---Job-intelligence-platform/f79efff0-aab9-4ff4-9254-45e90fba0a1f/scratchpad/wt/latency/benchmarks/search/profile.json",
+    "queryMode": "profile",
+    "queryset": "fixtures/search/benchmark-corpus.jsonl",
+    "sloMaxMs": 100
+  }
+]

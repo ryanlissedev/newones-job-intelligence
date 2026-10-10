@@ -1,0 +1,26 @@
+{
+  "contractVersion": "spott-fixture/v1",
+  "source": "spott",
+  "endpoint": "GET /vacancies",
+  "capturedAt": "2026-08-30T16:00:00.000Z",
+  "payload": {
+    "items": [
+      {
+        "id": "vacancy-fixture-001",
+        "name": "Senior Java Developer",
+        "description": "Fixture vacancy for Slice B spike tests.",
+        "restricted": false
+      },
+      {
+        "id": "vacancy-fixture-002",
+        "name": "DevOps Engineer",
+        "description": "Second fixture vacancy for pagination tests.",
+        "restricted": false
+      }
+    ],
+    "pageInfo": {
+      "hasNextPage": true,
+      "nextCursor": "eyJpZCI6InZhY2FuY3ktZml4dHVyZS0wMDIifQ=="
+    }
+  }
+}
