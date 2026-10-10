@@ -9,6 +9,7 @@
  * (`cf_clearance`, …). See docs/sources/werkzoeken.md.
  */
 
+import { parseRetryAfterMs } from "../effect-runtime/faults";
 import { SourceBlockedError } from "../source-blocked";
 
 /** Named header bag for live json-ld fetches (optional ops Cookie). */
@@ -153,12 +154,20 @@ export const decodeLiveBodyBytes = async (
  * 404 detail page as "gone at source" instead of failing the whole run.
  */
 export class HttpStatusError extends Error {
+  /** The host's `Retry-After`, parsed, when it sent one (429/503). */
+  readonly retryAfterMs: number | null;
   readonly status: number;
   readonly url: string;
 
-  constructor(options: { slug: string; status: number; url: string }) {
+  constructor(options: {
+    retryAfterMs?: number | null;
+    slug: string;
+    status: number;
+    url: string;
+  }) {
     super(`${options.slug} request failed with status ${options.status}`);
     this.name = "HttpStatusError";
+    this.retryAfterMs = options.retryAfterMs ?? null;
     this.status = options.status;
     this.url = options.url;
   }
@@ -184,6 +193,9 @@ export const readLiveHtmlOrThrow = async (options: {
   }
   if (!options.response.ok) {
     throw new HttpStatusError({
+      retryAfterMs: parseRetryAfterMs(
+        options.response.headers.get("Retry-After")
+      ),
       slug: options.slug,
       status: options.response.status,
       url: options.url,

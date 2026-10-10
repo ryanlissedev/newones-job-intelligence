@@ -757,8 +757,13 @@ const markDominatedUnchangedObservations = async (
     "dominating_observation"
   );
   const dominatingRun = alias(scrapeRun, "dominating_run");
+  // One pair per dominated row: its best dominator (an applied one first, else
+  // the newest). A chain of N same-hash re-observations used to yield ~N²/2
+  // pairs, so the 5000-pair sweep covered only a handful of rows per pass.
+  // Now it covers 5000 rows, and their dominators collapse to the chain head,
+  // which costs one raw check per identity instead of one per pair.
   const dominatedPairs = await input.database
-    .select({
+    .selectDistinctOn([aanvraagObservation.id], {
       dominatorBronId: dominatingObservation.bronId,
       dominatorBronReferentie: sourceRecord.bronReferentie,
       dominatorContentHash: dominatingObservation.contentHash,
@@ -821,6 +826,11 @@ const markDominatedUnchangedObservations = async (
           ? eq(aanvraagObservation.scrapeRunId, input.scrapeRunId)
           : undefined
       )
+    )
+    .orderBy(
+      aanvraagObservation.id,
+      desc(inArray(dominatingObservation.status, [...APPLIED_STATUSES])),
+      desc(dominatingRun.gestart)
     )
     .limit(DOMINATED_SWEEP_LIMIT);
   const resolved = await resolveDominatedPairs({

@@ -1,4 +1,4 @@
-import { executeBronRun } from "@ji/application/bronnen";
+import { executeBronRun, hostGateSnapshot } from "@ji/application/bronnen";
 import type {
   BronPersistence,
   ExecuteBronRunInput,
@@ -51,6 +51,7 @@ import {
   scrapeRun,
 } from "@ji/db";
 import type { BronRuntimeDatabase } from "@ji/db";
+import { recordHostCircuitStatus } from "@ji/db/bron-health-stores";
 import type { BronHealthDatabase } from "@ji/db/bron-health-stores";
 import { curateScrapeRun } from "@ji/db/curate-scrape-run";
 import { describeCauseChain, errorNameOf } from "@ji/db/error-cause-chain";
@@ -66,6 +67,7 @@ import {
   requireManticoreUrl,
 } from "./poll-bron-env";
 import { withAbortFinalization } from "./poller/abort-finalization";
+import type { SlotAttempt, SlotLimit } from "./poller/slots";
 import { redactErrorMessage } from "./poller/source-log";
 import { reportTelemetryCallback } from "./poller/telemetry-callback";
 import type { SliceABronSlug } from "./slice-a-bronnen";
@@ -104,6 +106,11 @@ export interface BronIngestPipelineResult extends PollBronRunResult {
   attemptedObservationIds: string[];
   blockedOrdering: number;
   curated: number;
+  /**
+   * True when the inline curation pass was skipped because every curation
+   * slot was busy; `curated`/`remaining` are then 0 and uncounted.
+   */
+  curationDeferred?: boolean;
   drained: number;
   /** Observations parked on `curation_failed` by this pass; see CTP-499. */
   failed: number;
@@ -136,7 +143,25 @@ export interface PollBronRuntime {
   loadBaseline?: (bronId: string) => Promise<readonly RunBaselineSample[]>;
   objectStore: ObjectStore;
   observationRecorder: ObservationRecorder;
+  /**
+   * Persists the host-gate circuit after each run so `/bronnen` shows a
+   * blocked source. Optional: test runtimes without a database omit it.
+   */
+  recordHostCircuit?: (
+    bronId: BronId,
+    circuitStatus: "closed" | "open"
+  ) => Promise<void>;
   runLifecycleStore: RunLifecycleStore;
+  /**
+   * Bounds concurrent curation drains across the process. The poller sets it
+   * so eight sources in flight do not mean eight drains against Postgres.
+   * The inline pass after a poll only takes a slot that is free right away:
+   * queueing would spend the run budget, and a budget abort would fail the
+   * run before the caller's own drain. With none free it is skipped
+   * (`curationDeferred`) and the caller's backlog drain curates instead.
+   * Unset runs the drain directly.
+   */
+  withCurationSlot?: SlotLimit;
   withSourceHealthTransaction: <T>(
     runOperation: (stores: {
       alerts: AlertStore;
@@ -145,6 +170,43 @@ export interface PollBronRuntime {
     }) => Promise<T>
   ) => Promise<T>;
 }
+
+const runInline = async <T>(
+  work: () => Promise<T>
+): Promise<SlotAttempt<T>> => ({ ran: true, value: await work() });
+
+/**
+ * How the inline pass after a poll takes its curation slot. Normally only a
+ * free slot (`tryRun`): the caller's backlog drain covers a skip. A
+ * discovery-floor breach throws before that drain, so this pass is the only
+ * curation the bron gets; it queues for a slot instead of skipping.
+ */
+const inlineCurationRunner = (
+  slots: SlotLimit | undefined,
+  noDrainFollows: boolean
+): (<T>(work: () => Promise<T>) => Promise<SlotAttempt<T>>) => {
+  if (!slots) {
+    return runInline;
+  }
+  if (noDrainFollows) {
+    return (work) => runInline(() => slots(work));
+  }
+  return slots.tryRun;
+};
+
+/** The inline pass did not run; the caller's backlog drain counts and curates. */
+const skippedInlineCuration = () => ({
+  alreadyCommitted: 0,
+  attemptedObservationIds: [],
+  blockedOrdering: 0,
+  curated: 0,
+  failed: 0,
+  pending: 0,
+  quarantined: 0,
+  remaining: 0,
+  superseded: 0,
+  unchanged: 0,
+});
 
 export const createPollBronRuntime = (
   databaseUrl: string,
@@ -209,6 +271,8 @@ export const createPollBronRuntime = (
     lifecycle: client.lifecycle,
     objectStore,
     observationRecorder: client.observationRecorder,
+    recordHostCircuit: (bronId, circuitStatus) =>
+      recordHostCircuitStatus(client.database, bronId, circuitStatus),
     runLifecycleStore: client.runLifecycleStore,
     withSourceHealthTransaction: (runOperation) =>
       client.database.transaction((transaction) =>
@@ -244,6 +308,41 @@ export interface PollBronRunOptions {
   onCurationProgress?: (pollResult: PollBronRunResult) => Promise<void> | void;
 }
 
+/**
+ * Runs the bron, then persists its host-gate circuit whatever the outcome: a
+ * blocked run fails, and that failure is exactly when the circuit opens. A
+ * persistence error is logged and never masks the run's own result.
+ */
+const executeBronRunRecordingCircuit = async (
+  runtime: PollBronRuntime,
+  bronId: BronId,
+  input: ExecuteBronRunInput
+): Promise<ExecuteBronRunResult> => {
+  try {
+    return await executeBronRun(runtime.bronPersistence, input);
+  } finally {
+    const snapshot = hostGateSnapshot(bronId);
+    if (snapshot && runtime.recordHostCircuit) {
+      try {
+        await runtime.recordHostCircuit(
+          bronId,
+          snapshot.circuit === "closed" ? "closed" : "open"
+        );
+      } catch (error) {
+        process.stderr.write(
+          `${JSON.stringify({
+            bronId,
+            event: "host_circuit_persist_failed",
+            message: redactErrorMessage(
+              error instanceof Error ? error.message : String(error)
+            ),
+          })}\n`
+        );
+      }
+    }
+  }
+};
+
 export const runPollBron = async (
   payload: PollBronPayload,
   runtime: PollBronRuntime,
@@ -261,7 +360,7 @@ export const runPollBron = async (
     runKind,
   });
 
-  const result = await executeBronRun(runtime.bronPersistence, {
+  const result = await executeBronRunRecordingCircuit(runtime, bronId, {
     bronId,
     bronSlug: payload.bronSlug,
     connector,
@@ -879,28 +978,36 @@ export const runBronIngestPipeline = async (
         },
         options.signal
       );
-      const curateResult = await curateScrapeRun({
-        bronId: pollResult.bronId,
-        bronSlug: pollResult.bronSlug,
-        database: runtime.database,
-        objectStore: runtime.objectStore,
-        onProgress: options.onCurationProgress
-          ? () =>
-              reportTelemetryCallback(
-                options.onCurationProgress,
-                pollResult,
-                {
-                  bronId: pollResult.bronId,
-                  bronSlug: pollResult.bronSlug,
-                  scrapeRunId: pollResult.scrapeRunId,
-                  telemetryPhase: "curation_progress",
-                },
-                options.signal
-              )
-          : undefined,
-        scrapeRunId: pollResult.scrapeRunId,
-        signal: options.signal,
-      });
+      const inlinePass = await inlineCurationRunner(
+        runtime.withCurationSlot,
+        floorBreach !== null
+      )(() =>
+        curateScrapeRun({
+          bronId: pollResult.bronId,
+          bronSlug: pollResult.bronSlug,
+          database: runtime.database,
+          objectStore: runtime.objectStore,
+          onProgress: options.onCurationProgress
+            ? () =>
+                reportTelemetryCallback(
+                  options.onCurationProgress,
+                  pollResult,
+                  {
+                    bronId: pollResult.bronId,
+                    bronSlug: pollResult.bronSlug,
+                    scrapeRunId: pollResult.scrapeRunId,
+                    telemetryPhase: "curation_progress",
+                  },
+                  options.signal
+                )
+            : undefined,
+          scrapeRunId: pollResult.scrapeRunId,
+          signal: options.signal,
+        })
+      );
+      const curateResult = inlinePass.ran
+        ? inlinePass.value
+        : skippedInlineCuration();
 
       const drainSummary = await drainOrDeferToProjector(runtime);
 
@@ -916,6 +1023,7 @@ export const runBronIngestPipeline = async (
         attemptedObservationIds: curateResult.attemptedObservationIds,
         blockedOrdering: curateResult.blockedOrdering,
         curated: curateResult.curated,
+        curationDeferred: !inlinePass.ran,
         drained: drainSummary.drained,
         failed: curateResult.failed,
         indexVersion: drainSummary.indexVersion,

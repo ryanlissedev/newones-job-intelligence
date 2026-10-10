@@ -256,3 +256,24 @@ export const querySilenceBaselineSamples = async (
 
   return rows;
 };
+
+/**
+ * Persists a bron's host-gate circuit (`closed` or `open`) on
+ * `bron_health.circuit_status`, which `/bronnen` already renders. Every other
+ * health write carries the stored value forward, so this is the only place it
+ * changes. A no-op when the value is already stored.
+ */
+export const recordHostCircuitStatus = async (
+  database: BronHealthDatabase,
+  bronId: string,
+  circuitStatus: "closed" | "open"
+): Promise<void> => {
+  await database
+    .insert(bronHealth)
+    .values({ bronId, circuitStatus })
+    .onConflictDoUpdate({
+      set: { circuitStatus },
+      setWhere: ne(bronHealth.circuitStatus, circuitStatus),
+      target: bronHealth.bronId,
+    });
+};

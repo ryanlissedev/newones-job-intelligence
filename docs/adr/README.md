@@ -30,6 +30,7 @@ Deze map bevat de canonieke architectuurbesluiten die meerdere packages, uitvoer
 | [ADR-0015](ADR-0015-platform-integration-contracts.md) | Proposed | Modulegrenzen, scoped identities en versioned integratiecontracten (CTP-452) |
 | [ADR-0016](ADR-0016-candidate-intelligence-module-contract.md) | Proposed; startgate-items pending-owner-acceptance | Candidate Intelligence-modulecontract en toetsbare CI0-startgate (CTP-636, parent CTP-345) |
 | [ADR-0017](ADR-0017-rpo-rto-herstelgrens.md) | Proposed; grens pending-owner-acceptance | Numerieke RPO/RTO-grens voor JI-productie en een restore-drill die er hard op faalt (CTP-654, parent CTP-340) |
+| [ADR-0018](ADR-0018-volledige-bronvastlegging-en-bijlagen.md) | Proposed; §1 en §4 pending-owner-acceptance | Bronbytes naast extractie bewaren, alle bronvelden vastleggen en bijlagen via een eigen pipeline (raakt DEC-008) |
 
 ## Runbooks
 
