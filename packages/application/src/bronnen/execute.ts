@@ -1,8 +1,10 @@
 import {
   awaitWithSignal,
+  FetchRateCap,
   fullJitter,
   HostGate,
   runConnector,
+  withFetchRateCap,
 } from "@ji/connectors";
 import type {
   Connector,
@@ -44,6 +46,11 @@ export interface ExecuteBronRunInput {
    */
   lifecycle?: LifecycleReconcilePorts;
   retryPolicy?: RetryPolicy;
+  /**
+   * Overrides the process-wide fetch cap for this run (tests). Unset uses the
+   * cap from `configureProcessFetchRateCap`, or none when that was never set.
+   */
+  fetchRateCap?: FetchRateCap;
   /** CTP-490: stops the connector run at the next item boundary; see `ConnectorRunInput.signal`. */
   signal?: AbortSignal;
   now?: () => number;
@@ -94,6 +101,7 @@ const transitionLimiterPolicy = (
       await next.acquire(bronId, signal);
     },
     report: (bronId, signal) => next.report(bronId, signal),
+    started: (bronId) => next.started(bronId),
   };
 };
 
@@ -165,6 +173,21 @@ export const hostGateHoldsStart = (bronId: BronId, until: Date): boolean => {
   );
 };
 
+let processFetchRateCap: FetchRateCap | null = null;
+
+/**
+ * Sets the process-wide ceiling on request starts per second, shared by every
+ * bron run in this process; `null` removes it. The poller calls this once at
+ * startup with POLLER_FETCHES_PER_SECOND. Per-host pacing is unaffected: the
+ * cap sits behind each bron's HostGate.
+ */
+export const configureProcessFetchRateCap = (
+  perSecond: number | null
+): void => {
+  processFetchRateCap =
+    perSecond === null ? null : new FetchRateCap({ perSecond });
+};
+
 const releaseLimiter = (activeLimiter: ActiveLimiter): void => {
   activeLimiter.activeRuns -= 1;
   if (activeLimiter.activeRuns === 0 && activeLimiter.replacementLimiter) {
@@ -221,13 +244,16 @@ export const executeBronRun = async (
     wait: input.wait,
   });
 
+  const fetchRateCap = input.fetchRateCap ?? processFetchRateCap;
   let result: ConnectorRunResult;
   try {
     result = await runConnector({
       bronId: input.bronId,
       bronSlug: input.bronSlug,
       connector: input.connector,
-      limiter: activeLimiter.limiter,
+      limiter: fetchRateCap
+        ? withFetchRateCap(activeLimiter.limiter, fetchRateCap)
+        : activeLimiter.limiter,
       objectStore: input.objectStore,
       observationRecorder: input.observationRecorder,
       onProgress: input.onProgress,

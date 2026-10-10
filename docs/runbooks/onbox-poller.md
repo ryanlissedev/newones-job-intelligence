@@ -49,6 +49,8 @@ Read through the typed contract in `packages/env/src/poller.ts`, which mirrors
 | `POLLER_RUN_BUDGET_MS` | no, default 3600000 (1 hour) | Wall clock for one source's connector run. When it elapses the run stops at the next item, keeps what it observed and closes its row as incomplete. A source whose full crawl needs longer declares its own `runBudgetMs` (Intermediair 2.5 hours, Randstad 3 hours, ProUnity 3.5 hours, Techniekwerkt 5.5 hours), capped 30 minutes below `POLLER_ABANDON_RUN_AFTER_MS`. See [Runs that never finish](#runs-that-never-finish). |
 | `POLLER_ABANDON_RUN_AFTER_MS` | no, default 21600000 (6 hours) | A `curated.scrape_run` still `running` after this is failed once per tick, before candidates are read. See [Runs that never finish](#runs-that-never-finish). |
 | `POLLER_DURABLE_BRONNEN` | no, unset | Comma-separated source slugs dispatched through `curated.durable_job` (the `PersistedQueue` path) instead of an inline run. Unset = everything inline. Requires migration `0029_durable_job_queue` first — see [durable-bron-jobs.md](durable-bron-jobs.md). |
+| `POLLER_FETCHES_PER_SECOND` | no, default 8 | Process-wide ceiling on request starts per second, across every source. Each source's own crawl delay still applies first. |
+| `POLLER_CURATE_CONCURRENCY` | no, default 2 | How many `curateScrapeRun` passes may run against Postgres at once, across all sources in flight. |
 | `SEARCH_PROJECTOR` | no, pinned to `onbox` | The only accepted value. The poller polls and curates; the on-box projector owns every outbox drain. |
 | `MANTICORE_URL` | no | Unused while `SEARCH_PROJECTOR` is `onbox`. Declared so the contract is one document. |
 | `RAW_S3_BUCKET`, `RAW_S3_ENDPOINT`, `RAW_S3_REGION`, `RAW_S3_ACCESS_KEY_ID`, `RAW_S3_SECRET_ACCESS_KEY` | in production yes | Read by `createPollBronRuntime` in `apps/worker/src/poll-bron-run.ts`. With `NODE_ENV=production` the process refuses to start on the filesystem backend, because raw payloads written there would read back as null from the server (RJC-386, [raw-object-storage.md](raw-object-storage.md)). |
@@ -112,7 +114,7 @@ source's run.
 
 ## Sources run side by side
 
-The poller runs up to `POLLER_CONCURRENCY` sources at once, default 2, and
+The poller runs up to `POLLER_CONCURRENCY` sources at once, default 8, and
 keeps scheduling while they run. There is no cohort barrier: an evaluation
 starts every due source that has a free slot, and the loop re-evaluates on the
 tick or the moment a run finishes — a long BlueTrail or Opdrachtoverheid crawl
@@ -156,12 +158,24 @@ The scoped liveness fiber refreshes the heartbeat independently of source
 progress, so a long connector or curation pass cannot make process liveness
 look stale. Source progress and freshness are separate signals.
 
-Postgres load is bounded by the same number. Each source's drain step runs
-inside that source's budget, so `POLLER_CONCURRENCY` is also the ceiling on
-concurrent `curateScrapeRun` drains: at the default that is two. Raising it
-raises both the number of sites polled at once and the number of drains
-competing for the database, so raise it in small steps and watch `poller_cycle`
-durations rather than jumping to the source count.
+Two process-wide caps sit beside the slot count:
+
+- **`POLLER_FETCHES_PER_SECOND`** (default 8) spaces request starts across
+  every source in flight. A source waits for its own host first (crawl delay,
+  429 pause), then for a global slot. With eight sources whose crawl delays are
+  short, this is what keeps the box's outbound rate where it was.
+- **`POLLER_CURATE_CONCURRENCY`** (default 2) bounds `curateScrapeRun` passes
+  against Postgres. A curation pass takes a slot, and a source whose drain is
+  waiting keeps its run slot meanwhile. The default equals the old two fixed
+  slots, so moving from 2 to 8 sources in flight does not add database
+  pressure. Raise it in small steps and watch curation `remaining` and
+  Postgres load, not the source count.
+
+Why 8: the measured round (2026-10-08) had 33–34 sources always due and both
+slots busy in 88% of evaluations. The p50 round was 6.27 h, dominated by
+Techniekwerkt (330 min) and Randstad (103 min). Replaying those durations
+through `runContinuously` (`docs/evidence/poller-concurrency/`) takes the round
+from about 6 h at 2 slots to about the length of the longest source at 8.
 
 ## Runs that never finish
 

@@ -12,7 +12,10 @@ import { hostname } from "node:os";
  * 900 s task ceiling to hit. Draining the search outbox stays with the on-box
  * projector (SEARCH_PROJECTOR is pinned to onbox).
  */
-import { hostGateHoldsStart } from "@ji/application/bronnen";
+import {
+  configureProcessFetchRateCap,
+  hostGateHoldsStart,
+} from "@ji/application/bronnen";
 import {
   createAlertEscalator,
   createWebhookAlertSink,
@@ -66,6 +69,7 @@ import {
   partitionByHostGate,
   partitionByLiveFlag,
 } from "./schedule";
+import { createSlotLimit } from "./slots";
 import { createSourceHealthCallbacks } from "./source-health";
 import type { PollerSourceLog } from "./source-log";
 import {
@@ -134,6 +138,8 @@ interface PollSourceAttemptOptions {
   signal: AbortSignal;
 }
 
+const runWithoutSlot = <T>(work: () => Promise<T>): Promise<T> => work();
+
 /**
  * CTP-490: one signal for the connector run that fires on shutdown or when
  * the run budget elapses, so a stalled poll closes its own row instead of
@@ -181,6 +187,9 @@ const runPollSourceAttempt = async (
     () =>
       drainBacklog(
         {
+          // Every curation slot was busy after the poll: the inline pass was
+          // skipped, so this drain does the counting and curating.
+          backlogUnknown: result.curationDeferred === true,
           deadlineMs: Date.now() + curateBudgetMs,
           input: {
             bronId: result.bronId,
@@ -210,7 +219,12 @@ const runPollSourceAttempt = async (
             remaining: result.remaining,
           },
         },
-        curateScrapeRun
+        // Each pass takes a curation slot, so the drains of all in-flight
+        // sources share POLLER_CURATE_CONCURRENCY between them.
+        (curateInput) =>
+          (runtime.withCurationSlot ?? runWithoutSlot)(() =>
+            curateScrapeRun(curateInput)
+          )
       )
   );
   await health.finish(result, drained);
@@ -260,6 +274,8 @@ const main = async (): Promise<void> => {
   const tickMs = Number(pollerEnv.POLLER_TICK_MS);
   const curateBudgetMs = Number(pollerEnv.POLLER_CURATE_BUDGET_MS);
   const concurrency = Number(pollerEnv.POLLER_CONCURRENCY);
+  const curateConcurrency = Number(pollerEnv.POLLER_CURATE_CONCURRENCY);
+  const fetchesPerSecond = Number(pollerEnv.POLLER_FETCHES_PER_SECOND);
   const abandonRunAfterMs = Number(pollerEnv.POLLER_ABANDON_RUN_AFTER_MS);
   const runBudgetMs = Number(pollerEnv.POLLER_RUN_BUDGET_MS);
   // Randstad and Techniekwerkt need more than the default hour to walk their
@@ -358,17 +374,25 @@ const main = async (): Promise<void> => {
       runBudgetMs,
       startedAt: PROCESS_STARTED_AT,
     });
-    runtime = createPollBronRuntime(pollerEnv.DATABASE_URL, {
-      pollRunStaleAfterMs: abandonRunAfterMs,
-    });
+    // Every bron run in this process shares one ceiling on request starts;
+    // each bron's HostGate still paces its own host first.
+    configureProcessFetchRateCap(fetchesPerSecond);
+    runtime = {
+      ...createPollBronRuntime(pollerEnv.DATABASE_URL, {
+        pollRunStaleAfterMs: abandonRunAfterMs,
+      }),
+      withCurationSlot: createSlotLimit(curateConcurrency),
+    };
     const activeRuntime = runtime;
     const activeRuntimeHealth = runtimeHealth;
     logLine(process.stdout, "poller_started", {
       abandonRunAfterMs,
       concurrency,
       curateBudgetMs,
+      curateConcurrency,
       egressProxiedSources: egress.proxiedSources,
       egressProxyConfigured: egress.proxyConfigured,
+      fetchesPerSecond,
       releaseSha: pollerEnv.APP_RELEASE_SHA ?? null,
       runBudgetMs,
       startedAt: PROCESS_STARTED_AT.toISOString(),
@@ -572,12 +596,13 @@ const main = async (): Promise<void> => {
                   });
                 }
               },
-              // At most POLLER_CONCURRENCY sources in flight. Each source still
-              // runs one at a time and keeps its own `crawl_delay_ms` pacing, so
-              // this buys cycle wall clock without touching politeness per host.
-              // Each in-flight source can hold one `curateScrapeRun` drain, so
-              // the concurrency is also the ceiling on concurrent drains against
-              // Postgres.
+              // At most POLLER_CONCURRENCY sources in flight (default 8). Each
+              // source still runs one at a time behind its own HostGate, and
+              // POLLER_FETCHES_PER_SECOND caps request starts across all of
+              // them, so more slots buy wall clock without loosening
+              // politeness. Curation drains are capped separately by
+              // POLLER_CURATE_CONCURRENCY, so Postgres sees no more drains
+              // than it did with two slots.
               run: async (candidate) => {
                 // CTP-622: bronnen listed in POLLER_DURABLE_BRONNEN are handed to
                 // the durable queue instead of run inline. The job's scrapeRunId

@@ -23,6 +23,12 @@ export interface RequestLimiter {
    * (the plain crawl-delay limiter) keeps its fixed pacing.
    */
   report?: (bronId: BronId, signal: GateSignal) => void;
+  /**
+   * Optional: the request reserved by the last `acquire` starts now. A
+   * wrapper that waits after `acquire` (the process fetch cap) calls it, so
+   * the host's next window counts from the real start, not the reservation.
+   */
+  started?: (bronId: BronId) => void;
 }
 
 export interface CrawlDelayLimiterOptions {

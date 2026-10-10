@@ -6,6 +6,11 @@ export interface BacklogDrain {
 }
 
 interface DrainBacklogOptions<Input> {
+  /**
+   * The inline pass was skipped, so `start.remaining` was never counted:
+   * run at least one pass (budget and signal permitting) to learn it.
+   */
+  backlogUnknown?: boolean;
   deadlineMs: number;
   input: Input;
   signal: AbortSignal;
@@ -20,13 +25,19 @@ export const drainBacklog = async <Input>(
 ): Promise<BacklogDrain> => {
   const { deadlineMs, input, signal, start } = options;
   const total = { ...start };
-  while (total.remaining > 0 && now() < deadlineMs && !signal.aborted) {
+  let mustCount = options.backlogUnknown === true;
+  while (
+    (mustCount || total.remaining > 0) &&
+    now() < deadlineMs &&
+    !signal.aborted
+  ) {
     // oxlint-disable-next-line no-await-in-loop -- passes must not overlap on one source
     const next = await curate(input);
     total.curated += next.curated;
     total.failed += next.failed;
     total.quarantined += next.quarantined;
-    const progressed = next.remaining < total.remaining;
+    const progressed = mustCount || next.remaining < total.remaining;
+    mustCount = false;
     total.remaining = next.remaining;
     if (!progressed) {
       break;

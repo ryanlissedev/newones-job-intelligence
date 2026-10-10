@@ -273,6 +273,17 @@ export class HostGate implements RequestLimiter {
   }
 
   /**
+   * The request starts later than its reserved window (a global cap held
+   * it): push the host's next window so the crawl delay still separates
+   * real request starts.
+   */
+  started(bronId: BronId): void {
+    const state = this.stateOf(bronId);
+    const earliestNext = this.now() + this.minimumIntervalMs;
+    state.nextRequestAt = Math.max(state.nextRequestAt ?? 0, earliestNext);
+  }
+
+  /**
    * Takes over another gate's per-host state, so a policy change (new crawl
    * delay) keeps an open circuit, its escalated cool-down and any 429 pause.
    * A probe the old gate had out is not carried: its answer reports here.
