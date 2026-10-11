@@ -50,12 +50,6 @@
 BEGIN;
 SET LOCAL lock_timeout = '5s';
 SET LOCAL statement_timeout = '300s';
--- Hold writers off for the (short) apply: the plan ranks on bron_url, laatst_gezien_op, v1_id,
--- compleetheid_score and eerste_gezien_op from the statement snapshot, while the UPDATE locks the
--- newest row version. A poller update committed in between could otherwise mark the wrong loser
--- and archive a stale snapshot. Reads (API, projector) are not blocked; a writer holding a row
--- lock longer than lock_timeout makes the apply fail cleanly (nothing written; just rerun).
-LOCK TABLE curated.aanvraag IN SHARE ROW EXCLUSIVE MODE;
 \else
 \echo '== url-dedup: DRY RUN (read-only; pass -v apply=1 to write) =='
 BEGIN READ ONLY;
@@ -93,6 +87,16 @@ SELECT p.bron_id, p.url_norm, p.keep_id, p.id AS mark_id, p.bron_referentie AS m
  LIMIT 20;
 
 \if :apply
+-- Hold writers off only for the write: the lock is taken right before the mutating statement
+-- (the reports above run unlocked), so ingestion waits for one statement plus the checks below.
+-- The plan ranks on bron_url, laatst_gezien_op, v1_id, compleetheid_score and eerste_gezien_op
+-- from the statement snapshot, while the UPDATE locks the newest row version; a poller update
+-- committed in between could otherwise mark the wrong loser and archive a stale snapshot. The
+-- statement below recomputes the plan under the lock, so the reports may differ only by such
+-- concurrent writes; the counts it returns are authoritative. Reads (API, projector) are not
+-- blocked; a writer holding a row lock longer than lock_timeout makes the apply fail cleanly
+-- (nothing written; just rerun).
+LOCK TABLE curated.aanvraag IN SHARE ROW EXCLUSIVE MODE;
 -- One statement: plan, archive snapshot and mark share one snapshot.
 :plan_ctes
 , archived AS (

@@ -45,7 +45,7 @@ The prod dup analysis (2026-10-11, sections 10–11) found live rows of one bron
    - Expect about 123 Opdrachtoverheid + 121 MI Public = **~244 rows**, 0 for every other bron.
    - Opdrachtoverheid: every loser is v1 and every kept row is live.
    - Stop on any bron or count outside this.
-3. **Staged apply** (ji_migrator). The apply takes `LOCK TABLE curated.aanvraag IN SHARE ROW EXCLUSIVE MODE` for its single short statement, so writers wait (reads continue) and the ranking cannot race a poller update. If a writer holds a lock longer than 5 s the apply fails cleanly and can simply be rerun:
+3. **Staged apply** (ji_migrator). The apply takes `LOCK TABLE curated.aanvraag IN SHARE ROW EXCLUSIVE MODE` right before its single mutating statement (the reports run unlocked; the lock is held for that statement and the post-checks until COMMIT), so writers wait (reads continue) and the ranking cannot race a poller update. If a writer holds a lock longer than 5 s the apply fails cleanly and can simply be rerun:
    `-v apply=1 -v only_bron=00000000-0000-4000-8000-0000000000ad` (Opdrachtoverheid).
    Check the counts, then run MI Public with its bron id (from the dry-run output). Alternatively, run once without `only_bron` after the dry run matched.
 4. **Verify search:** after the projector drains, the marked ids are gone from Manticore
@@ -55,12 +55,17 @@ The prod dup analysis (2026-10-11, sections 10–11) found live rows of one bron
 **Rows changed:** about 244 `curated.aanvraag` rows get `superseded_*` set, plus about 244 archive inserts. Rows deleted: 0.
 
 ## Rollback
-`tools/postgres/url-dedup/90-rollback.sql` (ji_migrator, one transaction, idempotent):
-- clears `superseded_*` on every row marked `dup-url-v1` that is in the archive;
-- sets `restored_at` on the archive rows, which stay as the audit trail;
+`tools/postgres/url-dedup/90-rollback.sql` (ji_migrator, one transaction, idempotent, takes the same `SHARE ROW EXCLUSIVE` lock):
+- clears `superseded_*` on every row marked `dup-url-v1` that is in the archive, **unless** unmarking it would collide with the 0034 live-key index;
+- sets `restored_at` on the archive rows it unmarked, which stay as the audit trail;
 - queues one `aanvraag.gewijzigd` outbox event per unmarked row, so the projector re-indexes it.
 
-It is safe with the 0034 unique index in place: the marked pairs have different normalized refs, so unmarking never recreates a duplicate key.
+The marked pairs have different normalized refs, so unmarking does not recreate the pair's own duplicate. But ingestion may since have created a live row with the same normalized key as a marked row (or two marked rows may share one). Such rows are **skipped, not unmarked**: they stay superseded, keep `restored_at IS NULL`, are counted in the `skipped_live_key_collision` output column and listed by id.
+
+**A rollback is only complete when `skipped_live_key_collision` is 0.** If it is not:
+1. For each listed row, decide which row should be live (the listed marked row or the live row holding its key) and mark the other one superseded (with an archive snapshot) by hand, with a GO.
+2. Rerun `90-rollback.sql`; it is idempotent and only picks up the rows still pending.
+3. Repeat until the output reports `skipped_live_key_collision = 0` and `SELECT count(*) FROM curated.aanvraag_dup_archive WHERE reason = 'dup-url-v1' AND restored_at IS NULL` is 0.
 
 ## Tests
 `tools/postgres/url-dedup/url-dedup.spec.ts` runs the real script through `psql` against a migrated test DB:
@@ -71,7 +76,7 @@ It is safe with the 0034 unique index in place: the marked pairs have different 
 - Flextender is never marked;
 - rollback restores the rows, keeps the audit rows, and is idempotent.
 
-The spec skips with a warning when `psql` is not on PATH (GitHub `ubuntu-latest` ships it).
+The spec skips with a warning when `psql` is not on PATH (GitHub `ubuntu-latest` ships it). With `REQUIRE_DATABASE_TESTS=1` (the gate, crabbox CI) it fails instead of skipping when `psql` is missing, and when the caller supplied its own `DATABASE_TEST_URL` it creates a throwaway database with those credentials (needs CREATEDB, else it fails), runs there and drops it, so a required run always exercises both scripts. The scripts never run against a caller-supplied shared database.
 
 ## Open: staging
 `staging.source_record` has 2 pairs (Randstad, ZZP-Opdrachten.nl). These are out of scope here (curated only); inspect them read-only before any staging unique index.

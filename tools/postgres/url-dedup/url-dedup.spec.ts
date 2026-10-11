@@ -59,7 +59,38 @@ if (postgresAvailable && psqlBinary === null) {
     "url-dedup.spec: psql not on PATH, operator script tests skipped"
   );
 }
-if (postgresAvailable && !disposableDatabase) {
+// Required mode (the gate, crabbox CI) must exercise the operator scripts. When
+// the caller supplied its own DATABASE_TEST_URL (the preload then does not
+// isolate), provision a throwaway database with those credentials instead of
+// skipping, and drop it afterwards. Without CREATEDB the run fails loudly.
+const requiredRun = process.env.REQUIRE_DATABASE_TESTS === "1";
+let provisionedDatabase: string | undefined;
+let targetUrl = migratorUrl;
+if (
+  postgresAvailable &&
+  psqlBinary !== null &&
+  !disposableDatabase &&
+  requiredRun
+) {
+  const name = `ji_test_urldedup_${process.pid}_${crypto.randomUUID().replaceAll("-", "").slice(0, 8)}`;
+  const creator = postgres(migratorUrl, { max: 1, onnotice: () => null });
+  try {
+    await creator.unsafe(`CREATE DATABASE "${name}"`);
+  } catch (error) {
+    throw new Error(
+      "url-dedup.spec: REQUIRE_DATABASE_TESTS=1 with a caller-supplied DATABASE_TEST_URL that is not the preload's disposable database, and a throwaway database could not be created (needs CREATEDB); refusing to skip the operator script tests",
+      { cause: error }
+    );
+  } finally {
+    await creator.end({ timeout: 1 });
+  }
+  const url = new URL(migratorUrl);
+  url.pathname = `/${name}`;
+  targetUrl = url.toString();
+  provisionedDatabase = name;
+}
+const ownDatabase = disposableDatabase || provisionedDatabase !== undefined;
+if (postgresAvailable && !ownDatabase) {
   console.warn(
     "url-dedup.spec: DATABASE_TEST_URL is not the database the test-isolation preload created; the database-wide operator scripts are not run against it"
   );
@@ -84,7 +115,7 @@ const runPsql = (
   const result = Bun.spawnSync({
     cmd: [
       psqlBinary ?? "psql",
-      migratorUrl,
+      targetUrl,
       "-X",
       "-A",
       "-t",
@@ -131,7 +162,7 @@ const fillers = (prefix: string, count: number): FixtureRow[] =>
   }));
 
 describe
-  .skipIf(!postgresAvailable || psqlBinary === null || !disposableDatabase)
+  .skipIf(!postgresAvailable || psqlBinary === null || !ownDatabase)
   .serial(
     "url-dedup mark-only operator script (tools/postgres/url-dedup)",
     () => {
@@ -189,7 +220,7 @@ describe
       };
 
       beforeAll(async () => {
-        client = postgres(migratorUrl, { max: 1, onnotice: ignoreNotice });
+        client = postgres(targetUrl, { max: 1, onnotice: ignoreNotice });
         await migrate(drizzle(client), { migrationsFolder });
         await insertBron(bigBron, `Url dedup big ${bigBron}`);
         await insertBron(smallBron, `Url dedup small ${smallBron}`);
@@ -277,6 +308,19 @@ describe
           }
         } finally {
           await client.end({ timeout: 1 });
+          if (provisionedDatabase !== undefined) {
+            const dropper = postgres(migratorUrl, {
+              max: 1,
+              onnotice: ignoreNotice,
+            });
+            try {
+              await dropper.unsafe(
+                `DROP DATABASE IF EXISTS "${provisionedDatabase}" WITH (FORCE)`
+              );
+            } finally {
+              await dropper.end({ timeout: 1 });
+            }
+          }
         }
       });
 
