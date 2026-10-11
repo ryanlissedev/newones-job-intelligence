@@ -29,6 +29,29 @@ host and known-hosts variables for the same pinned SSH tunnel. The opt-in
 action is pinned to `tailscale/github-action` v4.1.3; it does not change the
 Coolify API or deployment ordering.
 
+## Agent production gate (hook)
+
+Claude Code and Codex load the same PreToolUse hook from
+`.claude/hooks/production-gate.sh`. Agents may build, merge, deploy, roll back,
+restart, and otherwise operate Newones JI. Every production action recognized by
+the hook is appended to
+`${XDG_STATE_HOME:-~/.local/state}/newones/production-gate.log` (or
+`PRODUCTION_GATE_LOG`); read-only inspection remains silent.
+Operator-local extras use `${PRODUCTION_GATE_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/newones/production-gate.conf}` with `host <name-or-ip>` or `db-container <name>` lines; the file is never committed.
+
+The hook hard-blocks only destructive SQL, Docker volume or database-container
+destruction, recursive server deletion, PostgreSQL-data changes, Coolify/API
+deletes, GitHub-repository deletes, force-updating main/master, and approval-file
+tampering. Destructive actions require Ryan to start the session with
+`RELEASE_APPROVAL=PR-<n>` or write `PR-<n> <today>` as the first non-comment line
+of the approval file himself. The dated file expires automatically, and the agent
+must never set or forge either approval. Blocks explain the category and reason.
+
+A GitHub Environment required reviewer is an optional protection Ryan could enable
+later if he wants a human gate on CI deploys; it would stop auto-deploy while the
+review is pending. It is not required by this hook and this runbook does not
+enable it.
+
 The successful release gate writes a short-lived, sanitized evidence file. The
 deploy driver reads and rechecks that file immediately before its first
 application PATCH, together with a fresh `main` ref read. A GitHub deployment
