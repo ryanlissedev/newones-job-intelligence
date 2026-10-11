@@ -36,8 +36,9 @@ A plain build would hold SHARE on the table (~2M rows) and block observation wri
    (not inside `BEGIN`, not with `-1`):
    `psql "$MIGRATION_DATABASE_URL" -X -v ON_ERROR_STOP=1 -f tools/postgres/indexes/0035-aanvraag-observation-source-record-hash-concurrently.sql`
    It sets `lock_timeout = '5s'` and `statement_timeout = 0`, runs `CREATE INDEX CONCURRENTLY IF NOT EXISTS`
-   (SHARE UPDATE EXCLUSIVE: reads and writes continue), then lists invalid copies of the index.
-2. **Check:** the final query must return 0 rows. If it lists the index as INVALID (interrupted build):
+   (SHARE UPDATE EXCLUSIVE: reads and writes continue), then checks the index and raises an error (non-zero
+   psql exit with `ON_ERROR_STOP=1`) unless it exists, is valid and ready, and is on `(source_record_id, content_hash)`.
+2. **Check:** psql must exit 0. If the final check raises (e.g. INVALID index after an interrupted build):
    `DROP INDEX CONCURRENTLY IF EXISTS "staging"."aanvraag_observation_source_record_hash_idx";` and re-run step 1.
 3. **Deploy** (migrator first, option B). 0035 is then a no-op:
    `relation "aanvraag_observation_source_record_hash_idx" already exists, skipping`.
@@ -46,11 +47,15 @@ A plain build would hold SHARE on the table (~2M rows) and block observation wri
 ## Rollback
 * Before 0035 is recorded in `drizzle.__drizzle_migrations`: autocommit
   `DROP INDEX CONCURRENTLY IF EXISTS "staging"."aanvraag_observation_source_record_hash_idx";`
-* After 0035 is recorded: revert the release (readiness compares the newest recorded migration with the
-  journal); dropping the index alone is still safe for the code, which does not depend on it.
+* After 0035 is recorded: keep a release whose journal includes 0035 and drop the index alone (same
+  statement; the code does not depend on it). Do **not** revert to a release whose journal ends at 0034:
+  readiness requires the newest recorded migration to equal the release's newest journal entry, so that
+  release would report `migration_mismatch` and stay unready. Rolling back the migration journal itself
+  is a separate, explicitly approved database change.
 
 ## Tests
 `packages/db/src/dominated-sweep-index.spec.ts`: after migrating, the index exists, is valid and is on
 `(source_record_id, content_hash)`; the planner uses it for the same-content sibling probe; the operator
-`CONCURRENTLY` script runs statement by statement and is a no-op once 0035 is applied (no invalid index).
+`CONCURRENTLY` script runs statement by statement and is a no-op once 0035 is applied; its final check
+raises when the index is missing.
 `packages/db/src/readiness.spec.ts`: 0035 is the expected newest migration.

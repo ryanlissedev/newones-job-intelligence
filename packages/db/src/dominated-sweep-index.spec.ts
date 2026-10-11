@@ -36,15 +36,33 @@ if (!postgresAvailable && databaseRequired) {
   throw new Error("Required test database is unavailable");
 }
 
-/** Splits the operator script into statements the way psql would run them, one per autocommit. */
-const scriptStatements = (script: string): string[] =>
-  script
+/**
+ * Splits the operator script into statements the way psql would run them, one per autocommit.
+ * Semicolons inside a dollar-quoted body (the DO check block) do not end a statement.
+ */
+const scriptStatements = (script: string): string[] => {
+  const source = script
     .split("\n")
     .filter((line) => !line.trimStart().startsWith("--"))
-    .join("\n")
-    .split(";")
-    .map((statement) => statement.trim())
-    .filter((statement) => statement.length > 0);
+    .join("\n");
+  const statements: string[] = [];
+  let current = "";
+  let inDollarQuote = false;
+  for (let index = 0; index < source.length; index += 1) {
+    if (source.startsWith("$$", index)) {
+      inDollarQuote = !inDollarQuote;
+      current += "$$";
+      index += 1;
+    } else if (source[index] === ";" && !inDollarQuote) {
+      statements.push(current.trim());
+      current = "";
+    } else {
+      current += source[index];
+    }
+  }
+  statements.push(current.trim());
+  return statements.filter((statement) => statement.length > 0);
+};
 
 describe
   .skipIf(!postgresAvailable)
@@ -107,12 +125,38 @@ describe
           statement.startsWith("CREATE INDEX CONCURRENTLY IF NOT EXISTS")
         )
       ).toHaveLength(1);
-      let invalid: unknown[] = [];
+      const check = statements.at(-1) ?? "";
+      expect(check.startsWith("DO $$")).toBe(true);
+      expect(check).toContain("RAISE EXCEPTION");
+      let result: unknown[] = [];
       for (const statement of statements) {
         // oxlint-disable-next-line no-await-in-loop -- psql runs them in order, one autocommit each
-        invalid = await client.unsafe(statement);
+        result = await client.unsafe(statement);
       }
-      // The last statement is the invalid-index check; it must be empty.
-      expect(invalid).toEqual([]);
+      // The last statement is the index check; it passes silently when the index is valid.
+      expect(result).toEqual([]);
+    });
+
+    it("fails the operator script's final check when the index is missing", async () => {
+      const statements = scriptStatements(
+        await readFile(concurrentlyScript, "utf-8")
+      );
+      const check = statements.at(-1) ?? "";
+      // Drop the index inside a transaction that is always rolled back.
+      const reserved = await client.reserve();
+      let checkFailure = "";
+      try {
+        await reserved`BEGIN`;
+        await reserved.unsafe(`DROP INDEX staging.${INDEX_NAME}`);
+        try {
+          await reserved.unsafe(check);
+        } catch (error) {
+          checkFailure = String(error);
+        }
+      } finally {
+        await reserved`ROLLBACK`;
+        reserved.release();
+      }
+      expect(checkFailure).toContain("0035 pre-build failed");
     });
   });

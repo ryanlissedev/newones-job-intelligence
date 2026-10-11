@@ -11,7 +11,9 @@
 -- Afterwards the 0035 migration's CREATE INDEX IF NOT EXISTS is a no-op.
 --
 -- If a build is interrupted, Postgres leaves an INVALID index with the same name, and
--- IF NOT EXISTS would then skip it. The final query lists it. Drop it with
+-- IF NOT EXISTS would then skip it. The final check raises an error (so psql with ON_ERROR_STOP=1
+-- exits non-zero) unless the index exists, is valid and ready, and is on
+-- (source_record_id, content_hash). On that error, drop it with
 -- DROP INDEX CONCURRENTLY IF EXISTS "staging"."aanvraag_observation_source_record_hash_idx";
 -- and run this script again before deploying.
 --
@@ -27,8 +29,20 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS "aanvraag_observation_source_record_hash
   ON "staging"."aanvraag_observation" ("source_record_id", "content_hash");
 
 -- Must return zero rows before deploying 0035.
-SELECT c.relname AS invalid_index
-FROM pg_index i
-JOIN pg_class c ON c.oid = i.indexrelid
-WHERE NOT i.indisvalid
-  AND c.relname = 'aanvraag_observation_source_record_hash_idx';
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_index i
+    JOIN pg_class c ON c.oid = i.indexrelid
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'staging'
+      AND c.relname = 'aanvraag_observation_source_record_hash_idx'
+      AND i.indisvalid
+      AND i.indisready
+      AND pg_get_indexdef(i.indexrelid) LIKE '%ON staging.aanvraag_observation USING btree (source_record_id, content_hash)'
+  ) THEN
+    RAISE EXCEPTION '0035 pre-build failed: staging.aanvraag_observation_source_record_hash_idx is missing, INVALID or not on (source_record_id, content_hash). Drop it CONCURRENTLY and run this script again before deploying 0035.';
+  END IF;
+END
+$$;
