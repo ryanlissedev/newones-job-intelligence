@@ -176,7 +176,8 @@ const titleFallbackSql = sql`
 
 /** Rows with at least one gap enrichment may fill; shared by the inline
  * candidate scan and the stored-proposal apply scan. */
-const incompleteAanvraagSql = sql`(
+// Superseded rows (0033) are never enriched; only live rows are candidates.
+const incompleteAanvraagSql = sql`${aanvraag.supersededBy} IS NULL AND (
   ${aanvraag.locatieTekst} IS NULL
   OR trim(${aanvraag.locatieTekst}) = ''
   OR ${aanvraag.locatieTekst} = 'unknown'

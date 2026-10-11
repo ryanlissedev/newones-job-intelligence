@@ -7,7 +7,7 @@ import {
   SEARCH_SCHEMA_HASH,
   ZERO_SEQUENCE,
 } from "@ji/search";
-import { and, asc, desc, eq, gt, lte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, isNull, lte, sql } from "drizzle-orm";
 
 import type { BronRuntimeDatabase } from "./bron-runtime";
 import {
@@ -382,15 +382,16 @@ const beginGeneration = (
     };
   });
 
+/** Full reindex pages over live rows only: superseded rows (0033) are never indexed. */
 const pageWhere = (cursor: string | null, highWaterId: string | null) => {
-  const clauses = [];
+  const clauses = [isNull(aanvraag.supersededBy)];
   if (cursor !== null) {
     clauses.push(gt(aanvraag.id, cursor));
   }
   if (highWaterId !== null) {
     clauses.push(lte(aanvraag.id, highWaterId));
   }
-  return clauses.length === 0 ? undefined : and(...clauses);
+  return and(...clauses);
 };
 
 const selectPage = async (
