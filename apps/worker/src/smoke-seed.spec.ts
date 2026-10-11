@@ -108,4 +108,46 @@ describe.skipIf(!postgresAvailable).serial("Slice A smoke seeding", () => {
       await database.delete(bron).where(eq(bron.id, ctmId));
     }
   });
+  it("fails loudly when another bron already holds a registry id instead of skipping the seed", async () => {
+    // SAFETY: random UUIDs satisfy the BronId shape and keep this DB test isolated.
+    const sharedId = `${crypto.randomUUID()}` as typeof SOURCES.stedin.bronId;
+    const stedin = { ...SOURCES.stedin, bronId: sharedId };
+    const otherNaam = `Werkzoeken ${sharedId}`;
+    await database.insert(bron).values({
+      ...buildSliceABronSeedValues(stedin),
+      naam: otherNaam,
+    });
+
+    try {
+      const outcome = await ensureMissingSliceABronnen(database, [stedin]).then(
+        () => "seeded",
+        (error: Error) => `${error.name}: ${error.message}`
+      );
+      expect(outcome).toContain("BronSeedIdCollisionError");
+      expect(outcome).toContain(sharedId);
+      expect(outcome).toContain(otherNaam);
+      const [row] = await database
+        .select({ naam: bron.naam })
+        .from(bron)
+        .where(eq(bron.id, sharedId));
+      expect(row?.naam).toBe(otherNaam);
+    } finally {
+      await database.delete(bron).where(eq(bron.id, sharedId));
+    }
+  });
+
+  it("treats a casing-only naam difference on the same id as the same bron", async () => {
+    // SAFETY: random UUIDs satisfy the BronId shape and keep this DB test isolated.
+    const id = `${crypto.randomUUID()}` as typeof SOURCES.ctm.bronId;
+    const ctm = { ...SOURCES.ctm, bronId: id };
+    await database.insert(bron).values({
+      ...buildSliceABronSeedValues(ctm),
+      naam: ` ${SOURCES.ctm.naam.toUpperCase()} `,
+    });
+    try {
+      await ensureMissingSliceABronnen(database, [ctm]);
+    } finally {
+      await database.delete(bron).where(eq(bron.id, id));
+    }
+  });
 });

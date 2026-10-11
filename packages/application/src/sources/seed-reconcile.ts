@@ -35,8 +35,8 @@ export interface SeedNaamConflict {
 export interface SeedReconcileReport {
   /**
    * Rows that carry a code source's bronId under a different naam. This is
-   * either a rename or two bronnen sharing one id, e.g. the v1-backfill
-   * Starapple/Werkzoeken rows on the Gasunie/Stedin ids. Such a source is not
+   * either a rename or two bronnen sharing one id (until 2026-10-11 the
+   * v1-backfill Starapple/Werkzoeken rows sat on the Gasunie/Stedin ids). Such a source is not
    * counted as present, and its terms are not compared.
    */
   naamConflicts: SeedNaamConflict[];

@@ -114,8 +114,9 @@ describe("reconcileSourceSeeds", () => {
     expect(report.voorwaardenDrift).toEqual([]);
   });
 
-  it("flags a v1-backfill row that occupies a code source's bronId instead of counting the source as present", () => {
-    // The v1-backfill seeds reuse ...035/...036, which are the Stedin and Gasunie bronIds in the registry.
+  it("no longer reports the v1-backfill rows as Stedin/Gasunie conflicts: those sources have their own ids", () => {
+    // Before 2026-10-11 the v1 seeds (Werkzoeken …035, Starapple …036) sat on the
+    // Stedin/Gasunie registry ids. Stedin/Gasunie now use …046/…047.
     const rows: BronSeedRow[] = MOTIAN_V1_BRON_SEEDS.map((seed) => ({
       actief: false,
       id: seed.bronId,
@@ -124,16 +125,32 @@ describe("reconcileSourceSeeds", () => {
       voorwaardenStatus: "toegestaan",
     }));
     const report = reconcileSourceSeeds(definitions, rows);
-    const conflicts = report.naamConflicts.filter(
-      (entry) => entry.slug === "gasunie" || entry.slug === "stedin"
-    );
-    expect(conflicts).toEqual([
+    expect(
+      report.naamConflicts.filter(
+        (entry) => entry.slug === "gasunie" || entry.slug === "stedin"
+      )
+    ).toEqual([]);
+    expect(
+      report.missingRows
+        .filter((entry) => entry.slug === "gasunie" || entry.slug === "stedin")
+        .map((entry) => entry.bronId)
+    ).toEqual([SOURCES.gasunie.bronId, SOURCES.stedin.bronId]);
+  });
+
+  it("still flags any row that occupies a code source's bronId under another naam", () => {
+    const rows: BronSeedRow[] = [
       {
-        bronId: SOURCES.gasunie.bronId,
-        codeNaam: SOURCES.gasunie.naam,
-        dbNaam: "Starapple",
-        slug: "gasunie",
+        actief: false,
+        id: SOURCES.stedin.bronId,
+        naam: "Werkzoeken",
+        status: "deferred",
+        voorwaardenStatus: "toegestaan",
       },
+    ];
+    const report = reconcileSourceSeeds(definitions, rows);
+    expect(
+      report.naamConflicts.filter((entry) => entry.slug === "stedin")
+    ).toEqual([
       {
         bronId: SOURCES.stedin.bronId,
         codeNaam: SOURCES.stedin.naam,
@@ -143,9 +160,7 @@ describe("reconcileSourceSeeds", () => {
     ]);
     expect(report.inSync).toBe(false);
     expect(
-      report.voorwaardenDrift.some(
-        (entry) => entry.slug === "gasunie" || entry.slug === "stedin"
-      )
+      report.voorwaardenDrift.some((entry) => entry.slug === "stedin")
     ).toBe(false);
   });
 });

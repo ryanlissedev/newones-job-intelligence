@@ -302,3 +302,7 @@ export {
   withReadOnlyTransaction,
   type BronSeedRowRecord,
 } from "./bron-seed-rows";
+export {
+  assertSeedHitSameBron,
+  BronSeedIdCollisionError,
+} from "./bron-seed-identity";
