@@ -50,6 +50,12 @@
 BEGIN;
 SET LOCAL lock_timeout = '5s';
 SET LOCAL statement_timeout = '300s';
+-- Hold writers off for the (short) apply: the plan ranks on bron_url, laatst_gezien_op, v1_id,
+-- compleetheid_score and eerste_gezien_op from the statement snapshot, while the UPDATE locks the
+-- newest row version. A poller update committed in between could otherwise mark the wrong loser
+-- and archive a stale snapshot. Reads (API, projector) are not blocked; a writer holding a row
+-- lock longer than lock_timeout makes the apply fail cleanly (nothing written; just rerun).
+LOCK TABLE curated.aanvraag IN SHARE ROW EXCLUSIVE MODE;
 \else
 \echo '== url-dedup: DRY RUN (read-only; pass -v apply=1 to write) =='
 BEGIN READ ONLY;

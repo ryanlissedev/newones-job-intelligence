@@ -366,8 +366,8 @@ describe
         ].toSorted();
         const first = runPsql(rollbackScript, {});
         expect(first.exitCode).toBe(0);
-        // unmarked | archive_rows_restored | index_upserts_enqueued
-        expect(outputLines(first.stdout)).toContain("2|2|2");
+        // unmarked | archive_rows_restored | index_upserts_enqueued | skipped_live_key_collision
+        expect(outputLines(first.stdout)).toContain("2|2|2|0");
         expect(await outboxIds("aanvraag.gewijzigd")).toEqual(losers);
         expect(await supersededBy(bigBron, "A1B2C3D4-GUID")).toBeNull();
         expect(await supersededBy(bigBron, "E5F6-GUID")).toBeNull();
@@ -377,8 +377,37 @@ describe
         expect(archive).toEqual([{ restored: true }, { restored: true }]);
         const second = runPsql(rollbackScript, {});
         expect(second.exitCode).toBe(0);
-        expect(outputLines(second.stdout)).toContain("0|0|0");
+        expect(outputLines(second.stdout)).toContain("0|0|0|0");
         expect(await outboxIds("aanvraag.gewijzigd")).toEqual(losers);
+      });
+
+      it("rollback leaves a row marked when a live variant of its key appeared meanwhile", async () => {
+        const reapply = runPsql(dedupScript, {
+          apply: "1",
+          only_bron: bigBron,
+        });
+        expect(reapply.exitCode).toBe(0);
+        expect(outputLines(reapply.stdout)).toContain("2|2|2|2");
+        // Ingestion meanwhile created a casing/whitespace variant of a marked loser's key.
+        await insertRows(bigBron, [
+          {
+            bronUrl: "https://example.test/variant-of-a1b2",
+            laatstGezien: "2026-10-02T00:00:00Z",
+            referentie: " a1b2c3d4-guid ",
+          },
+        ]);
+        const rollback = runPsql(rollbackScript, {});
+        expect(rollback.stderr).toBe("");
+        expect(rollback.exitCode).toBe(0);
+        expect(outputLines(rollback.stdout)).toContain("1|1|1|1");
+        // The colliding row stays marked (and listed); the other one is restored.
+        expect(await supersededBy(bigBron, "A1B2C3D4-GUID")).toBe(
+          ids.get(`${bigBron}:flextender_123`) ?? ""
+        );
+        expect(await supersededBy(bigBron, "E5F6-GUID")).toBeNull();
+        expect(rollback.stdout).toContain(
+          ids.get(`${bigBron}:A1B2C3D4-GUID`) ?? "missing"
+        );
       });
     }
   );

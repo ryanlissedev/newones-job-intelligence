@@ -45,7 +45,7 @@ The prod dup analysis (2026-10-11, sections 10–11) found live rows of one bron
    - Expect about 123 Opdrachtoverheid + 121 MI Public = **~244 rows**, 0 for every other bron.
    - Opdrachtoverheid: every loser is v1 and every kept row is live.
    - Stop on any bron or count outside this.
-3. **Staged apply** (ji_migrator; writers may keep running, since only row locks are taken):
+3. **Staged apply** (ji_migrator). The apply takes `LOCK TABLE curated.aanvraag IN SHARE ROW EXCLUSIVE MODE` for its single short statement, so writers wait (reads continue) and the ranking cannot race a poller update. If a writer holds a lock longer than 5 s the apply fails cleanly and can simply be rerun:
    `-v apply=1 -v only_bron=00000000-0000-4000-8000-0000000000ad` (Opdrachtoverheid).
    Check the counts, then run MI Public with its bron id (from the dry-run output). Alternatively, run once without `only_bron` after the dry run matched.
 4. **Verify search:** after the projector drains, the marked ids are gone from Manticore
