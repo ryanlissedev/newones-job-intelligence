@@ -12,7 +12,7 @@ import type {
   SearchPartition,
   SearchVersionStore,
 } from "@ji/search";
-import { and, asc, eq, gt, inArray, isNull } from "drizzle-orm";
+import { and, asc, eq, gt, inArray, isNull, sql } from "drizzle-orm";
 
 import type { BronRuntimeDatabase } from "./bron-runtime";
 import { aanvraag, outboxEvent, searchProjectionState } from "./schema/curated";
@@ -298,6 +298,11 @@ export interface ReconcileProjectionResult {
   orphanManticoreCount: number;
   /** Current aanvraag repair candidates already covered by an open outbox event. */
   skippedPending: number;
+  /** Dry-run outbox health snapshot; omitted in apply mode. */
+  pendingOutboxCount?: number;
+  divergentPendingOutboxCount?: number;
+  deadLetteredOutboxCount?: number;
+  oldestPendingOutboxCreatedAt?: Date | null;
 }
 
 interface RepairCandidate {
@@ -338,6 +343,7 @@ interface ScanResult {
   staleManticoreHash: ManticoreProjectionHashDrift[];
   staleManticoreHashCount: number;
   skippedPending: number;
+  divergentPendingOutboxCount?: number;
 }
 
 interface ScanActions {
@@ -572,6 +578,37 @@ const pendingAggregateIds = async (
       )
     );
   return new Set(rows.map((row) => row.aggregateId));
+};
+
+interface ReconcileOutboxHealth {
+  deadLetteredOutboxCount: number;
+  divergentPendingOutboxCount: number;
+  oldestPendingOutboxCreatedAt: Date | null;
+  pendingOutboxCount: number;
+}
+
+const readReconcileOutboxHealth = async (
+  database: BronRuntimeDatabase
+): Promise<ReconcileOutboxHealth> => {
+  const [overall] = await database
+    .select({
+      deadLetteredOutboxCount: sql<number>`count(*) FILTER (WHERE ${outboxEvent.deadLetteredAt} IS NOT NULL)::int`,
+      oldestPendingOutboxCreatedAt: sql<Date | null>`min(${outboxEvent.createdAt}) FILTER (WHERE ${outboxEvent.processedAt} IS NULL AND ${outboxEvent.deadLetteredAt} IS NULL)`,
+      pendingOutboxCount: sql<number>`count(*) FILTER (WHERE ${outboxEvent.processedAt} IS NULL AND ${outboxEvent.deadLetteredAt} IS NULL)::int`,
+    })
+    .from(outboxEvent)
+    .where(eq(outboxEvent.aggregateType, "aanvraag"));
+  const result: ReconcileOutboxHealth = {
+    deadLetteredOutboxCount: overall?.deadLetteredOutboxCount ?? 0,
+    divergentPendingOutboxCount: 0,
+    oldestPendingOutboxCreatedAt:
+      overall?.oldestPendingOutboxCreatedAt === null ||
+      overall?.oldestPendingOutboxCreatedAt === undefined
+        ? null
+        : new Date(overall.oldestPendingOutboxCreatedAt),
+    pendingOutboxCount: overall?.pendingOutboxCount ?? 0,
+  };
+  return result;
 };
 
 const toDivergence = (candidate: RepairCandidate): ProjectionDivergence => ({
@@ -880,11 +917,12 @@ const toScanResult = (input: {
   sampleLimit: number;
   staleManticoreHash: Map<string, ManticoreProjectionHashDrift>;
   skippedPending: number;
+  divergentPendingOutboxCount?: number;
 }): ScanResult => {
   const physicalCorruption = input.physical.corruptionSamples(
     input.sampleLimit
   );
-  return {
+  const result: ScanResult = {
     applied: input.applied,
     checked: input.checked,
     divergent: input.divergent,
@@ -917,6 +955,10 @@ const toScanResult = (input: {
     ),
     staleManticoreHashCount: input.staleManticoreHash.size,
   };
+  if (input.divergentPendingOutboxCount !== undefined) {
+    result.divergentPendingOutboxCount = input.divergentPendingOutboxCount;
+  }
+  return result;
 };
 
 interface ScanOptions {
@@ -1003,6 +1045,7 @@ const scanInventoryProjection = async (
   let divergentCount = 0;
   let missingDocumentCount = 0;
   let missingProjectionStateCount = 0;
+  let divergentPendingOutboxCount = 0;
   let cursor: string | null = null;
   const seenLookupManticoreIds = new Map<number, string>();
 
@@ -1162,6 +1205,13 @@ const scanInventoryProjection = async (
       divergent,
       options.sampleLimit
     );
+    if (!options.actions && pageCandidates.length > 0) {
+      const pending = await pendingAggregateIds(
+        options.database,
+        pageCandidates.map((candidate) => candidate.aggregateId)
+      );
+      divergentPendingOutboxCount += pending.size;
+    }
     if (options.actions) {
       addApplyResult(totals, await options.actions.applyRepair(pageCandidates));
     }
@@ -1277,6 +1327,9 @@ const scanInventoryProjection = async (
     checked,
     divergent,
     divergentCount,
+    divergentPendingOutboxCount: options.actions
+      ? undefined
+      : divergentPendingOutboxCount,
     expectedPartitionCounts: toCounts(expectedPartitionCounts),
     inventoryCounts: toCounts(inventoryCounts),
     inventoryFinalCounts: toCounts(inventoryFinalCounts),
@@ -1387,7 +1440,13 @@ export const reconcileProjection = async (
   // incomplete/count-changing physical scan from partially queuing repairs.
   const preflight = await scanInventoryProjection(options);
   if (!input.apply) {
-    return { ...preflight, generation };
+    const { divergentPendingOutboxCount, ...report } = preflight;
+    return {
+      ...report,
+      ...(await readReconcileOutboxHealth(input.database)),
+      divergentPendingOutboxCount,
+      generation,
+    };
   }
   if (
     preflight.physicalCorruptionCount > 0 &&

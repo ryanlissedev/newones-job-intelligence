@@ -4,6 +4,7 @@ import { recordCriticalPathPhaseSync } from "@ji/performance";
 import { isHybridSearchEligible } from "../ast-hash";
 import { Singleflight } from "../cache/singleflight";
 import {
+  activeDeadlineEpochSecond,
   DEFAULT_SEARCH_SCOPE,
   documentPartition,
   otherPartition,
@@ -601,6 +602,17 @@ export class ManticoreSearchEngine implements SearchEngine {
    */
   async search(params: EngineSearchParams): Promise<SearchEngineResult> {
     const scope: SearchScope = params.scope ?? DEFAULT_SEARCH_SCOPE;
+    const baseFilters = { ...params.filters };
+    delete baseFilters.activeDeadlineEpochSecond;
+    const filters =
+      scope === "active"
+        ? {
+            ...baseFilters,
+            activeDeadlineEpochSecond:
+              params.filters.activeDeadlineEpochSecond ??
+              activeDeadlineEpochSecond(this.clock()),
+          }
+        : baseFilters;
     const { archiveCountRequest, facetRequests, request } =
       recordCriticalPathPhaseSync("search-serialization", () => {
         const textFields =
@@ -626,7 +638,7 @@ export class ManticoreSearchEngine implements SearchEngine {
         const searchRequest = buildManticoreSearchRequest(
           searchTable,
           queryBody,
-          params.filters,
+          filters,
           params.limit,
           params.offset,
           params.sort,
@@ -655,7 +667,7 @@ export class ManticoreSearchEngine implements SearchEngine {
               ? buildManticoreCountRequest(
                   this.table("archive"),
                   queryBody,
-                  params.filters,
+                  baseFilters,
                   mode,
                   knnQueryText ?? undefined
                 )

@@ -522,6 +522,75 @@ describe("reconcileProjection (RJC-399 repair tool)", () => {
     ).toHaveLength(1);
   });
 
+  it("reports pending, divergent-pending, dead-lettered, and oldest pending outbox health only in dry-run", async () => {
+    if (!available || !database) {
+      expect(available).toBe(false);
+      return;
+    }
+    const db = requireDatabase();
+    const aggregateId = await seedAanvraag(db);
+    const loader = new PostgresSearchDocumentLoader(db);
+    const { generation, indexName, store } = await isolatedVersionStore(db);
+    const document = await loader.loadByAggregateId(aggregateId);
+    if (!document) {
+      throw new Error("Expected seeded document to load");
+    }
+    const appliedHash = projectionHash(document, NOW);
+    await db.insert(searchProjectionState).values({
+      aggregateId,
+      appliedSequence: 1n,
+      generation,
+      projectionHash: appliedHash,
+    });
+    await db
+      .update(aanvraag)
+      .set({ status: "stale" })
+      .where(eq(aanvraag.id, aggregateId));
+    await db.insert(outboxEvent).values([
+      {
+        aggregateId,
+        aggregateType: "aanvraag",
+        eventType: PROJECTION_REPAIR_EVENT_TYPE,
+        payload: { reden: "already-pending" },
+      },
+      {
+        aggregateId: crypto.randomUUID(),
+        aggregateType: "aanvraag",
+        deadLetteredAt: NOW,
+        eventType: PROJECTION_REPAIR_EVENT_TYPE,
+        payload: { reden: "dead-lettered" },
+      },
+    ]);
+
+    const base = {
+      database: db,
+      indexName,
+      inventory: new FakeManticoreInventory({
+        active: [
+          {
+            documentId: aggregateId,
+            manticoreId: hashDocumentId(aggregateId),
+            projectionHash: appliedHash,
+          },
+        ],
+        archive: [],
+      }),
+      loader,
+      now: NOW,
+      versionStore: store,
+    };
+    const dryRun = await reconcileProjection({ apply: false, ...base });
+    expect(dryRun.pendingOutboxCount).toBe(1);
+    expect(dryRun.divergentPendingOutboxCount).toBe(1);
+    expect(dryRun.deadLetteredOutboxCount).toBe(1);
+    expect(dryRun.oldestPendingOutboxCreatedAt).toBeInstanceOf(Date);
+
+    const applied = await reconcileProjection({ apply: true, ...base });
+    expect(applied.pendingOutboxCount).toBeUndefined();
+    expect(applied.deadLetteredOutboxCount).toBeUndefined();
+    expect(applied.skippedPending).toBe(1);
+  });
+
   it("treats a superseded row still in Manticore as an orphan and enqueues its delete (0033)", async () => {
     if (!available || !database) {
       expect(available).toBe(false);

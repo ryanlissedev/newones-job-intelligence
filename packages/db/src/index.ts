@@ -118,6 +118,15 @@ export {
   type SearchReindexProgress,
 } from "./search-reindex";
 export {
+  runSearchExpirySweep,
+  SEARCH_EXPIRY_SWEEP_DEFAULT_BATCH_SIZE,
+  SEARCH_EXPIRY_SWEEP_DEFAULT_MAX_PER_RUN,
+  SEARCH_EXPIRY_SWEEP_LOCK_KEY,
+  type SearchExpirySweepInput,
+  type SearchExpirySweepMode,
+  type SearchExpirySweepResult,
+} from "./search-expiry-sweep";
+export {
   resolveNeonV1BackfillSource,
   runMotianV1Backfill,
   runMotianV1BackfillInMemory,

@@ -259,6 +259,10 @@ try {
       `${result.orphanManticoreCount} valid orphan(s), ${result.invalidDocumentIdCount} invalid engine id(s), ` +
       `${result.physicalCorruptionCount} corrupt physical row(s), ${result.physicalCleanupCount} physically deleted, ` +
       `${result.staleManticoreHashCount} stale physical hash(es), ${result.skippedPending} already covered by a pending outbox event, ` +
+      `${result.pendingOutboxCount ?? 0} pending aanvraag outbox event(s), ` +
+      `${result.divergentPendingOutboxCount ?? 0} covering divergent candidates, ` +
+      `${result.deadLetteredOutboxCount ?? 0} dead-lettered aanvraag event(s), ` +
+      `oldest pending ${result.oldestPendingOutboxCreatedAt?.toISOString() ?? "none"}, ` +
       `${result.applied} durable event(s) inserted.`
   );
   for (const entry of result.divergent) {

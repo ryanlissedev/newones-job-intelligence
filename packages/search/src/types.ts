@@ -119,6 +119,8 @@ export const documentLocatie = (
     : (document.locatie ?? document.locatieLand ?? undefined);
 
 export interface SearchFilters {
+  /** Internal five-minute-rounded active-scope expiry fence; omitted for `all`. */
+  activeDeadlineEpochSecond?: number;
   bronIds?: readonly string[];
   contracttype?: readonly string[];
   freshnessDays?: number;

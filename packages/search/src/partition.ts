@@ -21,16 +21,33 @@ export type SearchScope = (typeof SEARCH_SCOPES)[number];
 export const DEFAULT_SEARCH_SCOPE: SearchScope = "active";
 
 /**
+ * The active-scope fence moves in five-minute windows. Result and facet caches
+ * `adapter.ts`'s DEFAULT_CACHE_TTL_SECONDS and FACETS_CACHE_TTL_SECONDS both
+ * equal 120 seconds, so a window at least that long prevents fence rolls from
+ * churning cache keys before entries expire. A deadline can remain visible for
+ * at most five minutes; the expiry sweep moves the row as well.
+ */
+export const SEARCH_CLOCK_GRANULARITY_MS = 300_000;
+
+export const roundSearchNowToFenceWindow = (now: Date): Date =>
+  new Date(
+    Math.floor(now.getTime() / SEARCH_CLOCK_GRANULARITY_MS) *
+      SEARCH_CLOCK_GRANULARITY_MS
+  );
+
+export const activeDeadlineEpochSecond = (now: Date): number =>
+  Math.floor(roundSearchNowToFenceWindow(now).getTime() / 1000);
+
+/**
  * Recency window (days since `laatstGezienOp`) after which an otherwise open
  * document is partitioned into the archive. PRODUCT DECISION PENDING (Ryan):
  * `null` disables the rule, so today the partition is lifecycle-driven only
  * (status + passed sluitingsdatum). Two facts argue for leaving it off until
  * decided: RJC-397 already turns a record that disappears from its listing
  * into `stale` (which archives it) without a clock, and the partition is
- * only re-evaluated when an outbox event arrives — a window without a
- * periodic sweep would archive a document only on its NEXT event, which is
- * exactly the moment the source is talking about it again. Set to e.g. 30
- * once a sweep exists; resolveSearchPartition already honours it.
+ * only re-evaluated when an outbox event arrives. The expiry sweep supplies
+ * that missing clock-driven event; the query-time active-scope fence remains
+ * as a short-lived backstop while the sweep and drain catch up.
  */
 export const ACTIVE_RECENT_DAYS: number | null = null;
 
