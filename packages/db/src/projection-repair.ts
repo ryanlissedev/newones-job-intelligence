@@ -227,6 +227,19 @@ export interface ProjectionDivergence {
   reasons: readonly ProjectionDivergenceReason[];
 }
 
+export interface ReconcileProjectionProgress {
+  phase: "preflight" | "apply";
+  stage: "source" | "inventory";
+  checked: number;
+  divergentCount: number;
+  applied: number;
+  skippedPending: number;
+  sourceCursor: string | null;
+  inventoryPartition?: SearchPartition;
+  manticoreChecked?: number;
+  done: boolean;
+}
+
 export interface ReconcileProjectionInput {
   /** False reports; true emits bounded durable repair/delete events. */
   apply: boolean;
@@ -246,6 +259,8 @@ export interface ReconcileProjectionInput {
   lookupManticoreId?: (documentId: string) => number;
   /** Capped samples retained in the result. Exact totals are tracked separately. */
   sampleLimit?: number;
+  /** Optional best-effort progress reporting for long-running operator scans. */
+  onProgress?: (progress: ReconcileProjectionProgress) => void;
   /**
    * Retained for checkpoint initialization compatibility. Every actual
    * reconciliation fence is read directly from the named checkpoint row.
@@ -969,9 +984,21 @@ interface ScanOptions {
   generation: number;
   input: ReconcileProjectionInput;
   now: Date;
+  phase: ReconcileProjectionProgress["phase"];
   pageSize: number;
   sampleLimit: number;
 }
+
+const reportProgress = (
+  input: ReconcileProjectionInput,
+  progress: ReconcileProjectionProgress
+): void => {
+  try {
+    input.onProgress?.(progress);
+  } catch {
+    // Observability must never affect reconciliation.
+  }
+};
 
 const addCandidatesToReport = (
   candidates: readonly RepairCandidate[],
@@ -1216,6 +1243,16 @@ const scanInventoryProjection = async (
       addApplyResult(totals, await options.actions.applyRepair(pageCandidates));
     }
     await options.fence();
+    reportProgress(options.input, {
+      applied: totals.applied,
+      checked,
+      divergentCount,
+      done: false,
+      phase: options.phase,
+      skippedPending: totals.skippedPending,
+      sourceCursor: cursor,
+      stage: "source",
+    });
   }
   /* oxlint-enable no-await-in-loop */
 
@@ -1319,8 +1356,33 @@ const scanInventoryProjection = async (
       );
     }
     await options.fence();
+    reportProgress(options.input, {
+      applied: totals.applied,
+      checked,
+      divergentCount,
+      done: false,
+      inventoryPartition: partition,
+      manticoreChecked: inventoryScannedCounts[partition],
+      phase: options.phase,
+      skippedPending: totals.skippedPending,
+      sourceCursor: cursor,
+      stage: "inventory",
+    });
   }
   /* oxlint-enable no-await-in-loop */
+
+  reportProgress(options.input, {
+    applied: totals.applied,
+    checked,
+    divergentCount,
+    done: true,
+    manticoreChecked:
+      inventoryScannedCounts.active + inventoryScannedCounts.archive,
+    phase: options.phase,
+    skippedPending: totals.skippedPending,
+    sourceCursor: cursor,
+    stage: "inventory",
+  });
 
   return toScanResult({
     applied: totals.applied,
@@ -1433,6 +1495,7 @@ export const reconcileProjection = async (
     input,
     now,
     pageSize,
+    phase: "preflight",
     sampleLimit,
   };
 
@@ -1464,6 +1527,7 @@ export const reconcileProjection = async (
       expectedSchemaHash,
       generation
     ),
+    phase: "apply",
   });
   return { ...applied, generation };
 };

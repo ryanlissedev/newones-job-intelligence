@@ -25,6 +25,7 @@ import {
   reconcileProjection,
 } from "./projection-repair";
 import type {
+  ReconcileProjectionProgress,
   SearchProjectionInventoryPort,
   SearchProjectionInventoryRecord,
 } from "./projection-repair";
@@ -520,6 +521,82 @@ describe("reconcileProjection (RJC-399 repair tool)", () => {
           )
         )
     ).toHaveLength(1);
+  });
+
+  it("reports committed source-page progress for preflight and apply", async () => {
+    if (!available || !database) {
+      expect(available).toBe(false);
+      return;
+    }
+    const db = requireDatabase();
+    const aggregateIds = await Promise.all([
+      seedAanvraag(db),
+      seedAanvraag(db),
+      seedAanvraag(db),
+    ]);
+    const { indexName, store } = await isolatedVersionStore(db);
+    const progress: ReconcileProjectionProgress[] = [];
+    const result = await reconcileProjection({
+      apply: true,
+      database: db,
+      indexName,
+      inventory: new FakeManticoreInventory({ active: [], archive: [] }),
+      loader: new PostgresSearchDocumentLoader(db),
+      onProgress: (event) => progress.push(event),
+      pageSize: 1,
+      versionStore: store,
+    });
+
+    expect(result.checked).toBe(aggregateIds.length);
+    expect(result.applied).toBe(aggregateIds.length);
+    for (const phase of ["preflight", "apply"] as const) {
+      const sourceEvents = progress.filter(
+        (event) => event.phase === phase && event.stage === "source"
+      );
+      expect(sourceEvents).toHaveLength(aggregateIds.length);
+      let previousCursor: string | null = null;
+      for (const event of sourceEvents) {
+        expect(event.sourceCursor).not.toBeNull();
+        if (previousCursor !== null && event.sourceCursor !== null) {
+          expect(event.sourceCursor > previousCursor).toBe(true);
+        }
+        previousCursor = event.sourceCursor;
+      }
+      expect(
+        progress.filter((event) => event.phase === phase && event.done)
+      ).toHaveLength(1);
+    }
+    const lastApplySource = progress.findLast(
+      (event) => event.phase === "apply" && event.stage === "source"
+    );
+    expect(lastApplySource?.applied).toBe(result.applied);
+  });
+
+  it("ignores errors thrown by the progress callback", async () => {
+    if (!available || !database) {
+      expect(available).toBe(false);
+      return;
+    }
+    const db = requireDatabase();
+    await seedAanvraag(db);
+    const { indexName, store } = await isolatedVersionStore(db);
+    const base = {
+      apply: false,
+      database: db,
+      indexName,
+      inventory: new FakeManticoreInventory({ active: [], archive: [] }),
+      loader: new PostgresSearchDocumentLoader(db),
+      versionStore: store,
+    };
+    const withThrowingCallback = await reconcileProjection({
+      ...base,
+      onProgress: () => {
+        throw new Error("progress callback failed");
+      },
+    });
+    const withoutCallback = await reconcileProjection(base);
+
+    expect(withThrowingCallback).toEqual(withoutCallback);
   });
 
   it("reports pending, divergent-pending, dead-lettered, and oldest pending outbox health only in dry-run", async () => {

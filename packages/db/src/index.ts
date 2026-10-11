@@ -100,6 +100,7 @@ export {
   type ProjectionPhysicalCorruption,
   type ProjectionPhysicalCorruptionReason,
   type ReconcileProjectionInput,
+  type ReconcileProjectionProgress,
   type ReconcileProjectionResult,
   type SearchProjectionInventoryPort,
   type SearchProjectionInventoryRecord,
