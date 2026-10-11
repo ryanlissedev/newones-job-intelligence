@@ -12,7 +12,7 @@ import type {
   SearchPartition,
   SearchVersionStore,
 } from "@ji/search";
-import { and, asc, eq, gt, inArray, isNull } from "drizzle-orm";
+import { and, asc, eq, gt, inArray, isNull, sql } from "drizzle-orm";
 
 import type { BronRuntimeDatabase } from "./bron-runtime";
 import { aanvraag, outboxEvent, searchProjectionState } from "./schema/curated";
@@ -298,6 +298,11 @@ export interface ReconcileProjectionResult {
   orphanManticoreCount: number;
   /** Current aanvraag repair candidates already covered by an open outbox event. */
   skippedPending: number;
+  /** Dry-run outbox health snapshot; omitted in apply mode. */
+  pendingOutboxCount?: number;
+  divergentPendingOutboxCount?: number;
+  deadLetteredOutboxCount?: number;
+  oldestPendingOutboxCreatedAt?: Date | null;
 }
 
 interface RepairCandidate {
@@ -338,6 +343,7 @@ interface ScanResult {
   staleManticoreHash: ManticoreProjectionHashDrift[];
   staleManticoreHashCount: number;
   skippedPending: number;
+  divergentAggregateIds: string[];
 }
 
 interface ScanActions {
@@ -572,6 +578,53 @@ const pendingAggregateIds = async (
       )
     );
   return new Set(rows.map((row) => row.aggregateId));
+};
+
+interface ReconcileOutboxHealth {
+  deadLetteredOutboxCount: number;
+  divergentPendingOutboxCount: number;
+  oldestPendingOutboxCreatedAt: Date | null;
+  pendingOutboxCount: number;
+}
+
+const readReconcileOutboxHealth = async (
+  database: BronRuntimeDatabase,
+  divergentAggregateIds: readonly string[]
+): Promise<ReconcileOutboxHealth> => {
+  const [overall] = await database
+    .select({
+      deadLetteredOutboxCount: sql<number>`count(*) FILTER (WHERE ${outboxEvent.deadLetteredAt} IS NOT NULL)::int`,
+      oldestPendingOutboxCreatedAt: sql<Date | null>`min(${outboxEvent.createdAt}) FILTER (WHERE ${outboxEvent.processedAt} IS NULL AND ${outboxEvent.deadLetteredAt} IS NULL)`,
+      pendingOutboxCount: sql<number>`count(*) FILTER (WHERE ${outboxEvent.processedAt} IS NULL AND ${outboxEvent.deadLetteredAt} IS NULL)::int`,
+    })
+    .from(outboxEvent)
+    .where(eq(outboxEvent.aggregateType, "aanvraag"));
+  const [divergent] =
+    divergentAggregateIds.length === 0
+      ? [{ count: 0 }]
+      : await database
+          .select({
+            count: sql<number>`count(DISTINCT ${outboxEvent.aggregateId})::int`,
+          })
+          .from(outboxEvent)
+          .where(
+            and(
+              eq(outboxEvent.aggregateType, "aanvraag"),
+              inArray(outboxEvent.aggregateId, [...divergentAggregateIds]),
+              isNull(outboxEvent.processedAt),
+              isNull(outboxEvent.deadLetteredAt)
+            )
+          );
+  return {
+    deadLetteredOutboxCount: overall?.deadLetteredOutboxCount ?? 0,
+    divergentPendingOutboxCount: divergent?.count ?? 0,
+    oldestPendingOutboxCreatedAt:
+      overall?.oldestPendingOutboxCreatedAt === null ||
+      overall?.oldestPendingOutboxCreatedAt === undefined
+        ? null
+        : new Date(overall.oldestPendingOutboxCreatedAt),
+    pendingOutboxCount: overall?.pendingOutboxCount ?? 0,
+  };
 };
 
 const toDivergence = (candidate: RepairCandidate): ProjectionDivergence => ({
@@ -880,6 +933,7 @@ const toScanResult = (input: {
   sampleLimit: number;
   staleManticoreHash: Map<string, ManticoreProjectionHashDrift>;
   skippedPending: number;
+  divergentAggregateIds: string[];
 }): ScanResult => {
   const physicalCorruption = input.physical.corruptionSamples(
     input.sampleLimit
@@ -888,6 +942,7 @@ const toScanResult = (input: {
     applied: input.applied,
     checked: input.checked,
     divergent: input.divergent,
+    divergentAggregateIds: input.divergentAggregateIds,
     divergentCount: input.divergentCount,
     expectedPartitionCounts: input.expectedPartitionCounts,
     invalidDocumentId: input.physical.invalidDocumentIdSamples(
@@ -1003,6 +1058,7 @@ const scanInventoryProjection = async (
   let divergentCount = 0;
   let missingDocumentCount = 0;
   let missingProjectionStateCount = 0;
+  const divergentAggregateIds: string[] = [];
   let cursor: string | null = null;
   const seenLookupManticoreIds = new Map<number, string>();
 
@@ -1157,6 +1213,9 @@ const scanInventoryProjection = async (
     }
 
     const pageCandidates = [...candidates.values()];
+    divergentAggregateIds.push(
+      ...pageCandidates.map((candidate) => candidate.aggregateId)
+    );
     divergentCount += addCandidatesToReport(
       pageCandidates,
       divergent,
@@ -1276,6 +1335,7 @@ const scanInventoryProjection = async (
     applied: totals.applied,
     checked,
     divergent,
+    divergentAggregateIds,
     divergentCount,
     expectedPartitionCounts: toCounts(expectedPartitionCounts),
     inventoryCounts: toCounts(inventoryCounts),
@@ -1387,7 +1447,15 @@ export const reconcileProjection = async (
   // incomplete/count-changing physical scan from partially queuing repairs.
   const preflight = await scanInventoryProjection(options);
   if (!input.apply) {
-    return { ...preflight, generation };
+    const { divergentAggregateIds, ...report } = preflight;
+    return {
+      ...report,
+      ...(await readReconcileOutboxHealth(
+        input.database,
+        divergentAggregateIds
+      )),
+      generation,
+    };
   }
   if (
     preflight.physicalCorruptionCount > 0 &&
@@ -1406,5 +1474,6 @@ export const reconcileProjection = async (
       generation
     ),
   });
-  return { ...applied, generation };
+  const { divergentAggregateIds: _divergentAggregateIds, ...report } = applied;
+  return { ...report, generation };
 };

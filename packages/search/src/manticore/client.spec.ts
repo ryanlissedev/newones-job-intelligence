@@ -92,6 +92,41 @@ describe("buildManticoreSort", () => {
 });
 
 describe("buildManticoreSearchRequest", () => {
+  it("adds the active expiry fence to hits and facet/count queries", () => {
+    const request = buildManticoreSearchRequest(
+      SEARCH_INDEX_NAME,
+      null,
+      { activeDeadlineEpochSecond: 1000 },
+      20,
+      0
+    );
+    expect(request.query).toEqual({
+      bool: { filter: [{ range: { sluitingsdatum: { gt: 1000 } } }] },
+    });
+    expect(
+      buildManticoreCountRequest(SEARCH_INDEX_NAME, null, {
+        activeDeadlineEpochSecond: 1000,
+      }).query
+    ).toEqual(request.query);
+  });
+
+  it("leaves an all-scope request and an archive count unfenced", () => {
+    const allScopeRequest = buildManticoreSearchRequest(
+      SEARCH_INDEX_NAME,
+      null,
+      {},
+      20,
+      0
+    );
+    const archiveCountRequest = buildManticoreCountRequest(
+      SEARCH_INDEX_NAME,
+      null,
+      {}
+    );
+    expect(allScopeRequest.query).toBeUndefined();
+    expect(archiveCountRequest.query).toBeUndefined();
+  });
+
   it("passes offset/limit through, caps the window at max_matches and keeps totals exact", () => {
     const request = buildManticoreSearchRequest(
       SEARCH_INDEX_NAME,
@@ -866,9 +901,22 @@ describe("ManticoreSearchEngine document mapping", () => {
         query: "Azure platform engineer",
       });
       expect(search.options).toEqual({ fusion_method: "rrf" });
+      const expectedFilters =
+        search.index === "aanvragen_archive"
+          ? [{ in: { status: ["active"] } }]
+          : [
+              { in: { status: ["active"] } },
+              {
+                range: {
+                  sluitingsdatum: {
+                    gt: Math.floor(Date.now() / 300_000) * 300,
+                  },
+                },
+              },
+            ];
       expect(search.query).toEqual({
         bool: {
-          filter: [{ in: { status: ["active"] } }],
+          filter: expectedFilters,
           must: [
             {
               query_string:

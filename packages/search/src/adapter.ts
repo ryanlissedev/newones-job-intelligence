@@ -30,7 +30,7 @@ import type { FacetCache } from "./cache/facets-cache";
 import { ParserLruCache } from "./cache/parser-cache";
 import { Singleflight } from "./cache/singleflight";
 import { SearchVersionPin } from "./cache/version-pin";
-import { DEFAULT_SEARCH_SCOPE } from "./partition";
+import { activeDeadlineEpochSecond, DEFAULT_SEARCH_SCOPE } from "./partition";
 import type { SearchScope } from "./partition";
 import type {
   QueryScope,
@@ -85,6 +85,8 @@ export interface SearchAdapterOptions {
   cache?: ResultCache;
   cacheTtlSeconds?: number;
   engine: SearchEngine;
+  /** Injectable wall clock for the active-scope cache fence. */
+  clock?: () => Date;
   /** Overrides SEARCH_HYBRID for isolated evaluation runs and focused tests. */
   hybridEnabled?: boolean;
   /**
@@ -106,6 +108,7 @@ export const isSearchHybridEnabled = (
 export class SearchAdapter {
   private readonly cache?: ResultCache;
   private readonly cacheTtlSeconds: number;
+  private readonly clock: () => Date;
   private readonly engine: SearchEngine;
   private readonly hybridEnabled: boolean;
   private readonly facetsCache: FacetCache = new MemoryFacetCache();
@@ -119,6 +122,7 @@ export class SearchAdapter {
       options.hybridEnabled ?? isSearchHybridEnabled(process.env.SEARCH_HYBRID);
     this.cache = options.cache;
     this.cacheTtlSeconds = options.cacheTtlSeconds ?? DEFAULT_CACHE_TTL_SECONDS;
+    this.clock = options.clock ?? (() => new Date());
     this.versionPin = new SearchVersionPin({
       ...options.versionPin,
       read: () => this.engine.getAppliedVersion(),
@@ -248,11 +252,20 @@ export class SearchAdapter {
         parserVersion = parsedVersion;
       }
 
-      const filters = normalizeFilters(input.filters);
+      const normalizedFilters = normalizeFilters(input.filters);
       const limit = input.limit ?? DEFAULT_SEARCH_PAGE_SIZE;
       const offset = input.offset ?? DEFAULT_OFFSET;
       const sort = input.sort ?? DEFAULT_SORT;
       const scope = input.scope ?? DEFAULT_SEARCH_SCOPE;
+      const filters =
+        scope === "active"
+          ? {
+              ...normalizedFilters,
+              activeDeadlineEpochSecond: activeDeadlineEpochSecond(
+                this.clock()
+              ),
+            }
+          : normalizedFilters;
       const mode: SearchMode =
         ast !== null && this.hybridEnabled && isHybridSearchEligible(ast)
           ? "hybrid"

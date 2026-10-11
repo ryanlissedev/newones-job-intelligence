@@ -41,11 +41,14 @@ export {
 export { readOutboxStatus, type OutboxEventPayload } from "./outbox-payload";
 export {
   ACTIVE_RECENT_DAYS,
+  activeDeadlineEpochSecond,
   DEFAULT_SEARCH_SCOPE,
   documentPartition,
   partitionInScope,
   partitionTable,
   resolveSearchPartition,
+  roundSearchNowToFenceWindow,
+  SEARCH_CLOCK_GRANULARITY_MS,
   SEARCH_PARTITIONS,
   SEARCH_SCOPES,
   scopeTables,

@@ -280,6 +280,7 @@ export interface ManticoreRangeFilter {
   range: {
     laatst_gezien_op?: { gte: number };
     publicatiedatum?: { gte?: number; lt?: number };
+    sluitingsdatum?: { gt: number };
     tarief_max?: { gte: number };
     tarief_min?: { lte: number };
     uren_per_week_max?: { gte: number };

@@ -12,7 +12,12 @@ import {
   createLiveTestEngine,
   requireLiveManticoreUrl,
 } from "./manticore/live-test-hygiene";
-import type { SearchDocument, SearchEngine, SearchMode } from "./types";
+import type {
+  ResultCache,
+  SearchDocument,
+  SearchEngine,
+  SearchMode,
+} from "./types";
 
 const LIVE_TEST_INDEX_NAME = "aanvragen_test_adapter";
 
@@ -168,6 +173,55 @@ describe("SearchAdapter", () => {
     expect(first.ok).toBe(true);
     expect(second.ok).toBe(true);
     expect(searchCalls).toBe(1);
+  });
+
+  it("keeps the active fence cache key stable within a five-minute window", async () => {
+    const engine = new InMemorySearchEngine();
+    await engine.upsertDocument(sampleDocument());
+    await engine.applyBatch({ appliedSequence: 3n, mutations: [] });
+    const keys: string[] = [];
+    const cache: ResultCache = {
+      get: () => Promise.resolve(null),
+      set: (key) => {
+        keys.push(key);
+        return Promise.resolve();
+      },
+    };
+    let now = new Date("2026-09-01T12:04:00.000Z");
+    const adapter = new SearchAdapter({
+      cache,
+      clock: () => now,
+      engine,
+    });
+
+    await adapter.search({ query: "Azure" });
+    now = new Date("2026-09-01T12:04:59.000Z");
+    await adapter.search({ query: "Azure" });
+    expect(keys).toHaveLength(2);
+    expect(keys[0]).toBe(keys[1]);
+
+    now = new Date("2026-09-01T12:05:00.000Z");
+    await adapter.search({ query: "Azure" });
+    expect(keys[2]).not.toBe(keys[0]);
+  });
+
+  it("does not add a deadline fence to an all-scope request", async () => {
+    const engine = new InMemorySearchEngine();
+    const received: Parameters<SearchEngine["search"]>[0][] = [];
+    const capturingEngine: SearchEngine = {
+      applyBatch: (batch) => engine.applyBatch(batch),
+      deleteDocument: (id) => engine.deleteDocument(id),
+      getAppliedVersion: () => engine.getAppliedVersion(),
+      search: (params) => {
+        received.push(params);
+        return engine.search(params);
+      },
+      upsertDocument: (document) => engine.upsertDocument(document),
+    };
+    const adapter = new SearchAdapter({ engine: capturingEngine });
+
+    await adapter.search({ query: "", scope: "all" });
+    expect(received[0]?.filters.activeDeadlineEpochSecond).toBeUndefined();
   });
 
   it("does not share cached hits between legacy-delimiter-colliding ASTs (RJC-427)", async () => {

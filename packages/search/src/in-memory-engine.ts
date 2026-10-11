@@ -8,6 +8,7 @@ import { compareCodepoints } from "./ast-hash";
 import { matchesSearchFilters } from "./filter-match";
 import { hashDocumentId } from "./manticore/id-hash";
 import {
+  activeDeadlineEpochSecond,
   DEFAULT_SEARCH_SCOPE,
   documentPartition,
   partitionInScope,
@@ -329,9 +330,23 @@ export class InMemorySearchEngine implements SearchEngine {
   async search(params: EngineSearchParams): Promise<SearchEngineResult> {
     const version = await this.getAppliedVersion();
     const scope = params.scope ?? DEFAULT_SEARCH_SCOPE;
+    const baseFilters = { ...params.filters };
+    delete baseFilters.activeDeadlineEpochSecond;
+    const activeFilters =
+      scope === "active"
+        ? {
+            ...baseFilters,
+            activeDeadlineEpochSecond:
+              params.filters.activeDeadlineEpochSecond ??
+              activeDeadlineEpochSecond(this.clock()),
+          }
+        : baseFilters;
     return timeCriticalPathPhase("search-serialization", () => {
-      const matchesQuery = (document: SearchDocument): boolean => {
-        if (!matchesSearchFilters(document, params.filters)) {
+      const matchesQuery = (
+        document: SearchDocument,
+        filters: typeof baseFilters
+      ): boolean => {
+        if (!matchesSearchFilters(document, filters)) {
           return false;
         }
 
@@ -339,7 +354,7 @@ export class InMemorySearchEngine implements SearchEngine {
           return true;
         }
 
-        const queryScope = params.filters.queryScope ?? DEFAULT_QUERY_SCOPE;
+        const queryScope = filters.queryScope ?? DEFAULT_QUERY_SCOPE;
         if (queryScope === "title") {
           return evaluateBooleanAst(
             params.ast,
@@ -357,10 +372,16 @@ export class InMemorySearchEngine implements SearchEngine {
       const matched: SearchDocument[] = [];
       let archiveTotal = 0;
       for (const entry of this.documents.values()) {
-        if (!matchesQuery(entry.document)) {
+        if (!matchesQuery(entry.document, baseFilters)) {
           continue;
         }
         if (partitionInScope(entry.partition, scope)) {
+          if (
+            scope === "active" &&
+            !matchesSearchFilters(entry.document, activeFilters)
+          ) {
+            continue;
+          }
           matched.push(entry.document);
         } else {
           archiveTotal += 1;

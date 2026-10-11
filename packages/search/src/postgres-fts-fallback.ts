@@ -3,7 +3,7 @@ import type { BooleanNode } from "@ji/domain";
 import { evaluateBooleanAst } from "./adapter";
 import { compareCodepoints } from "./ast-hash";
 import { matchesSearchFilters } from "./filter-match";
-import { DEFAULT_SEARCH_SCOPE } from "./partition";
+import { activeDeadlineEpochSecond, DEFAULT_SEARCH_SCOPE } from "./partition";
 import {
   DEFAULT_QUERY_SCOPE,
   emptySearchFacets,
@@ -51,14 +51,17 @@ export class PostgresFtsFallbackEngine implements SearchEngine {
   private readonly documents = new Map<string, SearchDocument>();
   private readonly executor: PostgresFtsExecutor | undefined;
   private readonly versionStore: SearchVersionStore;
+  private readonly clock: () => Date;
 
   constructor(
     executor?: PostgresFtsExecutor,
     seedDocuments: SearchDocument[] = [],
-    versionStore: SearchVersionStore = new InMemorySearchVersionStore()
+    versionStore: SearchVersionStore = new InMemorySearchVersionStore(),
+    clock: () => Date = () => new Date()
   ) {
     this.executor = executor;
     this.versionStore = versionStore;
+    this.clock = clock;
     for (const document of seedDocuments) {
       this.documents.set(document.id, structuredClone(document));
     }
@@ -95,9 +98,21 @@ export class PostgresFtsFallbackEngine implements SearchEngine {
 
   async search(params: EngineSearchParams): Promise<SearchEngineResult> {
     const version = await this.getAppliedVersion();
+    const scope = params.scope ?? DEFAULT_SEARCH_SCOPE;
+    const baseFilters = { ...params.filters };
+    delete baseFilters.activeDeadlineEpochSecond;
+    const filters =
+      scope === "active"
+        ? {
+            ...baseFilters,
+            activeDeadlineEpochSecond:
+              params.filters.activeDeadlineEpochSecond ??
+              activeDeadlineEpochSecond(this.clock()),
+          }
+        : baseFilters;
     if (this.executor) {
       const rows = await this.executor.search({
-        filters: params.filters,
+        filters,
         limit: params.limit,
         matchAst: params.ast,
         offset: params.offset,
@@ -110,14 +125,14 @@ export class PostgresFtsFallbackEngine implements SearchEngine {
         indexVersion: Number(version.appliedSequence),
         // ponytail: the fallback has no partitions; it reports the scope it
         // was asked for and searches everything it holds.
-        scope: params.scope ?? DEFAULT_SEARCH_SCOPE,
+        scope,
         total: rows.length,
         windowLimit: SEARCH_WINDOW_LIMIT,
       };
     }
 
     const matched = [...this.documents.values()].filter((document) => {
-      if (!matchesSearchFilters(document, params.filters)) {
+      if (!matchesSearchFilters(document, filters)) {
         return false;
       }
 
@@ -154,7 +169,7 @@ export class PostgresFtsFallbackEngine implements SearchEngine {
       hits: page.map((document) => ({ id: document.id, weight: 1 })),
       incomplete: false,
       indexVersion: Number(version.appliedSequence),
-      scope: params.scope ?? DEFAULT_SEARCH_SCOPE,
+      scope,
       total: matched.length,
       windowLimit: SEARCH_WINDOW_LIMIT,
     };
