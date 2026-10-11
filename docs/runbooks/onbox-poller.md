@@ -478,3 +478,7 @@ Logs never carry raw payloads or database URLs.
   [hetzner-deploy.md](hetzner-deploy.md).
 - Raw payload storage and the production guard:
   [raw-object-storage.md](raw-object-storage.md).
+
+## Scheduled tasks on this app
+
+- `enrich-incomplete` (hourly at :05): the enrichment oneshot runs as a Coolify Scheduled Task on this application. See `docs/runbooks/enrichment-schedule.md`.
