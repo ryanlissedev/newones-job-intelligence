@@ -42,7 +42,17 @@ elif [[ "$visual_mode" != "off" ]]; then
     --suite fixtures
     --mode "$visual_mode"
   )
-  if (( $# > 0 )); then
+  # Only test selection makes a run partial (spec paths or a tag/grep filter);
+  # mode flags such as --headed (and their values) must not hide missing captures.
+  partial_run=0
+  for argument in "$@"; do
+    case "$argument" in
+      --tag|--tag=*|--grep|--grep=*|-g|-t|--filter|--filter=*|--only|--only=*) partial_run=1 ;;
+      *.e2e.ts|tests/*) partial_run=1 ;;
+      *) ;;
+    esac
+  done
+  if (( partial_run == 1 )); then
     compare_args+=(--captured-only)
   fi
   PATH="./node_modules/.bin:$PATH" bun "${compare_args[@]}" || compare_status=$?

@@ -161,8 +161,8 @@ export const createAuthStub = (port: number) => {
       error: "fixture auth stub: endpoint not implemented",
     });
   });
-  // Loopback only: browser auth calls are proxied through the runner
-  // (support/test.ts) and Next SSR calls it on 127.0.0.1.
+  // Loopback only: the local Chromium and Next SSR both call it on
+  // 127.0.0.1 (see support/test.ts).
   server.listen(port, "127.0.0.1");
   return server;
 };

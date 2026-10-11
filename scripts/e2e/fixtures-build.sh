@@ -8,12 +8,14 @@ auth_port="${E2E_FIXTURES_AUTH_PORT:-3310}"
 
 cd "$repo_root"
 
-# HEAD, the uncommitted web/package diff, untracked-file hashes, and the auth
-# port make an edited working tree or changed runtime configuration rebuild.
+# HEAD, the uncommitted web/package/root-manifest diff (the root package.json
+# owns the workspace catalog, bun.lock pins transitive deps), untracked-file
+# hashes, and the auth port make an edited working tree, a dependency change
+# or changed runtime configuration rebuild.
 expected_stamp="$(
   {
     git rev-parse HEAD
-    git diff HEAD -- apps/web packages
+    git diff HEAD -- apps/web packages package.json bun.lock
     git ls-files --others --exclude-standard -- apps/web packages | xargs -r sha256sum
     printf '%s\n' "$auth_port"
   } | sha256sum | cut -d' ' -f1
