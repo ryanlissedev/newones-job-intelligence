@@ -29,6 +29,31 @@ host and known-hosts variables for the same pinned SSH tunnel. The opt-in
 action is pinned to `tailscale/github-action` v4.1.3; it does not change the
 Coolify API or deployment ordering.
 
+## Agent production gate (hook)
+
+Claude Code and Codex load the same PreToolUse hook from
+`.claude/hooks/production-gate.sh`. It blocks production rollback/release/
+migration scripts, the Coolify deploy driver and write endpoints, GitHub
+production dispatches, and writes through `catapulze-hetzner` (including
+non-read-only `psql`). Read-only inspection such as `gh run view`, health GETs,
+`docker logs`, and verified `psql SELECT` remains available.
+
+Ryan approves a release by reviewing the PR and approving the GitHub
+`production` environment deployment for CI (`Deploy production` run → `Review
+deployments`). For an operator action, Ryan starts the agent session with
+`RELEASE_APPROVAL=PR-<n>` or writes `PR-<n> <today>` as the first non-comment line
+of the approval file. The dated file expires automatically; Ryan can expire it
+early by removing or replacing it. The agent must never set either approval.
+Decisions are appended to
+`${XDG_STATE_HOME:-~/.local/state}/newones/production-gate.log` (or
+`PRODUCTION_GATE_LOG`). Codex project hooks must be trusted once through
+`/hooks` before they run.
+
+Ryan configures the CI protection in GitHub: Settings → Environments →
+`production` → Required reviewers: `RyanLisse` → Save protection rules. Under
+Deployment branches and tags choose Selected branches and tags and add `main`.
+Leave Prevent self-review unchecked because Ryan both merges and approves.
+
 The successful release gate writes a short-lived, sanitized evidence file. The
 deploy driver reads and rechecks that file immediately before its first
 application PATCH, together with a fresh `main` ref read. A GitHub deployment

@@ -1,0 +1,17 @@
+{
+  "description": "Production deploy/rollback approval gate. Same script as Claude Code (.claude/settings.json). Trust it once via /hooks; see AGENTS.md \"Production release lane\".",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "bash \"$(git rev-parse --show-toplevel)/.claude/hooks/production-gate.sh\"",
+            "statusMessage": "Checking production gate",
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash"
+      }
+    ]
+  }
+}

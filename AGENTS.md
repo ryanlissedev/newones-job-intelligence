@@ -54,6 +54,9 @@ Autoreview and the end-of-deliverable review catch different classes of problem:
 
 ### Production release lane
 
+- Agents never run production deploy/rollback scripts, Coolify writes, GitHub production dispatches, or Hetzner writes without Ryan's explicit release approval (`RELEASE_APPROVAL=PR-<n>` set by Ryan or the dated approval file). The hook enforces this for Claude Code (`.claude/settings.json`) and Codex (`.codex/hooks.json`; trust it once via `/hooks`).
+- Never set or forge the approval yourself; on a block, report the reason to Ryan.
+
 The architecture and the failure mode that cost a full session to rediscover (2026-09-18).
 
 - `Deploy production` (`.github/workflows/deploy-production.yml`) triggers on every green CI on main and is **fail-closed**: `scripts/production/release-gate.ts` must pass before any Coolify credential exists.
