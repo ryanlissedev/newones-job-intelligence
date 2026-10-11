@@ -106,6 +106,18 @@ type Statement = () => postgres.PendingQuery<postgres.Row[]>;
 /** How long closing the store waits for in-flight claims and their releases. */
 const ABANDONED_DRAIN_MS = 5000;
 
+/** Resolves after `ms`, or as soon as `signal` aborts (never rejects). */
+const waitUnlessAborted = async (
+  ms: number,
+  signal: AbortSignal
+): Promise<void> => {
+  try {
+    await delay(ms, undefined, { signal });
+  } catch {
+    // Aborted: the drain finished first.
+  }
+};
+
 interface StatementHooks<Row extends postgres.Row> {
   /** The statement completed after the caller was interrupted: nobody will see these rows. */
   readonly onAbandoned?: (rows: readonly Row[]) => Promise<void>;
@@ -222,13 +234,18 @@ export const makePostgresPersistedQueueStore = (
     };
     yield* Effect.addFinalizer(() =>
       Effect.promise(async () => {
-        await Promise.race([
-          Promise.allSettled(inFlightClaims),
-          // Unreferenced: when the claims win the race (the normal case,
-          // often an empty set) the losing timer must not keep the process
-          // alive for the full drain window after shutdown.
-          delay(ABANDONED_DRAIN_MS, undefined, { ref: false }),
-        ]);
+        // The bound stays a referenced timer (an unref'd one could let the
+        // process exit mid-drain), but it is aborted as soon as the claims
+        // win, so a normal shutdown is not held open for the full window.
+        const drainBound = new AbortController();
+        try {
+          await Promise.race([
+            Promise.allSettled(inFlightClaims),
+            waitUnlessAborted(ABANDONED_DRAIN_MS, drainBound.signal),
+          ]);
+        } finally {
+          drainBound.abort();
+        }
         await sql.end({ timeout: 5 });
       })
     );
