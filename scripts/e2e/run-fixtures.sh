@@ -48,8 +48,15 @@ elif [[ "$visual_mode" != "off" ]]; then
   # as that option's value (fail-safe: at worst a full compare).
   partial_run=0
   previous=""
+  end_of_options=0
   for argument in "$@"; do
+    if (( end_of_options == 1 )); then
+      partial_run=1
+      continue
+    fi
     case "$argument" in
+      --) end_of_options=1 ;;
+      *.e2e.ts|tests/*) partial_run=1 ;;
       --tag|--tag=*|--exclude-tag|--exclude-tag=*|--grep|--grep=*|--grep-invert|--grep-invert=*|-g|-t|--filter|--filter=*|--only|--only=*|--last-failed) partial_run=1 ;;
       -*) ;;
       *)
