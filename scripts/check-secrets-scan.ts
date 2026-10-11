@@ -60,9 +60,12 @@ const GENERATED_DIRECTORY_NAMES = new Set([
   ".artifacts",
   ".cache",
   ".crabbox",
+  ".e2e-visual",
   ".evlog",
   ".git",
   ".next",
+  // Fixture-mode web build for the tester-army fixture suite (JI_WEB_DIST_DIR).
+  ".next-e2e-fixtures",
   ".nx",
   ".nyc_output",
   ".omc",
