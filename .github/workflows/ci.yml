@@ -255,9 +255,12 @@ jobs:
     needs: changes
     # Deterministic fixture e2e + visual regression against the committed
     # baselines in tests/visual/baselines/fixtures (rendered on Linux Chromium,
-    # Europe/Amsterdam). Report-only for now: continue-on-error keeps a visual
-    # diff from failing the CI run until a few runs prove the baselines stable
-    # on GitHub runners; then drop continue-on-error and make it required.
+    # Europe/Amsterdam). The functional fixture scenarios are enforced; the
+    # visual compare runs in report mode because the committed baselines were
+    # rendered on the operator box and GitHub runners differ by 0.1-0.7%
+    # anti-aliasing. Not required yet (continue-on-error, not in the release
+    # gate's required jobs); once baselines are re-rendered on a runner, switch
+    # to E2E_VISUAL=enforce and make the job required.
     if: needs.changes.outputs.code == 'true'
     continue-on-error: true
     runs-on: ubuntu-latest
@@ -287,7 +290,9 @@ jobs:
       - name: Install Chromium
         run: PATH="./node_modules/.bin:$PATH" playwright install --with-deps chromium
 
-      - name: Fixture e2e + visual compare
+      - name: Fixture e2e + visual compare (report)
+        env:
+          E2E_VISUAL: report
         run: bun run test:e2e:fixtures
 
       - name: Upload e2e report
@@ -299,6 +304,7 @@ jobs:
             .e2e/
             .e2e-visual/
           if-no-files-found: ignore
+          include-hidden-files: true
           retention-days: 7
 
   application-image-smoke:
