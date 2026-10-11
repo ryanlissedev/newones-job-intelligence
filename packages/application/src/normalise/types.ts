@@ -220,10 +220,14 @@ export const isValidCalendarDate = (
 export const toValidPublicationDate = (
   value: string | null | undefined
 ): string | null => {
+  // Parse with at most millisecond precision: ECMAScript only specifies
+  // three fractional digits, so longer fractions are engine-dependent.
   if (
     !value ||
     !PUBLICATION_DATE_PATTERN.test(value) ||
-    Number.isNaN(Date.parse(value))
+    Number.isNaN(
+      Date.parse(value.replace(PUBLICATION_FRACTION_PATTERN, "$<millis>"))
+    )
   ) {
     return null;
   }
