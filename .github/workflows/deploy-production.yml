@@ -26,8 +26,6 @@ jobs:
       github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    # GitHub Environment `production` carries required reviewer RyanLisse (configured in repo Settings, not here).
-    # That protection pauses this job for approval before protected production secrets are available.
     environment:
       name: production
     env:

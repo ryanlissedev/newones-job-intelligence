@@ -4,22 +4,25 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
-  rmSync,
   readFileSync,
+  rmSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-type Decision = "allow" | "block";
+type Decision = "allow" | "log" | "block" | "approved";
 type Command = string | readonly string[];
 
 interface GateCase {
   readonly name: string;
   readonly command: Command;
   readonly decision: Decision;
+  readonly category?: string;
   readonly env?: Readonly<Record<string, string>>;
   readonly fileContents?: string;
+  readonly productionGateConfigContents?: string;
+  readonly secrets?: readonly string[];
   readonly stdin?: string;
   readonly toolName?: string;
   readonly toolInput?: Readonly<{
@@ -60,966 +63,627 @@ it("runs the gate for write and edit hooks", () => {
 
 const cases: GateCase[] = [
   {
-    command:
-      "ssh catapulze-hetzner 'docker exec ji-postgres psql -U ji -d ji -c \"select count(*) from jobs where created_at > now() - interval 1 day\"'",
-    decision: "allow",
-    name: "Hetzner read-only psql with a > comparison",
+    category: "production-script",
+    command: "./rollback.sh",
+    decision: "log",
+    name: "rollback script is logged",
   },
   {
-    command:
-      "ssh catapulze-hetzner 'docker exec ji-postgres psql -U ji -d ji -c \"select 1 where 2 > 1\" > /srv/out.txt'",
-    decision: "block",
-    name: "Hetzner psql select with a remote redirection",
-  },
-  { command: "./rollback.sh", decision: "block", name: "rollback script" },
-  {
+    category: "production-script",
     command: "/opt/ops/release_apps.sh",
-    decision: "block",
-    name: "release script",
+    decision: "log",
+    name: "release script is logged",
   },
   {
+    category: "production-script",
     command: "bash migrate-only.sh",
-    decision: "block",
-    name: "migration script",
+    decision: "log",
+    name: "migration script is logged",
   },
   {
+    category: "production-driver",
     command: "bun scripts/production/coolify-deploy.ts",
-    decision: "block",
-    name: "coolify driver",
+    decision: "log",
+    name: "Coolify driver is logged",
   },
   {
-    command: "git commit -m 'mention coolify-deploy.ts'",
-    decision: "allow",
-    name: "git commit message driver reference",
-  },
-  {
+    category: "production-script",
     command: 'git commit -m "$(./rollback.sh)"',
-    decision: "block",
-    name: "git commit substitution rollback",
+    decision: "log",
+    name: "substitution rollback is logged",
   },
   {
-    command: "git commit -m '`./rollback.sh`'",
-    decision: "block",
-    name: "git commit backtick rollback",
+    category: "production-script",
+    command: "cat rollback.sh | bash",
+    decision: "log",
+    name: "piped rollback is logged",
   },
   {
-    command: "bash -lc 'rollback.sh'",
-    decision: "block",
-    name: "wrapped rollback",
+    category: "production-script",
+    command: "source ./rollback.sh",
+    decision: "log",
+    name: "sourced rollback is logged",
   },
   {
+    category: "production-script",
     command: "eval ./rollback.sh",
-    decision: "block",
-    name: "eval rollback wrapper",
+    decision: "log",
+    name: "eval rollback is logged",
   },
   {
-    command: 'sh -c "cd /opt && ./migrate-only.sh"',
-    decision: "block",
-    name: "shell migration wrapper",
-  },
-  {
-    command: "bash rollback.sh head",
-    decision: "block",
-    name: "rollback command with trailing read word",
-  },
-  {
-    command: "./rollback.sh --tail",
-    decision: "block",
-    name: "rollback option resembling read command",
-  },
-  {
-    command: "ssh x ./release_apps.sh cat",
-    decision: "block",
-    name: "remote release command with trailing read word",
-  },
-  {
-    command: "ssh catapulze-hetzner 'bun scripts/production/coolify-deploy.ts'",
-    decision: "block",
-    name: "ssh wrapped driver",
-  },
-  { command: "cat rollback.sh", decision: "allow", name: "cat script" },
-  {
-    command: "rg release_apps.sh docs",
+    command: "cat rollback.sh",
     decision: "allow",
-    name: "ripgrep script",
+    name: "reading a script is silent",
   },
   {
-    command: "less scripts/production/coolify-deploy.ts",
+    command: "git commit -m 'mention rollback.sh'",
     decision: "allow",
-    name: "less driver",
+    name: "describing a script is silent",
   },
   {
-    command: "git log -- rollback.sh",
-    decision: "allow",
-    name: "git log script",
-  },
-  {
-    command: "git commit -m 'docs: mention rollback.sh'",
-    decision: "allow",
-    name: "git commit message script reference",
-  },
-  {
-    command: 'git commit -m "x"; ./rollback.sh',
-    decision: "block",
-    name: "git commit followed by rollback",
-  },
-  {
-    command: "bun test scripts/production/coolify-deploy.spec.ts",
-    decision: "allow",
-    name: "coolify driver test",
-  },
-  {
+    category: "coolify-api-deploy",
     command: "curl -fsS https://coolify.example/api/v1/deploy",
-    decision: "block",
-    name: "coolify deploy endpoint",
+    decision: "log",
+    name: "Coolify deploy is logged",
   },
   {
+    category: "coolify-api-lifecycle",
     command:
       "curl -fsS https://coolify.example/api/v1/applications/app-1/restart",
-    decision: "block",
-    name: "application restart",
+    decision: "log",
+    name: "Coolify restart is logged",
   },
   {
-    command: "wget https://coolify.example/api/v1/services/service-1/start",
-    decision: "block",
-    name: "service start",
-  },
-  {
-    command: "http DELETE https://coolify.example/api/v1/databases/db-1/stop",
-    decision: "block",
-    name: "database stop",
-  },
-  {
+    category: "coolify-api-write",
     command: "curl -X POST https://coolify.example/api/v1/applications",
-    decision: "block",
-    name: "Coolify API POST",
-  },
-  {
-    command: "curl -X 'POST' https://coolify.example/api/v1/applications",
-    decision: "block",
-    name: "quoted Coolify API POST",
-  },
-  {
-    command:
-      'curl --request "DELETE" https://coolify.example/api/v1/applications/x',
-    decision: "block",
-    name: "quoted Coolify API DELETE",
-  },
-  {
-    command: "xh --json foo=bar https://coolify.example/api/v1/applications",
-    decision: "block",
-    name: "Coolify API JSON",
-  },
-  {
-    command: "curl -XPOST https://coolify.example/api/v1/applications",
-    decision: "block",
-    name: "Coolify compact POST",
-  },
-  {
-    command: "curl --request=PATCH https://coolify.example/api/v1/applications",
-    decision: "block",
-    name: "Coolify equals PATCH",
-  },
-  {
-    command:
-      "wget --post-data payload https://coolify.example/api/v1/applications",
-    decision: "block",
-    name: "Coolify wget post data",
-  },
-  {
-    command:
-      "wget --post-file payload https://coolify.example/api/v1/applications",
-    decision: "block",
-    name: "Coolify wget post file",
-  },
-  {
-    command: "wget --method=DELETE https://coolify.example/api/v1/applications",
-    decision: "block",
-    name: "Coolify wget method",
-  },
-  {
-    command: "http POST https://coolify.example/api/v1/applications",
-    decision: "block",
-    name: "Coolify http POST",
-  },
-  {
-    command: "https put https://coolify.example/api/v1/applications",
-    decision: "block",
-    name: "Coolify https put",
-  },
-  {
-    command: "xh post https://coolify.example/api/v1/applications",
-    decision: "block",
-    name: "Coolify xh post",
+    decision: "log",
+    name: "Coolify POST is logged",
   },
   {
     command: "curl -fsS https://coolify.example/api/v1/applications",
     decision: "allow",
-    name: "Coolify applications GET",
+    name: "Coolify GET is silent",
   },
   {
-    command: "curl -fsS https://coolify.example/api/v1/deployments/uuid-1",
-    decision: "allow",
-    name: "Coolify deployment GET",
+    category: "github-production-dispatch",
+    command: "gh workflow run deploy-production --ref main",
+    decision: "log",
+    name: "production workflow dispatch is logged",
   },
   {
-    command: "curl -fsS https://app.example/readyz",
-    decision: "allow",
-    name: "readyz GET",
-  },
-  {
-    command: "wget -qO- https://app.example/healthz",
-    decision: "allow",
-    name: "healthz GET",
-  },
-  {
-    command: "curl -fsS https://coolify.example/api/v1/version",
-    decision: "allow",
-    name: "version GET",
-  },
-  {
-    command: "gh workflow run deploy-production",
-    decision: "block",
-    name: "GitHub workflow dispatch",
-  },
-  {
-    command: "gh workflow run deploy-production.yml --ref main",
-    decision: "block",
-    name: "GitHub workflow file dispatch",
-  },
-  {
-    command: 'gh workflow run "Deploy production"',
-    decision: "block",
-    name: "GitHub workflow title dispatch",
-  },
-  {
-    command:
-      "gh api --method POST /actions/workflows/deploy-production.yml/dispatches",
-    decision: "block",
-    name: "GitHub API dispatch",
-  },
-  {
+    category: "github-production-dispatch",
     command: "gh run rerun 123 --workflow deploy-production.yml",
-    decision: "block",
-    name: "GitHub named rerun",
+    decision: "log",
+    name: "production workflow rerun is logged",
   },
-  { command: "gh run view 123", decision: "allow", name: "GitHub run view" },
   {
-    command: "gh run list --workflow deploy-production.yml",
+    command: "gh run view 123",
     decision: "allow",
-    name: "GitHub run list",
-  },
-  { command: "gh run watch 123", decision: "allow", name: "GitHub run watch" },
-  {
-    command: "gh workflow view deploy-production.yml",
-    decision: "allow",
-    name: "GitHub workflow view",
+    name: "GitHub run view is silent",
   },
   {
-    command: "ssh -o BatchMode=yes catapulze-hetzner docker run image",
-    decision: "block",
-    name: "Hetzner docker run",
-  },
-  {
-    command: "ssh catapulze-hetzner docker exec app sh",
-    decision: "block",
-    name: "Hetzner docker exec",
-  },
-  {
+    category: "hetzner-write",
     command: "ssh catapulze-hetzner docker restart app",
-    decision: "block",
-    name: "Hetzner docker restart",
+    decision: "log",
+    name: "Hetzner docker restart is logged",
   },
   {
-    command: 'docker -H "ssh://catapulze-hetzner" restart app',
-    decision: "block",
-    name: "quoted Docker SSH host restart",
+    category: "hetzner-write",
+    command: "ssh catapulze-hetzner docker run image",
+    decision: "log",
+    name: "Hetzner docker run is logged",
   },
   {
-    command: "docker -Hssh://catapulze-hetzner restart app",
-    decision: "block",
-    name: "compact Docker SSH host restart",
+    category: "hetzner-write",
+    command: "ssh catapulze-hetzner docker exec app sh",
+    decision: "log",
+    name: "Hetzner docker exec is logged",
   },
   {
+    category: "hetzner-write",
     command: "ssh catapulze-hetzner docker compose up -d",
-    decision: "block",
-    name: "Hetzner compose up",
+    decision: "log",
+    name: "Hetzner compose up is logged",
   },
   {
-    command:
-      "ssh -o BatchMode=yes deploy@catapulze-hetzner docker compose -f x.yml up -d",
-    decision: "block",
-    name: "Hetzner compose up with file option",
+    category: "hetzner-write",
+    command: "ssh catapulze-hetzner systemctl restart app",
+    decision: "log",
+    name: "Hetzner systemctl restart is logged",
   },
   {
-    command: "ssh catapulze-hetzner docker --context prod restart x",
-    decision: "block",
-    name: "Hetzner docker restart with context option",
-  },
-  {
-    command: "ssh catapulze-hetzner docker -H unix:///x rm -f y",
-    decision: "block",
-    name: "Hetzner docker rm with host option",
-  },
-  {
-    command: "ssh catapulze-hetzner docker compose -f a.yml -p ji up -d",
-    decision: "block",
-    name: "Hetzner compose up with project options",
-  },
-  {
-    command:
-      "ssh catapulze-hetzner docker compose --project-directory /srv/ji restart server",
-    decision: "block",
-    name: "Hetzner compose restart with project directory",
-  },
-  {
-    command: "ssh catapulze-hetzner docker-compose -f x.yml down",
-    decision: "block",
-    name: "Hetzner legacy compose down",
-  },
-  {
-    command: "ssh catapulze-hetzner docker compose kill server",
-    decision: "block",
-    name: "Hetzner compose kill",
-  },
-  {
-    command: "ssh catapulze-hetzner docker compose create server",
-    decision: "block",
-    name: "Hetzner compose create",
-  },
-  {
-    command: "ssh catapulze-hetzner docker compose scale server=2",
-    decision: "block",
-    name: "Hetzner compose scale",
-  },
-  {
-    command: "ssh catapulze-hetzner docker compose -f x.yml ps",
-    decision: "allow",
-    name: "Hetzner compose ps",
-  },
-  {
-    command: "ssh catapulze-hetzner docker compose logs --tail 20 server",
-    decision: "allow",
-    name: "Hetzner compose logs",
-  },
-  {
-    command: "ssh catapulze-hetzner docker logs ji-server | grep -i restart",
-    decision: "allow",
-    name: "Hetzner docker logs piped to grep",
-  },
-  {
-    command: "ssh catapulze-hetzner 'echo x > /etc/app.conf'",
-    decision: "block",
-    name: "Hetzner quoted remote redirection",
-  },
-  {
-    command: 'ssh catapulze-hetzner "printf y >> /srv/.env"',
-    decision: "block",
-    name: "Hetzner double-quoted remote redirection",
-  },
-  {
-    command: "ssh catapulze-hetzner 'command 2>/etc/app.err'",
-    decision: "block",
-    name: "Hetzner quoted stderr redirection",
-  },
-  {
-    command: "ssh catapulze-hetzner 'docker logs ji-server 2>&1'",
-    decision: "allow",
-    name: "remote stderr merge",
-  },
-  {
-    command: "ssh catapulze-hetzner docker logs ji-server > /tmp/ji.log",
-    decision: "allow",
-    name: "local redirection after remote logs",
-  },
-  {
-    command:
-      "ssh catapulze-hetzner 'docker logs ji-server' 2>&1 | tee /tmp/x.log",
-    decision: "allow",
-    name: "local tee after remote logs",
-  },
-  {
-    command: "ssh user@catapulze-hetzner systemctl restart app",
-    decision: "block",
-    name: "Hetzner systemctl",
-  },
-  {
-    command: "ssh catapulze-hetzner rm -f /tmp/x",
-    decision: "block",
-    name: "Hetzner rm",
-  },
-  {
-    command: "ssh catapulze-hetzner mv /tmp/a /tmp/b",
-    decision: "block",
-    name: "Hetzner mv",
-  },
-  {
-    command: "ssh catapulze-hetzner kill 123",
-    decision: "block",
-    name: "Hetzner kill",
-  },
-  {
+    category: "hetzner-write",
     command: "scp file user@catapulze-hetzner:/tmp/file",
-    decision: "block",
-    name: "Hetzner scp",
+    decision: "log",
+    name: "Hetzner scp is logged",
   },
   {
-    command: "rsync file catapulze-hetzner:/tmp/file",
-    decision: "block",
-    name: "Hetzner rsync",
+    category: "hetzner-write",
+    command: "ssh catapulze-hetzner mkdir /srv/new",
+    decision: "log",
+    name: "Hetzner mkdir is logged",
   },
   {
-    command: "ssh catapulze-hetzner 'cd /srv; docker restart ji-server'",
-    decision: "block",
-    name: "Hetzner chained restart",
+    category: "hetzner-write",
+    command: "ssh catapulze-hetzner 'echo x > /etc/app.conf'",
+    decision: "log",
+    name: "Hetzner redirection is logged",
   },
   {
-    command: 'ssh catapulze-hetzner "docker ps && docker rm -f ji-web"',
-    decision: "block",
-    name: "Hetzner chained docker removal",
+    category: "hetzner-write",
+    command: "ssh catapulze-hetzner docker rm -f ji-web",
+    decision: "log",
+    name: "non-database container removal is logged",
   },
   {
-    command: 'ssh catapulze-hetzner psql -c "select 1; delete from jobs"',
-    decision: "block",
-    name: "Hetzner mixed psql statements",
+    category: "hetzner-write",
+    command: "ssh catapulze-hetzner rm /tmp/x.log",
+    decision: "log",
+    name: "plain Hetzner rm is logged",
   },
   {
-    command:
-      "ssh catapulze-hetzner bash -s <<'EOF'\ndocker restart ji-server\nEOF",
-    decision: "block",
-    name: "Hetzner heredoc restart",
-  },
-  {
-    command:
-      "ssh catapulze-hetzner bash -s <<'EOF'\necho x > /etc/app.conf\nEOF",
-    decision: "block",
-    name: "Hetzner heredoc redirection",
-  },
-  {
-    command: "ssh catapulze-hetzner bash -s <<'EOF'\necho x >/dev/null\nEOF",
-    decision: "allow",
-    name: "Hetzner heredoc dev null redirection",
-  },
-  {
+    category: "sql-write",
     command: 'ssh catapulze-hetzner psql -c "INSERT INTO jobs VALUES (1)"',
-    decision: "block",
-    name: "remote psql INSERT",
+    decision: "log",
+    name: "non-destructive Hetzner SQL is logged",
   },
   {
-    command: "ssh catapulze-hetzner psql -U ji",
-    decision: "block",
-    name: "remote psql without command",
-  },
-  {
+    category: "sql-write",
     command: "ssh catapulze-hetzner psql -f migration.sql",
-    decision: "block",
-    name: "remote psql file",
+    decision: "log",
+    name: "unverifiable Hetzner psql is logged",
   },
   {
+    category: "sql-write",
+    command:
+      'ssh catapulze-hetzner psql -c "DROP INDEX CONCURRENTLY jobs_created_at_idx"',
+    decision: "log",
+    name: "DROP INDEX CONCURRENTLY is logged only",
+  },
+  {
+    category: "sql-write",
+    command: 'ssh catapulze-hetzner psql -c "UPDATE jobs SET x=1 WHERE id=5"',
+    decision: "log",
+    name: "UPDATE with WHERE is logged only",
+  },
+  {
+    command: 'ssh catapulze-hetzner psql -c "SELECT count(*) FROM jobs"',
+    decision: "allow",
+    name: "Hetzner SELECT is silent",
+  },
+  {
+    category: "sql-destructive",
+    command: 'ssh catapulze-hetzner psql -c "SELECT 1; DELETE FROM jobs"',
+    decision: "block",
+    name: "mixed SQL blocks on DELETE",
+  },
+  {
+    category: "sql-destructive",
+    command: 'ssh catapulze-hetzner psql -c "DELETE FROM jobs"',
+    decision: "approved",
+    env: { RELEASE_APPROVAL: "PR-496" },
+    name: "approved DELETE is allowed and logged",
+  },
+  {
+    category: "sql-destructive",
+    command: 'ssh catapulze-hetzner psql -c "TRUNCATE jobs"',
+    decision: "block",
+    name: "TRUNCATE blocks",
+  },
+  {
+    category: "sql-destructive",
     command: 'ssh catapulze-hetzner psql -c "DROP TABLE jobs"',
+    decision: "approved",
+    env: { RELEASE_APPROVAL: "PR-496" },
+    name: "approved DROP TABLE is allowed and logged",
+  },
+  {
+    category: "sql-destructive",
+    command: 'ssh catapulze-hetzner psql -c "DROP INDEX jobs_idx"',
     decision: "block",
-    name: "remote psql DROP",
+    name: "DROP INDEX without CONCURRENTLY blocks",
   },
   {
-    command:
-      'ssh catapulze-hetzner psql -c "WITH x AS (DELETE FROM jobs) SELECT * FROM x"',
+    category: "sql-destructive",
+    command: 'ssh catapulze-hetzner psql -c "UPDATE jobs SET x=1"',
     decision: "block",
-    name: "remote psql WITH write",
+    name: "UPDATE without WHERE blocks",
   },
   {
-    command:
-      'ssh catapulze-hetzner psql -c "SELECT * INTO copy_jobs FROM jobs"',
+    category: "sql-destructive",
+    command: 'ssh catapulze-hetzner psql -c "ALTER TABLE jobs DROP COLUMN x"',
+    decision: "approved",
+    env: { RELEASE_APPROVAL: "PR-496" },
+    name: "approved ALTER DROP COLUMN is allowed and logged",
+  },
+  {
+    category: "docker-volume-destroy",
+    command: "ssh catapulze-hetzner docker volume rm ji_pg",
     decision: "block",
-    name: "remote psql SELECT INTO",
+    name: "Docker volume removal blocks",
   },
-  ...[
-    "\\\\! rm",
-    "\\\\gexec",
-    "\\\\copy jobs from file",
-    "\\\\i migration.sql",
-    "\\\\ir migration.sql",
-    "\\\\o output.txt",
-    "\\\\w output.txt",
-    "\\\\g output.txt",
-    "\\\\setenv SECRET value",
-    "\\\\password",
-    "\\\\set ON_ERROR_STOP on",
-    "\\\\c otherdb",
-    "\\\\connect otherdb",
-    "\\\\lo_export 123 /tmp/x",
-  ].map((sql) => ({
-    command: `ssh catapulze-hetzner psql -c "${sql}"`,
-    decision: "block" as const,
-    name: `remote psql forbidden meta ${sql}`,
-  })),
   {
-    command: 'ssh catapulze-hetzner psql -c "SELECT 1; SELECT 2"',
-    decision: "allow",
-    name: "remote psql multi select",
+    category: "docker-volume-destroy",
+    command: "ssh catapulze-hetzner docker system prune -a --volumes",
+    decision: "approved",
+    env: { RELEASE_APPROVAL: "PR-496" },
+    name: "approved Docker volume prune is allowed and logged",
   },
-  ...[
-    "\\\\d",
-    "\\\\l",
-    "\\\\dt",
-    "\\\\d+",
-    "\\\\dn",
-    "\\\\di+",
-    "\\\\dv",
-    "\\\\l+",
-    "\\\\conninfo",
-    "\\\\x",
-    "\\\\timing",
-    "\\\\pset pager off",
-    "\\\\echo hello",
-    "\\\\q",
-  ].map((sql) => ({
-    command: `ssh catapulze-hetzner psql -c "${sql}"`,
-    decision: "allow" as const,
-    name: `remote psql allowed meta ${sql}`,
-  })),
   {
+    category: "db-container-destroy",
+    command: "ssh catapulze-hetzner docker rm -f ji-postgres",
+    decision: "block",
+    name: "database container removal blocks",
+  },
+  {
+    category: "db-container-destroy",
+    command: "ssh catapulze-hetzner docker container rm --force coolify-db",
+    decision: "approved",
+    env: { RELEASE_APPROVAL: "PR-496" },
+    name: "approved database container removal is allowed and logged",
+  },
+  {
+    category: "server-rm-rf",
+    command: "ssh catapulze-hetzner rm -rf /srv/old",
+    decision: "block",
+    name: "recursive server removal blocks",
+  },
+  {
+    category: "server-rm-rf",
+    command: "ssh catapulze-hetzner rm --recursive /srv/old",
+    decision: "approved",
+    env: { RELEASE_APPROVAL: "PR-496" },
+    name: "approved recursive removal is allowed and logged",
+  },
+  {
+    category: "pg-data-change",
+    command: "ssh catapulze-hetzner rm -rf /var/lib/postgresql/data",
+    decision: "block",
+    name: "PostgreSQL data removal blocks",
+  },
+  {
+    category: "pg-data-change",
+    command: "scp dump catapulze-hetzner:/data/coolify/databases/pg",
+    decision: "approved",
+    env: { RELEASE_APPROVAL: "PR-496" },
+    name: "approved PostgreSQL data change is allowed and logged",
+  },
+  {
+    category: "coolify-delete",
+    command: "curl -X DELETE https://coolify.example/api/v1/applications/app-1",
+    decision: "block",
+    name: "Coolify DELETE blocks",
+  },
+  {
+    category: "coolify-delete",
     command:
-      'ssh catapulze-hetzner docker exec ji-postgres psql -U ji -d ji -c "select count(*) from jobs"',
-    decision: "allow",
-    name: "remote docker psql SELECT",
+      'curl --request="DELETE" https://coolify.example/api/v1/applications/app-1',
+    decision: "approved",
+    env: { RELEASE_APPROVAL: "PR-496" },
+    name: "approved quoted Coolify DELETE is allowed and logged",
   },
   {
-    command:
-      'ssh catapulze-hetzner docker exec -i ji-postgres psql -c "\\\\dt"',
+    category: "gh-repo-delete",
+    command: "gh repo delete acme/old-repo --yes",
+    decision: "block",
+    name: "GitHub repository delete blocks",
+  },
+  {
+    category: "gh-repo-delete",
+    command: "gh api --method DELETE repos/acme/old-repo",
+    decision: "approved",
+    env: { RELEASE_APPROVAL: "PR-496" },
+    name: "approved GitHub repository API delete is allowed and logged",
+  },
+  {
+    category: "force-push-main",
+    command: "git push --force origin main",
+    decision: "block",
+    name: "force push main blocks",
+  },
+  {
+    category: "force-push-main",
+    command: "git push --force-with-lease origin main",
+    decision: "approved",
+    env: { RELEASE_APPROVAL: "PR-496" },
+    name: "approved force push main is allowed and logged",
+  },
+  {
+    command: "git push --force-with-lease origin feat/x",
     decision: "allow",
-    name: "remote docker psql meta",
+    name: "force push feature branch is silent",
+  },
+  {
+    command: "git push origin main",
+    decision: "allow",
+    name: "normal push main is silent",
+  },
+  {
+    command: "git push --force-with-lease origin",
+    decision: "allow",
+    env: { PRODUCTION_GATE_CURRENT_BRANCH: "feat/x" },
+    name: "force push without refspec on feature is silent",
+  },
+  {
+    category: "force-push-main",
+    command: "git push --force-with-lease origin",
+    decision: "block",
+    env: { PRODUCTION_GATE_CURRENT_BRANCH: "main" },
+    name: "force push without refspec on main blocks",
+  },
+  {
+    category: "force-push-main",
+    command: "git push --force-with-lease origin",
+    decision: "approved",
+    env: {
+      PRODUCTION_GATE_CURRENT_BRANCH: "main",
+      RELEASE_APPROVAL: "PR-496",
+    },
+    name: "approved force push without refspec on main is logged",
+  },
+  {
+    command: 'psql -h localhost -c "delete from jobs"',
+    decision: "allow",
+    name: "local psql DELETE is never blocked",
+  },
+  {
+    command: 'psql postgres://ji:pw@localhost:5432/ji_test -c "truncate x"',
+    decision: "allow",
+    name: "localhost connection string SQL is never blocked",
   },
   {
     command: "ssh catapulze-hetzner docker ps",
     decision: "allow",
-    name: "remote docker ps",
+    name: "docker ps is silent",
   },
   {
-    command: "ssh catapulze-hetzner docker logs --tail 100 x",
+    category: "hetzner-write",
+    command: "ssh catapulze-prod docker compose -f x.yml up -d",
+    decision: "log",
+    name: "production alias compose up is logged",
+  },
+  {
+    category: "hetzner-write",
+    command: "ssh catapulze-hetzner 'printf y >> /srv/.env'",
+    decision: "log",
+    name: "production env append is logged",
+  },
+  {
+    command: "ssh catapulze-prod docker logs --tail 50 ji-server | grep error",
     decision: "allow",
-    name: "remote docker logs",
-  },
-  {
-    command: "ssh catapulze-hetzner docker inspect x",
-    decision: "allow",
-    name: "remote docker inspect",
-  },
-  {
-    command: "ssh catapulze-hetzner curl -fsS http://127.0.0.1:3000/readyz",
-    decision: "allow",
-    name: "remote readyz",
-  },
-  {
-    command: "ssh catapulze-hetzner uptime",
-    decision: "allow",
-    name: "remote uptime",
-  },
-  {
-    command: "ssh catapulze-hetzner df -h",
-    decision: "allow",
-    name: "remote df",
-  },
-  {
-    command: "ssh catapulze-hetzner cat /etc/os-release",
-    decision: "allow",
-    name: "remote os release",
-  },
-  {
-    command: "DOCKER_HOST=ssh://user@catapulze-hetzner docker ps",
-    decision: "allow",
-    name: "Docker host read",
-  },
-  {
-    command: "docker -H ssh://catapulze-hetzner ps",
-    decision: "allow",
-    name: "Docker SSH host read",
-  },
-  {
-    command: "docker --host=ssh://catapulze-hetzner ps",
-    decision: "allow",
-    name: "Docker equals SSH host read",
-  },
-  {
-    command: "docker -H ssh://user@catapulze-hetzner cp x y",
-    decision: "block",
-    name: "Docker SSH host copy",
-  },
-  {
-    command: "DOCKER_HOST=ssh://user@catapulze-hetzner docker restart app",
-    decision: "block",
-    name: "Docker host restart",
-  },
-  {
-    command: "ssh catapulze-hetzner tee /etc/app.conf",
-    decision: "block",
-    name: "Hetzner tee",
-  },
-  {
-    command: "ssh catapulze-hetzner chmod 600 /etc/app.conf",
-    decision: "block",
-    name: "Hetzner chmod",
-  },
-  {
-    command: "ssh catapulze-hetzner chown app /srv/app",
-    decision: "block",
-    name: "Hetzner chown",
-  },
-  {
-    command: "ssh catapulze-hetzner cp source target",
-    decision: "block",
-    name: "Hetzner cp",
-  },
-  {
-    command: "ssh catapulze-hetzner ln -s source target",
-    decision: "block",
-    name: "Hetzner ln",
-  },
-  {
-    command: "ssh catapulze-hetzner truncate -s 0 target",
-    decision: "block",
-    name: "Hetzner truncate",
-  },
-  {
-    command: "ssh catapulze-hetzner dd if=source of=target",
-    decision: "block",
-    name: "Hetzner dd",
-  },
-  {
-    command: "ssh catapulze-hetzner sed -i s/old/new/ target",
-    decision: "block",
-    name: "Hetzner sed in place",
-  },
-  {
-    command: "ssh catapulze-hetzner service app stop",
-    decision: "block",
-    name: "Hetzner service stop",
-  },
-  {
-    command: "ssh catapulze-hetzner crontab -e",
-    decision: "block",
-    name: "Hetzner crontab edit",
-  },
-  {
-    command: "ssh catapulze-hetzner apt-get install package",
-    decision: "block",
-    name: "Hetzner apt install",
-  },
-  {
-    command: "ssh catapulze-hetzner yum remove package",
-    decision: "block",
-    name: "Hetzner yum remove",
-  },
-  {
-    command: "ssh catapulze-hetzner reboot",
-    decision: "block",
-    name: "Hetzner reboot",
-  },
-  {
-    command: "ssh catapulze-hetzner shutdown now",
-    decision: "block",
-    name: "Hetzner shutdown",
-  },
-  ...[
-    "mkdir /srv/new",
-    "rmdir /srv/old",
-    "touch /srv/app.conf",
-    "install -m 600 source /etc/app.conf",
-    "useradd deploy",
-    "usermod -aG docker deploy",
-    "passwd deploy",
-    "ufw allow 443",
-    "iptables -A INPUT -p tcp",
-    "nft add table inet filter",
-    "certbot renew",
-    "git pull",
-    "git checkout main",
-    "git reset --hard HEAD~1",
-    "git clean -fd",
-    "git merge feature",
-    "docker network rm prod",
-    "docker network prune",
-    "docker network create prod",
-    "docker volume rm prod",
-    "docker volume prune",
-    "docker volume create prod",
-    "docker system rm prod",
-    "docker system prune",
-    "docker system create prod",
-    "docker image rm prod",
-    "docker image prune",
-    "docker image create prod",
-    "docker builder prune",
-  ].map((command) => ({
-    command: `ssh catapulze-hetzner ${command}`,
-    decision: "block" as const,
-    name: `Hetzner denylist ${command}`,
-  })),
-  {
-    command:
-      "ssh catapulze-hetzner 'docker exec ji-postgres psql -U ji -d ji -c \"select count(*) from jobs\"'",
-    decision: "allow",
-    name: "explicit remote SELECT",
-  },
-  {
-    command: "./rollback.sh",
-    decision: "allow",
-    env: { RELEASE_APPROVAL: "PR-512" },
-    name: "valid env approval",
-  },
-  {
-    command: "./rollback.sh",
-    decision: "block",
-    env: { RELEASE_APPROVAL: "PR-abc" },
-    name: "invalid PR approval",
-  },
-  {
-    command: "./rollback.sh",
-    decision: "block",
-    env: { RELEASE_APPROVAL: "yes" },
-    name: "invalid yes approval",
-  },
-  {
-    command: "RELEASE_APPROVAL=PR-1 ./rollback.sh",
-    decision: "block",
-    name: "inline approval is tampering",
-  },
-  {
-    command: "git commit -m 'docs: mention release-approval'",
-    decision: "allow",
-    name: "git commit message approval reference",
+    name: "production container logs are silent",
   },
   {
     command:
-      "git commit -m 'docs: mention release-approval' > release-approval",
-    decision: "block",
-    name: "git commit approval reference with redirection",
+      "ssh catapulze-prod 'docker exec ji-postgres psql -U ji -c \"select count(*) from curated.bron where actief\"'",
+    decision: "allow",
+    name: "production read-only database inspection is silent",
   },
   {
+    command: "gh run view 1 --log",
+    decision: "allow",
+    name: "GitHub run log inspection is silent",
+  },
+  {
+    command: "curl -fsS https://x/readyz",
+    decision: "allow",
+    name: "readiness probe is silent",
+  },
+  {
+    category: "server-rm-rf",
+    command: "ssh 100.64.0.9 'rm -rf /srv'",
+    decision: "block",
+    name: "configured production host blocks recursive removal",
+    productionGateConfigContents: "host 100.64.0.9\n",
+  },
+  {
+    command: "ssh 100.64.0.9 'rm -rf /srv'",
+    decision: "allow",
+    name: "unconfigured host is not a production target",
+  },
+  {
+    category: "db-container-destroy",
+    command: "ssh catapulze-prod docker rm -f abc123uuid",
+    decision: "block",
+    name: "configured database container name blocks removal",
+    productionGateConfigContents: "db-container abc123uuid\n",
+  },
+  {
+    category: "sql-destructive",
+    command: "ssh catapulze-prod 'docker exec x psql -c \"drop table t\"'",
+    decision: "block",
+    name: "production alias destructive SQL blocks",
+  },
+  {
+    category: "production-script",
+    command: "cat ops/rollback.sh | bash",
+    decision: "log",
+    name: "piped ops rollback is logged",
+  },
+  {
+    category: "production-script",
+    command: "source ./release_apps.sh",
+    decision: "log",
+    name: "sourced release script is logged",
+  },
+  {
+    category: "coolify-api-deploy",
+    command: "curl -XPOST https://h/api/v1/deploy?uuid=x",
+    decision: "log",
+    name: "compact Coolify deploy POST is logged",
+  },
+  {
+    category: "coolify-api-deploy",
     command:
-      "git commit -m 'docs: mention release-approval' | tee release-approval",
+      "curl -fsS https://x/api/v1/deploy -H 'Authorization: Basic basic-secret'",
+    decision: "log",
+    name: "logged basic authorization is redacted",
+    secrets: ["basic-secret"],
+  },
+  {
+    category: "coolify-api-deploy",
+    command: "curl -fsS https://x/api/v1/deploy -H 'X-API-Key: api-key-secret'",
+    decision: "log",
+    name: "logged API key is redacted",
+    secrets: ["api-key-secret"],
+  },
+  {
+    category: "coolify-api-deploy",
+    command:
+      "curl -fsS https://x/api/v1/deploy -H 'Cookie: session-cookie-secret'",
+    decision: "log",
+    name: "logged cookie is redacted",
+    secrets: ["session-cookie-secret"],
+  },
+  {
+    category: "coolify-api-deploy",
+    command: "curl -fsS https://user:url-secret@example/api/v1/deploy",
+    decision: "log",
+    name: "logged URL credentials are redacted",
+    secrets: ["url-secret"],
+  },
+  {
+    category: "coolify-api-deploy",
+    command: "curl -fsS https://x/api/v1/deploy COOLIFY_API_TOKEN=token-secret",
+    decision: "log",
+    name: "logged token assignment is redacted",
+    secrets: ["token-secret"],
+  },
+  {
+    category: "coolify-api-deploy",
+    command: "curl -fsS https://x/api/v1/deploy PGPASSWORD='x y'",
+    decision: "log",
+    name: "logged password assignment is redacted",
+    secrets: ["x y"],
+  },
+  {
+    category: "coolify-api-deploy",
+    command: "curl -fsS https://x/api/v1/deploy --token='x'",
+    decision: "log",
+    name: "logged token option is redacted",
+    secrets: ["--token='x'", "--token=x"],
+  },
+  {
+    category: "coolify-api-deploy",
+    command: 'curl -fsS https://x/api/v1/deploy --password "x"',
+    decision: "log",
+    name: "logged password option is redacted",
+    secrets: ['--password "x"', "--password x"],
+  },
+  {
+    command: "Write production-gate.conf",
     decision: "block",
-    name: "git commit approval reference with tee",
+    env: { RELEASE_APPROVAL: "PR-496" },
+    name: "Write production gate config cannot be overridden",
+    productionGateConfigContents: "# existing\n",
+    toolInput: { file_path: "__PRODUCTION_GATE_CONFIG__" },
+    toolName: "Write",
   },
   {
-    command: "RELEASE_APPROVAL=PR-1 cat rollback.sh",
+    command: "Edit production-gate.conf",
     decision: "block",
-    name: "read command cannot assign approval",
+    env: { RELEASE_APPROVAL: "PR-496" },
+    name: "Edit production gate config cannot be overridden",
+    productionGateConfigContents: "# existing\n",
+    toolInput: { path: "__PRODUCTION_GATE_CONFIG__" },
+    toolName: "Edit",
   },
   {
-    command: "cat rollback.sh > release-approval",
+    command: "printf 'host 100.64.0.9\\n' > \"$PRODUCTION_GATE_CONFIG\"",
     decision: "block",
-    name: "read command cannot write approval file",
+    env: { RELEASE_APPROVAL: "PR-496" },
+    name: "Bash production gate config write cannot be overridden",
+    productionGateConfigContents: "# existing\n",
   },
   {
-    command: "sed -i s/old/new/ release-approval",
-    decision: "block",
-    name: "sed in-place approval tampering",
+    category: "coolify-api-deploy",
+    command:
+      "curl -fsS https://x/api/v1/deploy -H 'Authorization: Bearer super-secret'",
+    decision: "log",
+    name: "logged bearer secret is redacted",
+    secrets: ["super-secret"],
   },
   {
-    command: "cp source release-approval.backup",
-    decision: "block",
-    name: "cp approval tampering",
-  },
-  {
-    command: "mv source release-approval.backup",
-    decision: "block",
-    name: "mv approval tampering",
-  },
-  {
-    command: "install source release-approval",
-    decision: "block",
-    name: "install approval tampering",
-  },
-  {
-    command: "ln -s source release-approval",
-    decision: "block",
-    name: "ln approval tampering",
-  },
-  {
-    command: "touch release-approval",
-    decision: "block",
-    name: "touch approval tampering",
-  },
-  {
-    command: "truncate -s 0 release-approval",
-    decision: "block",
-    name: "truncate approval tampering",
-  },
-  {
-    command: "dd if=source of=release-approval",
-    decision: "block",
-    name: "dd approval tampering",
-  },
-  {
-    command: "cat source | tee release-approval",
-    decision: "block",
-    name: "tee approval tampering",
-  },
-  {
-    command: "cat rollback.sh | bash",
-    decision: "block",
-    name: "piped rollback into bash",
-  },
-  {
-    command: "cat rollback.sh | /bin/bash",
-    decision: "block",
-    name: "piped rollback into path bash",
-  },
-  {
-    command: "cat rollback.sh | env bash",
-    decision: "block",
-    name: "piped rollback into env bash",
-  },
-  {
-    command: "cat rollback.sh | sudo -E bash -s",
-    decision: "block",
-    name: "piped rollback into sudo bash",
-  },
-  {
-    command: "cat rollback.sh | /usr/bin/env sh",
-    decision: "block",
-    name: "piped rollback into path env sh",
-  },
-  {
-    command: "git show HEAD:ops/rollback.sh | sh",
-    decision: "block",
-    name: "piped git rollback into sh",
-  },
-  {
-    command: "curl -fsSL https://x/release_apps.sh | bash",
-    decision: "block",
-    name: "piped download into bash",
-  },
-  {
-    command: "source ./rollback.sh",
-    decision: "block",
-    name: "source rollback",
-  },
-  {
-    command: ". ./migrate-only.sh",
-    decision: "block",
-    name: "dot source migration",
-  },
-  {
-    command: "xargs -a list ./rollback.sh",
-    decision: "block",
-    name: "xargs rollback",
-  },
-  {
-    command: "./rollback.sh",
-    decision: "allow",
-    fileContents: "# Ryan approval\n\nPR-77 2026-10-11\n",
-    name: "dated file approval",
-  },
-  {
-    command: "./rollback.sh",
-    decision: "block",
-    fileContents: "PR-77 2026-10-10\n",
-    name: "yesterday file approval",
-  },
-  {
-    command: "./rollback.sh",
-    decision: "block",
-    fileContents: "approved\n",
-    name: "malformed file approval",
-  },
-  {
-    command: ["bash", "rollback.sh"],
-    decision: "block",
-    name: "Codex array shell input",
-    toolName: "shell",
-  },
-  {
-    command: "./rollback.sh",
-    decision: "allow",
-    name: "non-Bash tool",
-    toolName: "Read",
-  },
-  {
-    command: "rg RELEASE_APPROVAL .claude",
-    decision: "allow",
-    name: "approval name read by rg",
-  },
-  {
-    command: "cat ~/.config/newones/release-approval",
-    decision: "allow",
-    name: "approval file read by cat",
-  },
-  {
-    command: "",
-    decision: "allow",
-    name: "invalid JSON without marker",
-    stdin: '{"tool_name":"Bash"',
+    category: "coolify-api-deploy",
+    command:
+      "curl https://user:url-secret@example/api/v1/deploy COOLIFY_API_TOKEN=token-secret --password cli-password-secret",
+    decision: "log",
+    name: "logged URL and option secrets are redacted",
+    secrets: ["url-secret", "token-secret", "cli-password-secret"],
   },
   {
     command: "",
     decision: "block",
-    name: "invalid JSON with production marker",
-    stdin: '{"tool_name":"Bash","tool_input":{"command":"./rollback.sh"',
-  },
-  { command: "", decision: "allow", name: "empty stdin", stdin: "" },
-  {
-    command:
-      'curl -H "Authorization: Bearer super-secret" https://x/api/v1/deploy',
-    decision: "allow",
-    env: { RELEASE_APPROVAL: "PR-512" },
-    name: "log redacts bearer",
-  },
-  {
-    command:
-      'curl -H "Authorization: Basic basic-secret" -H "X-API-Key: api-secret" -H "X-Auth-Token: auth-secret" -H "Cookie: cookie-secret" https://x/api/v1/deploy',
-    decision: "allow",
-    env: { RELEASE_APPROVAL: "PR-512" },
-    name: "log redacts header secrets",
-  },
-  {
-    command:
-      "curl https://user:url-secret@example/api/v1/deploy COOLIFY_API_TOKEN=token-secret PGPASSWORD=password-secret --token cli-token-secret --password cli-password-secret",
-    decision: "allow",
-    env: { RELEASE_APPROVAL: "PR-512" },
-    name: "log redacts credential forms",
-  },
-  {
-    command: `curl COOLIFY_API_TOKEN='secret' PGPASSWORD="x y" --token='token-secret' --password "password secret" -H 'Authorization: Basic abc' https://x/api/v1/deploy`,
-    decision: "allow",
-    env: { RELEASE_APPROVAL: "PR-512" },
-    name: "log redacts quoted credential forms",
-  },
-  {
-    command: "",
-    decision: "block",
-    env: { RELEASE_APPROVAL: "PR-512" },
-    name: "Write approval file blocked",
+    name: "Write approval file is tamper blocked",
     toolInput: { file_path: "~/.config/newones/release-approval" },
     toolName: "Write",
   },
   {
     command: "",
     decision: "block",
-    env: { RELEASE_APPROVAL_FILE: "/tmp/x/ok.txt" },
-    name: "Write configured approval file blocked",
-    toolInput: { file_path: "/tmp/x/ok.txt" },
-    toolName: "Write",
+    env: { RELEASE_APPROVAL: "PR-496" },
+    name: "Edit approval file cannot be overridden",
+    toolInput: { path: "~/.config/newones/release-approval" },
+    toolName: "Edit",
   },
   {
-    command: "echo PR-1 2026-10-11 > /tmp/x/ok.txt",
+    command: "echo PR-496 2026-10-11 > release-approval",
     decision: "block",
-    env: { RELEASE_APPROVAL_FILE: "/tmp/x/ok.txt" },
-    name: "Bash configured approval file blocked",
+    env: { RELEASE_APPROVAL: "PR-496" },
+    name: "Bash approval file write cannot be overridden",
+  },
+  {
+    category: "production-script",
+    command: ["bash", "./rollback.sh"],
+    decision: "log",
+    name: "Codex array command is logged",
+    toolName: "shell",
+  },
+  {
+    command: "./rollback.sh",
+    decision: "allow",
+    name: "non-command tool is ignored",
+    toolName: "Read",
+  },
+  {
+    command: "gh run view 123",
+    decision: "allow",
+    name: "exec_command tool name is accepted",
+    toolName: "exec_command",
   },
   {
     command: "",
     decision: "allow",
-    name: "Write ordinary file allowed",
+    name: "invalid JSON without a marker is fail-open",
+    stdin: '{"tool_name":"Bash"',
+  },
+  {
+    category: "input-parse-error",
+    command: "",
+    decision: "log",
+    name: "invalid JSON with non-destructive marker is logged",
+    stdin:
+      '{"tool_name":"Bash","tool_input":{"command":"gh workflow run deploy-production"',
+  },
+  {
+    command: "",
+    decision: "block",
+    name: "invalid JSON with destructive marker blocks",
+    stdin:
+      '{"tool_name":"Bash","tool_input":{"command":"ssh catapulze-hetzner psql -c \\"delete from jobs"',
+  },
+  {
+    command: "",
+    decision: "allow",
+    name: "empty stdin is silent",
+    stdin: "",
+  },
+  {
+    command: "",
+    decision: "allow",
+    name: "Write ordinary file is allowed",
     toolInput: { file_path: "src/x.ts" },
     toolName: "Write",
-  },
-  {
-    command: "",
-    decision: "allow",
-    name: "Edit AGENTS allowed",
-    toolInput: { path: "AGENTS.md" },
-    toolName: "Edit",
   },
 ];
 
@@ -1029,6 +693,11 @@ describe.each(cases)("$name", (testCase) => {
     try {
       const logPath = path.join(tempHome, "state", "production-gate.log");
       const approvalPath = path.join(tempHome, "config", "release-approval");
+      const productionGateConfigPath = path.join(
+        tempHome,
+        "config",
+        "production-gate.conf"
+      );
       const env: NodeJS.ProcessEnv = {
         ...process.env,
         HOME: tempHome,
@@ -1039,7 +708,26 @@ describe.each(cases)("$name", (testCase) => {
       };
       delete env.RELEASE_APPROVAL;
       delete env.RELEASE_APPROVAL_FILE;
+      delete env.PRODUCTION_GATE_CURRENT_BRANCH;
       Object.assign(env, testCase.env);
+      const toolInput = Object.fromEntries(
+        Object.entries(testCase.toolInput ?? {}).map(([key, value]) => [
+          key,
+          value === "__PRODUCTION_GATE_CONFIG__"
+            ? productionGateConfigPath
+            : value,
+        ])
+      );
+      if (testCase.productionGateConfigContents === undefined) {
+        delete env.PRODUCTION_GATE_CONFIG;
+      } else {
+        mkdirSync(path.dirname(productionGateConfigPath), { recursive: true });
+        writeFileSync(
+          productionGateConfigPath,
+          testCase.productionGateConfigContents
+        );
+        env.PRODUCTION_GATE_CONFIG = productionGateConfigPath;
+      }
       if (testCase.fileContents !== undefined) {
         mkdirSync(path.dirname(approvalPath), { recursive: true });
         writeFileSync(approvalPath, testCase.fileContents);
@@ -1049,7 +737,7 @@ describe.each(cases)("$name", (testCase) => {
       const input =
         testCase.stdin ??
         JSON.stringify({
-          tool_input: { command: testCase.command, ...testCase.toolInput },
+          tool_input: { command: testCase.command, ...toolInput },
           tool_name: testCase.toolName ?? "Bash",
         });
       const result = spawnSync("bash", [hookPath], {
@@ -1060,38 +748,26 @@ describe.each(cases)("$name", (testCase) => {
       });
 
       expect(result.error).toBeUndefined();
-      expect(result.status).toBe(testCase.decision === "allow" ? 0 : 2);
+      expect(result.status).toBe(testCase.decision === "block" ? 2 : 0);
+      expect(result.stdout).toBe("");
       if (testCase.decision === "block") {
         expect(result.stderr).toContain("BLOCKED by production-gate");
-      } else {
-        expect(result.stdout).toBe("");
       }
-
-      if (testCase.name.startsWith("log redacts")) {
+      if (testCase.decision === "log" || testCase.decision === "approved") {
         expect(existsSync(logPath)).toBe(true);
         const log = readFileSync(logPath, "utf-8");
-        expect(log).toContain("ALLOWED");
+        const decision =
+          testCase.decision === "approved" ? "ALLOWED" : "LOGGED";
+        expect(log).toContain(`\t${decision}\t${testCase.category}\t`);
+      }
+      if (testCase.decision === "allow") {
+        expect(existsSync(logPath)).toBe(false);
+      }
+      if (testCase.secrets) {
+        const log = readFileSync(logPath, "utf-8");
         expect(log).toContain("REDACTED");
-        for (const secret of [
-          "super-secret",
-          "basic-secret",
-          "api-secret",
-          "auth-secret",
-          "cookie-secret",
-          "url-secret",
-          "token-secret",
-          "password-secret",
-          "cli-token-secret",
-          "cli-password-secret",
-          "secret",
-          "x y",
-          "token-secret",
-          "password secret",
-          "abc",
-        ]) {
-          if (testCase.command.includes(secret)) {
-            expect(log).not.toContain(secret);
-          }
+        for (const secret of testCase.secrets) {
+          expect(log).not.toContain(secret);
         }
       }
     } finally {

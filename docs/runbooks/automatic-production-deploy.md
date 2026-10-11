@@ -32,27 +32,25 @@ Coolify API or deployment ordering.
 ## Agent production gate (hook)
 
 Claude Code and Codex load the same PreToolUse hook from
-`.claude/hooks/production-gate.sh`. It blocks production rollback/release/
-migration scripts, the Coolify deploy driver and write endpoints, GitHub
-production dispatches, and writes through `catapulze-hetzner` (including
-non-read-only `psql`). Read-only inspection such as `gh run view`, health GETs,
-`docker logs`, and verified `psql SELECT` remains available.
-
-Ryan approves a release by reviewing the PR and approving the GitHub
-`production` environment deployment for CI (`Deploy production` run → `Review
-deployments`). For an operator action, Ryan starts the agent session with
-`RELEASE_APPROVAL=PR-<n>` or writes `PR-<n> <today>` as the first non-comment line
-of the approval file. The dated file expires automatically; Ryan can expire it
-early by removing or replacing it. The agent must never set either approval.
-Decisions are appended to
+`.claude/hooks/production-gate.sh`. Agents may build, merge, deploy, roll back,
+restart, and otherwise operate Newones JI. Every production action recognized by
+the hook is appended to
 `${XDG_STATE_HOME:-~/.local/state}/newones/production-gate.log` (or
-`PRODUCTION_GATE_LOG`). Codex project hooks must be trusted once through
-`/hooks` before they run.
+`PRODUCTION_GATE_LOG`); read-only inspection remains silent.
+Operator-local extras use `${PRODUCTION_GATE_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/newones/production-gate.conf}` with `host <name-or-ip>` or `db-container <name>` lines; the file is never committed.
 
-Ryan configures the CI protection in GitHub: Settings → Environments →
-`production` → Required reviewers: `RyanLisse` → Save protection rules. Under
-Deployment branches and tags choose Selected branches and tags and add `main`.
-Leave Prevent self-review unchecked because Ryan both merges and approves.
+The hook hard-blocks only destructive SQL, Docker volume or database-container
+destruction, recursive server deletion, PostgreSQL-data changes, Coolify/API
+deletes, GitHub-repository deletes, force-updating main/master, and approval-file
+tampering. Destructive actions require Ryan to start the session with
+`RELEASE_APPROVAL=PR-<n>` or write `PR-<n> <today>` as the first non-comment line
+of the approval file himself. The dated file expires automatically, and the agent
+must never set or forge either approval. Blocks explain the category and reason.
+
+A GitHub Environment required reviewer is an optional protection Ryan could enable
+later if he wants a human gate on CI deploys; it would stop auto-deploy while the
+review is pending. It is not required by this hook and this runbook does not
+enable it.
 
 The successful release gate writes a short-lived, sanitized evidence file. The
 deploy driver reads and rechecks that file immediately before its first
