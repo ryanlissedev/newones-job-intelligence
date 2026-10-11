@@ -64,8 +64,8 @@ const GENERATED_DIRECTORY_NAMES = new Set([
   ".evlog",
   ".git",
   ".next",
-  // Fixture-mode web build for the tester-army fixture suite (JI_WEB_DIST_DIR).
-  ".next-e2e-fixtures",
+  // Copied fixture web app + its build for the tester-army fixture suite.
+  ".e2e-fixtures",
   ".nx",
   ".nyc_output",
   ".omc",

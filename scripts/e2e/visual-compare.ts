@@ -12,10 +12,12 @@ export type VisualStatus =
   | "missing-baseline"
   | "seeded"
   | "updated"
-  | "missing-capture";
+  | "missing-capture"
+  | "not-run";
 
 export interface CompareArgs {
   readonly baselineDir?: string;
+  readonly capturedOnly: boolean;
   readonly mode: CompareMode;
   readonly output: string;
   readonly suite: "fixtures" | "live";
@@ -50,6 +52,7 @@ export const parseArgs = (argv: readonly string[]): CompareArgs => {
   let mode: CompareMode | undefined;
   let output = ".e2e";
   let baselineDir: string | undefined;
+  let capturedOnly = false;
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
     const value = argv[index + 1];
@@ -71,16 +74,18 @@ export const parseArgs = (argv: readonly string[]): CompareArgs => {
     } else if (argument === "--baseline-dir" && value) {
       baselineDir = value;
       index += 1;
+    } else if (argument === "--captured-only") {
+      capturedOnly = true;
     } else {
       throw new Error(`Unknown argument: ${argument}`);
     }
   }
   if (!suite || !mode) {
     throw new Error(
-      "Usage: --suite fixtures|live --mode report|enforce|update"
+      "Usage: --suite fixtures|live --mode report|enforce|update [--captured-only]"
     );
   }
-  return { baselineDir, mode, output, suite };
+  return { baselineDir, capturedOnly, mode, output, suite };
 };
 
 const visualName = (artifactPath: string): string | null => {
@@ -115,14 +120,19 @@ export const selectVisualArtifacts = (
   );
 };
 
+export const shouldSkipCompare = (
+  captures: readonly SelectedArtifact[]
+): boolean => captures.length === 0;
+
 export const decideVisualStatus = (
   mode: CompareMode,
   hasCapture: boolean,
   hasBaseline: boolean,
-  matches: boolean
+  matches: boolean,
+  capturedOnly = false
 ): VisualStatus => {
   if (!hasCapture) {
-    return "missing-capture";
+    return capturedOnly ? "not-run" : "missing-capture";
   }
   if (mode === "update") {
     return "updated";
@@ -183,6 +193,10 @@ const main = async (): Promise<number> => {
     await readFile(path.join(output, "report.json"), "utf-8")
   ) as ReportDocument;
   const captures = selectVisualArtifacts(report);
+  if (shouldSkipCompare(captures)) {
+    console.log("no visual captures in this run; skipping compare");
+    return 0;
+  }
   const captureByName = new Map(
     captures.map((capture) => [capture.name, capture])
   );
@@ -240,7 +254,8 @@ const main = async (): Promise<number> => {
       args.mode,
       hasCapture,
       hasBaseline,
-      matches
+      matches,
+      args.capturedOnly
     );
     rows.push({ diffRatio, name, status });
     console.log(`${name} ${status} ${diffRatio.toFixed(6)}`);

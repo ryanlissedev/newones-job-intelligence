@@ -4,7 +4,7 @@ Two suites run on the `e2e` runner (tester-army, `npx e2e` / `bun run test:e2e*`
 
 | Suite | Config | Target | Data | Visual baselines |
 | --- | --- | --- | --- | --- |
-| Fixtures | `e2e.fixtures.config.ts` | local production build of `apps/web` in fixture mode + local auth stub | the 20 seeded fixture jobs, 3 fixture snapshots | committed in `tests/visual/baselines/fixtures/`, enforced |
+| Fixtures | `e2e.fixtures.config.ts` | local production build of a copied `.e2e-fixtures/web` app in fixture mode + local auth stub | the 20 seeded fixture jobs, 3 fixture snapshots | committed in `tests/visual/baselines/fixtures/`, enforced |
 | Live | `e2e.live.config.ts` | deployed web origin (`E2E_LIVE_WEB_URL`) | whatever is deployed; anonymous, read-only | seeded on the operator box, report-only, never committed |
 
 ## Fixture suite
@@ -18,10 +18,12 @@ bun run test:e2e:fixtures:update-baselines   # re-render the committed baselines
 
 `scripts/e2e/run-fixtures.sh`:
 
-1. `scripts/e2e/fixtures-build.sh` builds `apps/web` with `NEXT_PUBLIC_USE_FIXTURES=1` into `apps/web/.next-e2e-fixtures` (`JI_WEB_DIST_DIR`, so the normal `.next` is untouched). It skips the build while `HEAD` and the uncommitted `apps/web`/`packages` diff are unchanged; `E2E_FIXTURES_REBUILD=1` forces it. A production build is used rather than `next dev`: deterministic CSS, no dev overlay, and no file watchers.
+1. `scripts/e2e/fixtures-build.sh` copies the tracked and untracked non-ignored files from `apps/web` into `.e2e-fixtures/web`, symlinks its `node_modules`, and builds the copy with `NEXT_PUBLIC_USE_FIXTURES=1`. The app is not changed: the copy may be mutated by Next and uses its default `.next` dist directory. It skips the build while `HEAD`, the uncommitted `apps/web`/`packages` diff, untracked-file hashes, and the auth port are unchanged; `E2E_FIXTURES_REBUILD=1` forces it. A production build is used rather than `next dev`: deterministic CSS, no dev overlay, and no file watchers.
 2. Generates a random per-run password for the stub user (`E2E_USER_FIXTURE_PASSWORD`, never printed) and sets `TZ=Europe/Amsterdam` (the web engine has no `timezoneId` option in `@e2e-dev/web` 0.11.2, Chromium inherits `TZ`).
 3. Runs `e2e run --config e2e.fixtures.config.ts`. The target command `tests/fixtures/support/serve.ts` starts `tests/fixtures/support/auth-stub.ts` on `127.0.0.1:${E2E_FIXTURES_AUTH_PORT:-3310}` and `next start` on the runner-allocated port.
-4. Runs `scripts/e2e/visual-compare.ts --suite fixtures --mode ${E2E_VISUAL:-enforce}`.
+4. Runs `scripts/e2e/visual-compare.ts --suite fixtures --mode ${E2E_VISUAL:-enforce}`. When extra arguments select a partial run, it adds `--captured-only`, so baselines for pages not captured in that run are reported as `not-run`.
+
+`E2E_VISUAL` (or the `E2E_VISUAL_MODE` alias for fixtures) must be `off`, `report`, `enforce`, or `update`; invalid values fail before the build or E2E runner starts. A run with no visual captures prints a notice and skips comparison.
 
 The auth stub is a better-auth stand-in: `get-session` returns the fixture user for a `better-auth.session_token` starting with `e2e-valid`, and `null` for anything else (that is the expired-session case); `sign-in/email` only accepts `e2e.tester@example.test` with the per-run password; `sign-out` clears the cookie; every other endpoint answers 503, so data calls on `/dashboard` fail deterministically.
 
@@ -43,13 +45,15 @@ The auth stub is a better-auth stand-in: `get-session` returns the fixture user 
 ## Live suite and the post-deploy hook
 
 ```bash
+# Optional API origin; see the session test.
+# Use a persistent directory on the operator box for live baselines.
 E2E_LIVE_WEB_URL=https://<web origin> \
-E2E_LIVE_API_URL=https://<api origin> \            # optional, see session test
-E2E_VISUAL_BASELINE_DIR=/persistent/dir/live \     # on the operator box
+E2E_LIVE_API_URL=https://<api origin> \
+E2E_VISUAL_BASELINE_DIR=/persistent/dir/live \
 bun run test:e2e:live:verify
 ```
 
-`scripts/e2e/live-verify.sh` runs `e2e run --config e2e.live.config.ts` with `E2E_VISUAL=${E2E_VISUAL:-report}` and then the compare in the same mode. Exit code = the e2e run's; a visual diff only fails the hook when `E2E_VISUAL=enforce`. Plain `bun run test:e2e:live` (what the current verify step calls) is unchanged: the visual tests skip when `E2E_VISUAL` is unset.
+`scripts/e2e/live-verify.sh` validates `E2E_VISUAL` as `off`, `report`, `enforce`, or `update` before running anything. It then runs `e2e run --config e2e.live.config.ts` with `E2E_VISUAL=${E2E_VISUAL:-report}` and compares in the same mode. Exit code = the e2e run's; a visual diff only fails the hook when `E2E_VISUAL=enforce`. Plain `bun run test:e2e:live` (what the current verify step calls) is unchanged: the visual tests skip when `E2E_VISUAL` is unset.
 
 Live tests added next to the existing four:
 
@@ -74,7 +78,7 @@ Baselines are rendered on Linux Chromium (Playwright 1.63) in `Europe/Amsterdam`
 ## Rollback
 
 - Visual only: `E2E_VISUAL=off` (fixtures and live), or leave the hook on `report`.
-- Whole change: revert the PR. The only app change is `distDir: process.env.JI_WEB_DIST_DIR || ".next"` in `apps/web/next.config.ts`, a no-op when the variable is unset.
+- Whole change: revert the PR.
 
 ## Known app issue (not fixed here)
 

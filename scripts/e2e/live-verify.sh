@@ -4,12 +4,20 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$repo_root"
 
+visual_mode="${E2E_VISUAL:-report}"
+case "$visual_mode" in
+  off|report|enforce|update) ;;
+  *)
+    echo "E2E_VISUAL must be one of: off, report, enforce, update" >&2
+    exit 2
+    ;;
+esac
+
 if [[ -z "${E2E_LIVE_WEB_URL:-}" ]]; then
   echo "E2E_LIVE_WEB_URL is required" >&2
   exit 2
 fi
 
-visual_mode="${E2E_VISUAL:-report}"
 e2e_status=0
 E2E_TELEMETRY_DISABLED=1 E2E_VISUAL="$visual_mode" \
   PATH="./node_modules/.bin:$PATH" e2e run --config e2e.live.config.ts || e2e_status=$?

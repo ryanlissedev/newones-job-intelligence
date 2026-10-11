@@ -13,7 +13,6 @@
 
 # Build outputs
 /.next/
-/.next-e2e-fixtures/
 /out/
 /build/
 /dist/

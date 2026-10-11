@@ -2,18 +2,20 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-build_dir="$repo_root/apps/web/.next-e2e-fixtures"
+build_dir="$repo_root/.e2e-fixtures/web"
 stamp_file="$build_dir/.build-stamp"
+auth_port="${E2E_FIXTURES_AUTH_PORT:-3310}"
 
 cd "$repo_root"
 
-# HEAD plus the content of uncommitted web/package changes, so an edited
-# working tree rebuilds instead of serving a stale fixture build.
+# HEAD, the uncommitted web/package diff, untracked-file hashes, and the auth
+# port make an edited working tree or changed runtime configuration rebuild.
 expected_stamp="$(
   {
     git rev-parse HEAD
     git diff HEAD -- apps/web packages
     git ls-files --others --exclude-standard -- apps/web packages | xargs -r sha256sum
+    printf '%s\n' "$auth_port"
   } | sha256sum | cut -d' ' -f1
 )"
 
@@ -21,33 +23,26 @@ if [[ "${E2E_FIXTURES_REBUILD:-0}" != "1" && -f "$stamp_file" && "$(<"$stamp_fil
   exit 0
 fi
 
-rm -rf "$build_dir"
+if [[ -e "$build_dir" ]]; then
+  rm -r -- "$build_dir"
+fi
 mkdir -p "$build_dir"
 
-# `next build` with a custom distDir rewrites apps/web/tsconfig.json (adds the
-# dist types globs) and next-env.d.ts; restore both so a fixture run never
-# leaves the working tree dirty.
-backup_dir="$(mktemp -d)"
-cp apps/web/tsconfig.json "$backup_dir/tsconfig.json"
-if [[ -f apps/web/next-env.d.ts ]]; then
-  cp apps/web/next-env.d.ts "$backup_dir/next-env.d.ts"
-fi
-restore_web_config() {
-  cp "$backup_dir/tsconfig.json" apps/web/tsconfig.json
-  if [[ -f "$backup_dir/next-env.d.ts" ]]; then
-    cp "$backup_dir/next-env.d.ts" apps/web/next-env.d.ts
-  fi
-  rm -rf "$backup_dir"
-}
-trap restore_web_config EXIT
+# Build a copy so Next can freely update generated files without touching the
+# tracked web app. The copy remains at depth two so ../../packages resolves.
+while IFS= read -r -d '' source_file; do
+  relative_path="${source_file#apps/web/}"
+  target_file="$build_dir/$relative_path"
+  mkdir -p "$(dirname "$target_file")"
+  cp -p -- "$source_file" "$target_file"
+done < <(git ls-files -co --exclude-standard -z -- apps/web)
+ln -s ../../apps/web/node_modules "$build_dir/node_modules"
 
-auth_port="${E2E_FIXTURES_AUTH_PORT:-3310}"
 (
-  cd apps/web
+  cd "$build_dir"
   NEXT_PUBLIC_USE_FIXTURES=1 \
   NEXT_PUBLIC_SERVER_URL="http://127.0.0.1:${auth_port}" \
   NEXT_TELEMETRY_DISABLED=1 \
-  JI_WEB_DIST_DIR=.next-e2e-fixtures \
   PATH="./node_modules/.bin:$PATH" \
   next build --webpack
 )

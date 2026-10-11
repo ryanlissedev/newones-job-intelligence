@@ -33,6 +33,11 @@ test(
   "a job deep link opens directly and browser back closes it",
   { tags: ["detail"] },
   async ({ app, browser, screen }) => {
+    // Start on the list so browser back has an in-app entry to return to.
+    await app.open("/jobs");
+    await expect(
+      screen.getByRole("heading", "Opdrachten", { level: 1 })
+    ).toBeVisible();
     await app.open("/jobs?job=job-001");
     await expect(
       screen.getByRole("heading", "Senior Data Engineer", { level: 2 })
@@ -41,5 +46,9 @@ test(
     await expect(
       screen.getByRole("heading", "Senior Data Engineer", { level: 2 })
     ).toBeHidden();
+    expect(new URL(await browser.url()).pathname).toBe("/jobs");
+    await expect(
+      screen.getByRole("heading", "Opdrachten", { level: 1 })
+    ).toBeVisible();
   }
 );

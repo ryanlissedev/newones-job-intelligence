@@ -22,14 +22,26 @@ test(
     await screen.getByLabel("Email").fill(live.username);
     await screen.getByLabel("Password").fill(live.password);
     await screen.getByRole("button", "Sign In").tap();
-    await expect(browser).toHaveURL(/\/dashboard$/u);
     const banner = screen.getByRole("banner");
-    await expect(banner.getByRole("button", "Inloggen")).toBeHidden();
-    // The user menu trigger is labelled with the account's display name,
-    // which the test does not know; it is the last header button, after
-    // "Thema wijzigen".
-    await banner.getByRole("button").last().tap();
-    await screen.getByRole("menuitem", "Uitloggen").tap();
-    await expect(banner.getByRole("button", "Inloggen")).toBeVisible();
+    try {
+      await expect(browser).toHaveURL(/\/dashboard$/u);
+      await expect(banner.getByRole("button", "Inloggen")).toBeHidden();
+      // The user menu trigger is labelled with the account's display name,
+      // which the test does not know; it is the last header button, after
+      // "Thema wijzigen".
+      await banner.getByRole("button").last().tap();
+      await screen.getByRole("menuitem", "Uitloggen").tap();
+      await expect(banner.getByRole("button", "Inloggen")).toBeVisible();
+    } finally {
+      try {
+        const loginButton = banner.getByRole("button", "Inloggen");
+        if (!(await loginButton.isVisible())) {
+          await banner.getByRole("button").last().tap();
+          await screen.getByRole("menuitem", "Uitloggen").tap();
+        }
+      } catch {
+        // Cleanup is best effort; preserve the original test failure.
+      }
+    }
   }
 );

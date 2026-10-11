@@ -4,6 +4,7 @@ import {
   decideVisualStatus,
   parseArgs,
   selectVisualArtifacts,
+  shouldSkipCompare,
 } from "./visual-compare";
 
 describe("visual compare helpers", () => {
@@ -18,9 +19,11 @@ describe("visual compare helpers", () => {
         ".tmp-e2e",
         "--baseline-dir",
         "baselines",
+        "--captured-only",
       ])
     ).toEqual({
       baselineDir: "baselines",
+      capturedOnly: true,
       mode: "enforce",
       output: ".tmp-e2e",
       suite: "fixtures",
@@ -65,6 +68,16 @@ describe("visual compare helpers", () => {
     expect(decideVisualStatus("enforce", true, true, false)).toBe("diff");
     expect(decideVisualStatus("report", false, true, false)).toBe(
       "missing-capture"
+    );
+    expect(decideVisualStatus("enforce", false, true, false, true)).toBe(
+      "not-run"
+    );
+  });
+
+  it("skips compare when the report has no visual captures", () => {
+    expect(shouldSkipCompare([])).toBe(true);
+    expect(shouldSkipCompare([{ name: "home", path: "visual-home.png" }])).toBe(
+      false
     );
   });
 });
