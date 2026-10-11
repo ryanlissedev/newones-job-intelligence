@@ -28,7 +28,11 @@ export const formatReconcileInterruptionCommitment = (input: {
   apply: boolean;
   latestApplyProgress?: Pick<
     ReconcileProjectionProgress,
-    "sourceCursor" | "stage"
+    | "sourceCursor"
+    | "stage"
+    | "inventoryPartition"
+    | "manticoreChecked"
+    | "physicalCleanupCount"
   >;
 }): string => {
   if (!input.apply) {
@@ -38,8 +42,10 @@ export const formatReconcileInterruptionCommitment = (input: {
     return "the report-only preflight may have finished and the apply scan may already have committed its first page(s); check curated.outbox_event for aanvraag.projection_repair rows created by this run";
   }
   const inventoryNote =
-    input.latestApplyProgress.stage === "inventory"
-      ? "; orphan-cleanup events for the inventory pages scanned so far may also be committed"
+    input.latestApplyProgress.stage === "inventory" &&
+    input.latestApplyProgress.inventoryPartition !== undefined &&
+    input.latestApplyProgress.manticoreChecked !== undefined
+      ? `; latest committed inventory page: ${input.latestApplyProgress.inventoryPartition} scanned=${input.latestApplyProgress.manticoreChecked} (orphan-cleanup events for the inventory pages scanned so far may also be committed)`
       : "";
   const cursor = input.latestApplyProgress.sourceCursor ?? "none";
   return `repair events for aanvraag ids <= cursor ${cursor} are committed; the page in flight after it may also have committed (per-page transactions)${inventoryNote}`;
@@ -50,6 +56,8 @@ export interface ReconcileProgressThrottleState {
   lastPrintedSkippedPending?: number;
   sourcePages: number;
   sourcePagesSinceLastPrint: number;
+  inventoryPages?: number;
+  inventoryPagesSinceLastPrint?: number;
 }
 
 export interface ReconcileProgressStatus {
@@ -65,7 +73,7 @@ export const formatReconcileProgress = (
     progress.stage === "inventory" &&
     progress.inventoryPartition !== undefined &&
     progress.manticoreChecked !== undefined
-      ? ` partition=${progress.inventoryPartition} scanned=${progress.manticoreChecked}`
+      ? ` partition=${progress.inventoryPartition} scanned=${progress.manticoreChecked} physicalCleanup=${progress.physicalCleanupCount ?? 0}`
       : "";
   return (
     `[reconcile] ${progress.phase} ${progress.stage}: ` +
@@ -84,6 +92,11 @@ export const nextReconcileProgressStatus = (
     state.sourcePages += 1;
     state.sourcePagesSinceLastPrint += 1;
   }
+  if (progress.stage === "inventory" && !progress.done) {
+    state.inventoryPages = (state.inventoryPages ?? 0) + 1;
+    state.inventoryPagesSinceLastPrint =
+      (state.inventoryPagesSinceLastPrint ?? 0) + 1;
+  }
 
   const sourceCountersChanged =
     state.lastPrintedApplied === undefined ||
@@ -92,17 +105,27 @@ export const nextReconcileProgressStatus = (
     progress.skippedPending !== state.lastPrintedSkippedPending;
   const shouldPrint =
     progress.done ||
-    progress.stage === "inventory" ||
+    (progress.stage === "inventory" &&
+      (progress.phase === "preflight"
+        ? (state.inventoryPages ?? 0) % 100 === 0
+        : (sourceCountersChanged &&
+            (state.inventoryPagesSinceLastPrint ?? 0) >= 10) ||
+          (state.inventoryPages ?? 0) % 100 === 0)) ||
     (progress.stage === "source" &&
       (progress.phase === "preflight"
         ? state.sourcePages % 100 === 0
         : (sourceCountersChanged && state.sourcePagesSinceLastPrint >= 10) ||
           state.sourcePages % 100 === 0));
 
-  if (shouldPrint && progress.stage === "source") {
+  if (shouldPrint) {
     state.lastPrintedApplied = progress.applied;
     state.lastPrintedSkippedPending = progress.skippedPending;
-    state.sourcePagesSinceLastPrint = 0;
+    if (progress.stage === "source") {
+      state.sourcePagesSinceLastPrint = 0;
+    }
+    if (progress.stage === "inventory") {
+      state.inventoryPagesSinceLastPrint = 0;
+    }
   }
 
   return {

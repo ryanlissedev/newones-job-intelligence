@@ -237,6 +237,8 @@ export interface ReconcileProjectionProgress {
   sourceCursor: string | null;
   inventoryPartition?: SearchPartition;
   manticoreChecked?: number;
+  /** Cumulative physical rows deleted during the inventory scan. */
+  physicalCleanupCount?: number;
   done: boolean;
 }
 
@@ -1337,6 +1339,19 @@ const scanInventoryProjection = async (
         );
       }
       await options.fence();
+      reportProgress(options.input, {
+        applied: totals.applied,
+        checked,
+        divergentCount,
+        done: false,
+        inventoryPartition: partition,
+        manticoreChecked: inventoryScannedCounts[partition],
+        phase: options.phase,
+        physicalCleanupCount,
+        skippedPending: totals.skippedPending,
+        sourceCursor: cursor,
+        stage: "inventory",
+      });
     }
     inventoryFinalCounts[partition] = await inventory.count(partition);
     const expectedFinalCount =
@@ -1356,18 +1371,6 @@ const scanInventoryProjection = async (
       );
     }
     await options.fence();
-    reportProgress(options.input, {
-      applied: totals.applied,
-      checked,
-      divergentCount,
-      done: false,
-      inventoryPartition: partition,
-      manticoreChecked: inventoryScannedCounts[partition],
-      phase: options.phase,
-      skippedPending: totals.skippedPending,
-      sourceCursor: cursor,
-      stage: "inventory",
-    });
   }
   /* oxlint-enable no-await-in-loop */
 
@@ -1379,6 +1382,7 @@ const scanInventoryProjection = async (
     manticoreChecked:
       inventoryScannedCounts.active + inventoryScannedCounts.archive,
     phase: options.phase,
+    physicalCleanupCount,
     skippedPending: totals.skippedPending,
     sourceCursor: cursor,
     stage: "inventory",

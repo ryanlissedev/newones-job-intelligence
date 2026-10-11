@@ -52,12 +52,15 @@ describe("reconcile projection drift status", () => {
       formatReconcileInterruptionCommitment({
         apply: true,
         latestApplyProgress: {
+          inventoryPartition: "active",
+          manticoreChecked: 12,
+          physicalCleanupCount: 3,
           sourceCursor: "cursor-123",
           stage: "inventory",
         },
       })
     ).toBe(
-      "repair events for aanvraag ids <= cursor cursor-123 are committed; the page in flight after it may also have committed (per-page transactions); orphan-cleanup events for the inventory pages scanned so far may also be committed"
+      "repair events for aanvraag ids <= cursor cursor-123 are committed; the page in flight after it may also have committed (per-page transactions); latest committed inventory page: active scanned=12 (orphan-cleanup events for the inventory pages scanned so far may also be committed)"
     );
   });
 
@@ -93,12 +96,14 @@ describe("reconcile projection drift status", () => {
         ...preflightProgress,
         inventoryPartition: "active",
         manticoreChecked: 12,
+        physicalCleanupCount: 3,
         stage: "inventory",
       },
-      hundredth.state
+      { ...hundredth.state, inventoryPages: 99, inventoryPagesSinceLastPrint: 99 }
     );
     expect(inventory.shouldPrint).toBe(true);
     expect(inventory.line).toContain("partition=active scanned=12");
+    expect(inventory.line).toContain("physicalCleanup=3");
     expect(formatReconcileProgress(inventoryProgress())).toContain(
       "cursor=none"
     );
@@ -118,6 +123,33 @@ describe("reconcile projection drift status", () => {
           skippedPending: 0,
           sourceCursor: `source-${page}`,
           stage: "source",
+        },
+        state
+      );
+      ({ state } = status);
+      if (status.shouldPrint) {
+        printed += 1;
+      }
+    }
+    expect(printed).toBeLessThanOrEqual(140);
+  });
+
+  it("bounds apply inventory progress when every page changes the counter", () => {
+    let state = { sourcePages: 0, sourcePagesSinceLastPrint: 0 };
+    let printed = 0;
+    for (let page = 1; page <= 1400; page += 1) {
+      const status = nextReconcileProgressStatus(
+        {
+          applied: page,
+          checked: 0,
+          divergentCount: 0,
+          done: false,
+          inventoryPartition: "active",
+          manticoreChecked: page,
+          phase: "apply",
+          skippedPending: 0,
+          sourceCursor: null,
+          stage: "inventory",
         },
         state
       );

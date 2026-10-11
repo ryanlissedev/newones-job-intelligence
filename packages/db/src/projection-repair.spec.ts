@@ -891,13 +891,30 @@ describe("reconcileProjection (RJC-399 repair tool)", () => {
       true
     );
 
+    const applyProgress: ReconcileProjectionProgress[] = [];
     const applied = await reconcileProjection({
       apply: true,
       ...base,
+      onProgress: (event) => applyProgress.push(event),
       sampleLimit: 2,
     });
     expect(applied.applied).toBe(5);
     expect(applied.physicalCleanupCount).toBe(2);
+    const inventoryProgress = applyProgress.filter(
+      (event) => event.stage === "inventory" && !event.done
+    );
+    expect(inventoryProgress).toHaveLength(4);
+    expect(
+      inventoryProgress
+        .filter((event) => event.inventoryPartition === "active")
+        .map((event) => event.manticoreChecked)
+    ).toEqual([2, 4, 6]);
+    expect(
+      inventoryProgress
+        .filter((event) => event.inventoryPartition === "archive")
+        .map((event) => event.manticoreChecked)
+    ).toEqual([2]);
+    expect(inventoryProgress.at(-1)?.physicalCleanupCount).toBe(2);
     const eventRows = await db
       .select({
         aggregateId: outboxEvent.aggregateId,

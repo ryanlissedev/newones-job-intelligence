@@ -48,7 +48,14 @@ const SIGNAL_EXIT_CODES = {
 
 let latestProgressLine: string | undefined;
 let latestApplyProgress:
-  | Pick<ReconcileProjectionProgress, "sourceCursor" | "stage">
+  | Pick<
+      ReconcileProjectionProgress,
+      | "sourceCursor"
+      | "stage"
+      | "inventoryPartition"
+      | "manticoreChecked"
+      | "physicalCleanupCount"
+    >
   | undefined;
 let progressThrottleState = {
   sourcePages: 0,
@@ -105,6 +112,9 @@ for (const signal of ["SIGHUP", "SIGINT", "SIGTERM"] as const) {
 const reportProgress = (progress: ReconcileProjectionProgress): void => {
   if (progress.phase === "apply") {
     latestApplyProgress = {
+      inventoryPartition: progress.inventoryPartition,
+      manticoreChecked: progress.manticoreChecked,
+      physicalCleanupCount: progress.physicalCleanupCount,
       sourceCursor: progress.sourceCursor,
       stage: progress.stage,
     };
@@ -386,22 +396,32 @@ try {
     process.exitCode = 1;
   }
 } catch (error) {
-  process.stderr.write(
-    `[reconcile] FAILED after: ${latestProgressLine ?? "no progress yet"}\n`
-  );
-  if (
-    error instanceof ProjectionRepairSchemaMismatchError ||
-    error instanceof ProjectionRepairGenerationChangedError ||
-    error instanceof ProjectionRepairInventorySafetyError
-  ) {
-    console.error(error.message);
-    process.exitCode = 1;
-  } else {
-    throw error;
+  if (!interrupted) {
+    process.stderr.write(
+      `[reconcile] FAILED after: ${latestProgressLine ?? "no progress yet"}; ` +
+        `${formatReconcileInterruptionCommitment({
+          apply,
+          latestApplyProgress,
+        })}\n`
+    );
+    if (
+      error instanceof ProjectionRepairSchemaMismatchError ||
+      error instanceof ProjectionRepairGenerationChangedError ||
+      error instanceof ProjectionRepairInventorySafetyError
+    ) {
+      console.error(error.message);
+      process.exitCode = 1;
+    } else {
+      throw error;
+    }
   }
 } finally {
   process.removeListener("SIGHUP", onSignal);
   process.removeListener("SIGINT", onSignal);
   process.removeListener("SIGTERM", onSignal);
-  await closeDb();
+  if (interrupted) {
+    await closeDb().catch(() => undefined);
+  } else {
+    await closeDb();
+  }
 }
