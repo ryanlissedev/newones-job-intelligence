@@ -19,11 +19,14 @@ const rollbackScript = path.join(import.meta.dir, "91-rollback-unmark.sql");
 const psqlBinary = Bun.which("psql");
 const REASON = "dup-key-normalized-v1";
 // 91-rollback-unmark.sql is database-wide (no fixture scope): it unmarks every
-// qualifying row. Run it only on a throwaway database created by the
-// test-isolation preload, never on a caller-supplied shared/persistent one.
-const disposableDatabase = new URL(migratorUrl).pathname
-  .slice(1)
-  .startsWith("ji_test_iso_");
+// qualifying row. Run it only on the throwaway database the test-isolation
+// preload created for this process (it records the name it created), never on
+// a caller-supplied shared/persistent one, whatever that one is called.
+const isolatedDatabase = process.env.JI_TEST_ISOLATED_DATABASE;
+const disposableDatabase =
+  isolatedDatabase !== undefined &&
+  isolatedDatabase !== "" &&
+  new URL(migratorUrl).pathname.slice(1) === isolatedDatabase;
 
 const isPostgresAvailable = async (): Promise<boolean> => {
   const probe = postgres(migratorUrl, { connect_timeout: 2, max: 1 });
@@ -56,7 +59,7 @@ if (postgresAvailable && psqlBinary === null) {
 
 if (postgresAvailable && !disposableDatabase) {
   console.warn(
-    "rollback-unmark.spec: DATABASE_TEST_URL is not an isolated ji_test_iso_* database; the database-wide rollback script is not run against it"
+    "rollback-unmark.spec: DATABASE_TEST_URL is not the database the test-isolation preload created; the database-wide rollback script is not run against it"
   );
 }
 
