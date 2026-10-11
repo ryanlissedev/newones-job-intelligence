@@ -42,15 +42,24 @@ elif [[ "$visual_mode" != "off" ]]; then
     --suite fixtures
     --mode "$visual_mode"
   )
-  # Only test selection makes a run partial (spec paths or a tag/grep filter);
-  # mode flags such as --headed (and their values) must not hide missing captures.
+  # Only test selection makes a run partial (spec paths/positional selectors or
+  # a tag/grep/last-failed filter); mode flags such as --headed must not hide
+  # missing captures. A bare word right after a non-selector option is taken
+  # as that option's value (fail-safe: at worst a full compare).
   partial_run=0
+  previous=""
   for argument in "$@"; do
     case "$argument" in
-      --tag|--tag=*|--grep|--grep=*|-g|-t|--filter|--filter=*|--only|--only=*) partial_run=1 ;;
-      *.e2e.ts|tests/*) partial_run=1 ;;
-      *) ;;
+      --tag|--tag=*|--exclude-tag|--exclude-tag=*|--grep|--grep=*|--grep-invert|--grep-invert=*|-g|-t|--filter|--filter=*|--only|--only=*|--last-failed) partial_run=1 ;;
+      -*) ;;
+      *)
+        case "$previous" in
+          -*) [[ "$previous" == *=* ]] && partial_run=1 ;;
+          *) partial_run=1 ;;
+        esac
+        ;;
     esac
+    previous="$argument"
   done
   if (( partial_run == 1 )); then
     compare_args+=(--captured-only)
