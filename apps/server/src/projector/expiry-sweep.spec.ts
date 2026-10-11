@@ -124,4 +124,32 @@ describe("search expiry sweep runner", () => {
     expect(errorLog?.message).not.toContain("postgresql://");
     expect(calls).toBeGreaterThanOrEqual(2);
   });
+
+  it("logs when a sweep is skipped because its lock is held", async () => {
+    const logged = Promise.withResolvers<SearchExpirySweepLog>();
+    const runner = createSearchExpirySweepRunner({
+      config: { batchSize: 1, intervalMs: 1, maxPerRun: 1, mode: "dry-run" },
+      log: (fields) => logged.resolve(fields),
+      sweep: () =>
+        Promise.resolve({
+          batches: 0,
+          candidates: 0,
+          capped: false,
+          enqueued: 0,
+          mode: "dry-run" as const,
+          sampleIds: [],
+          skipped: "lock_held" as const,
+          skippedPending: 0,
+        }),
+    });
+    runner.start();
+    const log = await logged.promise;
+    await runner.stop();
+
+    expect(log).toMatchObject({
+      batches: 0,
+      candidates: 0,
+      skipped: "lock_held",
+    });
+  });
 });

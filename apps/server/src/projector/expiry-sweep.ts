@@ -26,6 +26,7 @@ export interface SearchExpirySweepLog {
   errorName?: string;
   message?: string;
   mode: SearchExpirySweepMode;
+  skipped?: "lock_held";
   skippedPending: number;
 }
 
@@ -102,7 +103,7 @@ export const createSearchExpirySweepRunner = (
         maxPerRun: options.config.maxPerRun,
         mode: options.config.mode,
       });
-      options.log({
+      const log: SearchExpirySweepLog = {
         batches: result.batches,
         candidates: result.candidates,
         capped: result.capped,
@@ -110,7 +111,11 @@ export const createSearchExpirySweepRunner = (
         enqueued: result.enqueued,
         mode: options.config.mode,
         skippedPending: result.skippedPending,
-      });
+      };
+      if (result.skipped !== undefined) {
+        log.skipped = result.skipped;
+      }
+      options.log(log);
     } catch (error) {
       const rawMessage = redactConnectionStrings(
         error instanceof Error ? error.message : String(error)

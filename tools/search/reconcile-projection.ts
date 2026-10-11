@@ -35,6 +35,7 @@ import {
   hasProjectionDrift,
   nextReconcileProgressStatus,
 } from "./reconcile-projection-status";
+import { formatReconcileProjectionSummary } from "./reconcile-projection-summary";
 
 const apply = process.argv.includes("--apply");
 const failOnDrift = process.argv.includes("--fail-on-drift");
@@ -341,22 +342,7 @@ try {
     onProgress: reportProgress,
     versionStore: new PostgresSearchVersionStore(db),
   });
-  const mode = apply ? "repair" : "dry run";
-  const activeInventoryCount = result.inventoryCounts?.active ?? 0;
-  const archiveInventoryCount = result.inventoryCounts?.archive ?? 0;
-  console.log(
-    `${mode} against generation ${result.generation}: ` +
-      `${result.checked} curated aanvragen checked; Manticore active=${activeInventoryCount}, ` +
-      `archive=${archiveInventoryCount}; ${result.divergentCount} divergent, ` +
-      `${result.orphanManticoreCount} valid orphan(s), ${result.invalidDocumentIdCount} invalid engine id(s), ` +
-      `${result.physicalCorruptionCount} corrupt physical row(s), ${result.physicalCleanupCount} physically deleted, ` +
-      `${result.staleManticoreHashCount} stale physical hash(es), ${result.skippedPending} already covered by a pending outbox event, ` +
-      `${result.pendingOutboxCount ?? 0} pending aanvraag outbox event(s), ` +
-      `${result.divergentPendingOutboxCount ?? 0} covering divergent candidates, ` +
-      `${result.deadLetteredOutboxCount ?? 0} dead-lettered aanvraag event(s), ` +
-      `oldest pending ${result.oldestPendingOutboxCreatedAt?.toISOString() ?? "none"}, ` +
-      `${result.applied} durable event(s) inserted.`
-  );
+  console.log(formatReconcileProjectionSummary({ ...result, apply }));
   for (const entry of result.divergent) {
     console.log(
       `  ${entry.aggregateId}  ${entry.reasons.join(", ")}  projected ${entry.projectedHash ?? "(missing)"} -> current ${entry.currentHash}`
