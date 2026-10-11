@@ -23,5 +23,5 @@ export default {
     },
   ],
   // tests/live runs against a deployed origin via e2e.live.config.ts.
-  tests: ["tests/**/*.e2e.ts", "!tests/live/**"],
+  tests: ["tests/**/*.e2e.ts", "!tests/live/**", "!tests/fixtures/**"],
 } satisfies E2EConfig;

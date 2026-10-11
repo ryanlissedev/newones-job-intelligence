@@ -109,3 +109,5 @@ apps/*/.data/
 /demos/**/*.webm
 /demos/**/*.meta.txt
 .e2e/
+.e2e-fixtures/
+.e2e-visual/
