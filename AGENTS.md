@@ -216,6 +216,8 @@ Most formatting and common issues are automatically fixed by Oxlint + Oxfmt. Run
 
 A **short screen recording is the default**; a screenshot suffices only when the change is static (renamed label, new field present). Record the actual interaction on a running app using the verify skill and seeded/fixture data so reviewers see what CI would verify.
 
+Committed visual-regression baselines under `tests/visual/baselines/fixtures` are test oracles rendered from fixture data only (not PR evidence) and are allowed; captures of deployed origins are never committed.
+
 **Recorder:** Playwright `recordVideo` / `video: 'on'` against the live-verify instance — one test or clip per claim. Scripts wait on asserted UI states, never sleeps.
 
 **Format:** Encode as H.264 in an MP4 container, not Playwright's default VP8-in-WebM. GitHub, Linear, and phones preview MP4; WebM often does not.
