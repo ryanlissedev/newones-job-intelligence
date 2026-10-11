@@ -2,6 +2,7 @@ import type { SourceContact } from "../contract";
 import { resolveEgressFetch } from "../egress";
 import { loadConnectorFixture } from "../fixtures/load";
 import { decodeHtmlEntities } from "../html-entities";
+import { withJobIntelligenceUserAgent } from "../user-agent";
 import type {
   NeedstaffingDetail,
   NeedstaffingInfoFields,
@@ -498,7 +499,9 @@ export const buildNeedstaffingRawHtml = (detailHtml: string): string => {
 export const createNeedstaffingClient = (
   options: NeedstaffingClientOptions = {}
 ): NeedstaffingClient => {
-  const fetchImpl = options.fetchImpl ?? resolveEgressFetch("needstaffing");
+  const fetchImpl = withJobIntelligenceUserAgent(
+    options.fetchImpl ?? resolveEgressFetch("needstaffing")
+  );
   const liveEnabled =
     options.liveEnabled ?? process.env.NEEDSTAFFING_LIVE === "1";
   const listingFixturePath =

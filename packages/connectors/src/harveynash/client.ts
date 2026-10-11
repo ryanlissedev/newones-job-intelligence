@@ -2,6 +2,7 @@
 import { resolveEgressFetch } from "../egress";
 import { loadConnectorFixture } from "../fixtures/load";
 import { extractJobPosting } from "../json-ld/extract";
+import { withJobIntelligenceUserAgent } from "../user-agent";
 import type {
   HarveyNashDetailFacts,
   HarveyNashDetailFragment,
@@ -161,7 +162,9 @@ const readOk = (response: Response, label: string): Response => {
 export const createHarveyNashClient = (
   options: HarveyNashClientOptions = {}
 ): HarveyNashClient => {
-  const fetchImpl = options.fetchImpl ?? resolveEgressFetch("harveynash");
+  const fetchImpl = withJobIntelligenceUserAgent(
+    options.fetchImpl ?? resolveEgressFetch("harveynash")
+  );
   const liveEnabled =
     options.liveEnabled ?? process.env.HARVEYNASH_LIVE === "1";
   const listingFixturePath =

@@ -1,5 +1,6 @@
 import { resolveEgressFetch } from "../egress";
 import { loadConnectorFixture } from "../fixtures/load";
+import { withJobIntelligenceUserAgent } from "../user-agent";
 import { coerceTenderNedIds } from "./ids";
 import type {
   TenderNedDetail,
@@ -69,7 +70,9 @@ const readJson = async <Payload>(response: Response): Promise<Payload> => {
 export const createTenderNedClient = (
   options: TenderNedClientOptions = {}
 ): TenderNedClient => {
-  const fetchImpl = options.fetchImpl ?? resolveEgressFetch("tenderned");
+  const fetchImpl = withJobIntelligenceUserAgent(
+    options.fetchImpl ?? resolveEgressFetch("tenderned")
+  );
   const liveEnabled =
     options.liveEnabled ?? process.env.TENDER_NED_LIVE === "1";
   const listingFixturePath =

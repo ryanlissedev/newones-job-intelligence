@@ -2,6 +2,7 @@
 import { resolveEgressFetch } from "../egress";
 import { loadConnectorFixture } from "../fixtures/load";
 import { resolveHttpTimeoutMs, withHttpTimeout } from "../http-timeout";
+import { withJobIntelligenceUserAgent } from "../user-agent";
 import {
   OPDRACHTOVERHEID_SITE_BASE_URL,
   OPDRACHTOVERHEID_SITEMAP_PATH,
@@ -269,7 +270,9 @@ const parseLiveOpdrachtoverheidListing = (
 export const createOpdrachtoverheidClient = (
   options: OpdrachtoverheidClientOptions = {}
 ): OpdrachtoverheidClient => {
-  const fetchImpl = options.fetchImpl ?? resolveEgressFetch("opdrachtoverheid");
+  const fetchImpl = withJobIntelligenceUserAgent(
+    options.fetchImpl ?? resolveEgressFetch("opdrachtoverheid")
+  );
   const timeoutMs = resolveHttpTimeoutMs(options.timeoutMs);
   const liveEnabled =
     options.liveEnabled ?? process.env.OPDRACHTOVERHEID_LIVE === "1";
