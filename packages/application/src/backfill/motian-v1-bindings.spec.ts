@@ -1,7 +1,9 @@
 import { describe, expect, it } from "bun:test";
 
+import { SOURCES } from "../sources";
 import {
   MOTIAN_V1_BRON_BINDINGS,
+  MOTIAN_V1_BRON_SEEDS,
   MOTIAN_V1_PLATFORMS,
   MOTIAN_V1_SOURCE_PLATFORMS,
   normalizeMotianPlatform,
@@ -56,5 +58,25 @@ describe("Motian v1 platform bindings", () => {
       "starapple-nl",
       "starapple",
     ]);
+  });
+  it("never puts a v1 binding on a registry id that belongs to a different bron", () => {
+    // A shared id made the insert-only seed skip Stedin/Gasunie silently (2026-10):
+    // the v1 Werkzoeken/Starapple rows already held …035/…036.
+    const sourcesById = new Map(
+      Object.values(SOURCES).map((source) => [source.bronId, source.naam])
+    );
+    const collisions = MOTIAN_V1_BRON_SEEDS.flatMap((seed) => {
+      const registryNaam = sourcesById.get(seed.bronId);
+      return registryNaam !== undefined &&
+        registryNaam.toLowerCase() !== seed.naam.toLowerCase()
+        ? [`${seed.bronId}: v1 ${seed.naam} vs registry ${registryNaam}`]
+        : [];
+    });
+    expect(collisions).toEqual([]);
+  });
+
+  it("keeps …035/…036 for Werkzoeken/Starapple and gives Stedin/Gasunie their own ids", () => {
+    expect(SOURCES.stedin.bronId).toBe("00000000-0000-4000-8000-000000000046");
+    expect(SOURCES.gasunie.bronId).toBe("00000000-0000-4000-8000-000000000047");
   });
 });
