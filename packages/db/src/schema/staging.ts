@@ -127,6 +127,11 @@ export const aanvraagObservation = stagingSchema.table(
       table.status,
       table.createdAt
     ),
+    // 0035: dominated sweep sibling probe (same source record, same content).
+    index("aanvraag_observation_source_record_hash_idx").on(
+      table.sourceRecordId,
+      table.contentHash
+    ),
     check(
       "aanvraag_observation_outcome_check",
       sql`${table.outcome} IN ('new', 'changed', 'unchanged')`
