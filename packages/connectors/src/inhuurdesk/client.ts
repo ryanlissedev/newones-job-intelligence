@@ -1,5 +1,6 @@
 import { resolveEgressFetch } from "../egress";
 import { loadConnectorFixture } from "../fixtures/load";
+import { withJobIntelligenceUserAgent } from "../user-agent";
 import type { InhuurdeskAssignment, InhuurdeskListingPage } from "./types";
 import { INHUURDESK_SEARCH_PATH } from "./types";
 
@@ -27,7 +28,9 @@ const readJson = async <Payload>(response: Response): Promise<Payload> => {
 export const createInhuurdeskClient = (
   options: InhuurdeskClientOptions = {}
 ): InhuurdeskClient => {
-  const fetchImpl = options.fetchImpl ?? resolveEgressFetch("inhuurdesk");
+  const fetchImpl = withJobIntelligenceUserAgent(
+    options.fetchImpl ?? resolveEgressFetch("inhuurdesk")
+  );
   const liveEnabled =
     options.liveEnabled ?? process.env.INHUURDESK_LIVE === "1";
   const listingFixturePath =

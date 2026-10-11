@@ -22,6 +22,7 @@ import {
 } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
+import { assertSeedHitSameBron } from "./bron-seed-identity";
 import type * as schema from "./schema";
 import { aanvraag, bron, scrapeRun } from "./schema";
 
@@ -350,8 +351,8 @@ export const seedMotianV1Bronnen = async (
   seeds: readonly MotianV1BronSeed[]
 ): Promise<void> => {
   await Promise.all(
-    seeds.map((seed) =>
-      database
+    seeds.map(async (seed) => {
+      const inserted = await database
         .insert(bron)
         .values({
           actief: false,
@@ -369,6 +370,21 @@ export const seedMotianV1Bronnen = async (
           website: seed.website,
         })
         .onConflictDoNothing({ target: bron.id })
-    )
+        .returning({ id: bron.id });
+      if (inserted.length > 0) {
+        return;
+      }
+      // Skipped by ON CONFLICT (id): the row must be this bron, not another one on the same id.
+      const [existing] = await database
+        .select({ naam: bron.naam })
+        .from(bron)
+        .where(eq(bron.id, seed.bronId))
+        .limit(1);
+      assertSeedHitSameBron({
+        bronId: seed.bronId,
+        existingNaam: existing?.naam ?? null,
+        seedNaam: seed.naam,
+      });
+    })
   );
 };
