@@ -13,7 +13,7 @@ A row with `curated.aanvraag.superseded_by IS NOT NULL` is a merged duplicate. I
 | Batch hydration (search result list, compare, export selections, assistant/MCP tools via the same handlers) | `PostgresAanvraagStore.getByIds` | Superseded ids resolve to the kept row; input order is kept and each live row appears once. |
 | Markering on a superseded id | `createMarkeerAanvraagHandler` | Stored on the kept row (`exists.id`). |
 | Search projection (projector, single + bulk drain) | `PostgresSearchDocumentLoader.loadByAggregateId` / `loadManyByAggregateIds` | Superseded rows never load, so any upsert event for them is a no-op and they are never (re)added. |
-| Row becomes superseded → index delete | `tools/postgres/unique-key/03-mark-superseded.sql` | Inserts one `aanvraag.verwijderd` outbox event per marked row in the same statement. Rollback section B enqueues `aanvraag.gewijzigd` to re-project unmarked rows. |
+| Row becomes superseded → index delete | `tools/postgres/unique-key/03-mark-superseded.sql` | Inserts one `aanvraag.verwijderd` outbox event per marked row in the same statement. Rollback section B (`91-rollback-unmark.sql`) enqueues `aanvraag.gewijzigd` to re-project unmarked rows. |
 | Safety net | `projection-repair.ts` (`reconcileProjection`) | A superseded row still in Manticore counts as an orphan and gets a delete; superseded rows are not reported as missing from the index. |
 | Full rebuild | `search-reindex.ts` page scan | Live rows only. |
 | Enrichment candidates (Trigger task + on-box oneshot) | `enrichment-store.ts` `incompleteAanvraagSql` | `superseded_by IS NULL` (affects listIncomplete, listIncompleteById and listPendingCuratedApply). |
