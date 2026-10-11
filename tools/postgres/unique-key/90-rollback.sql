@@ -11,13 +11,19 @@
 --    which the partial unique index would reject. One transaction:
 --      BEGIN;
 --      SET LOCAL lock_timeout = '5s';
---      UPDATE curated.aanvraag a
---         SET superseded_by = NULL, superseded_at = NULL, superseded_reason = NULL
---        FROM curated.aanvraag_dup_archive r
---       WHERE r.aanvraag_id = a.id
---         AND r.reason = 'dup-key-normalized-v1'
---         AND r.restored_at IS NULL
---         AND a.superseded_reason = 'dup-key-normalized-v1';
+--      WITH unmarked AS (
+--        UPDATE curated.aanvraag a
+--           SET superseded_by = NULL, superseded_at = NULL, superseded_reason = NULL
+--          FROM curated.aanvraag_dup_archive r
+--         WHERE r.aanvraag_id = a.id
+--           AND r.reason = 'dup-key-normalized-v1'
+--           AND r.restored_at IS NULL
+--           AND a.superseded_reason = 'dup-key-normalized-v1'
+--        RETURNING a.id)
+--      -- Re-project the restored rows (any non-delete event type reloads and upserts).
+--      INSERT INTO curated.outbox_event (aggregate_id, aggregate_type, event_type, payload)
+--      SELECT id, 'aanvraag', 'aanvraag.gewijzigd', jsonb_build_object('reden', 'supersede_rollback')
+--        FROM unmarked;
 --      UPDATE curated.aanvraag_dup_archive
 --         SET restored_at = now()
 --       WHERE reason = 'dup-key-normalized-v1' AND restored_at IS NULL;

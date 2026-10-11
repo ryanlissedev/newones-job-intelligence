@@ -85,6 +85,8 @@ interface MarkOutcome {
   }[];
   readonly archiveAfterRerun: number;
   readonly before: number;
+  readonly indexDeletes: readonly string[];
+  readonly indexDeletesAfterRerun: number;
   readonly marked: readonly {
     id: string;
     superseded_by: string | null;
@@ -278,8 +280,18 @@ describe
           }[]
         >`SELECT aanvraag_id, kept_aanvraag_id, row_snapshot->>'bron_referentie' AS snapshot_ref
             FROM curated.aanvraag_dup_archive WHERE bron_id = ${bronId} ORDER BY aanvraag_id`;
+        // Every marked row gets exactly one search-index delete in the same transaction.
+        const indexDeletes = await tx<{ aggregate_id: string }[]>`
+          SELECT aggregate_id FROM curated.outbox_event
+           WHERE event_type = 'aanvraag.verwijderd'
+             AND aggregate_id IN (SELECT id FROM curated.aanvraag WHERE bron_id = ${bronId})
+           ORDER BY aggregate_id`;
         // Idempotent: a second run marks nothing new.
         await tx.unsafe(markScript);
+        const indexDeletesAfterRerun = await tx<{ count: number }[]>`
+          SELECT count(*)::int AS count FROM curated.outbox_event
+           WHERE event_type = 'aanvraag.verwijderd'
+             AND aggregate_id IN (SELECT id FROM curated.aanvraag WHERE bron_id = ${bronId})`;
         const rerunRows = await tx<{ archived: number }[]>`
           SELECT count(*)::int AS archived FROM curated.aanvraag_dup_archive WHERE bron_id = ${bronId}`;
         await tx.unsafe(createIndex);
@@ -306,6 +318,8 @@ describe
           archive,
           archiveAfterRerun: rerunRows[0]?.archived ?? -1,
           before: beforeRows[0]?.before ?? -1,
+          indexDeletes: indexDeletes.map((row) => row.aggregate_id),
+          indexDeletesAfterRerun: indexDeletesAfterRerun[0]?.count ?? -1,
           marked,
           rejected,
         };
@@ -326,6 +340,8 @@ describe
       expect(supersededBy.get(tieLive)).toBeNull();
       expect(supersededBy.get(tieV1)).toBe(tieLive);
       expect(supersededBy.get(loner)).toBeNull();
+      expect(result.indexDeletes).toEqual([olderLive, v1Row, tieV1].toSorted());
+      expect(result.indexDeletesAfterRerun).toBe(3);
       expect(
         result.marked
           .filter((row) => row.superseded_by !== null)
