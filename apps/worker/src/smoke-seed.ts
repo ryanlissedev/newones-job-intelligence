@@ -1,6 +1,8 @@
 import type { SourceDefinition } from "@ji/application/sources";
-import { assertSeedHitSameBron } from "@ji/db";
 import type { BronRuntimeDatabase } from "@ji/db";
+// Subpath import: the @ji/db entrypoint validates DATABASE_URL and builds the
+// global client at module load, which would break specs before their DB skip.
+import { assertSeedHitSameBron } from "@ji/db/bron-seed-identity";
 import { bron } from "@ji/db/schema/curated";
 import type { BronId } from "@ji/domain";
 import { eq } from "drizzle-orm";

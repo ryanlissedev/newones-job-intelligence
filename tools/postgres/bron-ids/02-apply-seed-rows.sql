@@ -9,6 +9,10 @@
 BEGIN;
 SET LOCAL lock_timeout = '5s';
 SET LOCAL statement_timeout = '30s';
+-- Serialize against concurrent bron writers (reads stay allowed) so the collision check below and the
+-- INSERT see the same table: under READ COMMITTED another session could otherwise insert a different
+-- bron on …046/…047 in between and ON CONFLICT DO NOTHING would silently skip it.
+LOCK TABLE curated.bron IN SHARE ROW EXCLUSIVE MODE;
 
 DO $$
 BEGIN
@@ -30,6 +34,19 @@ VALUES
   ('00000000-0000-4000-8000-000000000047', 'Gasunie', false, 'overheidsportaal', 2000, 'json-ld',
    '*/15 * * * *', false, 'fixtures/connectors/gasunie/mapping.json', 30, 90, NULL, 'deferred', 'te_toetsen')
 ON CONFLICT (id) DO NOTHING;
+
+-- Belt and braces: whatever won each id must be the intended bron, and no other id may carry the naam.
+DO $$
+BEGIN
+  IF (SELECT count(*) FROM curated.bron
+       WHERE (id = '00000000-0000-4000-8000-000000000046' AND lower(naam) = 'stedin')
+          OR (id = '00000000-0000-4000-8000-000000000047' AND lower(naam) = 'gasunie')) <> 2
+     OR EXISTS (SELECT 1 FROM curated.bron
+                 WHERE (lower(naam) = 'stedin'  AND id <> '00000000-0000-4000-8000-000000000046')
+                    OR (lower(naam) = 'gasunie' AND id <> '00000000-0000-4000-8000-000000000047')) THEN
+    RAISE EXCEPTION 'bron id/naam collision for Stedin/Gasunie after insert: rolled back';
+  END IF;
+END $$;
 
 SELECT id, naam, actief, status, voorwaarden_status FROM curated.bron
  WHERE id IN ('00000000-0000-4000-8000-000000000046', '00000000-0000-4000-8000-000000000047')

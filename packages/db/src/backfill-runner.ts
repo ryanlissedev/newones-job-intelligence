@@ -156,9 +156,10 @@ export const runMotianV1Backfill = async (
   // destination pool must not throttle the bounded row worker pool.
   const sql = postgres(databaseUrl, { max: concurrency });
   const database = drizzle(sql, { schema });
-  await seedMotianV1Bronnen(database, MOTIAN_V1_BRON_SEEDS);
-
   try {
+    // Inside the try: a seed id collision throws after the pool has run
+    // queries, and the finally must still end it or the process hangs.
+    await seedMotianV1Bronnen(database, MOTIAN_V1_BRON_SEEDS);
     return await runNeonV1Backfill({
       batchSize: options.batchSize,
       bindings: MOTIAN_V1_BRON_BINDINGS,
