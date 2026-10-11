@@ -1,6 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import { spawnSync } from "node:child_process";
 import {
+  accessSync,
+  constants,
   existsSync,
   mkdirSync,
   mkdtempSync,
@@ -49,6 +51,30 @@ it("keeps the production hook Bash 3.2 compatible", () => {
   ]) {
     expect(hookSource).not.toContain(forbidden);
   }
+});
+
+it("keeps the production hook executable", () => {
+  expect(() => accessSync(hookPath, constants.X_OK)).not.toThrow();
+});
+
+it("runs the executable production hook directly", () => {
+  const result = spawnSync(hookPath, [], {
+    cwd: repoRoot,
+    encoding: "utf-8",
+    env: {
+      ...process.env,
+      HOME: tmpdir(),
+      PRODUCTION_GATE_LOG: path.join(tmpdir(), "production-gate-direct.log"),
+    },
+    input: JSON.stringify({
+      tool_input: { command: "gh run view 123" },
+      tool_name: "Bash",
+    }),
+  });
+
+  expect(result.error).toBeUndefined();
+  expect(result.status).toBe(0);
+  expect(result.stdout).toBe("");
 });
 
 it("runs the gate for write and edit hooks", () => {
@@ -330,10 +356,112 @@ const cases: GateCase[] = [
   },
   {
     category: "server-rm-rf",
+    command: "ssh catapulze-prod /bin/rm -rf /srv/old",
+    decision: "block",
+    name: "path-qualified recursive server removal blocks",
+  },
+  {
+    category: "server-rm-rf",
+    command: "ssh catapulze-prod /usr/bin/rm -Rf /srv/old",
+    decision: "block",
+    name: "uppercase path-qualified recursive removal blocks",
+  },
+  {
+    category: "server-rm-rf",
+    command: "ssh catapulze-prod rm -Rf /srv/old",
+    decision: "block",
+    name: "uppercase recursive server removal blocks",
+  },
+  {
+    category: "server-rm-rf",
+    command: "ssh catapulze-prod rm -r -f /srv/old",
+    decision: "block",
+    name: "split recursive removal flags block",
+  },
+  {
+    category: "server-rm-rf",
+    command: "ssh catapulze-prod sudo rm -rf /srv/old",
+    decision: "block",
+    name: "sudo recursive server removal blocks",
+  },
+  {
+    category: "server-rm-rf",
+    command: "ssh catapulze-prod find /srv/old -delete",
+    decision: "block",
+    name: "find delete on production blocks",
+  },
+  {
+    category: "server-rm-rf",
+    command: String.raw`ssh catapulze-prod find /srv/old -exec rm -rf {} \;`,
+    decision: "block",
+    name: "find exec rm on production blocks",
+  },
+  {
+    category: "server-rm-rf",
     command: "ssh catapulze-hetzner rm --recursive /srv/old",
     decision: "approved",
     env: { RELEASE_APPROVAL: "PR-496" },
     name: "approved recursive removal is allowed and logged",
+  },
+  {
+    category: "approval-tamper",
+    command:
+      "sed -i s/2026-10-10/2026-10-11/ ~/.config/newones/release-approval",
+    decision: "block",
+    name: "sed in-place approval tampering blocks",
+  },
+  {
+    category: "approval-tamper",
+    command:
+      "perl -pi -e s/2026-10-10/2026-10-11/ ~/.config/newones/release-approval",
+    decision: "block",
+    name: "Perl in-place approval tampering blocks",
+  },
+  {
+    category: "approval-tamper",
+    command:
+      "perl -i -e s/2026-10-10/2026-10-11/ ~/.config/newones/release-approval",
+    decision: "block",
+    name: "Perl short in-place approval tampering blocks",
+  },
+  {
+    category: "approval-tamper",
+    command: "awk -i inplace '{ print }' ~/.config/newones/release-approval",
+    decision: "block",
+    name: "Awk in-place approval tampering blocks",
+  },
+  {
+    category: "approval-tamper",
+    command: "ed ~/.config/newones/release-approval",
+    decision: "block",
+    name: "ed approval tampering blocks",
+  },
+  {
+    category: "approval-tamper",
+    command: "ex ~/.config/newones/release-approval",
+    decision: "block",
+    name: "ex approval tampering blocks",
+  },
+  {
+    category: "approval-tamper",
+    command:
+      "vim -c 's/2026-10-10/2026-10-11/' ~/.config/newones/release-approval",
+    decision: "block",
+    name: "Vim command approval tampering blocks",
+  },
+  {
+    category: "approval-tamper",
+    command:
+      'python -c \'open("~/.config/newones/release-approval", "w").write("x")\'',
+    decision: "block",
+    name: "Python approval tampering blocks",
+  },
+  {
+    category: "approval-tamper",
+    command: "sed -i s/host/a/ ~/.config/newones/production-gate.conf",
+    decision: "block",
+    name: "sed in-place production config tampering blocks",
+    productionGateConfigContents: "host catapulze-prod\n",
   },
   {
     category: "pg-data-change",
@@ -347,6 +475,26 @@ const cases: GateCase[] = [
     decision: "approved",
     env: { RELEASE_APPROVAL: "PR-496" },
     name: "approved PostgreSQL data change is allowed and logged",
+  },
+  {
+    category: "pg-data-change",
+    command: "ssh catapulze-prod mkdir -p /var/lib/postgresql/data/new",
+    decision: "block",
+    name: "PostgreSQL data mkdir blocks",
+  },
+  {
+    category: "pg-data-change",
+    command:
+      "ssh catapulze-prod touch /var/lib/postgresql/data/postmaster.opts",
+    decision: "block",
+    name: "PostgreSQL data touch blocks",
+  },
+  {
+    category: "pg-data-change",
+    command:
+      "ssh catapulze-prod install /tmp/pg.conf /data/coolify/databases/pg/pg.conf",
+    decision: "block",
+    name: "PostgreSQL data install blocks",
   },
   {
     category: "coolify-delete",
@@ -380,6 +528,24 @@ const cases: GateCase[] = [
     command: "git push --force origin main",
     decision: "block",
     name: "force push main blocks",
+  },
+  {
+    category: "force-push-main",
+    command: "git -C /repo push --force origin main",
+    decision: "block",
+    name: "force push main with Git directory option blocks",
+  },
+  {
+    category: "force-push-main",
+    command: "git -c x=y push -f origin HEAD:main",
+    decision: "block",
+    name: "force push main with Git config option blocks",
+  },
+  {
+    category: "force-push-main",
+    command: "git --git-dir=.git push --force origin main",
+    decision: "block",
+    name: "force push main with Git directory flag blocks",
   },
   {
     category: "force-push-main",
@@ -441,6 +607,49 @@ const cases: GateCase[] = [
     command: "ssh catapulze-prod docker compose -f x.yml up -d",
     decision: "log",
     name: "production alias compose up is logged",
+  },
+  {
+    category: "docker-volume-destroy",
+    command: "docker --context catapulze-prod volume rm ji_pg",
+    decision: "block",
+    name: "Docker production context blocks volume removal",
+  },
+  {
+    category: "docker-volume-destroy",
+    command: "docker --context prod-alias volume rm ji_pg",
+    decision: "block",
+    name: "Docker configured context blocks volume removal",
+    productionGateConfigContents: "host prod-alias\n",
+  },
+  {
+    category: "docker-volume-destroy",
+    command: "docker -H tcp://catapulze-prod:2376 volume rm ji_pg",
+    decision: "block",
+    name: "Docker TCP production host blocks volume removal",
+  },
+  {
+    category: "server-rm-rf",
+    command: "ssh -o HostName=catapulze-prod rm -rf /srv/old",
+    decision: "block",
+    name: "SSH HostName production option blocks recursive removal",
+  },
+  {
+    category: "sql-destructive",
+    command: 'PGHOST=catapulze-prod psql -c "DROP TABLE jobs"',
+    decision: "block",
+    name: "PGHOST production SQL blocks",
+  },
+  {
+    category: "sql-destructive",
+    command: 'psql -h catapulze-prod -c "DELETE FROM jobs"',
+    decision: "block",
+    name: "psql host production SQL blocks",
+  },
+  {
+    category: "sql-destructive",
+    command: 'psql postgres://ji:pw@catapulze-prod/jobs -c "TRUNCATE jobs"',
+    decision: "block",
+    name: "Postgres URL production SQL blocks",
   },
   {
     category: "hetzner-write",
@@ -565,6 +774,50 @@ const cases: GateCase[] = [
   },
   {
     category: "coolify-api-deploy",
+    command: "curl -fsS https://x/api/v1/deploy -H 'X-Token: x-token-secret'",
+    decision: "log",
+    name: "logged X token is redacted",
+    secrets: ["x-token-secret"],
+  },
+  {
+    category: "coolify-api-deploy",
+    command:
+      "curl -fsS https://x/api/v1/deploy -H 'X-Custom-Token: custom-token-secret'",
+    decision: "log",
+    name: "logged custom token header is redacted",
+    secrets: ["custom-token-secret"],
+  },
+  {
+    category: "coolify-api-deploy",
+    command:
+      'curl -fsS https://x/api/v1/deploy -H "X-Api-Token: api-token-secret"',
+    decision: "log",
+    name: "logged API token header is redacted",
+    secrets: ["api-token-secret"],
+  },
+  {
+    category: "coolify-api-deploy",
+    command:
+      'curl -fsS https://x/api/v1/deploy --data \'{"token":"json-token-secret","password":"json-password-secret","secret":"json-secret","apiKey":"json-api-key-secret"}\'',
+    decision: "log",
+    name: "logged JSON secrets are redacted",
+    secrets: [
+      "json-token-secret",
+      "json-password-secret",
+      "json-secret",
+      "json-api-key-secret",
+    ],
+  },
+  {
+    category: "coolify-api-deploy",
+    command:
+      "curl -fsS https://x/api/v1/deploy --bearer-token bearer-secret --api-key api-key-secret --secret secret-option",
+    decision: "log",
+    name: "logged long secret options are redacted",
+    secrets: ["bearer-secret", "api-key-secret", "secret-option"],
+  },
+  {
+    category: "coolify-api-deploy",
     command: 'curl -fsS https://x/api/v1/deploy --password "x"',
     decision: "log",
     name: "logged password option is redacted",
@@ -610,6 +863,71 @@ const cases: GateCase[] = [
     decision: "log",
     name: "logged URL and option secrets are redacted",
     secrets: ["url-secret", "token-secret", "cli-password-secret"],
+  },
+  {
+    command: 'git commit -m "document git push --force origin main"',
+    decision: "allow",
+    name: "commit message force push text is silent",
+  },
+  {
+    command: 'git commit -m "document gh repo delete acme/old"',
+    decision: "allow",
+    name: "commit message repository delete text is silent",
+  },
+  {
+    command: 'git commit -m "doc: curl -X DELETE https://c/api/v1/x"',
+    decision: "allow",
+    name: "commit message API delete text is silent",
+  },
+  {
+    command: 'git tag -m "document git push --force origin main" v1',
+    decision: "allow",
+    name: "tag message force push text is silent",
+  },
+  {
+    command:
+      'gh pr create --title "rm -rf on catapulze-prod" --body "gh repo delete acme/old"',
+    decision: "allow",
+    name: "pull request text is silent",
+  },
+  {
+    command: 'gh pr comment 1 --body "rm -rf on catapulze-prod is blocked"',
+    decision: "allow",
+    name: "pull request comment text is silent",
+  },
+  {
+    command: 'gh issue create --body "curl -X DELETE https://c/api/v1/x"',
+    decision: "allow",
+    name: "issue text is silent",
+  },
+  {
+    command: 'echo "git push --force origin main"',
+    decision: "allow",
+    name: "echo destructive text is silent",
+  },
+  {
+    command: 'printf "%s\\n" "rm -rf on catapulze-prod"',
+    decision: "allow",
+    name: "printf destructive text is silent",
+  },
+  {
+    category: "force-push-main",
+    command: 'git commit -m "$(git push --force origin main)"',
+    decision: "block",
+    name: "commit substitution force push blocks",
+  },
+  {
+    category: "server-rm-rf",
+    command: 'gh pr comment 1 --body "$(rm -rf /srv/old)"',
+    decision: "block",
+    name: "pull request substitution recursive removal blocks",
+  },
+  {
+    category: "force-push-main",
+    command:
+      'git commit -m "document git push --force origin main"; git push --force origin main',
+    decision: "block",
+    name: "separate force push segment blocks",
   },
   {
     command: "",

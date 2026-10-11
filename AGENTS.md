@@ -55,7 +55,7 @@ Autoreview and the end-of-deliverable review catch different classes of problem:
 ### Production release lane
 
 - Agents may build, merge, and deploy Newones JI themselves; every production action is logged by the hook to `~/.local/state/newones/production-gate.log` (or `PRODUCTION_GATE_LOG`).
-- Destructive SQL, volume/database-container destruction, recursive server deletion, PostgreSQL-data changes, Coolify/API deletes, GitHub-repository deletes, and force-updating main/master are hard-blocked unless Ryan set `RELEASE_APPROVAL=PR-<n>` or the dated approval file; never set or forge approval, and report a block to Ryan.
+- Destructive SQL, volume/database-container destruction, recursive server deletion, PostgreSQL-data changes, Coolify/API deletes, GitHub-repository deletes, force-updating main/master, and approval-file or `production-gate.conf` tampering are hard-blocked unless Ryan set `RELEASE_APPROVAL=PR-<n>` or the dated approval file; approval-file and `production-gate.conf` tampering has no override; never set or forge approval, and report a block to Ryan.
 
 The architecture and the failure mode that cost a full session to rediscover (2026-09-18).
 

@@ -65,6 +65,23 @@ production_gate_config_reference_in() {
   [[ $match == *"$config_file"* ]]
 }
 
+has_tamper_write() {
+  local lower_command=$1
+  local in_place_re='(^|[[:space:]])(sed|perl)[[:space:]][^[:space:]]*-[^[:space:]]*i[^[:space:]]*([[:space:]]|$)'
+  local awk_in_place_re='(^|[[:space:]])awk[[:space:]]+[^[:space:]]*-[[:space:]]*i[[:space:]]+inplace([[:space:]]|$)'
+  local editor_re='(^|[[:space:]])(ed|ex)[[:space:]]+|(^|[[:space:]])vim[[:space:]]+.*(^|[[:space:]])-c([[:space:]=]|$)'
+  local python_open_re='(^|[[:space:]])python(3)?[[:space:]]+[^[:space:]]*-c[^[:space:]]+open\('
+  [[ $lower_command =~ (^|[[:space:]"])(cp|mv|install|ln|touch|truncate|dd|tee|echo|printf)([[:space:]]|") ]] && return 0
+  [[ $lower_command == *">"* ]] && return 0
+  [[ $lower_command == *"export release_approval"* || $lower_command == *"release_approval="* ]] && return 0
+  [[ $lower_command == *"export production_gate_config"* || $lower_command == *"production_gate_config="* ]] && return 0
+  [[ $lower_command =~ $in_place_re ]] && return 0
+  [[ $lower_command =~ $awk_in_place_re ]] && return 0
+  [[ $lower_command =~ $editor_re ]] && return 0
+  [[ $lower_command =~ $python_open_re ]] && return 0
+  return 1
+}
+
 load_production_gate_config() {
   local config_file
   local directive
@@ -207,12 +224,10 @@ raw_mentions_tamper() {
   local raw_lower
   raw_lower=$(lower_text "$RAW_INPUT")
   if [[ $raw_lower == *release_approval* || $raw_lower == *release-approval* ]]; then
-    [[ $raw_lower =~ (^|[[:space:]\"])(cp|mv|install|ln|touch|truncate|dd|tee|echo|printf)([[:space:]]|\") ]] && return 0
-    [[ $raw_lower == *">"* || $raw_lower == *"export release_approval"* || $raw_lower == *"release_approval="* ]] && return 0
+    has_tamper_write "$raw_lower" && return 0
   fi
   if [[ $raw_lower == *production-gate.conf* || $raw_lower == *production_gate_config* ]]; then
-    [[ $raw_lower =~ (^|[[:space:]\"])(cp|mv|install|ln|touch|truncate|dd|tee|echo|printf)([[:space:]]|\") ]] && return 0
-    [[ $raw_lower == *">"* || $raw_lower == *"export production_gate_config"* || $raw_lower == *"production_gate_config="* ]] && return 0
+    has_tamper_write "$raw_lower" && return 0
   fi
   return 1
 }
@@ -288,11 +303,14 @@ log_decision() {
       perl -pe '
         s/(Authorization:\s*[A-Za-z][A-Za-z0-9_-]*\s+)[^\s"\x27]+/${1}REDACTED/gi;
         s/((?:X-API-Key|X-Auth-Token|Cookie):\s*)[^\s"\x27]+/${1}REDACTED/gi;
+        s/((?:X-[A-Za-z0-9_-]*Token):\s*)[^\s"\x27]+/${1}REDACTED/gi;
         s/(Bearer\s+)[^\s"\x27]+/${1}REDACTED/gi;
         s#([A-Za-z][A-Za-z0-9+.-]*://[^/@\s]+:)[^/@\s]+@#${1}REDACTED@#g;
         s/([A-Za-z_][A-Za-z0-9_]*(?:TOKEN|SECRET|KEY|PASSWORD|PASS)=)(?:"[^"]*"|\x27[^\x27]*\x27|[^\s]+)/${1}REDACTED/gi;
         s/(token=)[^\s&"\x27]+/${1}REDACTED/gi;
         s/((?:--(?:token|password)(?:=|\s+)))(?:"[^"]*"|\x27[^\x27]*\x27|[^\s&]+)/${1}REDACTED/gi;
+        s/((?:--(?:token|password|bearer-token|api-key|secret)(?:=|\s+)))(?:"[^"]*"|\x27[^\x27]*\x27|[^\s&]+)/${1}REDACTED/gi;
+        s/((?:"(?:token|password|secret|apikey)"\s*:\s*)")([^"\\]*(?:\\.[^"\\]*)*)"/${1}REDACTED"/gi;
       ' | tr '\n' ' ' || true)
   else
     command_for_log='[command omitted: perl unavailable for redaction]'
@@ -451,6 +469,30 @@ split_segments() {
   printf '%s\n' "$text"
 }
 
+is_description_only_segment() {
+  local segment=$1
+  local normalized
+  local lower_segment
+  local backtick='`'
+  local -a words=()
+  normalized=$(strip_match_quotes "$segment")
+  lower_segment=$(lower_text "$segment")
+  [[ $segment =~ \$\( || $segment == *"$backtick"* ]] && return 1
+  [[ $segment == *";"* || $segment == *"&&"* || $segment == *"||"* ]] && return 1
+  read -r -a words <<< "$normalized"
+  case ${words[0]:-}:${words[1]:-}:${words[2]:-} in
+    git:commit:*|git:tag:*) return 0 ;;
+    gh:pr:create|gh:pr:edit|gh:pr:comment) return 0 ;;
+    gh:issue:*) return 0 ;;
+   echo:*|printf:*)
+      local lower_command
+      lower_command=$(lower_text "$COMMAND_TEXT")
+      [[ ! $lower_command =~ \|[[:space:]]*(bash|sh|zsh|dash|bun|node|xargs|eval)([[:space:]]|$) && $lower_segment != *">"* ]] && return 0
+     ;;
+  esac
+  return 1
+}
+
 check_script_actions() {
   local lower_command
   local segment
@@ -479,9 +521,13 @@ production_host_matches_token() {
   token=$(strip_match_quotes "$token")
   token=${token#DOCKER_HOST=}
   token=${token#docker_host=}
-  token=${token#ssh://}
+  token=${token#PGHOST=}
+  token=${token#pghost=}
+  token=${token#HostName=}
+  token=${token#hostname=}
+  token=${token#*://}
   token=${token#*@}
-  token=${token%%/*}
+  token=${token%%[/?#]*}
   token=${token%%:*}
   candidate=$(lower_text "$token")
   for host in catapulze-hetzner catapulze-prod ${PRODUCTION_EXTRA_HOSTS[@]+"${PRODUCTION_EXTRA_HOSTS[@]}"}; do
@@ -500,27 +546,54 @@ is_hetzner_target_command() {
   read -r -a words <<< "$normalized"
   while (( index < ${#words[@]} )); do
     word=${words[index]}
-    if [[ $word == DOCKER_HOST=* || $word == docker_host=* ]]; then
+   if [[ $word == DOCKER_HOST=* || $word == docker_host=* ]]; then
+     production_host_matches_token "$word" && return 0
+   fi
+    if [[ $word == PGHOST=* || $word == pghost=* || $word == postgres://* || $word == postgresql://* ]]; then
       production_host_matches_token "$word" && return 0
     fi
-    case $word in
-      ssh|scp|rsync)
+   case $word in
+     ssh|scp|rsync)
         for ((index = index + 1; index < ${#words[@]}; index++)); do
           production_host_matches_token "${words[index]}" && return 0
         done
+       return 1
+       ;;
+      psql)
+        for ((index = index + 1; index < ${#words[@]}; index++)); do
+          case ${words[index]} in
+            -h|--host)
+              index=$((index + 1))
+              production_host_matches_token "${words[index]:-}" && return 0
+              ;;
+            -h*|--host=*)
+              production_host_matches_token "${words[index]#*=}" && return 0
+              ;;
+            postgres://*|postgresql://*)
+              production_host_matches_token "${words[index]}" && return 0
+              ;;
+          esac
+        done
         return 1
         ;;
-      docker)
+     docker)
         for ((index = index + 1; index < ${#words[@]}; index++)); do
           case ${words[index]} in
             -H|--host)
               index=$((index + 1))
               production_host_matches_token "${words[index]:-}" && return 0
               ;;
-            -H*|--host=*)
+           -H*|--host=*)
+             production_host_matches_token "${words[index]#*=}" && return 0
+             ;;
+            --context)
+              index=$((index + 1))
+              production_host_matches_token "${words[index]:-}" && return 0
+              ;;
+            --context=*)
               production_host_matches_token "${words[index]#*=}" && return 0
               ;;
-          esac
+         esac
         done
         return 1
         ;;
@@ -541,9 +614,14 @@ is_local_host() {
 }
 
 connection_host_is_local() {
-  local lower_command=$1
-  local host
-  if [[ $lower_command =~ postgres(ql)?://[^@/[:space:]]+@([^/:?[:space:]]+) ]]; then
+ local lower_command=$1
+ local host
+  if [[ $lower_command =~ (^|[[:space:]])pghost=([^[:space:]]+) ]]; then
+    host=${BASH_REMATCH[2]}
+    is_local_host "$host"
+    return
+  fi
+ if [[ $lower_command =~ postgres(ql)?://[^@/[:space:]]+@([^/:?[:space:]]+) ]]; then
     host=${BASH_REMATCH[2]}
     is_local_host "$host"
     return
@@ -617,9 +695,10 @@ is_readonly_psql() {
 }
 
 check_sql_action() {
-  local command=$1
-  local lower_command
-  local production_sql=false
+ local command=$1
+ local lower_command
+ local production_sql=false
+  is_description_only_segment "$command" && return 1
   lower_command=$(lower_text "$command")
   has_sql_connection_marker "$lower_command" || return 1
   if is_hetzner_target_command "$command" || ! connection_host_is_local "$lower_command"; then
@@ -636,24 +715,30 @@ check_sql_action() {
 }
 
 has_rm_recursive() {
-  local command=$1
-  local normalized
-  local -a words=()
-  local index
+ local command=$1
+ local normalized
+ local -a words=()
+ local index
   local word
-  normalized=$(strip_match_quotes "$command")
-  read -r -a words <<< "$normalized"
-  for ((index = 0; index < ${#words[@]}; index++)); do
-    [[ ${words[index]} == rm ]] || continue
-    index=$((index + 1))
+  normalized=$(lower_text "$(strip_match_quotes "$command")")
+ read -r -a words <<< "$normalized"
+  if [[ $normalized =~ (^|[[:space:]\(])([^[:space:]]*/)?rm[[:space:]]+(-[^[:space:]]*r|--recursive) ]]; then
+    return 0
+  fi
+ for ((index = 0; index < ${#words[@]}; index++)); do
+    [[ ${words[index]} == rm || ${words[index]} == */rm ]] || continue
+   index=$((index + 1))
     while (( index < ${#words[@]} )); do
       word=${words[index]}
       [[ $word == --recursive || ( $word == -[[:alnum:]]* && $word == *r* ) ]] && return 0
       [[ $word == -- || $word != -* ]] && break
       index=$((index + 1))
     done
-  done
-  return 1
+ done
+  if [[ $normalized =~ (^|[[:space:]])find([[:space:]]|$) ]] && [[ $normalized == *" -delete"* || $normalized =~ [[:space:]]-exec[[:space:]]+([^[:space:]]*/)?rm([[:space:]]|$) ]]; then
+    return 0
+  fi
+ return 1
 }
 
 has_docker_volume_destroy() {
@@ -698,9 +783,9 @@ has_db_container_destroy() {
     [[ $subcommand == rm ]] || continue
     index=$((index + 1))
     force=false
-    while (( index < ${#words[@]} )); do
-      word=${words[index]}
-      case $word in
+ while (( index < ${#words[@]} )); do
+ word=${words[index]}
+  case $word in
         -f|--force|-*f*) force=true ;;
         --) index=$((index + 1)); break ;;
         -*) ;;
@@ -724,9 +809,9 @@ has_db_container_destroy() {
 }
 
 has_pg_data_change() {
-  local command=$1
-  local lower_command
-  local write_re='(^|[^[:alnum:]_-])(rm|mv|cp|chown|chmod|scp|rsync|tee|truncate|dd|ln)([[:space:]]|$)'
+ local command=$1
+ local lower_command
+  local write_re='(^|[^[:alnum:]_-])(rm|mv|cp|chown|chmod|scp|rsync|tee|truncate|dd|ln|mkdir|touch|install)([[:space:]]|$)'
   lower_command=$(lower_text "$command")
   [[ $lower_command =~ pg_resetwal|pg_rewind|initdb|pg_ctl.*(stop.*-m[[:space:]]+immediate|promote) ]] && return 0
   [[ $lower_command =~ /var/lib/postgresql|pgdata|pg_wal|postgres-data|/data/coolify/databases ]] || return 1
@@ -737,30 +822,32 @@ has_pg_data_change() {
 }
 
 has_force_push_main() {
-  local command=$1
-  local lower_command
-  local normalized
-  local -a words=()
-  local index=0
-  local word
-  local force=false
-  local mirror=false
-  local delete=false
-  local saw_remote=false
-  local saw_ref=false
-  local protected_ref=false
-  local current_branch=${PRODUCTION_GATE_CURRENT_BRANCH:-}
-  lower_command=$(lower_text "$command")
-  [[ $lower_command =~ (^|[[:space:]])git[[:space:]]+push([[:space:]]|$) ]] || return 1
-  normalized=$(strip_match_quotes "$command")
-  read -r -a words <<< "$normalized"
-  for ((index = 0; index < ${#words[@]}; index++)); do
-    [[ ${words[index]} == push ]] && break
-  done
-  index=$((index + 1))
-  while (( index < ${#words[@]} )); do
-    word=${words[index]}
-    case $word in
+ local command=$1
+ local lower_command
+ local normalized
+ local -a words=()
+ local index=0
+ local word
+ local force=false
+ local mirror=false
+ local delete=false
+ local saw_remote=false
+ local saw_ref=false
+ local protected_ref=false
+ local current_branch=${PRODUCTION_GATE_CURRENT_BRANCH:-}
+ lower_command=$(lower_text "$command")
+ is_description_only_segment "$command" && return 1
+ [[ $lower_command =~ (^|[[:space:]])git[[:space:]].*push([[:space:]]|$) ]] || return 1
+ normalized=$(strip_match_quotes "$command")
+ read -r -a words <<< "$normalized"
+ for ((index = 0; index < ${#words[@]}; index++)); do
+   [[ ${words[index]} == push ]] && break
+ done
+ index=$((index + 1))
+ while (( index < ${#words[@]} )); do
+   word=${words[index]}
+    word=${word%\)}
+   case $word in
       --force|-f|--force-with-lease|--force-with-lease=*|--force-if-includes) force=true ;;
       --mirror) force=true; mirror=true ;;
       --delete) force=true; delete=true ;;
@@ -791,10 +878,11 @@ has_force_push_main() {
 }
 
 check_hetzner_write() {
-  local command=$1
-  local match_command
-  local lower_command
-  local sql_nested_ok=false
+ local command=$1
+ local match_command
+ local lower_command
+ local sql_nested_ok=false
+  is_description_only_segment "$command" && return 1
   local service_write_re='(^|[^[:alnum:]_-])service[[:space:]]+[^[:space:]]+[[:space:]]+(update|restart|stop|start|reload)([[:space:]]|$)'
   local systemctl_write_re='(^|[^[:alnum:]_-])systemctl[[:space:]]+(restart|stop|start|reload)([[:space:]]|$)'
   local simple_write_re='(^|[^[:alnum:]_-])(rm|mv|kill|chmod|chown|cp|ln|truncate|dd|reboot|shutdown|mkdir|rmdir|touch|install|useradd|usermod|passwd|ufw|iptables|nft|certbot)([[:space:]]|$)'
@@ -818,7 +906,7 @@ check_hetzner_write() {
 case $TOOL_NAME in
   Write|Edit|MultiEdit|NotebookEdit)
     if approval_path_matches "$TARGET_PATH" || approval_reference_in "$TARGET_PATH" || production_gate_config_path_matches "$TARGET_PATH" || production_gate_config_reference_in "$TARGET_PATH"; then
-      emit_block approval-tamper "The tool would write or edit the release-approval file; approval tampering cannot be overridden."
+      emit_block approval-tamper "The tool would write or edit the approval file or production-gate.conf; approval tampering cannot be overridden."
     fi
     exit 0
     ;;
@@ -838,37 +926,41 @@ load_production_gate_config
 
 if [[ -z $COMMAND_TEXT ]]; then exit 0; fi
 
-if approval_reference_in "$COMMAND_TEXT" || production_gate_config_reference_in "$COMMAND_TEXT"; then
+if ! is_description_only_segment "$COMMAND_TEXT" && { approval_reference_in "$COMMAND_TEXT" || production_gate_config_reference_in "$COMMAND_TEXT"; }; then
   tamper_match=$(strip_match_quotes "$COMMAND_TEXT")
   tamper_lower=$(lower_text "$tamper_match")
-  if [[ $tamper_lower =~ (^|[[:space:]])(cp|mv|install|ln|touch|truncate|dd|tee|echo|printf)([[:space:]]|$) || $tamper_lower == *">"* || $tamper_lower == *release_approval=* || $tamper_lower == *"export release_approval"* || $tamper_lower == *"export production_gate_config"* || $tamper_lower == *"production_gate_config="* ]]; then
-    emit_block approval-tamper "The command would write or edit the release-approval file; approval tampering cannot be overridden."
+  if has_tamper_write "$tamper_lower"; then
+    emit_block approval-tamper "The command would write or edit the approval file or production-gate.conf; approval tampering cannot be overridden."
   fi
 fi
 
+backtick='`'
+if [[ $COMMAND_TEXT =~ \$\( || $COMMAND_TEXT == *"$backtick"* ]] && has_rm_recursive "$COMMAND_TEXT"; then
+  block_or_allow server-rm-rf "The command would recursively remove files from a command substitution."
+fi
 check_sql_action "$COMMAND_TEXT" || true
 if is_hetzner_target_command "$COMMAND_TEXT"; then check_hetzner_write "$COMMAND_TEXT" || true; fi
 if has_force_push_main "$COMMAND_TEXT"; then block_or_allow force-push-main "The command would force-update or delete the protected main or master branch."; fi
 
-lower_command=$(lower_text "$(strip_match_quotes "$COMMAND_TEXT")")
-  if [[ $lower_command =~ (curl|wget|http|https|xh).*(/api/v1/) ]] && [[ $lower_command =~ (^|[[:space:]])(-x[[:space:]=]*delete|--request[=[:space:]]*delete|--method[=[:space:]]*delete|((http|https|xh)[[:space:]]+delete))([[:space:]]|$) ]]; then
-  block_or_allow coolify-delete "The command would send an HTTP DELETE request to a Coolify API path."
-fi
 
 check_script_actions || true
 while IFS= read -r segment || [[ -n $segment ]]; do
-  [[ -n ${segment//[[:space:]]/} ]] || continue
-  match_segment=$(strip_match_quotes "$segment")
-  lower_segment=$(lower_text "$match_segment")
+ [[ -n ${segment//[[:space:]]/} ]] || continue
+  is_description_only_segment "$segment" && continue
+ match_segment=$(strip_match_quotes "$segment")
+ lower_segment=$(lower_text "$match_segment")
+  if [[ $lower_segment =~ (curl|wget|http|https|xh).*(/api/v1/) ]] && [[ $lower_segment =~ (^|[[:space:]])(-x[[:space:]=]*delete|--request[=[:space:]]*delete|--method[=[:space:]]*delete|((http|https|xh)[[:space:]]+delete))([[:space:]]|$) ]]; then
+    block_or_allow coolify-delete "The command would send an HTTP DELETE request to a Coolify API path."
+  fi
   if [[ $lower_segment =~ /api/v1/deploy([^[:alnum:]_]|$) ]]; then log_action coolify-api-deploy; fi
   if [[ $lower_segment =~ /api/v1/(applications|services|databases)/[^[:space:]/?]+/(restart|start|stop)([^[:alnum:]_]|$) ]]; then log_action coolify-api-lifecycle; fi
   if [[ $lower_segment =~ (^|[^[:alnum:]_-])(curl|wget|http|https|xh)([[:space:]]|$) && $lower_segment == */api/v1/* ]] && [[ $lower_segment =~ (^|[[:space:]])(-x|--request|--method|--data|--data-raw|--data-binary|--data-urlencode|--json|-f|--form|--upload-file|-t|--post-data|--post-file)(=|[[:space:]]) || $lower_segment =~ (^|[[:space:]])-x(post|put|patch|delete)([[:space:]]|$) || $lower_segment =~ (^|[[:space:]])(http|https|xh)[[:space:]]+(post|put|patch)([[:space:]]|$) ]]; then log_action coolify-api-write; fi
   if [[ $lower_segment =~ gh[[:space:]]+workflow[[:space:]]+run ]] && [[ $lower_segment == *deploy-production* || $lower_segment == *"deploy production"* ]]; then log_action github-production-dispatch; fi
   if [[ $lower_segment =~ gh[[:space:]]+api[[:space:]] ]] && [[ $lower_segment == */actions/workflows/deploy-production.yml/dispatches* ]]; then log_action github-production-dispatch; fi
-  if [[ $lower_segment =~ gh[[:space:]]+run[[:space:]]+rerun ]] && [[ $lower_segment == *deploy-production* || $lower_segment == *"deploy production"* ]]; then log_action github-production-dispatch; fi
+ if [[ $lower_segment =~ gh[[:space:]]+run[[:space:]]+rerun ]] && [[ $lower_segment == *deploy-production* || $lower_segment == *"deploy production"* ]]; then log_action github-production-dispatch; fi
+  if [[ $lower_segment =~ (^|[[:space:]])gh[[:space:]]+repo[[:space:]]+delete([[:space:]]|$) ]]; then block_or_allow gh-repo-delete "The command would delete a GitHub repository."; fi
+  if [[ $lower_segment =~ gh[[:space:]]+api ]] && [[ $lower_segment =~ -x[[:space:]=]*delete|--method[=[:space:]]*delete ]] && [[ $lower_segment =~ repos/[^/[:space:]]+/[^/[:space:]?]+([[:space:]]|$) ]]; then block_or_allow gh-repo-delete "The command would delete a GitHub repository through the API."; fi
 done < <(split_segments)
 
-if [[ $lower_command =~ (^|[[:space:]])gh[[:space:]]+repo[[:space:]]+delete([[:space:]]|$) ]]; then block_or_allow gh-repo-delete "The command would delete a GitHub repository."; fi
-if [[ $lower_command =~ gh[[:space:]]+api ]] && [[ $lower_command =~ -x[[:space:]=]*delete|--method[=[:space:]]*delete ]] && [[ $lower_command =~ repos/[^/[:space:]]+/[^/[:space:]?]+([[:space:]]|$) ]]; then block_or_allow gh-repo-delete "The command would delete a GitHub repository through the API."; fi
 
 exit 0
