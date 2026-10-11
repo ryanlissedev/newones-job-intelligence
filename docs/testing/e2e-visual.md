@@ -75,6 +75,14 @@ Live pages are rendered from deployed data, deploy-time assets and whatever the 
 
 Baselines are rendered on Linux Chromium (Playwright 1.63) in `Europe/Amsterdam`; another OS may differ by anti-aliasing. Regenerate them on the box that runs the suite.
 
+## CI
+
+`.github/workflows/ci.yml` job `e2e-fixtures` runs `bun run test:e2e:fixtures` on `ubuntu-latest` (Chromium via `playwright install --with-deps chromium`). The scenarios are enforced; the visual compare runs with `E2E_VISUAL=report`, because the committed baselines were rendered on the operator box and GitHub runners differ by 0.1-0.7% anti-aliasing (above the 0.001 threshold). The job is not required yet (`continue-on-error`, not in the release gate's required jobs). The `.e2e/` report and diffs are uploaded as the `e2e-fixtures-*` artifact. To enforce: re-render the baselines on a runner (or a matching container), then switch the step to `E2E_VISUAL=enforce` and make the job required.
+
+## Post-deploy hook
+
+The operator verify script runs `bun run test:e2e:live:verify` after each production deploy with `E2E_VISUAL=report` and a persistent `E2E_VISUAL_BASELINE_DIR` on the operator box. It never fails the deploy check.
+
 ## Rollback
 
 - Visual only: `E2E_VISUAL=off` (fixtures and live), or leave the hook on `report`.
