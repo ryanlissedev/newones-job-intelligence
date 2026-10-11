@@ -1,7 +1,11 @@
 import type { SourceDefinition } from "@ji/application/sources";
 import type { BronRuntimeDatabase } from "@ji/db";
+// Subpath import: the @ji/db entrypoint validates DATABASE_URL and builds the
+// global client at module load, which would break specs before their DB skip.
+import { assertSeedHitSameBron } from "@ji/db/bron-seed-identity";
 import { bron } from "@ji/db/schema/curated";
 import type { BronId } from "@ji/domain";
+import { eq } from "drizzle-orm";
 
 export const SLICE_A_BRON_INTERVAL = "*/15 * * * *";
 const SMOKE_RATE_LIMIT_PER_MINUTE = 30;
@@ -49,7 +53,9 @@ export const buildSliceABronSeedValues = (
 
 /**
  * Seeds only missing registry rows. `ON CONFLICT DO NOTHING` means an
- * operator-owned row keeps its status, interval and other settings.
+ * operator-owned row keeps its status, interval and other settings. A row of
+ * a different bron on the same id is not "present": it throws
+ * `BronSeedIdCollisionError` instead of silently skipping the seed.
  */
 export const ensureMissingSliceABronnen = async (
   database: BronRuntimeDatabase,
@@ -57,9 +63,24 @@ export const ensureMissingSliceABronnen = async (
 ): Promise<void> => {
   for (const definition of definitions) {
     // oxlint-disable-next-line no-await-in-loop -- preserve readable seed order
-    await database
+    const inserted = await database
       .insert(bron)
       .values(buildSliceABronSeedValues(definition))
-      .onConflictDoNothing({ target: bron.id });
+      .onConflictDoNothing({ target: bron.id })
+      .returning({ id: bron.id });
+    if (inserted.length > 0) {
+      continue;
+    }
+    // oxlint-disable-next-line no-await-in-loop -- one check per skipped seed
+    const [existing] = await database
+      .select({ naam: bron.naam })
+      .from(bron)
+      .where(eq(bron.id, definition.bronId))
+      .limit(1);
+    assertSeedHitSameBron({
+      bronId: definition.bronId,
+      existingNaam: existing?.naam ?? null,
+      seedNaam: definition.naam,
+    });
   }
 };

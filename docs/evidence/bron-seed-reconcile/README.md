@@ -139,3 +139,11 @@ fingerprint after:  7955c49556164d714ec8f8d35b3ddcf3  unchanged: true
   - the reader's transaction is `READ ONLY`, and Postgres refuses a write inside it;
   - the boot line;
   - a failed read only logs and never throws.
+
+## Follow-up (2026-10-11)
+
+The `naamConflicts` above are resolved in code:
+- Stedin moves to `…046` and Gasunie to `…047`. `…035`/`…036` stay Werkzoeken/Starapple.
+- Both seed writers now throw `BronSeedIdCollisionError` instead of silently skipping a seed whose id is held by another bron.
+
+For the prod steps, see `docs/plans/2026-10-11-stedin-gasunie-bron-ids.md` (`tools/postgres/bron-ids/`).

@@ -24,7 +24,7 @@ import {
 import type { ObjectStore } from "@ji/connectors";
 import type { AanvraagLifecycle, Contactpersoon } from "@ji/domain";
 import type { BulkSearchDocumentLoader, SearchDocument } from "@ji/search";
-import { asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 
 import { readAanvraagBronFacts } from "./aanvraag-read-mapping";
 import type { AanvraagBronFacts } from "./aanvraag-read-mapping";
@@ -173,6 +173,9 @@ const toAanvraagVersie = (row: VersieRow): AanvraagVersieRecord => ({
   scrapeRunId: row.scrapeRunId,
 });
 
+/** Chain guard for superseded_by: the mark scripts point at a live row, so 1 hop is the norm. */
+const MAX_SUPERSEDE_HOPS = 5;
+
 export class PostgresAanvraagStore implements AanvraagStore {
   private readonly database: BronRuntimeDatabase;
   private readonly enrichmentStore: PostgresEnrichmentStore;
@@ -221,55 +224,103 @@ export class PostgresAanvraagStore implements AanvraagStore {
     });
   }
 
-  async getById(id: string): Promise<AanvraagRecord | null> {
-    const [row] = await this.database
-      .select()
-      .from(aanvraag)
-      .where(eq(aanvraag.id, id))
-      .limit(1);
-    if (!row) {
-      return null;
-    }
-    const versies = await this.listVersies(id);
-    const [record] = await this.applyOverlays([toAanvraagRecord(row, versies)]);
-    return record ?? null;
-  }
-
-  async getByIds(ids: readonly string[]): Promise<readonly AanvraagRecord[]> {
-    if (ids.length === 0) {
-      return [];
-    }
-    const uniqueIds = [...new Set(ids)];
-    const [rows, versieRows] = await Promise.all([
-      this.database
+  /**
+   * Follows `superseded_by` (0033) to the live row a duplicate was merged
+   * into, like `findAanvraagByIdentity`. Returns requested id -> live row;
+   * ids with no row, or whose chain does not end in a live row within
+   * MAX_SUPERSEDE_HOPS, are absent.
+   */
+  private async resolveLiveRows(
+    ids: readonly string[]
+  ): Promise<Map<string, AanvraagRow>> {
+    const resolved = new Map<string, AanvraagRow>();
+    // requested id -> id to look up next
+    let pending = new Map(ids.map((id) => [id, id]));
+    for (let hop = 0; hop <= MAX_SUPERSEDE_HOPS && pending.size > 0; hop += 1) {
+      const lookup = [...new Set(pending.values())];
+      // oxlint-disable-next-line no-await-in-loop -- each hop depends on the previous one; bounded by MAX_SUPERSEDE_HOPS
+      const rows = await this.database
         .select()
         .from(aanvraag)
-        .where(inArray(aanvraag.id, uniqueIds)),
-      this.database
-        .select({ aanvraagId: aanvraagVersie.aanvraagId, ...versieColumns })
-        .from(aanvraagVersie)
-        .where(inArray(aanvraagVersie.aanvraagId, uniqueIds))
-        .orderBy(asc(aanvraagVersie.versie)),
-    ]);
+        .where(inArray(aanvraag.id, lookup));
+      const byId = new Map(rows.map((row) => [row.id, row]));
+      const next = new Map<string, string>();
+      for (const [requested, current] of pending) {
+        const row = byId.get(current);
+        if (!row) {
+          continue;
+        }
+        if (row.supersededBy === null) {
+          resolved.set(requested, row);
+        } else {
+          next.set(requested, row.supersededBy);
+        }
+      }
+      pending = next;
+    }
+    return resolved;
+  }
+
+  private async listVersiesFor(
+    aanvraagIds: readonly string[]
+  ): Promise<Map<string, AanvraagVersieRecord[]>> {
     const versiesByAanvraagId = new Map<string, AanvraagVersieRecord[]>();
+    if (aanvraagIds.length === 0) {
+      return versiesByAanvraagId;
+    }
+    const versieRows = await this.database
+      .select({ aanvraagId: aanvraagVersie.aanvraagId, ...versieColumns })
+      .from(aanvraagVersie)
+      .where(inArray(aanvraagVersie.aanvraagId, [...aanvraagIds]))
+      .orderBy(asc(aanvraagVersie.versie));
     for (const row of versieRows) {
       const versies = versiesByAanvraagId.get(row.aanvraagId) ?? [];
       versies.push(toAanvraagVersie(row));
       versiesByAanvraagId.set(row.aanvraagId, versies);
     }
-    const recordsById = new Map<string, AanvraagRecord>();
-    for (const row of rows) {
-      recordsById.set(
-        row.id,
+    return versiesByAanvraagId;
+  }
+
+  /**
+   * Detail read. A superseded id resolves to the live row it was merged
+   * into (the returned record carries the live id), so old links and
+   * snapshots keep working instead of returning NOT_FOUND.
+   */
+  async getById(id: string): Promise<AanvraagRecord | null> {
+    const resolved = await this.resolveLiveRows([id]);
+    const row = resolved.get(id);
+    if (!row) {
+      return null;
+    }
+    const versies = await this.listVersies(row.id);
+    const [record] = await this.applyOverlays([toAanvraagRecord(row, versies)]);
+    return record ?? null;
+  }
+
+  /**
+   * Batch read (search hydration, compare, export selections). Superseded ids
+   * resolve to their live row; the output keeps input order and lists each
+   * live row once.
+   */
+  async getByIds(ids: readonly string[]): Promise<readonly AanvraagRecord[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+    const uniqueIds = [...new Set(ids)];
+    const resolved = await this.resolveLiveRows(uniqueIds);
+    const liveIds = [...new Set([...resolved.values()].map((row) => row.id))];
+    const versiesByAanvraagId = await this.listVersiesFor(liveIds);
+    const records: AanvraagRecord[] = [];
+    const emitted = new Set<string>();
+    for (const id of uniqueIds) {
+      const row = resolved.get(id);
+      if (!row || emitted.has(row.id)) {
+        continue;
+      }
+      emitted.add(row.id);
+      records.push(
         toAanvraagRecord(row, versiesByAanvraagId.get(row.id) ?? [])
       );
-    }
-    const records: AanvraagRecord[] = [];
-    for (const id of uniqueIds) {
-      const record = recordsById.get(id);
-      if (record) {
-        records.push(record);
-      }
     }
     return this.applyOverlays(records);
   }
@@ -343,6 +394,11 @@ const toSearchDocument = (row: AanvraagRow): SearchDocument => {
   };
 };
 
+/**
+ * Superseded rows (0033) never load: an upsert event for one is a no-op, the
+ * mark scripts enqueue `aanvraag.verwijderd` for every row they mark, and
+ * projection repair treats a superseded row still in Manticore as an orphan.
+ */
 export class PostgresSearchDocumentLoader implements BulkSearchDocumentLoader {
   private readonly database: BronRuntimeDatabase;
   private readonly enrichmentStore: PostgresEnrichmentStore;
@@ -390,7 +446,7 @@ export class PostgresSearchDocumentLoader implements BulkSearchDocumentLoader {
     const [row] = await this.database
       .select()
       .from(aanvraag)
-      .where(eq(aanvraag.id, aggregateId))
+      .where(and(eq(aanvraag.id, aggregateId), isNull(aanvraag.supersededBy)))
       .limit(1);
     if (!row) {
       return null;
@@ -412,7 +468,12 @@ export class PostgresSearchDocumentLoader implements BulkSearchDocumentLoader {
     const rows = await this.database
       .select()
       .from(aanvraag)
-      .where(inArray(aanvraag.id, [...aggregateIds]));
+      .where(
+        and(
+          inArray(aanvraag.id, [...aggregateIds]),
+          isNull(aanvraag.supersededBy)
+        )
+      );
     for (const row of rows) {
       documents.set(row.id, toSearchDocument(row));
     }

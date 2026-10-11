@@ -1,6 +1,7 @@
 import { resolveEgressFetch } from "../egress";
 import { loadConnectorFixture } from "../fixtures/load";
 import { decodeHtmlEntities } from "../html-entities";
+import { withJobIntelligenceUserAgent } from "../user-agent";
 import type {
   ProunityDetail,
   ProunityListingItem,
@@ -312,7 +313,9 @@ export const buildProunityRawHtml = (html: string): string => {
 export const createProunityClient = (
   options: ProunityClientOptions = {}
 ): ProunityClient => {
-  const fetchImpl = options.fetchImpl ?? resolveEgressFetch("prounity");
+  const fetchImpl = withJobIntelligenceUserAgent(
+    options.fetchImpl ?? resolveEgressFetch("prounity")
+  );
   const liveEnabled = options.liveEnabled ?? process.env.PROUNITY_LIVE === "1";
   const listingFixturePath =
     options.listingFixturePath ?? "prounity/listing-page-0.json";

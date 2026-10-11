@@ -335,14 +335,214 @@ describe.serial("postgres persisted queue store", () => {
       );
     const first = taker("a");
     const second = taker("b");
-    // `second` stays pending — the row is claimed once and never re-offered —
-    // so only the winner and the delay bound this wait.
-    await Promise.allSettled([first, sleep(400)]);
+    // Exactly one taker can win the single row; the other keeps polling. Wait
+    // for the winner itself (no wall-clock bound), then cancel the loser.
+    const winner = await Promise.race([first, second]);
     controller.abort();
     await Promise.allSettled([first, second]);
 
+    expect(Exit.isSuccess(winner)).toBe(true);
     expect(seen).toHaveLength(1);
-    expect(seen[0]).toBe(`a:${job.scrapeRunId}`);
+    expect(seen[0]?.endsWith(`:${job.scrapeRunId}`)).toBe(true);
+    const [row] = await rows();
+    expect(row).toMatchObject({ acquired_by: null, completed: true });
+  });
+
+  /**
+   * A store with its own queue name and `application_name`, so an interrupted
+   * claim left running by an earlier test (claims are not cancelled) can neither
+   * take these rows nor be mistaken for this test's blocked claim.
+   */
+  const withIsolatedStore = async (
+    body: (isolated: {
+      readonly appName: string;
+      readonly closeStore: () => Promise<void>;
+      readonly queue: PersistedQueue<TestJob>;
+      readonly row: () => Promise<JobRow | undefined>;
+    }) => Promise<void>
+  ): Promise<void> => {
+    if (!client) {
+      throw new Error("Postgres fixture is unavailable");
+    }
+    const observer = client;
+    const tag = crypto.randomUUID().slice(0, 8);
+    const queueName = `spec-abandoned-${tag}`;
+    const appName = `pq-spec-${tag}`;
+    const url = new URL(appUrl);
+    url.searchParams.set("application_name", appName);
+    const isolatedScope = await Effect.runPromise(Scope.make());
+    const closeStore = async (): Promise<void> => {
+      await Effect.runPromise(Scope.close(isolatedScope, Exit.void));
+    };
+    try {
+      const isolatedStore = await Effect.runPromise(
+        makePostgresPersistedQueueStore(url.toString(), {
+          pollInterval: "20 millis",
+        }).pipe(Effect.provideService(Scope.Scope, isolatedScope))
+      );
+      const isolatedQueue = await Effect.runPromise(
+        makePersistedQueue({ name: queueName, schema: testJob }).pipe(
+          Effect.provide(persistedQueueLayer),
+          Effect.provideService(PersistedQueueStore, isolatedStore)
+        )
+      );
+      const row = async (): Promise<JobRow | undefined> => {
+        const [found] = await observer<JobRow[]>`
+          SELECT id, completed, attempts, last_failure, acquired_by
+          FROM curated.durable_job
+          WHERE queue_name = ${queueName}
+        `;
+        return found;
+      };
+      await body({ appName, closeStore, queue: isolatedQueue, row });
+    } finally {
+      await closeStore();
+      await observer`DELETE FROM curated.durable_job WHERE queue_name = ${queueName}`;
+    }
+  };
+
+  /**
+   * Holds `LOCK TABLE … ACCESS EXCLUSIVE` on a second connection so a claim
+   * UPDATE is deterministically blocked mid-statement.
+   */
+  const withTableLock = async (
+    appName: string,
+    body: (lock: {
+      readonly release: () => Promise<void>;
+      readonly waitForBlockedClaim: () => Promise<number>;
+    }) => Promise<void>
+  ): Promise<void> => {
+    if (!client) {
+      throw new Error("Postgres fixture is unavailable");
+    }
+    const observer = client;
+    const blocker = postgres(migratorUrl, { max: 1 });
+    const lockHeld = Promise.withResolvers<null>();
+    const unlock = Promise.withResolvers<null>();
+    const holding = blocker.begin(async (tx) => {
+      await tx`LOCK TABLE curated.durable_job IN ACCESS EXCLUSIVE MODE`;
+      lockHeld.resolve(null);
+      await unlock.promise;
+    });
+    // The blocker's only connection is inside the locking transaction, so
+    // observe from the fixture client (same ji_app role as the claim).
+    const waitingClaims = async (): Promise<number> => {
+      const [found] = await observer<{ count: number }[]>`
+        SELECT count(*)::int AS count FROM pg_stat_activity
+        WHERE wait_event_type = 'Lock' AND application_name = ${appName}
+        AND query LIKE '%acquired_by%'
+      `;
+      return found?.count ?? 0;
+    };
+    const waitForBlockedClaim = async (triesLeft = 100): Promise<number> => {
+      const count = await waitingClaims();
+      if (count > 0 || triesLeft <= 0) {
+        return count;
+      }
+      await sleep(20);
+      return waitForBlockedClaim(triesLeft - 1);
+    };
+    const release = async (): Promise<void> => {
+      unlock.resolve(null);
+      await holding;
+    };
+    try {
+      await lockHeld.promise;
+      await body({ release, waitForBlockedClaim });
+    } finally {
+      unlock.resolve(null);
+      await holding.catch(() => null);
+      await blocker.end({ timeout: 1 });
+    }
+  };
+
+  /** Polls until the row is no longer leased (or ~2 s pass); returns the row. */
+  const waitForUnleased = async (
+    row: () => Promise<JobRow | undefined>,
+    triesLeft = 100
+  ): Promise<JobRow | undefined> => {
+    const found = await row();
+    if (found?.acquired_by === null || triesLeft <= 0) {
+      return found;
+    }
+    await sleep(20);
+    return waitForUnleased(row, triesLeft - 1);
+  };
+
+  it("releases a claim that lands after its taker was interrupted", async () => {
+    if (!available) {
+      expect(available).toBe(false);
+      return;
+    }
+    await withIsolatedStore(async ({ appName, queue: isolated, row }) => {
+      const job = makeJob();
+      await Effect.runPromise(isolated.offer(job, { id: job.scrapeRunId }));
+      await withTableLock(appName, async ({ release, waitForBlockedClaim }) => {
+        const controller = new AbortController();
+        const take = Effect.runPromiseExit(
+          isolated.take(() => Effect.void),
+          { signal: controller.signal }
+        );
+        // The claim is now blocked on the lock, mid-statement.
+        expect(await waitForBlockedClaim()).toBe(1);
+
+        controller.abort();
+        const exit = await take;
+        expect(
+          Exit.isFailure(exit) && Cause.hasInterruptsOnly(exit.cause)
+        ).toBe(true);
+
+        // The statement is not cancelled (a CancelRequest on the shared pool
+        // can hit an unrelated statement); it lands once the lock goes, and
+        // the abandoned claim is handed straight back instead of staying
+        // leased until lock expiry.
+        await release();
+        expect(await waitForUnleased(row)).toMatchObject({
+          acquired_by: null,
+          attempts: 0,
+          completed: false,
+        });
+      });
+    });
+  });
+
+  it("closing the store waits for an abandoned claim's release before ending the pool", async () => {
+    if (!available) {
+      expect(available).toBe(false);
+      return;
+    }
+    await withIsolatedStore(
+      async ({ appName, closeStore, queue: isolated, row }) => {
+        const job = makeJob();
+        await Effect.runPromise(isolated.offer(job, { id: job.scrapeRunId }));
+        await withTableLock(
+          appName,
+          async ({ release, waitForBlockedClaim }) => {
+            const controller = new AbortController();
+            const take = Effect.runPromiseExit(
+              isolated.take(() => Effect.void),
+              { signal: controller.signal }
+            );
+            expect(await waitForBlockedClaim()).toBe(1);
+            controller.abort();
+            await take;
+
+            // Worker shutdown order: interrupt the consumer, then close the
+            // store. The close must not end the pool under the abandoned claim.
+            const closing = closeStore();
+            await sleep(100);
+            await release();
+            await closing;
+            // Read once, no polling: the release already happened before close.
+            expect(await row()).toMatchObject({
+              acquired_by: null,
+              attempts: 0,
+              completed: false,
+            });
+          }
+        );
+      }
+    );
   });
 
   it("keeps polling through a DB outage instead of failing the take", async () => {

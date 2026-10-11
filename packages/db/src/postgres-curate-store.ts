@@ -144,11 +144,18 @@ export class PostgresCurateStore implements CurateStore {
     return this.database.transaction((tx) => fn(new PostgresCurateStore(tx)));
   }
 
+  /**
+   * Exact (bron_id, bron_referentie) first. On a miss, the live row with the
+   * same normalized referentie (lower + trim; index
+   * aanvraag_bron_referentie_live_uidx, 0034) so a casing/whitespace variant
+   * updates the existing aanvraag instead of hitting the unique index. A
+   * superseded row (0033) resolves to the row it was merged into.
+   */
   async findAanvraagByIdentity(
     bronId: BronId,
     bronReferentie: string
   ): Promise<StoredAanvraag | null> {
-    const [row] = await this.database
+    const [exact] = await this.database
       .select()
       .from(aanvraag)
       .where(
@@ -158,7 +165,31 @@ export class PostgresCurateStore implements CurateStore {
         )
       )
       .limit(1);
-    return row ? toStoredAanvraag(row) : null;
+    const [normalized] = exact
+      ? [exact]
+      : await this.database
+          .select()
+          .from(aanvraag)
+          .where(
+            and(
+              eq(aanvraag.bronId, bronId),
+              sql`lower(btrim(${aanvraag.bronReferentie})) = lower(btrim(${bronReferentie}))`,
+              isNull(aanvraag.supersededBy)
+            )
+          )
+          .limit(1);
+    if (!normalized) {
+      return null;
+    }
+    if (normalized.supersededBy === null) {
+      return toStoredAanvraag(normalized);
+    }
+    const [kept] = await this.database
+      .select()
+      .from(aanvraag)
+      .where(eq(aanvraag.id, normalized.supersededBy))
+      .limit(1);
+    return toStoredAanvraag(kept ?? normalized);
   }
 
   async findDedupGroepByKey(
@@ -334,7 +365,14 @@ export class PostgresCurateStore implements CurateStore {
       .update(aanvraag)
       .set({
         beschrijving: patch.beschrijving,
-        bronReferentie: patch.bronReferentie,
+        // Keep the stored referentie when the patch only differs in casing or
+        // surrounding whitespace: the row may have been found through the
+        // normalized or superseded path, and the incoming variant can still be
+        // held by a superseded row under the exact unique index.
+        bronReferentie:
+          patch.bronReferentie === undefined
+            ? undefined
+            : sql`CASE WHEN lower(btrim(${aanvraag.bronReferentie})) = lower(btrim(${patch.bronReferentie})) THEN ${aanvraag.bronReferentie} ELSE ${patch.bronReferentie} END`,
         bronSpecifiek: patch.bronSpecifiek,
         bronUrl: patch.bronUrl,
         contactpersonen: patch.contactpersonen,
