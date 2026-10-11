@@ -18,6 +18,14 @@ const migrationsFolder = path.join(
 const dedupScript = path.join(import.meta.dir, "url-dedup.sql");
 const rollbackScript = path.join(import.meta.dir, "90-rollback.sql");
 const psqlBinary = Bun.which("psql");
+// url-dedup.sql/90-rollback.sql are database-wide (no fixture scope). Run them
+// only on the throwaway database the test-isolation preload created for this
+// process, never on a caller-supplied shared/persistent one.
+const isolatedDatabase = process.env.JI_TEST_ISOLATED_DATABASE;
+const disposableDatabase =
+  isolatedDatabase !== undefined &&
+  isolatedDatabase !== "" &&
+  new URL(migratorUrl).pathname.slice(1) === isolatedDatabase;
 
 const FLEXTENDER = "00000000-0000-4000-8000-000000000033";
 // Flextender is a fixed id, so its fixture refs and URLs get a per-run suffix.
@@ -40,8 +48,20 @@ if (!postgresAvailable && databaseRequired) {
   throw new Error("Required test database is unavailable");
 }
 if (postgresAvailable && psqlBinary === null) {
+  // The gate sets REQUIRE_DATABASE_TESTS=1: a missing client must fail it,
+  // not silently skip the only coverage of the operator scripts.
+  if (databaseRequired) {
+    throw new Error(
+      "url-dedup.spec: psql is required on PATH when database tests are required"
+    );
+  }
   console.warn(
     "url-dedup.spec: psql not on PATH, operator script tests skipped"
+  );
+}
+if (postgresAvailable && !disposableDatabase) {
+  console.warn(
+    "url-dedup.spec: DATABASE_TEST_URL is not the database the test-isolation preload created; the database-wide operator scripts are not run against it"
   );
 }
 
@@ -111,7 +131,7 @@ const fillers = (prefix: string, count: number): FixtureRow[] =>
   }));
 
 describe
-  .skipIf(!postgresAvailable || psqlBinary === null)
+  .skipIf(!postgresAvailable || psqlBinary === null || !disposableDatabase)
   .serial(
     "url-dedup mark-only operator script (tools/postgres/url-dedup)",
     () => {
@@ -119,11 +139,14 @@ describe
       const bigBron = crypto.randomUUID();
       const smallBron = crypto.randomUUID();
       const ids = new Map<string, string>();
+      const createdBronnen: string[] = [];
 
       const insertBron = async (id: string, naam: string): Promise<void> => {
-        await client`INSERT INTO curated.bron (id, naam, categorie, actief, status, voorwaarden_status)
+        const created = await client<{ id: string }[]>`
+                   INSERT INTO curated.bron (id, naam, categorie, actief, status, voorwaarden_status)
                    VALUES (${id}, ${naam}, 'jobboard', false, 'deferred', 'te_toetsen')
-                   ON CONFLICT (id) DO NOTHING`;
+                   ON CONFLICT (id) DO NOTHING RETURNING id`;
+        createdBronnen.push(...created.map((row) => row.id));
       };
 
       const insertRows = async (
@@ -235,7 +258,26 @@ describe
       });
 
       afterAll(async () => {
-        await client?.end({ timeout: 1 });
+        if (!client) {
+          return;
+        }
+        // Remove every fixture row (dependency order) so nothing is left for
+        // later specs; a pre-existing Flextender bron row is kept.
+        try {
+          const fixtureIds = [...ids.values()].filter((id) => id !== "");
+          if (fixtureIds.length > 0) {
+            await client`DELETE FROM curated.outbox_event WHERE aggregate_id IN ${client(fixtureIds)}`;
+            await client`DELETE FROM curated.aanvraag_dup_archive WHERE aanvraag_id IN ${client(fixtureIds)}`;
+            await client`DELETE FROM curated.aanvraag WHERE id IN ${client(fixtureIds)}`;
+          }
+          await client`DELETE FROM curated.scrape_run WHERE bron_id IN ${client([bigBron, smallBron, FLEXTENDER])}
+                         AND NOT EXISTS (SELECT 1 FROM curated.aanvraag a WHERE a.scrape_run_id = curated.scrape_run.id)`;
+          if (createdBronnen.length > 0) {
+            await client`DELETE FROM curated.bron WHERE id IN ${client(createdBronnen)}`;
+          }
+        } finally {
+          await client.end({ timeout: 1 });
+        }
       });
 
       it("defaults to a read-only dry run that reports the plan and writes nothing", async () => {
