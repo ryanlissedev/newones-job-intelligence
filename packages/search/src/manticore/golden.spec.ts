@@ -2,6 +2,7 @@ import { describe, expect, it } from "bun:test";
 
 import { parseBooleanQuery } from "@ji/domain";
 
+import { activeDeadlineEpochSecond } from "../partition";
 import { SEARCH_INDEX_NAME } from "../types";
 import { InMemorySearchVersionStore } from "../version";
 import type { ManticoreHttpClient } from "./client";
@@ -18,6 +19,7 @@ import type {
 } from "./json";
 
 const AE1_QUERY = '(Azure OR "platform engineer") NOT intern';
+const GOLDEN_NOW = new Date("2026-09-02T08:00:00.000Z");
 
 class RecordedManticoreClient implements ManticoreHttpClient {
   readonly bulkLines: string[][] = [];
@@ -65,29 +67,34 @@ describe("Manticore golden queries", () => {
     const request = buildManticoreSearchRequest(
       SEARCH_INDEX_NAME,
       { query_string: queryString ?? "" },
-      {},
+      { activeDeadlineEpochSecond: activeDeadlineEpochSecond(GOLDEN_NOW) },
       20,
       0
     );
 
-    const client = new RecordedManticoreClient({
-      [`/search:${JSON.stringify(request.query ?? {})}`]: {
-        aggregations: {
-          bron_id: { buckets: [{ doc_count: 1, key: "bron-1" }] },
-          contracttype: { buckets: [{ doc_count: 1, key: "detachering" }] },
-          locatie_land: { buckets: [{ doc_count: 1, key: "NL" }] },
-          status: { buckets: [{ doc_count: 1, key: "active" }] },
-        },
-        hits: {
-          hits: [{ _id: "hit-a", _score: 12 }],
-          total: 1,
-        },
+    const recordedResponse: ManticoreSearchPayload = {
+      aggregations: {
+        bron_id: { buckets: [{ doc_count: 1, key: "bron-1" }] },
+        contracttype: { buckets: [{ doc_count: 1, key: "detachering" }] },
+        locatie_land: { buckets: [{ doc_count: 1, key: "NL" }] },
+        status: { buckets: [{ doc_count: 1, key: "active" }] },
       },
+      hits: {
+        hits: [{ _id: "hit-a", _score: 12 }],
+        total: 1,
+      },
+    };
+    const client = new RecordedManticoreClient({
+      [`/search:${JSON.stringify(request.query ?? {})}`]: recordedResponse,
+      [`/search:${JSON.stringify({ query_string: queryString })}`]:
+        recordedResponse,
     });
 
     const engine = new ManticoreSearchEngine(
       client,
-      new InMemorySearchVersionStore()
+      new InMemorySearchVersionStore(),
+      SEARCH_INDEX_NAME,
+      () => GOLDEN_NOW
     );
     await engine.applyBatch({ appliedSequence: 1n, mutations: [] });
 
@@ -110,9 +117,16 @@ describe("Manticore golden queries", () => {
     if (!firstRequest || !("query" in firstRequest)) {
       throw new Error("Expected search request body");
     }
-    expect(firstRequest.query).toEqual({
-      query_string:
-        '@(titel,beschrijving,opdrachtgever_naam) (Azure | "platform engineer") -intern',
+    expect(firstRequest.query).toEqual(request.query);
+    expect(firstRequest.query).toMatchObject({
+      bool: {
+        must: [
+          {
+            query_string:
+              '@(titel,beschrijving,opdrachtgever_naam) (Azure | "platform engineer") -intern',
+          },
+        ],
+      },
     });
   });
 

@@ -1,6 +1,7 @@
-import { SEARCH_INDEX_NAME } from "@ji/search";
+import { documentPartition, SEARCH_INDEX_NAME } from "@ji/search";
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 
+import { PostgresSearchDocumentLoader } from "./aanvraag-stores";
 import type { BronRuntimeDatabase } from "./bron-runtime";
 import { outboxEvent } from "./schema/curated";
 import { readSearchIndexCheckpoint } from "./search-index-coordination";
@@ -97,8 +98,19 @@ const selectCandidates = async (
       ON search_projection_state.aggregate_id = aanvraag.id
       AND search_projection_state.generation = ${generation}
     WHERE aanvraag.superseded_by IS NULL
-      AND aanvraag.sluitingsdatum < ${deadline.toISOString()}
       AND search_projection_state.projection_hash LIKE 'active:%'
+      AND (
+        aanvraag.sluitingsdatum < ${deadline.toISOString()}
+        OR (
+          aanvraag.sluitingsdatum IS NULL
+          AND EXISTS (
+            SELECT 1
+            FROM curated.aanvraag_enrichment
+            WHERE aanvraag_enrichment.aanvraag_id = aanvraag.id
+              AND aanvraag_enrichment.field = 'sluitingsdatum'
+          )
+        )
+      )
       ${afterCondition}
     ORDER BY aanvraag.id ASC
     LIMIT ${limit}
@@ -108,11 +120,11 @@ const selectCandidates = async (
 };
 
 /**
- * Queues ordinary search reindex intents for live rows whose deadline passed.
- * The source row is only locked and read: the projector owns the archive move.
- * The candidate filter uses curated `sluitingsdatum`; a deadline present only
- * in the enrichment overlay (with a NULL column) is not swept, although the
- * query-time fence still hides that result. There is no index on
+ * Queues ordinary search reindex intents for live rows whose effective
+ * deadline passed. The source row is only locked and read: the projector owns
+ * the archive move. SQL admits curated deadlines and overlay-only deadlines;
+ * the transactional search-document loader then applies the overlay and the
+ * partition rule rejects future effective deadlines. There is no index on
  * `sluitingsdatum`, so each interval performs one bounded scan of roughly
  * 280k rows; revisit with a partial index in a separate migration PR if the
  * logged `durationMs` is high.
@@ -161,7 +173,7 @@ export const runSearchExpirySweep = (
       if (remaining <= 0) {
         break;
       }
-      const pageSize = Math.min(batchSize, remaining);
+      const pageSize = batchSize;
       // oxlint-disable-next-line eslint/no-loop-func -- each callback closes over the current sequential keyset page.
       const batch = await input.database.transaction(async (transaction) => {
         if (input.mode === "dry-run") {
@@ -183,30 +195,61 @@ export const runSearchExpirySweep = (
         if (page.length === 0) {
           return {
             capped: false,
+            cursor: null,
             enqueued: 0,
             ids: [],
             skippedPending: 0,
           };
         }
 
-        const pendingRows = await transaction
-          .select({ aggregateId: outboxEvent.aggregateId })
-          .from(outboxEvent)
-          .where(
-            and(
-              eq(outboxEvent.aggregateType, "aanvraag"),
-              inArray(
-                outboxEvent.aggregateId,
-                page.map((candidate) => candidate.id)
-              ),
-              isNull(outboxEvent.processedAt),
-              isNull(outboxEvent.deadLetteredAt)
-            )
+        const documents = await new PostgresSearchDocumentLoader(
+          transaction
+        ).loadManyByAggregateIds(page.map((candidate) => candidate.id));
+        const candidates = page.filter((candidate) => {
+          const document = documents.get(candidate.id);
+          return (
+            document !== undefined &&
+            documentPartition(document, now) === "archive"
           );
+        });
+
+        const pendingRows =
+          candidates.length === 0
+            ? []
+            : await transaction
+                .select({ aggregateId: outboxEvent.aggregateId })
+                .from(outboxEvent)
+                .where(
+                  and(
+                    eq(outboxEvent.aggregateType, "aanvraag"),
+                    inArray(
+                      outboxEvent.aggregateId,
+                      candidates.map((candidate) => candidate.id)
+                    ),
+                    isNull(outboxEvent.processedAt),
+                    isNull(outboxEvent.deadLetteredAt)
+                  )
+                );
         const pending = new Set(pendingRows.map((row) => row.aggregateId));
+        const selected: ExpiryCandidate[] = [];
+        let nonPending = 0;
+        for (const candidate of candidates) {
+          selected.push(candidate);
+          if (!pending.has(candidate.id)) {
+            nonPending += 1;
+          }
+          const budgetUsed =
+            input.mode === "apply" ? nonPending : selected.length;
+          if (budgetUsed >= remaining) {
+            break;
+          }
+        }
+        const reachedBudget =
+          (input.mode === "apply" ? nonPending : selected.length) >= remaining;
+        const hasUnselectedCandidates = selected.length < candidates.length;
         let enqueued = 0;
         if (input.mode === "apply") {
-          const toEnqueue = page.filter(
+          const toEnqueue = selected.filter(
             (candidate) => !pending.has(candidate.id)
           );
           if (toEnqueue.length > 0) {
@@ -224,11 +267,18 @@ export const runSearchExpirySweep = (
             enqueued = inserted.length;
           }
         }
+        const ids = selected.map((row) => row.id);
         return {
-          capped: rows.length > page.length && pageSize === remaining,
+          capped:
+            reachedBudget &&
+            (hasUnselectedCandidates || rows.length > page.length),
+          cursor:
+            hasUnselectedCandidates && ids.length > 0
+              ? (ids.at(-1) ?? null)
+              : (page.at(-1)?.id ?? null),
           enqueued,
-          ids: page.map((row) => row.id),
-          skippedPending: pending.size,
+          ids,
+          skippedPending: selected.filter((row) => pending.has(row.id)).length,
         };
       });
 
@@ -236,7 +286,7 @@ export const runSearchExpirySweep = (
         result.skipped = "lock_held";
         break;
       }
-      if (batch.ids.length === 0) {
+      if (batch.cursor === null) {
         break;
       }
       result.batches += 1;
@@ -248,12 +298,13 @@ export const runSearchExpirySweep = (
           result.sampleIds.push(id);
         }
       }
-      cursor = batch.ids.at(-1) ?? cursor;
+      const { cursor: nextCursor } = batch;
+      cursor = nextCursor;
       if (batch.capped) {
         result.capped = true;
         break;
       }
-      if (batch.ids.length < pageSize) {
+      if (batch.ids.length === 0 && batch.cursor === null) {
         break;
       }
     }

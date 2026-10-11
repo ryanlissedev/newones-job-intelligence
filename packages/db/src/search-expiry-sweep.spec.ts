@@ -10,6 +10,7 @@ import type { BronRuntimeDatabase } from "./bron-runtime";
 import * as schema from "./schema";
 import {
   aanvraag,
+  aanvraagEnrichment,
   bron,
   outboxEvent,
   scrapeRun,
@@ -115,6 +116,7 @@ describe("runSearchExpirySweep", () => {
       deadline?: Date | null;
       hash?: string;
       missingState?: boolean;
+      overlayDeadline?: Date;
     } = {}
   ): Promise<{ generation: number; ids: string[]; indexName: string }> => {
     const db = requireDatabase();
@@ -174,6 +176,18 @@ describe("runSearchExpirySweep", () => {
           appliedSequence: 1n,
           generation,
           projectionHash: options.hash ?? "active:expiry-fixture",
+        }))
+      );
+    }
+    if (options.overlayDeadline !== undefined) {
+      await db.insert(aanvraagEnrichment).values(
+        ids.map((aanvraagId) => ({
+          aanvraagId,
+          confidence: "1",
+          field: "sluitingsdatum",
+          rawRefs: [],
+          source: "deterministic",
+          value: { sluitingsdatum: options.overlayDeadline?.toISOString() },
         }))
       );
     }
@@ -238,6 +252,48 @@ describe("runSearchExpirySweep", () => {
     expect(result.candidates).toBe(2);
     expect(result.sampleIds.toSorted()).toEqual(corpus.ids.toSorted());
     expect(result.enqueued).toBe(0);
+  });
+
+  it("enqueues an overlay-only deadline after it passes", async () => {
+    if (!available) {
+      expect(available).toBe(false);
+      return;
+    }
+    const db = requireDatabase();
+    const corpus = await createCorpus(1, {
+      deadline: null,
+      overlayDeadline: new Date("2026-09-01T00:00:00.000Z"),
+    });
+
+    const result = await runSearchExpirySweep({
+      database: db,
+      indexName: corpus.indexName,
+      mode: "apply",
+      now: NOW,
+    });
+
+    expect(result).toMatchObject({ candidates: 1, enqueued: 1 });
+  });
+
+  it("does not enqueue an overlay-only deadline that is still in the future", async () => {
+    if (!available) {
+      expect(available).toBe(false);
+      return;
+    }
+    const db = requireDatabase();
+    const corpus = await createCorpus(1, {
+      deadline: null,
+      overlayDeadline: new Date("2026-09-03T00:00:00.000Z"),
+    });
+
+    const result = await runSearchExpirySweep({
+      database: db,
+      indexName: corpus.indexName,
+      mode: "apply",
+      now: NOW,
+    });
+
+    expect(result).toMatchObject({ candidates: 0, enqueued: 0 });
   });
 
   it("applies one reindex event per candidate, skips pending, and re-enqueues dead letters", async () => {
@@ -325,6 +381,12 @@ describe("runSearchExpirySweep", () => {
     }
     const db = requireDatabase();
     const corpus = await createCorpus(5);
+    await db.insert(outboxEvent).values({
+      aggregateId: idAt(corpus.ids.toSorted(), 0),
+      aggregateType: "aanvraag",
+      eventType: "aanvraag.gewijzigd",
+      payload: {},
+    });
     const first = await runSearchExpirySweep({
       batchSize: 2,
       database: db,
@@ -333,7 +395,13 @@ describe("runSearchExpirySweep", () => {
       mode: "apply",
       now: NOW,
     });
-    expect(first).toMatchObject({ batches: 2, candidates: 3, capped: true });
+    expect(first).toMatchObject({
+      batches: 2,
+      candidates: 4,
+      capped: true,
+      enqueued: 3,
+      skippedPending: 1,
+    });
     const second = await runSearchExpirySweep({
       batchSize: 2,
       database: db,
@@ -344,8 +412,8 @@ describe("runSearchExpirySweep", () => {
     });
     expect(second).toMatchObject({
       candidates: 5,
-      enqueued: 2,
-      skippedPending: 3,
+      enqueued: 1,
+      skippedPending: 4,
     });
   });
 
