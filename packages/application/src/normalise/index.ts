@@ -38,6 +38,7 @@ export {
   isValidCalendarDate,
   normalizeDedupText,
   provenanceFor,
+  publicationDateInstant,
   stripHtml,
   toValidPublicationDate,
   validateNormalisedDraft,

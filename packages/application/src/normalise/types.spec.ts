@@ -6,6 +6,8 @@ import {
   closingMomentInstant,
   DEDUP_KEY_MAX_BYTES,
   hasClosingMomentPassed,
+  publicationDateInstant,
+  toValidPublicationDate,
 } from "./types";
 
 const AMSTERDAM_TIME_ZONE = "Europe/Amsterdam";
@@ -238,5 +240,67 @@ describe("buildDedupKey byte bound (CTP-499)", () => {
 
     expect(boundDedupKey(atBound)).toBe(atBound);
     expect(boundDedupKey(`${atBound}y`)).toMatch(/^sha256:[0-9a-f]{64}$/u);
+  });
+});
+
+describe("publication dates with sub-millisecond precision (#422 regression)", () => {
+  // Real curated value (TenderNed, prod 2026-10-11); Manticore indexed it as
+  // epoch 1789099469 before #422 started rejecting microsecond fractions.
+  const MICROSECONDS = "2026-09-11T04:04:29.608763";
+
+  it("accepts 1-9 fractional digits and rejects anything else", () => {
+    expect(toValidPublicationDate(MICROSECONDS)).toBe(MICROSECONDS);
+    expect(toValidPublicationDate("2026-09-11T04:04:29.6")).toBe(
+      "2026-09-11T04:04:29.6"
+    );
+    expect(toValidPublicationDate("2026-09-11T04:04:29.123456789Z")).toBe(
+      "2026-09-11T04:04:29.123456789Z"
+    );
+    expect(toValidPublicationDate("2026-09-11T04:04:29.1234567890")).toBeNull();
+    expect(toValidPublicationDate("2026-09-11T04:04:29.")).toBeNull();
+    expect(toValidPublicationDate("2026-02-30T04:04:29.608763")).toBeNull();
+  });
+
+  it("resolves the instant the pre-#422 projection indexed, independent of the host time zone", () => {
+    const original = process.env.TZ;
+    try {
+      for (const timeZone of ["UTC", "Europe/Amsterdam", "America/New_York"]) {
+        process.env.TZ = timeZone;
+        expect(publicationDateInstant(MICROSECONDS)?.toISOString()).toBe(
+          "2026-09-11T04:04:29.608Z"
+        );
+        expect(
+          Math.floor(
+            (publicationDateInstant(MICROSECONDS)?.getTime() ?? 0) / 1000
+          )
+        ).toBe(1_789_099_469);
+        expect(publicationDateInstant("2026-09-03T11:46")?.toISOString()).toBe(
+          "2026-09-03T11:46:00.000Z"
+        );
+        expect(publicationDateInstant("2026-08-24")?.toISOString()).toBe(
+          "2026-08-24T00:00:00.000Z"
+        );
+        expect(
+          publicationDateInstant("2026-08-26T04:34:00+02:00")?.toISOString()
+        ).toBe("2026-08-26T02:34:00.000Z");
+        expect(
+          publicationDateInstant(
+            "2026-08-26T04:34:00.123456+02:00"
+          )?.toISOString()
+        ).toBe("2026-08-26T02:34:00.123Z");
+      }
+    } finally {
+      if (original === undefined) {
+        delete process.env.TZ;
+      } else {
+        process.env.TZ = original;
+      }
+    }
+  });
+
+  it("returns null for absent or invalid values", () => {
+    for (const value of [null, undefined, "", "bad", "2026-13-01"]) {
+      expect(publicationDateInstant(value)).toBeNull();
+    }
   });
 });

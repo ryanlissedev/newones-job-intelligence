@@ -68,6 +68,13 @@ describe("readAanvraagBronFacts", () => {
     }
   });
 
+  it("keeps microsecond-precision publication timestamps (#422 regression)", () => {
+    expect(
+      readAanvraagBronFacts({ publicatiedatum: "2026-09-11T04:04:29.608763" })
+        .publicatiedatum
+    ).toBe("2026-09-11T04:04:29.608763");
+  });
+
   it("accepts date-only publication values from json-ld sources", () => {
     expect(
       readAanvraagBronFacts({ publicatiedatum: "2026-08-24" }).publicatiedatum

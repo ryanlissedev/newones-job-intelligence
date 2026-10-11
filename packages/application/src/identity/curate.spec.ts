@@ -194,6 +194,24 @@ describe("curateObservation commercial columns and coalesce tombstones", () => {
     );
   });
 
+  it("keeps microsecond-precision publication timestamps verbatim (#422 regression)", async () => {
+    const store = new InMemoryCurateStore();
+    const micro = observation("COL-DATE-MICRO", "hash-date-micro");
+    await curateObservation(store, {
+      ...micro,
+      draft: {
+        ...micro.draft,
+        bronSpecifiek: {
+          provenance,
+          value: { publicatiedatum: "2026-09-11T04:04:29.608763" },
+        },
+      },
+    });
+    expect(store.aanvragen.map((aanvraag) => aanvraag.publicatiedatum)).toEqual(
+      ["2026-09-11T04:04:29.608763"]
+    );
+  });
+
   it("canonicalizes a raw 'temporary' contract_type token to interim (CTP-514/CTP-526)", async () => {
     const store = new InMemoryCurateStore();
     const base = observation("COL-CONTRACT-1", "hash-contract-1");
