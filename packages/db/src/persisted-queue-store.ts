@@ -61,6 +61,12 @@ interface ClaimedElement {
   readonly queue_name: string;
   element: postgres.JSONValue;
   readonly attempts: number;
+  /**
+   * `acquired_at` of this claim as full-precision text (a JS Date would drop
+   * the microseconds). Fences a release to exactly this lease. Only claims
+   * carry it; `inspect` rows do not.
+   */
+  readonly lease?: string;
 }
 
 export type PersistedQueueStorePostgres = PersistedQueueStore["Service"] & {
@@ -95,23 +101,24 @@ const toTableSql = (
 
 type Statement = () => postgres.PendingQuery<postgres.Row[]>;
 
-// postgres-js PendingQuery starts eagerly, so every statement is a thunk:
-// a retried or re-issued effect must build a fresh query, not re-await a
-// settled one.
-const runStatement = (
-  evaluate: Statement
-): Effect.Effect<postgres.Row[], PersistedQueueError> =>
-  Effect.tryPromise({
-    catch: (cause) =>
-      new PersistedQueueError({
-        cause,
-        message: "Persisted queue statement failed",
-      }),
-    try: evaluate,
-  });
-
-const runRows = <Row extends postgres.Row>(
-  evaluate: () => postgres.PendingQuery<Row[]>
+/**
+ * Runs one statement and ties it to the fiber's interruption. `Effect.tryPromise`
+ * only hands over an AbortSignal when `try` declares a parameter; without it an
+ * interrupted fiber walks away while the query keeps running on the pool. For a
+ * claim that is a lost lease: the UPDATE still stamps `acquired_by` after the
+ * taker is gone, and nothing releases it until `lockExpiration`.
+ *
+ * So on abort the query is cancelled (postgres.js drops it from the pool queue,
+ * or sends a server-side cancel when it is already running). If the statement
+ * nevertheless completed (the cancel lost the race), `onAbandoned` gets the rows
+ * no caller will see, so the claim path can hand them back. Otherwise
+ * `onDelivered` sees them first, so an interrupt that lands after the result
+ * but before the caller registers its ack can still hand them back.
+ */
+const runCancellable = <Row extends postgres.Row>(
+  evaluate: () => postgres.PendingQuery<Row[]>,
+  onAbandoned?: (rows: readonly Row[]) => void,
+  onDelivered?: (rows: readonly Row[]) => void
 ): Effect.Effect<readonly Row[], PersistedQueueError> =>
   Effect.tryPromise({
     catch: (cause) =>
@@ -119,8 +126,42 @@ const runRows = <Row extends postgres.Row>(
         cause,
         message: "Persisted queue statement failed",
       }),
-    try: evaluate,
+    try: async (signal) => {
+      const query = evaluate();
+      const cancel = (): void => {
+        query.cancel();
+      };
+      signal.addEventListener("abort", cancel, { once: true });
+      try {
+        const rows = await query;
+        // Exactly one of the two hooks sees a completed result: abandoned when
+        // the taker was already interrupted, delivered otherwise.
+        if (signal.aborted) {
+          onAbandoned?.(rows);
+        } else {
+          onDelivered?.(rows);
+        }
+        return rows;
+      } finally {
+        signal.removeEventListener("abort", cancel);
+      }
+    },
   });
+
+// postgres-js PendingQuery starts eagerly, so every statement is a thunk:
+// a retried or re-issued effect must build a fresh query, not re-await a
+// settled one.
+const runStatement = (
+  evaluate: Statement
+): Effect.Effect<readonly postgres.Row[], PersistedQueueError> =>
+  runCancellable(evaluate);
+
+const runRows = <Row extends postgres.Row>(
+  evaluate: () => postgres.PendingQuery<Row[]>,
+  onAbandoned?: (rows: readonly Row[]) => void,
+  onDelivered?: (rows: readonly Row[]) => void
+): Effect.Effect<readonly Row[], PersistedQueueError> =>
+  runCancellable(evaluate, onAbandoned, onDelivered);
 
 /** A claim failure (DB outage) is a wait, not a lost job — log and poll again.
  * An interrupt is neither: it must end the take so shutdown can finish. */
@@ -260,9 +301,41 @@ export const makePostgresPersistedQueueStore = (
       Effect.forkScoped
     );
 
+    // Hands back a claim no taker will ack. Fenced to this exact lease
+    // (`acquired_at` as claimed, which refreshLocks never touches before the
+    // ack finalizer exists), so a late release can never clear a successor's
+    // lease on the same row, even one taken by this same worker after expiry.
+    const releaseClaim = (row: ClaimedElement): Effect.Effect<void> => {
+      const { lease, sequence } = row;
+      if (lease === undefined) {
+        return Effect.void;
+      }
+      return runStatement(
+        () => sql`
+        UPDATE ${tableSql}
+        SET acquired_at = NULL, acquired_by = NULL
+        WHERE sequence = ${sequence}
+        AND acquired_by = ${workerId}::uuid
+        AND acquired_at = ${lease}::timestamptz
+      `
+      ).pipe(Effect.asVoid, Effect.ignore);
+    };
+
+    // A claim that completed after its taker was interrupted (the cancel lost
+    // the race): release it in the background — the taker is gone, and a
+    // failed release still ends in lease expiry.
+    const releaseAbandonedClaims = (
+      claimed: readonly ClaimedElement[]
+    ): void => {
+      for (const row of claimed) {
+        Effect.runFork(releaseClaim(row));
+      }
+    };
+
     const claimNext = Effect.fnUntraced(function* claimNext(
       name: string,
-      maxAttempts: number
+      maxAttempts: number,
+      onClaimed: (row: ClaimedElement) => void
     ) {
       while (true) {
         const rows = yield* runRows<ClaimedElement>(
@@ -280,11 +353,19 @@ export const makePostgresPersistedQueueStore = (
               FOR UPDATE SKIP LOCKED
               LIMIT 1
             )
-            RETURNING sequence, id, queue_name, element, attempts, updated_at
+            RETURNING sequence, id, queue_name, element, attempts, updated_at,
+              acquired_at::text AS lease
           )
-          SELECT sequence, id, queue_name, element, attempts FROM cte
+          SELECT sequence, id, queue_name, element, attempts, lease FROM cte
           ORDER BY updated_at ASC, sequence ASC
-        `
+        `,
+          releaseAbandonedClaims,
+          (claimed) => {
+            const [row] = claimed;
+            if (row !== undefined) {
+              onClaimed(row);
+            }
+          }
         ).pipe(Effect.catchCause(recoverClaimFailure));
         const [claimed] = rows;
         if (claimed !== undefined) {
@@ -327,8 +408,19 @@ export const makePostgresPersistedQueueStore = (
           )
         ),
       take: ({ maxAttempts, name }) =>
-        Effect.uninterruptibleMask((restore) =>
-          restore(claimNext(name, maxAttempts)).pipe(
+        Effect.uninterruptibleMask((restore) => {
+          // The row the DB handed this take, before its ack finalizer exists.
+          // An interrupt in that window releases it instead of stranding the
+          // lease until lockExpiration.
+          let received: ClaimedElement | undefined;
+          return restore(
+            claimNext(name, maxAttempts, (row) => {
+              received = row;
+            })
+          ).pipe(
+            Effect.onInterrupt(() =>
+              received === undefined ? Effect.void : releaseClaim(received)
+            ),
             Effect.tap((element) => {
               activeSequences.add(element.sequence);
               return Effect.addFinalizer(
@@ -352,8 +444,8 @@ export const makePostgresPersistedQueueStore = (
               element: element.element,
               id: element.id,
             }))
-          )
-        ),
+          );
+        }),
     };
     return service;
   });

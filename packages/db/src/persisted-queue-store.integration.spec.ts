@@ -335,14 +335,92 @@ describe.serial("postgres persisted queue store", () => {
       );
     const first = taker("a");
     const second = taker("b");
-    // `second` stays pending — the row is claimed once and never re-offered —
-    // so only the winner and the delay bound this wait.
-    await Promise.allSettled([first, sleep(400)]);
+    // Exactly one taker can win the single row; the other keeps polling. Wait
+    // for the winner itself (no wall-clock bound), then cancel the loser.
+    const winner = await Promise.race([first, second]);
     controller.abort();
     await Promise.allSettled([first, second]);
 
+    expect(Exit.isSuccess(winner)).toBe(true);
     expect(seen).toHaveLength(1);
-    expect(seen[0]).toBe(`a:${job.scrapeRunId}`);
+    expect(seen[0]?.endsWith(`:${job.scrapeRunId}`)).toBe(true);
+    const [row] = await rows();
+    expect(row).toMatchObject({ acquired_by: null, completed: true });
+  });
+
+  it("cancels an in-flight claim on interrupt instead of leaving the row leased", async () => {
+    if (!available || !queue || !client) {
+      expect(available).toBe(false);
+      return;
+    }
+    const liveQueue = queue;
+    const observer = client;
+    const job = makeJob();
+    await Effect.runPromise(liveQueue.offer(job, { id: job.scrapeRunId }));
+
+    // Hold a lock that the claim UPDATE must wait for, so the claim is
+    // deterministically in flight on the server when the taker is interrupted.
+    const blocker = postgres(migratorUrl, { max: 1 });
+    try {
+      const lockHeld = Promise.withResolvers<null>();
+      const release = Promise.withResolvers<null>();
+      const holding = blocker.begin(async (tx) => {
+        await tx`LOCK TABLE curated.durable_job IN ACCESS EXCLUSIVE MODE`;
+        lockHeld.resolve(null);
+        await release.promise;
+      });
+      await lockHeld.promise;
+
+      const controller = new AbortController();
+      const take = Effect.runPromiseExit(
+        liveQueue.take(() => Effect.void),
+        { signal: controller.signal }
+      );
+      const waitingClaims = async (): Promise<number> => {
+        // The blocker's only connection is inside the locking transaction, so
+        // observe from the fixture client (same ji_app role as the claim).
+        const [found] = await observer<{ count: number }[]>`
+          SELECT count(*)::int AS count FROM pg_stat_activity
+          WHERE wait_event_type = 'Lock' AND query LIKE '%acquired_by%'
+        `;
+        return found?.count ?? 0;
+      };
+      // Polls the server until `done` holds or ~2 s pass; returns the last count.
+      const pollClaims = async (
+        done: (count: number) => boolean,
+        triesLeft = 100
+      ): Promise<number> => {
+        const count = await waitingClaims();
+        if (done(count) || triesLeft <= 0) {
+          return count;
+        }
+        await sleep(20);
+        return pollClaims(done, triesLeft - 1);
+      };
+      // The claim is now blocked on the lock, mid-statement.
+      expect(await pollClaims((count) => count > 0)).toBe(1);
+
+      controller.abort();
+      const exit = await take;
+      expect(Exit.isFailure(exit) && Cause.hasInterruptsOnly(exit.cause)).toBe(
+        true
+      );
+      // The cancel reaches the server: no claim is left waiting behind the lock.
+      expect(await pollClaims((count) => count === 0)).toBe(0);
+
+      release.resolve(null);
+      await holding;
+      // Give a (wrongly) surviving claim time to land, then check the row.
+      await sleep(100);
+      const [row] = await rows();
+      expect(row).toMatchObject({
+        acquired_by: null,
+        attempts: 0,
+        completed: false,
+      });
+    } finally {
+      await blocker.end({ timeout: 1 });
+    }
   });
 
   it("keeps polling through a DB outage instead of failing the take", async () => {
