@@ -9,7 +9,8 @@
 -- Fails closed (rollback) if any normalized duplicate group remains afterwards.
 -- Search: every marked row gets an `aanvraag.verwijderd` outbox event in the same statement, so
 -- the projector removes it from Manticore (the loader never re-adds a superseded row).
--- Rollback: 90-rollback.sql section B (restores from the archive reason tag).
+-- Rollback: 90-rollback.sql section A, then 91-rollback-unmark.sql (section B; restores from the
+-- archive reason tag).
 BEGIN;
 SET LOCAL lock_timeout = '5s';
 SET LOCAL statement_timeout = '300s';

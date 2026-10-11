@@ -56,7 +56,7 @@ So an exact duplicate on `(bron_id, bron_referentie)` cannot exist. Duplicates a
 | 0 | `dup-analysis.sql` | ji_readonly | ACCESS SHARE only; ≤60 s per query | none needed |
 | 1 | `tools/postgres/unique-key/01-prepare.sql` | ji_migrator | 3× brief ACCESS EXCLUSIVE (catalog-only ADD COLUMN, `lock_timeout 5s`); new empty table | leave in place (unused); dropping is destructive and needs a GO |
 | 2 | `02-plan-dry-run.sql` | ji_readonly / ji_migrator | read-only | none |
-| 3 | `03-mark-superseded.sql` (writers stopped) | ji_migrator | ROW EXCLUSIVE + row locks on marked rows only; one transaction; fails closed if any group remains | `90-rollback.sql` B (unmark from the archive tag; sets `restored_at`) |
+| 3 | `03-mark-superseded.sql` (writers stopped) | ji_migrator | ROW EXCLUSIVE + row locks on marked rows only; one transaction; fails closed if any group remains | `90-rollback.sql` A, then B = `91-rollback-unmark.sql` (unmark from the archive tag; sets `restored_at` only on rows it unmarked; re-projects them) |
 | 4 | `04-unique-index-concurrently.sql` (writers may run) | ji_migrator | SHARE UPDATE EXCLUSIVE for the build; reads and writes continue; 2 scans of aanvraag | `90-rollback.sql` A (`DROP INDEX CONCURRENTLY`) |
 | 5 | Deploy release with 0033+0034+code: migrator (option B), then server, poller, web, projector | — | 0033/0034 are no-ops (IF NOT EXISTS); readiness expects 0034 | redeploy previous release; the columns and index are harmless to old code |
 | 6 | Follow-ups (separate PR) | — | — | — |
