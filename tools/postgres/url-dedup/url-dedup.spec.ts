@@ -91,6 +91,10 @@ const totalToMark = (stdout: string): number => {
   return Number(lines[index + 1]);
 };
 
+/** The psql -A -t output lines, so a counts row like "2|2|2|2" is matched exactly. */
+const outputLines = (stdout: string): string[] =>
+  stdout.split("\n").map((line) => line.trim());
+
 interface FixtureRow {
   readonly bronUrl: string;
   readonly compleetheid?: number;
@@ -140,6 +144,16 @@ describe
           RETURNING id`;
           ids.set(`${bronId}:${row.referentie}`, inserted?.id ?? "");
         }
+      };
+
+      /** Outbox events of one type queued for the big bron's fixture rows, sorted ids. */
+      const outboxIds = async (eventType: string): Promise<string[]> => {
+        const rows = await client<{ aggregate_id: string }[]>`
+        SELECT o.aggregate_id FROM curated.outbox_event o
+          JOIN curated.aanvraag a ON a.id = o.aggregate_id
+         WHERE a.bron_id = ${bigBron} AND o.event_type = ${eventType}
+         ORDER BY o.aggregate_id`;
+        return rows.map((row) => row.aggregate_id);
       };
 
       const supersededBy = async (
@@ -234,6 +248,7 @@ describe
         const [archive] = await client<{ count: number }[]>`
         SELECT count(*)::int AS count FROM curated.aanvraag_dup_archive WHERE bron_id = ${bigBron}`;
         expect(archive?.count).toBe(0);
+        expect(await outboxIds("aanvraag.verwijderd")).toEqual([]);
       });
 
       it("applies the keep rule, archives every loser and never deletes", async () => {
@@ -242,7 +257,8 @@ describe
         const run = runPsql(dedupScript, { apply: "1", only_bron: bigBron });
         expect(run.exitCode).toBe(0);
         expect(run.stdout).toContain("APPLY");
-        expect(run.stdout).toContain("2|2|2");
+        // planned | archived | marked | index_deletes_enqueued
+        expect(outputLines(run.stdout)).toContain("2|2|2|2");
         const keep1 = ids.get(`${bigBron}:flextender_123`);
         const keep2 = ids.get(`${bigBron}:striive_456`);
         expect(await supersededBy(bigBron, "A1B2C3D4-GUID")).toBe(keep1 ?? "");
@@ -272,31 +288,45 @@ describe
         const [after] = await client<{ count: number }[]>`
         SELECT count(*)::int AS count FROM curated.aanvraag WHERE bron_id = ${bigBron}`;
         expect(after?.count).toBe(before?.count ?? -1);
+        // Exactly one search-index delete per marked row, in the same transaction.
+        const losers = [
+          ids.get(`${bigBron}:A1B2C3D4-GUID`) ?? "",
+          ids.get(`${bigBron}:E5F6-GUID`) ?? "",
+        ].toSorted();
+        expect(await outboxIds("aanvraag.verwijderd")).toEqual(losers);
       });
 
-      it("is idempotent: a second apply marks nothing new", () => {
+      it("is idempotent: a second apply marks nothing new and queues no new delete", async () => {
         const run = runPsql(dedupScript, { apply: "1", only_bron: bigBron });
         expect(run.exitCode).toBe(0);
-        expect(run.stdout).toContain("0|0|0");
+        expect(outputLines(run.stdout)).toContain("0|0|0|0");
+        expect(await outboxIds("aanvraag.verwijderd")).toHaveLength(2);
       });
 
       it("skips a pair that is a large share of its bron (generic guard)", async () => {
         const run = runPsql(dedupScript, { apply: "1", only_bron: smallBron });
         expect(run.exitCode).toBe(0);
-        expect(run.stdout).toContain("0|0|0");
+        expect(outputLines(run.stdout)).toContain("0|0|0|0");
         expect(await supersededBy(smallBron, "s-old")).toBeNull();
       });
 
       it("never marks inside a hard-excluded bron (Flextender)", async () => {
         const run = runPsql(dedupScript, { apply: "1", only_bron: FLEXTENDER });
         expect(run.exitCode).toBe(0);
-        expect(run.stdout).toContain("0|0|0");
+        expect(outputLines(run.stdout)).toContain("0|0|0|0");
         expect(await supersededBy(FLEXTENDER, `f-old-${RUN}`)).toBeNull();
       });
 
-      it("rolls back from the archive, keeps the audit rows, and is idempotent", async () => {
+      it("rolls back from the archive, re-projects the rows, keeps the audit rows, and is idempotent", async () => {
+        const losers = [
+          ids.get(`${bigBron}:A1B2C3D4-GUID`) ?? "",
+          ids.get(`${bigBron}:E5F6-GUID`) ?? "",
+        ].toSorted();
         const first = runPsql(rollbackScript, {});
         expect(first.exitCode).toBe(0);
+        // unmarked | archive_rows_restored | index_upserts_enqueued
+        expect(outputLines(first.stdout)).toContain("2|2|2");
+        expect(await outboxIds("aanvraag.gewijzigd")).toEqual(losers);
         expect(await supersededBy(bigBron, "A1B2C3D4-GUID")).toBeNull();
         expect(await supersededBy(bigBron, "E5F6-GUID")).toBeNull();
         const archive = await client<{ restored: boolean }[]>`
@@ -305,7 +335,8 @@ describe
         expect(archive).toEqual([{ restored: true }, { restored: true }]);
         const second = runPsql(rollbackScript, {});
         expect(second.exitCode).toBe(0);
-        expect(second.stdout).toContain("0|0");
+        expect(outputLines(second.stdout)).toContain("0|0|0");
+        expect(await outboxIds("aanvraag.gewijzigd")).toEqual(losers);
       });
     }
   );

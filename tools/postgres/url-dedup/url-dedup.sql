@@ -27,7 +27,9 @@
 --   newest laatst_gezien_op -> live (v1_id IS NULL) before v1 -> highest compleetheid_score
 --   -> oldest eerste_gezien_op -> lowest id.
 -- Expected on prod (dup report 2026-10-11): ~123 Opdrachtoverheid + ~121 MI Public = ~244 rows.
--- Rollback: 90-rollback.sql (unmarks from the archive, reason 'dup-url-v1').
+-- Search: every marked row gets one `aanvraag.verwijderd` outbox event in the same statement, so the
+-- projector removes it from Manticore. Deploy #489 (read paths skip superseded rows) BEFORE applying.
+-- Rollback: 90-rollback.sql (unmarks from the archive, reason 'dup-url-v1', re-projects the rows).
 \set ON_ERROR_STOP on
 \if :{?apply}
 \else
@@ -99,10 +101,19 @@ SELECT p.bron_id, p.url_norm, p.keep_id, p.id AS mark_id, p.bron_referentie AS m
     FROM mark_plan p
    WHERE a.id = p.id AND a.superseded_by IS NULL
   RETURNING a.id
+), projected AS (
+  -- The marked row must leave the search index: same transaction, outbox last (RJC-399),
+  -- exactly like tools/postgres/unique-key/03-mark-superseded.sql (#489).
+  INSERT INTO curated.outbox_event (aggregate_id, aggregate_type, event_type, payload)
+  SELECT m.id, 'aanvraag', 'aanvraag.verwijderd',
+         jsonb_build_object('reden', 'superseded', 'superseded_reason', 'dup-url-v1')
+    FROM marked m
+  RETURNING aggregate_id
 )
 SELECT (SELECT count(*) FROM mark_plan) AS planned,
        (SELECT count(*) FROM archived) AS archived,
-       (SELECT count(*) FROM marked) AS marked;
+       (SELECT count(*) FROM marked) AS marked,
+       (SELECT count(*) FROM projected) AS index_deletes_enqueued;
 
 DO $$
 DECLARE
