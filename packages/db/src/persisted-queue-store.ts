@@ -103,7 +103,7 @@ const toTableSql = (
 
 type Statement = () => postgres.PendingQuery<postgres.Row[]>;
 
-/** How long closing the store waits for interrupted statements and their releases. */
+/** How long closing the store waits for in-flight claims and their releases. */
 const ABANDONED_DRAIN_MS = 5000;
 
 interface StatementHooks<Row extends postgres.Row> {
@@ -111,8 +111,12 @@ interface StatementHooks<Row extends postgres.Row> {
   readonly onAbandoned?: (rows: readonly Row[]) => Promise<void>;
   /** The statement completed for a caller that is still there (it may yet be interrupted). */
   readonly onDelivered?: (rows: readonly Row[]) => void;
-  /** Called once on interrupt with a promise that settles after the abandoned work is done. */
-  readonly trackAbandoned?: (work: Promise<void>) => void;
+  /**
+   * Called once when the statement starts, with a promise that settles after
+   * the statement and any `onAbandoned` work are done. Registering at start
+   * (not on abort) means a close that begins before the interrupt still sees it.
+   */
+  readonly track?: (work: Promise<void>) => void;
 }
 
 /**
@@ -129,7 +133,7 @@ interface StatementHooks<Row extends postgres.Row> {
  * (postgres.js documents this race). Its hidden cancel promise can also reject
  * during an outage. Instead the interrupted statement runs to completion:
  * `onAbandoned` gets the rows no caller will see (the claim path releases
- * them), and `trackAbandoned` lets the store wait for that work before it ends
+ * them), and `track` lets the store wait for that work before it ends
  * the pool. Otherwise `onDelivered` sees the rows first, so an interrupt that
  * lands after the result but before the caller registers its ack can still hand
  * them back.
@@ -145,17 +149,14 @@ const runTracked = <Row extends postgres.Row>(
         message: "Persisted queue statement failed",
       }),
     try: async (signal) => {
-      const query = evaluate();
       const done = Promise.withResolvers<null>();
-      const onAbort = (): void => {
-        hooks.trackAbandoned?.(
-          (async (): Promise<void> => {
-            await done.promise;
-          })()
-        );
-      };
-      signal.addEventListener("abort", onAbort, { once: true });
+      hooks.track?.(
+        (async (): Promise<void> => {
+          await done.promise;
+        })()
+      );
       try {
+        const query = evaluate();
         const rows = await query;
         // Exactly one of the two hooks sees a completed result: abandoned when
         // the caller was already interrupted, delivered otherwise.
@@ -166,7 +167,6 @@ const runTracked = <Row extends postgres.Row>(
         }
         return rows;
       } finally {
-        signal.removeEventListener("abort", onAbort);
         done.resolve(null);
       }
     },
@@ -207,22 +207,23 @@ export const makePostgresPersistedQueueStore = (
       idle_timeout: 20,
       max: options.maxConnections ?? 2,
     });
-    // Statements whose caller was interrupted, plus the release that follows
-    // an abandoned claim. Closing waits for them (bounded) before ending the
-    // pool, so a shutdown-time interrupt does not leave a lease behind.
-    const abandoned = new Set<Promise<void>>();
-    const trackAbandoned = (work: Promise<void>): void => {
-      abandoned.add(work);
+    // In-flight claims, each including the release that follows if its taker
+    // was interrupted. Tracked from statement start, so a close that begins
+    // before the interrupt still waits; closing waits for them (bounded)
+    // before ending the pool, so shutdown does not leave a lease behind.
+    const inFlightClaims = new Set<Promise<void>>();
+    const trackClaim = (work: Promise<void>): void => {
+      inFlightClaims.add(work);
       const forget = async (): Promise<void> => {
         await work;
-        abandoned.delete(work);
+        inFlightClaims.delete(work);
       };
       void forget();
     };
     yield* Effect.addFinalizer(() =>
       Effect.promise(async () => {
         await Promise.race([
-          Promise.allSettled(abandoned),
+          Promise.allSettled(inFlightClaims),
           delay(ABANDONED_DRAIN_MS),
         ]);
         await sql.end({ timeout: 5 });
@@ -411,7 +412,7 @@ export const makePostgresPersistedQueueStore = (
                 onClaimed(row);
               }
             },
-            trackAbandoned,
+            track: trackClaim,
           }
         ).pipe(Effect.catchCause(recoverClaimFailure));
         const [claimed] = rows;
