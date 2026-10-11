@@ -1,3 +1,5 @@
+import { setTimeout as delay } from "node:timers/promises";
+
 import type { Scope } from "effect";
 import { Cause, Duration, Effect, Exit, Layer, Schedule } from "effect";
 import {
@@ -61,6 +63,12 @@ interface ClaimedElement {
   readonly queue_name: string;
   element: postgres.JSONValue;
   readonly attempts: number;
+  /**
+   * `acquired_at` of this claim as full-precision text (a JS Date would drop
+   * the microseconds). Fences a release to exactly this lease. Only claims
+   * carry it; `inspect` rows do not.
+   */
+  readonly lease?: string;
 }
 
 export type PersistedQueueStorePostgres = PersistedQueueStore["Service"] & {
@@ -95,23 +103,44 @@ const toTableSql = (
 
 type Statement = () => postgres.PendingQuery<postgres.Row[]>;
 
-// postgres-js PendingQuery starts eagerly, so every statement is a thunk:
-// a retried or re-issued effect must build a fresh query, not re-await a
-// settled one.
-const runStatement = (
-  evaluate: Statement
-): Effect.Effect<postgres.Row[], PersistedQueueError> =>
-  Effect.tryPromise({
-    catch: (cause) =>
-      new PersistedQueueError({
-        cause,
-        message: "Persisted queue statement failed",
-      }),
-    try: evaluate,
-  });
+/** How long closing the store waits for in-flight claims and their releases. */
+const ABANDONED_DRAIN_MS = 5000;
 
-const runRows = <Row extends postgres.Row>(
-  evaluate: () => postgres.PendingQuery<Row[]>
+interface StatementHooks<Row extends postgres.Row> {
+  /** The statement completed after the caller was interrupted: nobody will see these rows. */
+  readonly onAbandoned?: (rows: readonly Row[]) => Promise<void>;
+  /** The statement completed for a caller that is still there (it may yet be interrupted). */
+  readonly onDelivered?: (rows: readonly Row[]) => void;
+  /**
+   * Called once when the statement starts, with a promise that settles after
+   * the statement and any `onAbandoned` work are done. Registering at start
+   * (not on abort) means a close that begins before the interrupt still sees it.
+   */
+  readonly track?: (work: Promise<void>) => void;
+}
+
+/**
+ * Runs one statement and keeps following it after the fiber is interrupted.
+ * `Effect.tryPromise` only hands over an AbortSignal when `try` declares a
+ * parameter; without one an interrupted fiber simply walked away while the query
+ * kept running. For a claim that was a lost lease: the UPDATE still stamped
+ * `acquired_by` after the taker was gone, and nothing released it until
+ * `lockExpiration`.
+ *
+ * The query is NOT physically cancelled. A postgres.js CancelRequest targets the
+ * connection's backend, and on this shared pool it can land after the
+ * connection has moved on and cancel an unrelated claim, ack or lease refresh
+ * (postgres.js documents this race). Its hidden cancel promise can also reject
+ * during an outage. Instead the interrupted statement runs to completion:
+ * `onAbandoned` gets the rows no caller will see (the claim path releases
+ * them), and `track` lets the store wait for that work before it ends
+ * the pool. Otherwise `onDelivered` sees the rows first, so an interrupt that
+ * lands after the result but before the caller registers its ack can still hand
+ * them back.
+ */
+const runTracked = <Row extends postgres.Row>(
+  evaluate: () => postgres.PendingQuery<Row[]>,
+  hooks: StatementHooks<Row> = {}
 ): Effect.Effect<readonly Row[], PersistedQueueError> =>
   Effect.tryPromise({
     catch: (cause) =>
@@ -119,8 +148,43 @@ const runRows = <Row extends postgres.Row>(
         cause,
         message: "Persisted queue statement failed",
       }),
-    try: evaluate,
+    try: async (signal) => {
+      const done = Promise.withResolvers<null>();
+      hooks.track?.(
+        (async (): Promise<void> => {
+          await done.promise;
+        })()
+      );
+      try {
+        const query = evaluate();
+        const rows = await query;
+        // Exactly one of the two hooks sees a completed result: abandoned when
+        // the caller was already interrupted, delivered otherwise.
+        if (signal.aborted) {
+          await hooks.onAbandoned?.(rows);
+        } else {
+          hooks.onDelivered?.(rows);
+        }
+        return rows;
+      } finally {
+        done.resolve(null);
+      }
+    },
   });
+
+// postgres-js PendingQuery starts eagerly, so every statement is a thunk:
+// a retried or re-issued effect must build a fresh query, not re-await a
+// settled one.
+const runStatement = (
+  evaluate: Statement
+): Effect.Effect<readonly postgres.Row[], PersistedQueueError> =>
+  runTracked(evaluate);
+
+const runRows = <Row extends postgres.Row>(
+  evaluate: () => postgres.PendingQuery<Row[]>,
+  hooks: StatementHooks<Row> = {}
+): Effect.Effect<readonly Row[], PersistedQueueError> =>
+  runTracked(evaluate, hooks);
 
 /** A claim failure (DB outage) is a wait, not a lost job — log and poll again.
  * An interrupt is neither: it must end the take so shutdown can finish. */
@@ -143,8 +207,27 @@ export const makePostgresPersistedQueueStore = (
       idle_timeout: 20,
       max: options.maxConnections ?? 2,
     });
+    // In-flight claims, each including the release that follows if its taker
+    // was interrupted. Tracked from statement start, so a close that begins
+    // before the interrupt still waits; closing waits for them (bounded)
+    // before ending the pool, so shutdown does not leave a lease behind.
+    const inFlightClaims = new Set<Promise<void>>();
+    const trackClaim = (work: Promise<void>): void => {
+      inFlightClaims.add(work);
+      const forget = async (): Promise<void> => {
+        await work;
+        inFlightClaims.delete(work);
+      };
+      void forget();
+    };
     yield* Effect.addFinalizer(() =>
-      Effect.promise(() => sql.end({ timeout: 5 }))
+      Effect.promise(async () => {
+        await Promise.race([
+          Promise.allSettled(inFlightClaims),
+          delay(ABANDONED_DRAIN_MS),
+        ]);
+        await sql.end({ timeout: 5 });
+      })
     );
 
     const tableSql = toTableSql(
@@ -260,9 +343,44 @@ export const makePostgresPersistedQueueStore = (
       Effect.forkScoped
     );
 
+    // Hands back a claim no taker will ack. Fenced to this exact lease
+    // (`acquired_at` as claimed, which refreshLocks never touches before the
+    // ack finalizer exists), so a late release can never clear a successor's
+    // lease on the same row, even one taken by this same worker after expiry.
+    // The lease travels as text: typed as timestamptz, postgres.js would
+    // serialize it through a JS Date and drop the microseconds, so the fence
+    // would never match and every release would silently be a no-op.
+    const releaseClaim = (row: ClaimedElement): Effect.Effect<void> => {
+      const { lease, sequence } = row;
+      if (lease === undefined) {
+        return Effect.void;
+      }
+      return runStatement(
+        () => sql`
+        UPDATE ${tableSql}
+        SET acquired_at = NULL, acquired_by = NULL
+        WHERE sequence = ${sequence}
+        AND acquired_by = ${workerId}::uuid
+        AND acquired_at = ${lease}::text::timestamptz
+      `
+      ).pipe(Effect.asVoid, Effect.ignore);
+    };
+
+    // A claim that completed after its taker was interrupted: release it. The
+    // store tracks this work and waits for it before ending the pool; a failed
+    // release still ends in lease expiry.
+    const releaseAbandonedClaims = async (
+      claimed: readonly ClaimedElement[]
+    ): Promise<void> => {
+      await Effect.runPromise(
+        Effect.forEach(claimed, releaseClaim, { discard: true })
+      );
+    };
+
     const claimNext = Effect.fnUntraced(function* claimNext(
       name: string,
-      maxAttempts: number
+      maxAttempts: number,
+      onClaimed: (row: ClaimedElement) => void
     ) {
       while (true) {
         const rows = yield* runRows<ClaimedElement>(
@@ -280,11 +398,22 @@ export const makePostgresPersistedQueueStore = (
               FOR UPDATE SKIP LOCKED
               LIMIT 1
             )
-            RETURNING sequence, id, queue_name, element, attempts, updated_at
+            RETURNING sequence, id, queue_name, element, attempts, updated_at,
+              acquired_at::text AS lease
           )
-          SELECT sequence, id, queue_name, element, attempts FROM cte
+          SELECT sequence, id, queue_name, element, attempts, lease FROM cte
           ORDER BY updated_at ASC, sequence ASC
-        `
+        `,
+          {
+            onAbandoned: releaseAbandonedClaims,
+            onDelivered: (claimed) => {
+              const [row] = claimed;
+              if (row !== undefined) {
+                onClaimed(row);
+              }
+            },
+            track: trackClaim,
+          }
         ).pipe(Effect.catchCause(recoverClaimFailure));
         const [claimed] = rows;
         if (claimed !== undefined) {
@@ -327,8 +456,19 @@ export const makePostgresPersistedQueueStore = (
           )
         ),
       take: ({ maxAttempts, name }) =>
-        Effect.uninterruptibleMask((restore) =>
-          restore(claimNext(name, maxAttempts)).pipe(
+        Effect.uninterruptibleMask((restore) => {
+          // The row the DB handed this take, before its ack finalizer exists.
+          // An interrupt in that window releases it instead of stranding the
+          // lease until lockExpiration.
+          let received: ClaimedElement | undefined;
+          return restore(
+            claimNext(name, maxAttempts, (row) => {
+              received = row;
+            })
+          ).pipe(
+            Effect.onInterrupt(() =>
+              received === undefined ? Effect.void : releaseClaim(received)
+            ),
             Effect.tap((element) => {
               activeSequences.add(element.sequence);
               return Effect.addFinalizer(
@@ -352,8 +492,8 @@ export const makePostgresPersistedQueueStore = (
               element: element.element,
               id: element.id,
             }))
-          )
-        ),
+          );
+        }),
     };
     return service;
   });
