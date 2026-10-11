@@ -786,6 +786,10 @@ export const selectDominatedPairs = async (
     scrapeRunId?: string;
   }
 ): Promise<DominatedPair[]> => {
+  // Match drizzle's empty inArray behavior and avoid generating IN ().
+  if (input.eligibleRunStatuses.length === 0) {
+    return [];
+  }
   const rows = await database.execute<{
     dominatorBronId: string;
     dominatorBronReferentie: string;

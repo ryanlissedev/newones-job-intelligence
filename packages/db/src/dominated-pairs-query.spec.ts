@@ -220,6 +220,12 @@ interface Fixture {
   runIdsByBron: Map<string, string[]>;
 }
 
+interface TieFixture {
+  bronId: string;
+  dominatedId: string;
+  siblingIds: string[];
+}
+
 const BRONS = 3;
 const RECORDS_PER_BRON = 40;
 const RUNS_PER_BRON = 12;
@@ -361,6 +367,120 @@ const seedFixture = async (client: postgres.Sql): Promise<Fixture> => {
   return fixture;
 };
 
+const seedTieFixture = async (client: postgres.Sql): Promise<TieFixture> => {
+  const bronId = crypto.randomUUID();
+  const recordId = crypto.randomUUID();
+  const contentHash = "tie-break-content";
+  const bronReferentie = "tie-break";
+  const earlierRunId = crypto.randomUUID();
+  const firstSiblingRunId = crypto.randomUUID();
+  const secondSiblingRunId = crypto.randomUUID();
+  const dominatedId = crypto.randomUUID();
+  const firstSiblingId = crypto.randomUUID();
+  const secondSiblingId = crypto.randomUUID();
+  const earlierStarted = "2026-09-10T00:00:00.000Z";
+  const siblingStarted = "2026-09-11T00:00:00.000Z";
+
+  await client`INSERT INTO curated.bron (id, naam, categorie)
+    VALUES (${bronId}, ${`dominated-tie-${bronId}`}, 'parity')`;
+  await client`INSERT INTO curated.scrape_run ${client([
+    {
+      bron_id: bronId,
+      completion: "complete",
+      geindigd: "2026-09-10T00:01:00.000Z",
+      gestart: earlierStarted,
+      id: earlierRunId,
+      status: "succeeded",
+    },
+    {
+      bron_id: bronId,
+      completion: "complete",
+      geindigd: "2026-09-11T00:01:00.000Z",
+      gestart: siblingStarted,
+      id: firstSiblingRunId,
+      status: "succeeded",
+    },
+    {
+      bron_id: bronId,
+      completion: "complete",
+      geindigd: "2026-09-11T00:02:00.000Z",
+      gestart: siblingStarted,
+      id: secondSiblingRunId,
+      status: "succeeded",
+    },
+  ])}`;
+  const record: RecordRow = {
+    bron_id: bronId,
+    bron_referentie: bronReferentie,
+    content_hash: contentHash,
+    id: recordId,
+    raw_payload_ref: `raw/${bronReferentie}`,
+    scrape_run_id: earlierRunId,
+  };
+  const observations: ObservationRow[] = [
+    {
+      bron_id: bronId,
+      content_hash: contentHash,
+      id: dominatedId,
+      outcome: "unchanged",
+      payload: JSON.stringify({ bronReferentie, contentHash, variant: "old" }),
+      scrape_run_id: earlierRunId,
+      source_record_id: recordId,
+      status: "pending",
+    },
+    {
+      bron_id: bronId,
+      content_hash: contentHash,
+      id: firstSiblingId,
+      outcome: "unchanged",
+      payload: JSON.stringify({
+        bronReferentie,
+        contentHash,
+        variant: "first-sibling",
+      }),
+      scrape_run_id: firstSiblingRunId,
+      source_record_id: recordId,
+      status: "curated",
+    },
+    {
+      bron_id: bronId,
+      content_hash: contentHash,
+      id: secondSiblingId,
+      outcome: "unchanged",
+      payload: JSON.stringify({
+        bronReferentie,
+        contentHash,
+        variant: "second-sibling",
+      }),
+      scrape_run_id: secondSiblingRunId,
+      source_record_id: recordId,
+      status: "curated",
+    },
+  ];
+  const aanvraagRow: AanvraagRow = {
+    beschrijving: "tie-break",
+    bron_id: bronId,
+    bron_referentie: bronReferentie,
+    content_hash: contentHash,
+    eerste_gezien_op: earlierStarted,
+    extractie_methode: "json-ld",
+    laatst_gezien_op: siblingStarted,
+    raw_payload_ref: record.raw_payload_ref,
+    scrape_run_id: earlierRunId,
+    status: "active",
+    titel: "tie-break",
+  };
+  await client`INSERT INTO staging.source_record ${client([record])}`;
+  await client`INSERT INTO staging.aanvraag_observation ${client(observations)}`;
+  await client`INSERT INTO curated.aanvraag ${client([aanvraagRow])}`;
+
+  return {
+    bronId,
+    dominatedId,
+    siblingIds: [firstSiblingId, secondSiblingId],
+  };
+};
+
 describe
   .skipIf(!postgresAvailable)
   .serial(
@@ -369,19 +489,22 @@ describe
       let client: ReturnType<typeof postgres>;
       let database: BronRuntimeDatabase;
       let fixture: Fixture;
+      let tieFixture: TieFixture;
 
       beforeAll(async () => {
         client = postgres(migratorUrl, { max: 1, onnotice: () => {} });
         await migrate(drizzle(client), { migrationsFolder });
         database = drizzle(client, { schema });
         fixture = await seedFixture(client);
+        tieFixture = await seedTieFixture(client);
         await client`ANALYZE staging.aanvraag_observation`;
       });
 
       afterAll(async () => {
         if (fixture) {
-          await client`DELETE FROM curated.aanvraag WHERE bron_id IN ${client(fixture.bronIds)}`;
-          await client`DELETE FROM curated.bron WHERE id IN ${client(fixture.bronIds)}`;
+          const bronIds = [...fixture.bronIds, tieFixture.bronId];
+          await client`DELETE FROM curated.aanvraag WHERE bron_id IN ${client(bronIds)}`;
+          await client`DELETE FROM curated.bron WHERE id IN ${client(bronIds)}`;
         }
         await client.end({ timeout: 5 });
       });
@@ -443,6 +566,45 @@ describe
             fixture.payloadById.get(pair.dominatorId)
           );
         }
+      });
+
+      it("returns no pairs when no run statuses are eligible", async () => {
+        const input = {
+          bronId: fixture.bronIds[0] ?? "missing-bron",
+          eligibleRunStatuses: [],
+          limit: 10_000,
+        };
+        const [legacy, rewritten] = await Promise.all([
+          legacyDominatedPairs(database, input),
+          selectDominatedPairs(database, input),
+        ]);
+        expect(legacy).toEqual([]);
+        expect(rewritten).toEqual([]);
+      });
+
+      it("uses the greater id to break equal-start tie dominators", async () => {
+        const input = {
+          bronId: tieFixture.bronId,
+          eligibleRunStatuses: ["succeeded"],
+          limit: 10,
+        };
+        const [legacy, rewritten] = await Promise.all([
+          legacyDominatedPairs(database, input),
+          selectDominatedPairs(database, input),
+        ]);
+        // Lowercase uuid strings sort like Postgres uuid ordering.
+        const [greaterSiblingId] = tieFixture.siblingIds
+          .toSorted()
+          .toReversed();
+        expect(rewritten).toHaveLength(1);
+        expect(rewritten[0]?.id).toBe(tieFixture.dominatedId);
+        expect(rewritten[0]?.dominatorId).toBe(greaterSiblingId);
+        expect(legacy).toHaveLength(1);
+        const [legacyPair] = legacy;
+        if (!legacyPair) {
+          throw new Error("expected a legacy dominated pair");
+        }
+        expect(tieFixture.siblingIds).toContain(legacyPair.dominatorId);
       });
     }
   );
