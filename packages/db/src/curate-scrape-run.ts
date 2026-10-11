@@ -14,13 +14,11 @@ import {
   count,
   desc,
   eq,
-  gt,
   inArray,
   min,
   notInArray,
   sql,
 } from "drizzle-orm";
-import { alias } from "drizzle-orm/pg-core";
 import { z } from "zod";
 
 import { compareSourcePointerOrder } from "./bron-runtime";
@@ -749,90 +747,142 @@ export const resolveDominatedPairs = async (input: {
   return { appliedDominatedIds, willApplyDominatedBy };
 };
 
+const sqlList = (values: readonly string[]) =>
+  sql.join(
+    values.map((value) => sql`${value}`),
+    sql`, `
+  );
+
+/**
+ * One pair per dominated row: its best dominator (an applied one first, else
+ * the newest), for the first `limit` dominated rows in id order.
+ *
+ * A chain of N same-hash re-observations used to be self-joined into ~N²/2
+ * pairs (payload included) and sorted for `DISTINCT ON` before the LIMIT
+ * applied. On prod (~2M observations) the planner also misestimates the
+ * candidate set as one row after the correlated `aanvraag.content_hash` join
+ * and nested-loops a scrape_run seq scan per pair: ~25 s per sweep, and
+ * 90-240 s per bron on the synthetic reproduction
+ * (docs/evidence/dominated-sweep).
+ *
+ * Shape that stays fast regardless of that estimate:
+ * - `candidate` lists the dominated rows in id order. `OFFSET 0` keeps it an
+ *   un-flattened subquery whose order the outer `ORDER BY ... LIMIT` reuses,
+ *   so the lateral below runs only until `limit` pairs are found;
+ * - the lateral picks one dominator per candidate with the old ordering
+ *   (applied first, newest run first). `d.id DESC` only breaks ties between
+ *   siblings whose runs started at the same instant, which the old query left
+ *   unspecified.
+ * The joins match the old ones 1:1 (scrape_run and source_record by primary
+ * key, aanvraag by its unique (bron_id, bron_referentie)), so no row repeats
+ * and DISTINCT ON is no longer needed.
+ */
+export const selectDominatedPairs = async (
+  database: BronRuntimeDatabase,
+  input: {
+    bronId: string;
+    eligibleRunStatuses: readonly string[];
+    limit: number;
+    scrapeRunId?: string;
+  }
+): Promise<DominatedPair[]> => {
+  // Match drizzle's empty inArray behavior and avoid generating IN ().
+  if (input.eligibleRunStatuses.length === 0) {
+    return [];
+  }
+  const rows = await database.execute<{
+    dominatorBronId: string;
+    dominatorBronReferentie: string;
+    dominatorContentHash: string;
+    dominatorId: string;
+    dominatorPayload: unknown;
+    dominatorRunBronId: string;
+    dominatorScrapeRunId: string;
+    dominatorSourceRecordBronId: string;
+    dominatorSourceRecordId: string;
+    dominatorStatus: string;
+    id: string;
+  }>(sql`
+    SELECT
+      candidate.id AS "id",
+      dominator.id AS "dominatorId",
+      dominator.bron_id AS "dominatorBronId",
+      candidate.bron_referentie AS "dominatorBronReferentie",
+      dominator.content_hash AS "dominatorContentHash",
+      dominator.payload AS "dominatorPayload",
+      dominator.run_bron_id AS "dominatorRunBronId",
+      dominator.scrape_run_id AS "dominatorScrapeRunId",
+      candidate.source_record_bron_id AS "dominatorSourceRecordBronId",
+      dominator.source_record_id AS "dominatorSourceRecordId",
+      dominator.status AS "dominatorStatus"
+    FROM (
+      SELECT
+        o.id,
+        o.bron_id,
+        o.source_record_id,
+        o.content_hash,
+        r.gestart,
+        s.bron_referentie,
+        s.bron_id AS source_record_bron_id
+      FROM staging.aanvraag_observation o
+      JOIN curated.scrape_run r
+        ON r.id = o.scrape_run_id
+       AND r.status IN (${sqlList(input.eligibleRunStatuses)})
+      JOIN staging.source_record s ON s.id = o.source_record_id
+      JOIN curated.aanvraag a
+        ON a.bron_id = o.bron_id
+       AND a.bron_referentie = s.bron_referentie
+       AND a.content_hash = o.content_hash
+       AND a.status = 'active'
+      WHERE o.bron_id = ${input.bronId}
+        AND o.outcome = 'unchanged'
+        AND o.status IN (${sqlList(RECOVERABLE_STATUSES)})
+        ${input.scrapeRunId === undefined ? sql`` : sql`AND o.scrape_run_id = ${input.scrapeRunId}`}
+      ORDER BY o.id
+      OFFSET 0
+    ) candidate
+    CROSS JOIN LATERAL (
+      SELECT
+        d.id,
+        d.bron_id,
+        d.content_hash,
+        d.payload,
+        d.scrape_run_id,
+        d.source_record_id,
+        d.status,
+        dr.bron_id AS run_bron_id
+      FROM staging.aanvraag_observation d
+      JOIN curated.scrape_run dr
+        ON dr.id = d.scrape_run_id
+       AND dr.status = 'succeeded'
+       AND dr.gestart > candidate.gestart
+      WHERE d.bron_id = candidate.bron_id
+        AND d.source_record_id = candidate.source_record_id
+        AND d.content_hash = candidate.content_hash
+        AND d.status IN (${sqlList(DOMINATING_STATUSES)})
+      ORDER BY
+        d.status IN (${sqlList([...APPLIED_STATUSES])}) DESC,
+        dr.gestart DESC,
+        d.id DESC
+      LIMIT 1
+    ) dominator
+    ORDER BY candidate.id
+    LIMIT ${input.limit}
+  `);
+  return [...rows];
+};
+
 const markDominatedUnchangedObservations = async (
   input: CurateScrapeRunInput
 ): Promise<{ marked: number; suppressedBy: Map<string, Set<string>> }> => {
-  const dominatingObservation = alias(
-    aanvraagObservation,
-    "dominating_observation"
-  );
-  const dominatingRun = alias(scrapeRun, "dominating_run");
-  // One pair per dominated row: its best dominator (an applied one first, else
-  // the newest). A chain of N same-hash re-observations used to yield ~N²/2
-  // pairs, so the 5000-pair sweep covered only a handful of rows per pass.
-  // Now it covers 5000 rows, and their dominators collapse to the chain head,
+  // Covering 5000 rows per pass, their dominators collapse to the chain head,
   // which costs one raw check per identity instead of one per pair.
-  const dominatedPairs = await input.database
-    .selectDistinctOn([aanvraagObservation.id], {
-      dominatorBronId: dominatingObservation.bronId,
-      dominatorBronReferentie: sourceRecord.bronReferentie,
-      dominatorContentHash: dominatingObservation.contentHash,
-      dominatorId: dominatingObservation.id,
-      dominatorPayload: dominatingObservation.payload,
-      dominatorRunBronId: dominatingRun.bronId,
-      dominatorScrapeRunId: dominatingObservation.scrapeRunId,
-      dominatorSourceRecordBronId: sourceRecord.bronId,
-      dominatorSourceRecordId: dominatingObservation.sourceRecordId,
-      dominatorStatus: dominatingObservation.status,
-      id: aanvraagObservation.id,
-    })
-    .from(aanvraagObservation)
-    .innerJoin(
-      scrapeRun,
-      and(
-        eq(scrapeRun.id, aanvraagObservation.scrapeRunId),
-        inArray(scrapeRun.status, eligibleRunStatuses(input))
-      )
-    )
-    .innerJoin(
-      sourceRecord,
-      eq(sourceRecord.id, aanvraagObservation.sourceRecordId)
-    )
-    .innerJoin(
-      aanvraag,
-      and(
-        eq(aanvraag.bronId, aanvraagObservation.bronId),
-        eq(aanvraag.bronReferentie, sourceRecord.bronReferentie),
-        eq(aanvraag.contentHash, aanvraagObservation.contentHash),
-        eq(aanvraag.status, "active")
-      )
-    )
-    .innerJoin(
-      dominatingObservation,
-      and(
-        eq(dominatingObservation.bronId, aanvraagObservation.bronId),
-        eq(
-          dominatingObservation.sourceRecordId,
-          aanvraagObservation.sourceRecordId
-        ),
-        eq(dominatingObservation.contentHash, aanvraagObservation.contentHash),
-        inArray(dominatingObservation.status, [...DOMINATING_STATUSES])
-      )
-    )
-    .innerJoin(
-      dominatingRun,
-      and(
-        eq(dominatingRun.id, dominatingObservation.scrapeRunId),
-        eq(dominatingRun.status, "succeeded"),
-        gt(dominatingRun.gestart, scrapeRun.gestart)
-      )
-    )
-    .where(
-      and(
-        eq(aanvraagObservation.bronId, input.bronId),
-        eq(aanvraagObservation.outcome, "unchanged"),
-        inArray(aanvraagObservation.status, [...RECOVERABLE_STATUSES]),
-        input.scopeToRun
-          ? eq(aanvraagObservation.scrapeRunId, input.scrapeRunId)
-          : undefined
-      )
-    )
-    .orderBy(
-      aanvraagObservation.id,
-      desc(inArray(dominatingObservation.status, [...APPLIED_STATUSES])),
-      desc(dominatingRun.gestart)
-    )
-    .limit(DOMINATED_SWEEP_LIMIT);
+  const dominatedPairs = await selectDominatedPairs(input.database, {
+    bronId: input.bronId,
+    eligibleRunStatuses: eligibleRunStatuses(input),
+    limit: DOMINATED_SWEEP_LIMIT,
+    scrapeRunId: input.scopeToRun ? input.scrapeRunId : undefined,
+  });
   const resolved = await resolveDominatedPairs({
     objectStore: input.objectStore,
     pairs: dominatedPairs,
