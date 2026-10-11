@@ -42,7 +42,7 @@ fi
 if (( e2e_status != 0 )); then
   exit "$e2e_status"
 fi
-if [[ "$visual_mode" == "enforce" ]]; then
-  exit "$compare_status"
-fi
-exit 0
+# visual-compare only returns nonzero for diffs in enforce mode; in report and
+# update mode a nonzero status means the compare itself broke (unwritable
+# baseline dir, missing artifact, malformed report), so always propagate it.
+exit "$compare_status"
