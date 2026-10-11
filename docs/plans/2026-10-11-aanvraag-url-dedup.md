@@ -1,11 +1,12 @@
 # URL dedup, mark only (follow-up to the unique-key PR)
 
-Status: draft PR, **stacked on #483** (base branch `feat/aanvraag-unique-key-supersede`). It needs migration 0033 (`superseded_*` columns + `curated.aanvraag_dup_archive`) and reuses that mark/archive pattern. Retarget to `main` once #483 is merged. Nothing has run in production.
+Status: draft PR against `main`. #483 (d335981: migration 0033 `superseded_*` columns + `curated.aanvraag_dup_archive`) and #489 (cc3524b) are merged and **deployed live**. This PR reuses the #483 mark/archive pattern. Nothing from this PR has run in production.
 
-> **Order: deploy #489 first, then apply this.** #489 makes every read path skip superseded rows. Its
-> loader never re-adds a superseded row to the search index, detail resolves to the kept row, and
-> enrichment and overlap stats ignore superseded rows. Without #489, marked rows would stay visible
-> in list/detail/exports and could be re-indexed.
+> **Order: #489 first, then apply this. #489 is already deployed live (cc3524b), so this precondition
+> is met.** #489 makes every read path skip superseded rows. Its loader never re-adds a superseded row
+> to the search index, detail resolves to the kept row, and enrichment and overlap stats ignore
+> superseded rows. Without #489, marked rows would stay visible in list/detail/exports and could be
+> re-indexed. Re-check that the live image is still at or after cc3524b before applying.
 
 ## Why
 The prod dup analysis (2026-10-11, sections 10–11) found live rows of one bron that share a posting URL but carry a different `bron_referentie`. The normalized-key index from #483 cannot catch these.
@@ -38,6 +39,7 @@ The prod dup analysis (2026-10-11, sections 10–11) found live rows of one bron
 ## Prod operator plan (not run; each write step needs Ryan's GO)
 1. **Precondition:** #483 is deployed (0033/0034 applied, its mark step done) **and #489 is deployed**
    (server, projector and worker), so the read paths skip superseded rows before anything is marked.
+   Status 2026-10-11: #489 is live (cc3524b); confirm the running image is still at or after cc3524b.
 2. **Dry run** (read-only, ji_readonly):
    `psql "<readonly url>" -X -v ON_ERROR_STOP=1 -f tools/postgres/url-dedup/url-dedup.sql`
    - Expect about 123 Opdrachtoverheid + 121 MI Public = **~244 rows**, 0 for every other bron.

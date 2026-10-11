@@ -28,7 +28,7 @@
 --   -> oldest eerste_gezien_op -> lowest id.
 -- Expected on prod (dup report 2026-10-11): ~123 Opdrachtoverheid + ~121 MI Public = ~244 rows.
 -- Search: every marked row gets one `aanvraag.verwijderd` outbox event in the same statement, so the
--- projector removes it from Manticore. Deploy #489 (read paths skip superseded rows) BEFORE applying.
+-- projector removes it from Manticore. #489 (read paths skip superseded rows) must be live BEFORE applying; it is (cc3524b, 2026-10-11).
 -- Rollback: 90-rollback.sql (unmarks from the archive, reason 'dup-url-v1', re-projects the rows).
 \set ON_ERROR_STOP on
 \if :{?apply}
