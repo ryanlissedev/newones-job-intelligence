@@ -2,7 +2,6 @@ import path from "node:path";
 
 import { config as loadEnv } from "dotenv";
 
-import { runEnrichIncomplete } from "../src/enrich-incomplete-run";
 import type { EnrichIncompleteResult } from "../src/enrich-incomplete-run";
 import { enrichOneshotPayloadFromEnv } from "../src/oneshot-enrich-incomplete";
 import type { EnrichOneshotPayload } from "../src/oneshot-enrich-incomplete";
@@ -10,6 +9,10 @@ import type { EnrichOneshotPayload } from "../src/oneshot-enrich-incomplete";
 // Same env loading as oneshot-slice-a-polls.ts: a host checkout reads the
 // local .env files; inside the poller container they are absent and the
 // Coolify application env (internal DATABASE_URL) applies.
+// The run body is imported only after this (see main): its graph reaches
+// @ji/db, whose root module validates DATABASE_URL at load, and the implicit
+// `dotenv/config` preload must stay quiet so stdout is pure JSON lines.
+process.env.DOTENV_CONFIG_QUIET ??= "true";
 const repoRoot = path.resolve(import.meta.dirname, "../../..");
 loadEnv({ path: path.join(repoRoot, "apps/server/.env"), quiet: true });
 loadEnv({
@@ -47,7 +50,10 @@ const main = async (): Promise<void> => {
   }
   log({ payload, startedAt, status: "starting" });
   try {
-    // Same function the Trigger task `enrich-incomplete` runs.
+    // Same function the Trigger task `enrich-incomplete` runs, loaded after
+    // the env files so DATABASE_URL from them is visible at module init.
+    const { runEnrichIncomplete } =
+      await import("../src/enrich-incomplete-run");
     const result = await runEnrichIncomplete(payload);
     log({
       finishedAt: new Date().toISOString(),

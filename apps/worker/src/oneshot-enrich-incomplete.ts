@@ -10,7 +10,7 @@
  * | `ENRICH_BATCH_SIZE` | batchSize | 25 (1..500) |
  * | `ENRICH_ENABLE_LLM_RESIDUAL` | enableLlmResidual | false |
  * | `ENRICH_APPLY_STORED_PROPOSALS` | applyStoredProposals | false |
- * | `ENRICHMENT_DURABLE` (existing) | durable | off; only used when dryRun is false |
+ * | `ENRICHMENT_DURABLE` (existing) | durable | false; only used when dryRun is false |
  *
  * Any malformed value fails closed: the run never starts on a typo.
  */
@@ -64,9 +64,10 @@ const readBatchSize = (env: EnrichOneshotEnv): number => {
   return Number(raw);
 };
 
-export type EnrichOneshotPayload = Required<
-  Omit<EnrichIncompletePayload, "durable">
->;
+// `durable` is always explicit: left undefined, runEnrichIncomplete would fall
+// back to `ENRICHMENT_DURABLE === "1"` and silently take the inline writer for
+// "true"/"yes" or a typo instead of the durable queue or a config error.
+export type EnrichOneshotPayload = Required<EnrichIncompletePayload>;
 
 /** Builds the enrich-incomplete payload from env; every field is explicit so the run log shows the effective config. */
 export const enrichOneshotPayloadFromEnv = (
@@ -80,6 +81,7 @@ export const enrichOneshotPayloadFromEnv = (
     ),
     batchSize: readBatchSize(env),
     dryRun: readBoolean(env, "ENRICH_DRY_RUN", enrichIncompleteDefaults.dryRun),
+    durable: readBoolean(env, "ENRICHMENT_DURABLE", false),
     enableLlmResidual: readBoolean(
       env,
       "ENRICH_ENABLE_LLM_RESIDUAL",

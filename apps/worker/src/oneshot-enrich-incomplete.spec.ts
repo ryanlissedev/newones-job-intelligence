@@ -15,6 +15,7 @@ describe("enrich oneshot env payload", () => {
       applyStoredProposals: false,
       batchSize: 25,
       dryRun: true,
+      durable: false,
       enableLlmResidual: false,
     });
   });
@@ -31,6 +32,7 @@ describe("enrich oneshot env payload", () => {
   it("reads explicit overrides", () => {
     expect(
       enrichOneshotPayloadFromEnv({
+        ENRICHMENT_DURABLE: "yes",
         ENRICH_APPLY_STORED_PROPOSALS: "1",
         ENRICH_BATCH_SIZE: "50",
         ENRICH_DRY_RUN: "FALSE",
@@ -40,6 +42,7 @@ describe("enrich oneshot env payload", () => {
       applyStoredProposals: true,
       batchSize: 50,
       dryRun: false,
+      durable: true,
       enableLlmResidual: false,
     });
   });
@@ -47,6 +50,9 @@ describe("enrich oneshot env payload", () => {
   it("fails closed on a typo instead of guessing", () => {
     expect(() =>
       enrichOneshotPayloadFromEnv({ ENRICH_DRY_RUN: "flase" })
+    ).toThrow(EnrichOneshotConfigError);
+    expect(() =>
+      enrichOneshotPayloadFromEnv({ ENRICHMENT_DURABLE: "ture" })
     ).toThrow(EnrichOneshotConfigError);
     expect(() =>
       enrichOneshotPayloadFromEnv({ ENRICH_BATCH_SIZE: "25abc" })
@@ -76,8 +82,9 @@ describe("enrich oneshot wiring", () => {
     expect(taskSource).toContain(
       "run: (payload) => runEnrichIncomplete(payload)"
     );
+    expect(scriptSource).toContain("{ runEnrichIncomplete }");
     expect(scriptSource).toContain(
-      'import { runEnrichIncomplete } from "../src/enrich-incomplete-run";'
+      'await import("../src/enrich-incomplete-run")'
     );
     // The oneshot must stay runnable in the poller image without the Trigger SDK.
     const runSource = readFileSync(
@@ -95,6 +102,8 @@ describe("enrich oneshot wiring", () => {
       env: {
         ...process.env,
         DATABASE_URL: "postgresql://nobody@127.0.0.1:1/never",
+        // A clean Coolify env: the script itself must keep dotenv quiet.
+        DOTENV_CONFIG_QUIET: undefined,
         ENRICH_DRY_RUN: "maybe",
       },
     });
