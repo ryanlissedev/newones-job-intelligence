@@ -246,13 +246,6 @@
       "when": 1790812800000,
       "tag": "0034_aanvraag_live_key_uidx",
       "breakpoints": true
-    },
-    {
-      "idx": 35,
-      "version": "7",
-      "when": 1790899200000,
-      "tag": "0035_aanvraag_observation_source_record_hash_idx",
-      "breakpoints": true
     }
   ]
 }

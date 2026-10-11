@@ -1,4 +1,4 @@
-# Evidence: dominated-unchanged sweep rewrite + migration 0035
+# Evidence: dominated-unchanged sweep rewrite
 
 Branch `perf/dominated-sweep-lateral`, based on main `d335981`. Ran 2026-10-11 on a throwaway local
 cluster (Postgres 17.11, shared_buffers 1 GB, work_mem 16 MB). No prod access.
@@ -94,22 +94,9 @@ aanvraag rows, and applied and not-yet-applied dominators. A mutation (applied o
 `curation-history-recovery.spec.ts`, `apps/worker/src/curation-recovery.spec.ts` and
 `tools/backfill/*` (249 tests) pass unchanged.
 
-## Migration 0035 and the prod operator step
+## Optional index 0035 (separate PR)
 
-`0035_aanvraag_observation_source_record_hash_idx`:
-`CREATE INDEX IF NOT EXISTS aanvraag_observation_source_record_hash_idx ON staging.aanvraag_observation (source_record_id, content_hash)`.
-The index is 16 MB on 2M rows (btree deduplication). The pre-step built it in 1.7 s locally. It makes the per-row
-sibling probe read only the same-content chain, not the record's whole history. That gains 5-7% here and more for
-records with many content versions. **The rewrite carries the fix. The index is a secondary gain.**
-
-drizzle-kit applies pending migrations in one transaction, so `CONCURRENTLY` can't be used there. A plain build
-would hold SHARE on the table and block observation writes. Same pattern as 0031:
-
-1. Before deploy, as the migrator role, in psql autocommit:
-   `psql "$MIGRATION_DATABASE_URL" -X -v ON_ERROR_STOP=1 -f tools/postgres/indexes/0035-aanvraag-observation-source-record-hash-concurrently.sql`
-   (`lock_timeout = '5s'`, `statement_timeout = 0`, `CREATE INDEX CONCURRENTLY IF NOT EXISTS`, then an
-   invalid-index check that must return 0 rows. If it is INVALID: `DROP INDEX CONCURRENTLY` and re-run.)
-2. Deploy. 0035 is then a no-op. Verified locally: `relation "aanvraag_observation_source_record_hash_idx" already exists, skipping`.
-3. Rollback: `DROP INDEX CONCURRENTLY IF EXISTS "staging"."aanvraag_observation_source_record_hash_idx";`
-   The code does not depend on the index. Once 0035 is recorded, revert the release instead (readiness
-   compares the newest recorded migration with the journal).
+The sibling-probe index `aanvraag_observation_source_record_hash_idx` (migration 0035, its `CONCURRENTLY`
+pre-build script and operator plan) moved to its own draft PR, so this PR is the query rewrite only and adds
+no migration. The "with 0035 index" column above was measured with that index built; the rewrite alone
+(the "without" column) already carries the fix. **The rewrite carries the fix. The index is a secondary gain.**
