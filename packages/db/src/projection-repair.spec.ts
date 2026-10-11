@@ -611,8 +611,23 @@ describe("reconcileProjection (RJC-399 repair tool)", () => {
           throw new Error("async progress callback failed");
         },
       });
+      // A non-native thenable (PromiseLike / cross-realm promise) must get a
+      // rejection handler attached too.
+      let thenCalls = 0;
+      const withRejectingThenable = await reconcileProjection({
+        ...base,
+        onProgress: () => ({
+          // oxlint-disable-next-line unicorn/no-thenable -- deliberately a non-native PromiseLike
+          then: (_resolve: () => void, reject: (reason: Error) => void) => {
+            thenCalls += 1;
+            reject(new Error("thenable progress callback failed"));
+          },
+        }),
+      });
       await Bun.sleep(10);
       expect(withRejectingCallback).toEqual(withoutCallback);
+      expect(withRejectingThenable).toEqual(withoutCallback);
+      expect(thenCalls).toBeGreaterThan(0);
       expect(unhandledCount).toBe(0);
     } finally {
       process.off("unhandledRejection", onUnhandled);

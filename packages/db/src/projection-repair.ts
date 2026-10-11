@@ -1009,10 +1009,11 @@ const reportProgress = (
     // A `void`-typed callback may still be async; a rejected promise must not
     // become an unhandled rejection that ends the process.
     const result: unknown = input.onProgress?.(progress);
-    if (result instanceof Promise) {
-      // oxlint-disable-next-line no-void -- best-effort, never awaited by the scan
-      void swallowProgressRejection(result);
-    }
+    // `Promise.resolve` adopts any thenable (native, PromiseLike, or a
+    // cross-realm promise) and is a no-op wrapper for sync return values, so
+    // every rejection gets a handler without `instanceof Promise` detection.
+    // oxlint-disable-next-line no-void -- best-effort, never awaited by the scan
+    void swallowProgressRejection(Promise.resolve(result));
   } catch {
     // Observability must never affect reconciliation.
   }
