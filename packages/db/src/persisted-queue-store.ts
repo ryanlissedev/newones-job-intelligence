@@ -105,11 +105,14 @@ type Statement = () => postgres.PendingQuery<postgres.Row[]>;
  * So on abort the query is cancelled (postgres.js drops it from the pool queue,
  * or sends a server-side cancel when it is already running). If the statement
  * nevertheless completed (the cancel lost the race), `onAbandoned` gets the rows
- * no caller will see, so the claim path can hand them back.
+ * no caller will see, so the claim path can hand them back. Otherwise
+ * `onDelivered` sees them first, so an interrupt that lands after the result
+ * but before the caller registers its ack can still hand them back.
  */
 const runCancellable = <Row extends postgres.Row>(
   evaluate: () => postgres.PendingQuery<Row[]>,
-  onAbandoned?: (rows: readonly Row[]) => void
+  onAbandoned?: (rows: readonly Row[]) => void,
+  onDelivered?: (rows: readonly Row[]) => void
 ): Effect.Effect<readonly Row[], PersistedQueueError> =>
   Effect.tryPromise({
     catch: (cause) =>
@@ -125,8 +128,12 @@ const runCancellable = <Row extends postgres.Row>(
       signal.addEventListener("abort", cancel, { once: true });
       try {
         const rows = await query;
+        // Exactly one of the two hooks sees a completed result: abandoned when
+        // the taker was already interrupted, delivered otherwise.
         if (signal.aborted) {
           onAbandoned?.(rows);
+        } else {
+          onDelivered?.(rows);
         }
         return rows;
       } finally {
@@ -145,9 +152,10 @@ const runStatement = (
 
 const runRows = <Row extends postgres.Row>(
   evaluate: () => postgres.PendingQuery<Row[]>,
-  onAbandoned?: (rows: readonly Row[]) => void
+  onAbandoned?: (rows: readonly Row[]) => void,
+  onDelivered?: (rows: readonly Row[]) => void
 ): Effect.Effect<readonly Row[], PersistedQueueError> =>
-  runCancellable(evaluate, onAbandoned);
+  runCancellable(evaluate, onAbandoned, onDelivered);
 
 /** A claim failure (DB outage) is a wait, not a lost job — log and poll again.
  * An interrupt is neither: it must end the take so shutdown can finish. */
@@ -314,7 +322,8 @@ export const makePostgresPersistedQueueStore = (
 
     const claimNext = Effect.fnUntraced(function* claimNext(
       name: string,
-      maxAttempts: number
+      maxAttempts: number,
+      onClaimed: (row: ClaimedElement) => void
     ) {
       while (true) {
         const rows = yield* runRows<ClaimedElement>(
@@ -337,7 +346,13 @@ export const makePostgresPersistedQueueStore = (
           SELECT sequence, id, queue_name, element, attempts FROM cte
           ORDER BY updated_at ASC, sequence ASC
         `,
-          releaseAbandonedClaims
+          releaseAbandonedClaims,
+          (claimed) => {
+            const [row] = claimed;
+            if (row !== undefined) {
+              onClaimed(row);
+            }
+          }
         ).pipe(Effect.catchCause(recoverClaimFailure));
         const [claimed] = rows;
         if (claimed !== undefined) {
@@ -380,8 +395,21 @@ export const makePostgresPersistedQueueStore = (
           )
         ),
       take: ({ maxAttempts, name }) =>
-        Effect.uninterruptibleMask((restore) =>
-          restore(claimNext(name, maxAttempts)).pipe(
+        Effect.uninterruptibleMask((restore) => {
+          // The row the DB handed this take, before its ack finalizer exists.
+          // An interrupt in that window releases it instead of stranding the
+          // lease until lockExpiration.
+          let received: ClaimedElement | undefined;
+          return restore(
+            claimNext(name, maxAttempts, (row) => {
+              received = row;
+            })
+          ).pipe(
+            Effect.onInterrupt(() =>
+              received === undefined
+                ? Effect.void
+                : interrupt(received.sequence)
+            ),
             Effect.tap((element) => {
               activeSequences.add(element.sequence);
               return Effect.addFinalizer(
@@ -405,8 +433,8 @@ export const makePostgresPersistedQueueStore = (
               element: element.element,
               id: element.id,
             }))
-          )
-        ),
+          );
+        }),
     };
     return service;
   });
