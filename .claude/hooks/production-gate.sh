@@ -324,10 +324,12 @@ log_decision() {
   printf '%s\t%s\t%s\t%s\t%s\n' "$timestamp" "$decision" "$category" "$approval_detail" "$command_for_log" >> "$log_path" 2>/dev/null || true
 }
 
+# Record the first log-only category but keep scanning: a later segment may still be
+# destructive (e.g. `curl …/deploy; curl -X DELETE …`). The LOGGED line is written at the end.
+PENDING_LOG_CATEGORY=""
 log_action() {
-  local category=$1
-  log_decision LOGGED "$category" "-"
-  exit 0
+  [[ -n $PENDING_LOG_CATEGORY ]] || PENDING_LOG_CATEGORY=$1
+  return 0
 }
 
 approval_from_file() {
@@ -962,5 +964,7 @@ while IFS= read -r segment || [[ -n $segment ]]; do
   if [[ $lower_segment =~ gh[[:space:]]+api ]] && [[ $lower_segment =~ -x[[:space:]=]*delete|--method[=[:space:]]*delete ]] && [[ $lower_segment =~ repos/[^/[:space:]]+/[^/[:space:]?]+([[:space:]]|$) ]]; then block_or_allow gh-repo-delete "The command would delete a GitHub repository through the API."; fi
 done < <(split_segments)
 
-
+if [[ -n $PENDING_LOG_CATEGORY ]]; then
+  log_decision LOGGED "$PENDING_LOG_CATEGORY" "-"
+fi
 exit 0

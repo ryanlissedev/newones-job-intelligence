@@ -89,6 +89,26 @@ it("runs the gate for write and edit hooks", () => {
 
 const cases: GateCase[] = [
   {
+    category: "coolify-delete",
+    command:
+      "curl https://x/api/v1/deploy?uuid=a; curl -X DELETE https://x/api/v1/applications/a",
+    decision: "block",
+    name: "logged deploy followed by Coolify DELETE still blocks",
+  },
+  {
+    category: "force-push-main",
+    command:
+      "ssh catapulze-prod docker restart ji-server && git push --force origin main",
+    decision: "block",
+    name: "logged restart followed by force push to main still blocks",
+  },
+  {
+    category: "gh-repo-delete",
+    command: "./rollback.sh abc; gh repo delete acme/old --yes",
+    decision: "block",
+    name: "logged rollback followed by repo delete still blocks",
+  },
+  {
     category: "production-script",
     command: "./rollback.sh",
     decision: "log",
