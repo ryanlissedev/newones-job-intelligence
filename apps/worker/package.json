@@ -8,6 +8,7 @@
     "dev": "PATH=\"./node_modules/.bin:$PATH\" bunx trigger.dev@4.5.13 dev",
     "deploy": "PATH=\"./node_modules/.bin:$PATH\" bunx trigger.dev@4.5.13 deploy",
     "bron:seed-reconcile": "bun scripts/bron-seed-reconcile.ts",
+    "enrich:oneshot": "bun scripts/oneshot-enrich-incomplete.ts",
     "poller": "bun src/poller/main.ts"
   },
   "dependencies": {
