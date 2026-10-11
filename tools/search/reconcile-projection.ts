@@ -22,6 +22,7 @@ import {
   reconcileProjection,
 } from "@ji/db";
 import type {
+  ReconcileProjectionProgress,
   SearchProjectionInventoryPort,
   SearchProjectionInventoryRecord,
 } from "@ji/db";
@@ -29,13 +30,103 @@ import { partitionTable, SEARCH_INDEX_NAME } from "@ji/search";
 import type { SearchPartition } from "@ji/search";
 import { z } from "zod";
 
-import { hasProjectionDrift } from "./reconcile-projection-status";
+import {
+  formatReconcileInterruptionCommitment,
+  hasProjectionDrift,
+  nextReconcileProgressStatus,
+} from "./reconcile-projection-status";
 import { formatReconcileProjectionSummary } from "./reconcile-projection-summary";
 
 const apply = process.argv.includes("--apply");
 const failOnDrift = process.argv.includes("--fail-on-drift");
 const projectorQuiesced = process.argv.includes("--projector-quiesced");
 const MANTICORE_TIMEOUT_MS = 10_000;
+const SIGNAL_EXIT_CODES = {
+  SIGHUP: 1,
+  SIGINT: 2,
+  SIGTERM: 15,
+} as const;
+
+let latestProgressLine: string | undefined;
+let latestApplyProgress:
+  | Pick<
+      ReconcileProjectionProgress,
+      | "sourceCursor"
+      | "stage"
+      | "inventoryPartition"
+      | "manticoreChecked"
+      | "physicalCleanupCount"
+    >
+  | undefined;
+let progressThrottleState = {
+  sourcePages: 0,
+  sourcePagesSinceLastPrint: 0,
+};
+let interrupted = false;
+
+const closeDbWithTimeout = async (): Promise<void> => {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  // oxlint-disable-next-line promise/avoid-new -- the close timeout needs a local promise for Promise.race.
+  const timeout = new Promise<void>((resolve) => {
+    timer = setTimeout(resolve, 2000);
+  });
+  try {
+    await Promise.race([closeDb().catch(() => "close failed"), timeout]);
+  } finally {
+    if (timer !== undefined) {
+      clearTimeout(timer);
+    }
+  }
+};
+
+const onSignal = (signal: string): void => {
+  if (interrupted) {
+    return;
+  }
+  interrupted = true;
+  const signalExitCode = Object.entries(SIGNAL_EXIT_CODES).find(
+    ([name]) => name === signal
+  )?.[1];
+  if (signalExitCode === undefined) {
+    return;
+  }
+  const exitCode = 128 + signalExitCode;
+  process.exitCode = exitCode;
+  const interruptionCommitment = formatReconcileInterruptionCommitment({
+    apply,
+    latestApplyProgress,
+  });
+  process.stderr.write(
+    `[reconcile] INTERRUPTED by ${signal}: ${latestProgressLine ?? "no progress yet"}; ` +
+      `${interruptionCommitment} Rerun the dry run, then apply.\n`
+  );
+  void (async () => {
+    await closeDbWithTimeout();
+    process.exit(exitCode);
+  })();
+};
+
+for (const signal of ["SIGHUP", "SIGINT", "SIGTERM"] as const) {
+  process.once(signal, onSignal);
+}
+
+const reportProgress = (progress: ReconcileProjectionProgress): void => {
+  if (progress.phase === "apply") {
+    latestApplyProgress = {
+      inventoryPartition: progress.inventoryPartition,
+      manticoreChecked: progress.manticoreChecked,
+      physicalCleanupCount: progress.physicalCleanupCount,
+      sourceCursor: progress.sourceCursor,
+      stage: progress.stage,
+    };
+  }
+  const status = nextReconcileProgressStatus(progress, progressThrottleState);
+  progressThrottleState = status.state;
+  latestProgressLine = status.line;
+  if (status.shouldPrint) {
+    process.stderr.write(`${status.line}\n`);
+  }
+};
 
 const manticoreIntegerSchema = z.union([
   z.number().int().nonnegative().safe(),
@@ -248,6 +339,7 @@ try {
     database: db,
     inventory: new ManticoreInventory(manticoreUrl.data),
     loader: new PostgresSearchDocumentLoader(db),
+    onProgress: reportProgress,
     versionStore: new PostgresSearchVersionStore(db),
   });
   console.log(formatReconcileProjectionSummary({ ...result, apply }));
@@ -290,16 +382,30 @@ try {
     process.exitCode = 1;
   }
 } catch (error) {
-  if (
-    error instanceof ProjectionRepairSchemaMismatchError ||
-    error instanceof ProjectionRepairGenerationChangedError ||
-    error instanceof ProjectionRepairInventorySafetyError
-  ) {
-    console.error(error.message);
-    process.exitCode = 1;
-  } else {
-    throw error;
+  if (!interrupted) {
+    process.stderr.write(
+      `[reconcile] FAILED after: ${latestProgressLine ?? "no progress yet"}; ` +
+        `${formatReconcileInterruptionCommitment({
+          apply,
+          latestApplyProgress,
+        })}\n`
+    );
+    if (
+      error instanceof ProjectionRepairSchemaMismatchError ||
+      error instanceof ProjectionRepairGenerationChangedError ||
+      error instanceof ProjectionRepairInventorySafetyError
+    ) {
+      console.error(error.message);
+      process.exitCode = 1;
+    } else {
+      throw error;
+    }
   }
 } finally {
-  await closeDb();
+  process.removeListener("SIGHUP", onSignal);
+  process.removeListener("SIGINT", onSignal);
+  process.removeListener("SIGTERM", onSignal);
+  // After a signal the handler owns the exit code (128+n); a close failure
+  // must not turn that into an uncaught rejection (exit 1).
+  await (interrupted ? closeDb().catch(() => null) : closeDb());
 }

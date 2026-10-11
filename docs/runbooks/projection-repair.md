@@ -138,6 +138,12 @@ convergence evidence. A second `--apply` before the repair events drain is
 idempotent: the pending events cover the same aggregates and already-deleted
 physical ids no longer appear.
 
+Apply prints progress to stderr. Capture both streams and the exit code with
+`2>&1` and `; echo rc=$?`; do not run it under a client-side timeout. If it is
+interrupted, the last apply-phase `cursor=` line bounds the committed prefix, and
+rerunning is safe because repair is idempotent and pending aggregates are
+skipped.
+
 ## What it refuses
 
 The command exits without scanning when the checkpoint schema hash differs

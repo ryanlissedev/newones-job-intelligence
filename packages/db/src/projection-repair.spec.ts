@@ -25,6 +25,7 @@ import {
   reconcileProjection,
 } from "./projection-repair";
 import type {
+  ReconcileProjectionProgress,
   SearchProjectionInventoryPort,
   SearchProjectionInventoryRecord,
 } from "./projection-repair";
@@ -522,6 +523,117 @@ describe("reconcileProjection (RJC-399 repair tool)", () => {
     ).toHaveLength(1);
   });
 
+  it("reports committed source-page progress for preflight and apply", async () => {
+    if (!available || !database) {
+      expect(available).toBe(false);
+      return;
+    }
+    const db = requireDatabase();
+    const aggregateIds = await Promise.all([
+      seedAanvraag(db),
+      seedAanvraag(db),
+      seedAanvraag(db),
+    ]);
+    const { indexName, store } = await isolatedVersionStore(db);
+    const progress: ReconcileProjectionProgress[] = [];
+    const result = await reconcileProjection({
+      apply: true,
+      database: db,
+      indexName,
+      inventory: new FakeManticoreInventory({ active: [], archive: [] }),
+      loader: new PostgresSearchDocumentLoader(db),
+      onProgress: (event) => progress.push(event),
+      pageSize: 1,
+      versionStore: store,
+    });
+
+    expect(result.checked).toBe(aggregateIds.length);
+    expect(result.applied).toBe(aggregateIds.length);
+    for (const phase of ["preflight", "apply"] as const) {
+      const sourceEvents = progress.filter(
+        (event) => event.phase === phase && event.stage === "source"
+      );
+      expect(sourceEvents).toHaveLength(aggregateIds.length);
+      let previousCursor: string | null = null;
+      for (const event of sourceEvents) {
+        expect(event.sourceCursor).not.toBeNull();
+        if (previousCursor !== null && event.sourceCursor !== null) {
+          expect(event.sourceCursor > previousCursor).toBe(true);
+        }
+        previousCursor = event.sourceCursor;
+      }
+      expect(
+        progress.filter((event) => event.phase === phase && event.done)
+      ).toHaveLength(1);
+    }
+    const lastApplySource = progress.findLast(
+      (event) => event.phase === "apply" && event.stage === "source"
+    );
+    expect(lastApplySource?.applied).toBe(result.applied);
+  });
+
+  it("ignores errors thrown by the progress callback", async () => {
+    if (!available || !database) {
+      expect(available).toBe(false);
+      return;
+    }
+    const db = requireDatabase();
+    await seedAanvraag(db);
+    const { indexName, store } = await isolatedVersionStore(db);
+    const base = {
+      apply: false,
+      database: db,
+      indexName,
+      inventory: new FakeManticoreInventory({ active: [], archive: [] }),
+      loader: new PostgresSearchDocumentLoader(db),
+      versionStore: store,
+    };
+    const withThrowingCallback = await reconcileProjection({
+      ...base,
+      onProgress: () => {
+        throw new Error("progress callback failed");
+      },
+    });
+    const withoutCallback = await reconcileProjection(base);
+
+    expect(withThrowingCallback).toEqual(withoutCallback);
+
+    let unhandledCount = 0;
+    const onUnhandled = () => {
+      unhandledCount += 1;
+    };
+    process.on("unhandledRejection", onUnhandled);
+    try {
+      const withRejectingCallback = await reconcileProjection({
+        ...base,
+        // oxlint-disable-next-line require-await -- deliberately async
+        onProgress: async () => {
+          throw new Error("async progress callback failed");
+        },
+      });
+      // A non-native thenable (PromiseLike / cross-realm promise) must get a
+      // rejection handler attached too.
+      let thenCalls = 0;
+      const withRejectingThenable = await reconcileProjection({
+        ...base,
+        onProgress: () => ({
+          // oxlint-disable-next-line unicorn/no-thenable -- deliberately a non-native PromiseLike
+          then: (_resolve: () => void, reject: (reason: Error) => void) => {
+            thenCalls += 1;
+            reject(new Error("thenable progress callback failed"));
+          },
+        }),
+      });
+      await Bun.sleep(10);
+      expect(withRejectingCallback).toEqual(withoutCallback);
+      expect(withRejectingThenable).toEqual(withoutCallback);
+      expect(thenCalls).toBeGreaterThan(0);
+      expect(unhandledCount).toBe(0);
+    } finally {
+      process.off("unhandledRejection", onUnhandled);
+    }
+  });
+
   it("reports pending, divergent-pending, dead-lettered, and oldest pending outbox health only in dry-run", async () => {
     if (!available || !database) {
       expect(available).toBe(false);
@@ -814,13 +926,38 @@ describe("reconcileProjection (RJC-399 repair tool)", () => {
       true
     );
 
+    const applyProgress: ReconcileProjectionProgress[] = [];
     const applied = await reconcileProjection({
       apply: true,
       ...base,
+      onProgress: (event) => applyProgress.push(event),
       sampleLimit: 2,
     });
     expect(applied.applied).toBe(5);
     expect(applied.physicalCleanupCount).toBe(2);
+    const inventoryProgress = applyProgress.filter(
+      (event) =>
+        event.phase === "apply" && event.stage === "inventory" && !event.done
+    );
+    expect(inventoryProgress).toHaveLength(4);
+    // Cumulative and monotonic; which page holds the corrupt rows depends on
+    // engine row order, so only the shape is asserted here.
+    const cleanupCounts = inventoryProgress.map(
+      (event) => event.physicalCleanupCount ?? -1
+    );
+    expect(cleanupCounts).toEqual(cleanupCounts.toSorted((a, b) => a - b));
+    expect(cleanupCounts.at(-1)).toBe(2);
+    expect(
+      inventoryProgress
+        .filter((event) => event.inventoryPartition === "active")
+        .map((event) => event.manticoreChecked)
+    ).toEqual([2, 4, 6]);
+    expect(
+      inventoryProgress
+        .filter((event) => event.inventoryPartition === "archive")
+        .map((event) => event.manticoreChecked)
+    ).toEqual([2]);
+    expect(inventoryProgress.at(-1)?.physicalCleanupCount).toBe(2);
     const eventRows = await db
       .select({
         aggregateId: outboxEvent.aggregateId,
