@@ -1236,7 +1236,8 @@ export const createMarkeerAanvraagHandler =
     const { auditEvent, markering } =
       await deps.stores.markeringen.setWithAudit(
         {
-          aanvraagId: input.aanvraagId,
+          // A superseded id resolves to its live row (getById); mark that one.
+          aanvraagId: exists.id,
           reden: input.reden ?? null,
           scopeId: deps.scopeId,
           status: input.status,

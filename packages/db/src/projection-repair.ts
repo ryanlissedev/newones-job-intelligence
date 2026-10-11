@@ -676,11 +676,12 @@ const applyOrphanCleanup = async (
   if (uniqueIds.length === 0) {
     return { applied: 0, skippedPending: 0 };
   }
-  // A newly written curated row wins over a stale Manticore read.
+  // A newly written curated row wins over a stale Manticore read. A
+  // superseded row (0033) counts as gone: its document must leave the index.
   const currentRows = await database
     .select({ id: aanvraag.id })
     .from(aanvraag)
-    .where(inArray(aanvraag.id, uniqueIds));
+    .where(and(inArray(aanvraag.id, uniqueIds), isNull(aanvraag.supersededBy)));
   const currentIds = new Set(currentRows.map((row) => row.id));
   const stillOrphaned = uniqueIds.filter((id) => !currentIds.has(id));
   if (stillOrphaned.length === 0) {
@@ -725,7 +726,11 @@ const selectAanvraagPage = (
   database
     .select({ id: aanvraag.id })
     .from(aanvraag)
-    .where(cursor === null ? undefined : gt(aanvraag.id, cursor))
+    .where(
+      cursor === null
+        ? isNull(aanvraag.supersededBy)
+        : and(gt(aanvraag.id, cursor), isNull(aanvraag.supersededBy))
+    )
     .orderBy(asc(aanvraag.id))
     .limit(pageSize);
 
@@ -1213,10 +1218,13 @@ const scanInventoryProjection = async (
 
       const validIds = [...new Set(canonicalRows.map((row) => row.documentId))];
       if (validIds.length > 0) {
+        // Superseded rows (0033) are not current: they repair as orphans.
         const currentRows = await options.database
           .select({ id: aanvraag.id })
           .from(aanvraag)
-          .where(inArray(aanvraag.id, validIds));
+          .where(
+            and(inArray(aanvraag.id, validIds), isNull(aanvraag.supersededBy))
+          );
         const currentIds = new Set(currentRows.map((row) => row.id));
         for (const id of validIds) {
           if (!currentIds.has(id)) {

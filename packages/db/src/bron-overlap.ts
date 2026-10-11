@@ -31,16 +31,17 @@ interface CountRow extends Record<string, unknown> {
   readonly overlap_groep_count: number;
 }
 
+// Overlap stats count live rows only: superseded duplicates (0033) are excluded everywhere.
 const GROUP_BRONNEN_CTE = sql`
   group_bronnen AS (
     SELECT a.dedup_groep_id AS groep_id, a.bron_id
     FROM curated.aanvraag a
-    WHERE a.dedup_groep_id IS NOT NULL
+    WHERE a.dedup_groep_id IS NOT NULL AND a.superseded_by IS NULL
     UNION
     SELECT a.dedup_groep_id AS groep_id, l.bron_id
     FROM curated.aanvraag_bron_link l
     INNER JOIN curated.aanvraag a ON a.id = l.aanvraag_id
-    WHERE a.dedup_groep_id IS NOT NULL
+    WHERE a.dedup_groep_id IS NOT NULL AND a.superseded_by IS NULL
   )
 `;
 
@@ -95,7 +96,7 @@ export class PostgresBronOverlapReader implements BronOverlapReader {
           CAST((
             SELECT count(*)
             FROM curated.aanvraag a
-            WHERE a.dedup_groep_id = gb.groep_id
+            WHERE a.dedup_groep_id = gb.groep_id AND a.superseded_by IS NULL
           ) AS integer) AS aanvraag_count,
           array_agg(DISTINCT gb.bron_id ORDER BY gb.bron_id) AS bron_ids,
           array_agg(DISTINCT b.naam ORDER BY b.naam) AS bron_namen
@@ -128,6 +129,7 @@ export class PostgresBronOverlapReader implements BronOverlapReader {
           a.bron_id,
           CAST(count(*) AS integer) AS total_aanvragen
         FROM curated.aanvraag a
+        WHERE a.superseded_by IS NULL
         GROUP BY a.bron_id
       ),
       overlapping AS (
@@ -136,6 +138,7 @@ export class PostgresBronOverlapReader implements BronOverlapReader {
           CAST(count(*) AS integer) AS overlapping_aanvragen
         FROM curated.aanvraag a
         INNER JOIN overlap_groepen og ON og.groep_id = a.dedup_groep_id
+        WHERE a.superseded_by IS NULL
         GROUP BY a.bron_id
       )
       SELECT

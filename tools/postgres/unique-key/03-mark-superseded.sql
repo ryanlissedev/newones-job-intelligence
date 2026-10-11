@@ -7,6 +7,8 @@
 -- Locks: ROW EXCLUSIVE on curated.aanvraag + row locks on the marked rows only; readers are not
 -- blocked. lock_timeout 5s: if a writer holds a row lock the script aborts and rolls back.
 -- Fails closed (rollback) if any normalized duplicate group remains afterwards.
+-- Search: every marked row gets an `aanvraag.verwijderd` outbox event in the same statement, so
+-- the projector removes it from Manticore (the loader never re-adds a superseded row).
 -- Rollback: 90-rollback.sql section B (restores from the archive reason tag).
 BEGIN;
 SET LOCAL lock_timeout = '5s';
@@ -44,10 +46,18 @@ WITH ranked AS (
    WHERE a.id = p.id
      AND a.superseded_by IS NULL
   RETURNING a.id
+), projected AS (
+  -- The marked row must leave the search index: same transaction, outbox last (RJC-399).
+  INSERT INTO curated.outbox_event (aggregate_id, aggregate_type, event_type, payload)
+  SELECT m.id, 'aanvraag', 'aanvraag.verwijderd',
+         jsonb_build_object('reden', 'superseded', 'superseded_reason', 'dup-key-normalized-v1')
+    FROM marked m
+  RETURNING aggregate_id
 )
 SELECT (SELECT count(*) FROM mark_plan) AS planned,
        (SELECT count(*) FROM archived) AS archived,
-       (SELECT count(*) FROM marked) AS marked;
+       (SELECT count(*) FROM marked) AS marked,
+       (SELECT count(*) FROM projected) AS index_deletes_enqueued;
 
 DO $$
 DECLARE
