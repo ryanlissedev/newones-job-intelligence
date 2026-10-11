@@ -263,6 +263,11 @@ export const aanvraag = curatedSchema.table(
     sluitingsdatum: timestamp("sluitingsdatum", { withTimezone: true }),
     startDatum: text("start_datum"),
     status: text("status").default("unknown").notNull(),
+    // 0033: mark-not-delete for duplicate identities. A superseded row keeps
+    // its id, referentie and FKs; superseded_by points at the kept row.
+    supersededAt: timestamp("superseded_at", { withTimezone: true }),
+    supersededBy: uuid("superseded_by"),
+    supersededReason: text("superseded_reason"),
     taal: text("taal").default("nl").notNull(),
     tariefEenheid: text("tarief_eenheid"),
     tariefMax: numeric("tarief_max"),
@@ -291,6 +296,41 @@ export const aanvraag = curatedSchema.table(
     // 0031: per-bron status counts and the overlap endpoint's group-by.
     index("aanvraag_bron_status_idx").on(table.bronId, table.status),
     index("aanvraag_dedup_groep_bron_idx").on(table.dedupGroepId, table.bronId),
+    // 0034: one live row per normalized identity. Built in prod by
+    // tools/postgres/unique-key/04-unique-index-concurrently.sql.
+    uniqueIndex("aanvraag_bron_referentie_live_uidx")
+      .on(table.bronId, sql`lower(btrim(${table.bronReferentie}))`)
+      .where(sql`${table.supersededBy} IS NULL`),
+  ]
+);
+
+/**
+ * 0033: append-only audit of every aanvraag marked superseded by
+ * tools/postgres/unique-key/03-mark-superseded.sql. Rows are never deleted
+ * from curated.aanvraag; this snapshot makes a mark auditable and undoable.
+ */
+export const aanvraagDupArchive = curatedSchema.table(
+  "aanvraag_dup_archive",
+  {
+    aanvraagId: uuid("aanvraag_id").notNull(),
+    archivedAt: timestamp("archived_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    archivedBy: text("archived_by")
+      .default(sql`current_user`)
+      .notNull(),
+    bronId: uuid("bron_id").notNull(),
+    bronReferentie: text("bron_referentie").notNull(),
+    id: uuid("id").defaultRandom().primaryKey(),
+    keptAanvraagId: uuid("kept_aanvraag_id").notNull(),
+    normalizedReferentie: text("normalized_referentie").notNull(),
+    reason: text("reason").notNull(),
+    restoredAt: timestamp("restored_at", { withTimezone: true }),
+    rowSnapshot: jsonb("row_snapshot").notNull(),
+  },
+  (table) => [
+    index("aanvraag_dup_archive_aanvraag_idx").on(table.aanvraagId),
+    index("aanvraag_dup_archive_reason_idx").on(table.reason, table.archivedAt),
   ]
 );
 

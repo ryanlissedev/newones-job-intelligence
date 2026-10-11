@@ -1,0 +1,21 @@
+-- Rollback for the unique-key steps. Run ONE section at a time, as ji_migrator, in reverse order
+-- (A before B). Nothing here deletes an aanvraag row. Copy the section you need into psql.
+--
+-- A. Undo step 4 / 0034 (drop the live unique index without blocking writes; autocommit):
+--      DROP INDEX CONCURRENTLY IF EXISTS "curated"."aanvraag_bron_referentie_live_uidx";
+--    If 0034 is already recorded in drizzle.__drizzle_migrations, also redeploy the previous
+--    release first (readiness compares the newest recorded migration with the journal).
+--    Code from this PR still works without the index (lookup falls back to a bron-scoped scan).
+--
+-- B. Undo step 3 (unmark). Requires A first: unmarking re-creates duplicate live identities,
+--    which the partial unique index would reject. Runnable, one transaction, idempotent:
+--      psql "$MIGRATION_DATABASE_URL" -X -v ON_ERROR_STOP=1 -f 91-rollback-unmark.sql
+--    It unmarks, re-projects each unmarked row (`aanvraag.gewijzigd`) and stamps restored_at only
+--    on the archive rows of rows it actually unmarked, all in ONE statement. (The earlier inline
+--    version stamped every unrestored 'dup-key-normalized-v1' archive row in a separate UPDATE.)
+--    The archive rows stay (audit trail); restored_at records the undo.
+--
+-- C. Undo step 1 / 0033 (only if NO row was ever marked and the release without 0033 is live):
+--    leaving the unused nullable columns and empty table in place is the recommended rollback.
+--    Removing them is a destructive DDL change and needs an explicit GO.
+SELECT 'read the comments: run one section at a time' AS note;

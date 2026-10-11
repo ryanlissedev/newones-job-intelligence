@@ -232,6 +232,20 @@
       "when": 1790640000000,
       "tag": "0032_source_fetch_history",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1790726400000,
+      "tag": "0033_aanvraag_supersede",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1790812800000,
+      "tag": "0034_aanvraag_live_key_uidx",
+      "breakpoints": true
     }
   ]
 }

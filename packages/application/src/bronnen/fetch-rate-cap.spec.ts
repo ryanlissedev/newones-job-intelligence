@@ -92,16 +92,28 @@ const smallestGap = (starts: readonly number[]): number =>
     ...starts.slice(1).map((start, index) => start - (starts[index] ?? 0))
   );
 
+// 20 starts per second.
+const CAP_INTERVAL_MS = 50;
+// FetchRateCap schedules on Date.now (whole ms) and rounds waits up; performance.now
+// is sub-millisecond, so a start can read up to ~2 ms "early" against it.
+const CLOCK_GRANULARITY_MS = 3;
+
 describe("process fetch-rate cap in executeBronRun", () => {
   it("spaces request starts across brons that each allow more", async () => {
+    const reference = performance.now();
     const capped = await runTwoBronnen(new FetchRateCap({ perSecond: 20 }));
     // Two brons x (discovery + 4 fetches), every start through the cap.
     expect(capped).toHaveLength(2 * (ITEMS + 1));
-    // 20/s = one start per 50 ms, across both brons together (timer slack).
-    expect(smallestGap(capped)).toBeGreaterThanOrEqual(45);
-    expect((capped.at(-1) ?? 0) - (capped[0] ?? 0)).toBeGreaterThanOrEqual(
-      45 * (capped.length - 1)
+    // 20/s = one slot per 50 ms across both brons together. The cap reserves slot k no
+    // earlier than slot 0 + k x 50 ms, and slot 0 no earlier than `reference`. A late
+    // callback only delays a start, so the gap to the NEXT start can shrink below 50 ms
+    // (CI saw 44.8 ms after a 5 ms late start) while the schedule still holds. So assert
+    // the schedule, not pairwise gaps: start k is never before reference + k x 50 ms,
+    // minus the cap's whole-millisecond clock (Date.now + Math.ceil + timer rounding).
+    const lateness = capped.map(
+      (start, slot) => start - reference - slot * CAP_INTERVAL_MS
     );
+    expect(Math.min(...lateness)).toBeGreaterThanOrEqual(-CLOCK_GRANULARITY_MS);
   });
 
   it("leaves brons on their own pacing when no cap is configured", async () => {

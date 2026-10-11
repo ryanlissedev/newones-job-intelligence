@@ -522,6 +522,74 @@ describe("reconcileProjection (RJC-399 repair tool)", () => {
     ).toHaveLength(1);
   });
 
+  it("treats a superseded row still in Manticore as an orphan and enqueues its delete (0033)", async () => {
+    if (!available || !database) {
+      expect(available).toBe(false);
+      return;
+    }
+    const db = requireDatabase();
+    const keptId = await seedAanvraag(db);
+    const supersededId = await seedAanvraag(db);
+    const loader = new PostgresSearchDocumentLoader(db);
+    const { generation, indexName, store } = await isolatedVersionStore(db);
+    const activeRows: SearchProjectionInventoryRecord[] = [];
+    for (const id of [keptId, supersededId]) {
+      // oxlint-disable-next-line no-await-in-loop -- two fixture rows
+      const document = await loader.loadByAggregateId(id);
+      if (!document) {
+        throw new Error("Expected seeded document to load");
+      }
+      const hash = projectionHash(document, NOW);
+      // oxlint-disable-next-line no-await-in-loop -- two fixture rows
+      await db.insert(searchProjectionState).values({
+        aggregateId: id,
+        appliedSequence: 1n,
+        generation,
+        projectionHash: hash,
+      });
+      activeRows.push({
+        documentId: id,
+        manticoreId: hashDocumentId(id),
+        projectionHash: hash,
+      });
+    }
+    // The row is marked after it was projected: it must leave the index.
+    await db
+      .update(aanvraag)
+      .set({
+        supersededAt: NOW,
+        supersededBy: keptId,
+        supersededReason: "dup-url-v1",
+      })
+      .where(eq(aanvraag.id, supersededId));
+    expect(await loader.loadByAggregateId(supersededId)).toBeNull();
+
+    const report = await reconcileProjection({
+      apply: true,
+      database: db,
+      indexName,
+      inventory: new FakeManticoreInventory({
+        active: activeRows,
+        archive: [],
+      }),
+      loader,
+      now: NOW,
+      versionStore: store,
+    });
+    expect(report.orphanManticore).toContain(supersededId);
+    expect(report.orphanManticore).not.toContain(keptId);
+    const deletes = await db
+      .select({ aggregateId: outboxEvent.aggregateId })
+      .from(outboxEvent)
+      .where(
+        and(
+          eq(outboxEvent.eventType, "aanvraag.verwijderd"),
+          inArray(outboxEvent.aggregateId, [keptId, supersededId])
+        )
+      );
+    expect(deletes).toEqual([{ aggregateId: supersededId }]);
+  });
+
   it("reconciles real-engine inventory drift with bounded, durable repairs", async () => {
     if (!available || !database) {
       expect(available).toBe(false);
