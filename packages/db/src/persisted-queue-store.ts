@@ -95,23 +95,21 @@ const toTableSql = (
 
 type Statement = () => postgres.PendingQuery<postgres.Row[]>;
 
-// postgres-js PendingQuery starts eagerly, so every statement is a thunk:
-// a retried or re-issued effect must build a fresh query, not re-await a
-// settled one.
-const runStatement = (
-  evaluate: Statement
-): Effect.Effect<postgres.Row[], PersistedQueueError> =>
-  Effect.tryPromise({
-    catch: (cause) =>
-      new PersistedQueueError({
-        cause,
-        message: "Persisted queue statement failed",
-      }),
-    try: evaluate,
-  });
-
-const runRows = <Row extends postgres.Row>(
-  evaluate: () => postgres.PendingQuery<Row[]>
+/**
+ * Runs one statement and ties it to the fiber's interruption. `Effect.tryPromise`
+ * only hands over an AbortSignal when `try` declares a parameter; without it an
+ * interrupted fiber walks away while the query keeps running on the pool. For a
+ * claim that is a lost lease: the UPDATE still stamps `acquired_by` after the
+ * taker is gone, and nothing releases it until `lockExpiration`.
+ *
+ * So on abort the query is cancelled (postgres.js drops it from the pool queue,
+ * or sends a server-side cancel when it is already running). If the statement
+ * nevertheless completed (the cancel lost the race), `onAbandoned` gets the rows
+ * no caller will see, so the claim path can hand them back.
+ */
+const runCancellable = <Row extends postgres.Row>(
+  evaluate: () => postgres.PendingQuery<Row[]>,
+  onAbandoned?: (rows: readonly Row[]) => void
 ): Effect.Effect<readonly Row[], PersistedQueueError> =>
   Effect.tryPromise({
     catch: (cause) =>
@@ -119,8 +117,37 @@ const runRows = <Row extends postgres.Row>(
         cause,
         message: "Persisted queue statement failed",
       }),
-    try: evaluate,
+    try: async (signal) => {
+      const query = evaluate();
+      const cancel = (): void => {
+        query.cancel();
+      };
+      signal.addEventListener("abort", cancel, { once: true });
+      try {
+        const rows = await query;
+        if (signal.aborted) {
+          onAbandoned?.(rows);
+        }
+        return rows;
+      } finally {
+        signal.removeEventListener("abort", cancel);
+      }
+    },
   });
+
+// postgres-js PendingQuery starts eagerly, so every statement is a thunk:
+// a retried or re-issued effect must build a fresh query, not re-await a
+// settled one.
+const runStatement = (
+  evaluate: Statement
+): Effect.Effect<readonly postgres.Row[], PersistedQueueError> =>
+  runCancellable(evaluate);
+
+const runRows = <Row extends postgres.Row>(
+  evaluate: () => postgres.PendingQuery<Row[]>,
+  onAbandoned?: (rows: readonly Row[]) => void
+): Effect.Effect<readonly Row[], PersistedQueueError> =>
+  runCancellable(evaluate, onAbandoned);
 
 /** A claim failure (DB outage) is a wait, not a lost job — log and poll again.
  * An interrupt is neither: it must end the take so shutdown can finish. */
@@ -260,6 +287,31 @@ export const makePostgresPersistedQueueStore = (
       Effect.forkScoped
     );
 
+    // A claim the interrupted taker never received: hand the row straight back
+    // instead of letting it sit leased until lockExpiration. Fire-and-forget —
+    // the taker is gone, and a failure here still ends in lease expiry.
+    const releaseAbandonedClaims = (
+      claimed: readonly ClaimedElement[]
+    ): void => {
+      if (claimed.length === 0) {
+        return;
+      }
+      const sequences = claimed.map((row) => row.sequence);
+      const release = async (): Promise<void> => {
+        try {
+          await sql`
+            UPDATE ${tableSql}
+            SET acquired_at = NULL, acquired_by = NULL
+            WHERE sequence IN ${sql(sequences)}
+            AND acquired_by = ${workerId}::uuid
+          `;
+        } catch {
+          // Lease expiry still recovers the row.
+        }
+      };
+      void release();
+    };
+
     const claimNext = Effect.fnUntraced(function* claimNext(
       name: string,
       maxAttempts: number
@@ -284,7 +336,8 @@ export const makePostgresPersistedQueueStore = (
           )
           SELECT sequence, id, queue_name, element, attempts FROM cte
           ORDER BY updated_at ASC, sequence ASC
-        `
+        `,
+          releaseAbandonedClaims
         ).pipe(Effect.catchCause(recoverClaimFailure));
         const [claimed] = rows;
         if (claimed !== undefined) {
