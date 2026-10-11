@@ -55,6 +55,9 @@ Neon's pooled TLS endpoint for ordinary data queries. `PROJECTOR_DATABASE_URL`
 must use the direct endpoint for the same Neon branch/database and role; the
 process rejects known `*-pooler.*.neon.tech` and `*.pooler.*.neon.tech` hosts
 before opening the lock connection. `MANTICORE_URL` is also required.
+The optional expiry sweep settings (`SEARCH_EXPIRY_SWEEP_MODE`, interval,
+batch size and max per run) pass through to the projector; the mode defaults to
+`off`.
 
 ### Supervision
 

@@ -1,0 +1,16 @@
+{
+  "extends": "../../packages/config/tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM"],
+    "noEmit": true,
+    "types": ["bun"]
+  },
+  "include": [
+    "./*.ts",
+    "../../e2e.fixtures.config.ts",
+    "../../e2e.live.config.ts",
+    "../../tests/fixtures/**/*.ts",
+    "../../tests/live/**/*.ts",
+    "../../tests/support/**/*.ts"
+  ]
+}

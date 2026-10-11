@@ -100,6 +100,7 @@ export {
   type ProjectionPhysicalCorruption,
   type ProjectionPhysicalCorruptionReason,
   type ReconcileProjectionInput,
+  type ReconcileProjectionProgress,
   type ReconcileProjectionResult,
   type SearchProjectionInventoryPort,
   type SearchProjectionInventoryRecord,
@@ -117,6 +118,15 @@ export {
   type RunSearchReindexResult,
   type SearchReindexProgress,
 } from "./search-reindex";
+export {
+  runSearchExpirySweep,
+  SEARCH_EXPIRY_SWEEP_DEFAULT_BATCH_SIZE,
+  SEARCH_EXPIRY_SWEEP_DEFAULT_MAX_PER_RUN,
+  SEARCH_EXPIRY_SWEEP_LOCK_KEY,
+  type SearchExpirySweepInput,
+  type SearchExpirySweepMode,
+  type SearchExpirySweepResult,
+} from "./search-expiry-sweep";
 export {
   resolveNeonV1BackfillSource,
   runMotianV1Backfill,
@@ -302,3 +312,7 @@ export {
   withReadOnlyTransaction,
   type BronSeedRowRecord,
 } from "./bron-seed-rows";
+export {
+  assertSeedHitSameBron,
+  BronSeedIdCollisionError,
+} from "./bron-seed-identity";

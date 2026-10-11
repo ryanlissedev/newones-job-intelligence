@@ -285,6 +285,12 @@ export const buildFilterClauses = (
     must.push({ range: { laatst_gezien_op: { gte: cutoff } } });
   }
 
+  if (filters.activeDeadlineEpochSecond !== undefined) {
+    must.push({
+      range: { sluitingsdatum: { gt: filters.activeDeadlineEpochSecond } },
+    });
+  }
+
   return must;
 };
 

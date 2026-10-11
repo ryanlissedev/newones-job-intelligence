@@ -122,10 +122,21 @@ const matchesSkillsFilter = (
 };
 
 /** Shared in-process equivalent of Manticore's AND-ed attribute filters. */
+// oxlint-disable-next-line eslint/complexity -- the shared filter contract has one explicit branch per API filter
 export const matchesSearchFilters = (
   document: SearchDocument,
   filters: SearchFilters
 ): boolean => {
+  if (
+    filters.activeDeadlineEpochSecond !== undefined &&
+    document.sluitingsdatum !== null &&
+    document.sluitingsdatum !== undefined &&
+    Math.floor(document.sluitingsdatum.getTime() / 1000) <=
+      filters.activeDeadlineEpochSecond
+  ) {
+    return false;
+  }
+
   if (filters.bronIds && !filters.bronIds.includes(document.bronId)) {
     return false;
   }

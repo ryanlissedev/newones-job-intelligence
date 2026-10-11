@@ -15,6 +15,21 @@ import {
 const RELEASE_SHA_MESSAGE =
   "Release SHA must be a 40-character lowercase Git SHA (read from APP_RELEASE_SHA, or from Coolify's SOURCE_COMMIT when APP_RELEASE_SHA is unset).";
 
+const SEARCH_EXPIRY_SWEEP_INTERVAL_DEFAULT_MS = 900_000;
+const SEARCH_EXPIRY_SWEEP_INTERVAL_MIN_MS = 60_000;
+const SEARCH_EXPIRY_SWEEP_BATCH_DEFAULT = 200;
+const SEARCH_EXPIRY_SWEEP_MAX_DEFAULT = 2000;
+
+const positiveBoundedInteger = (
+  fallback: number,
+  minimum: number,
+  maximum: number
+) =>
+  Schema.FiniteFromString.check(
+    Schema.isInt(),
+    Schema.isBetween({ maximum, minimum })
+  ).pipe(Schema.withDecodingDefault(Effect.succeed(String(fallback))));
+
 /**
  * Dedicated env contract for the long-running on-box projector. Runtime data
  * queries may use Neon's pooled DATABASE_URL, while the session advisory lock
@@ -31,6 +46,24 @@ export const projectorEnvEffectSchemas = {
   DATABASE_URL: TrimmedNonEmptyString,
   MANTICORE_URL: UrlString,
   PROJECTOR_DATABASE_URL: projectorDatabaseUrlEffectSchema,
+  SEARCH_EXPIRY_SWEEP_BATCH_SIZE: positiveBoundedInteger(
+    SEARCH_EXPIRY_SWEEP_BATCH_DEFAULT,
+    1,
+    1000
+  ),
+  SEARCH_EXPIRY_SWEEP_INTERVAL_MS: positiveBoundedInteger(
+    SEARCH_EXPIRY_SWEEP_INTERVAL_DEFAULT_MS,
+    SEARCH_EXPIRY_SWEEP_INTERVAL_MIN_MS,
+    2_147_483_647
+  ),
+  SEARCH_EXPIRY_SWEEP_MAX_PER_RUN: positiveBoundedInteger(
+    SEARCH_EXPIRY_SWEEP_MAX_DEFAULT,
+    1,
+    10_000
+  ),
+  SEARCH_EXPIRY_SWEEP_MODE: Schema.Literals(["off", "dry-run", "apply"]).pipe(
+    Schema.withDecodingDefault(Effect.succeed("off" as const))
+  ),
   /** Must match the server while rebuilding/draining the hybrid generation. */
   SEARCH_HYBRID: Schema.Literals(["0", "1"]).pipe(
     Schema.withDecodingDefault(Effect.succeed("0" as const))
@@ -54,6 +87,18 @@ export const env = createEnv({
     MANTICORE_URL: toEnvSchema(projectorEnvEffectSchemas.MANTICORE_URL),
     PROJECTOR_DATABASE_URL: toEnvSchema(
       projectorEnvEffectSchemas.PROJECTOR_DATABASE_URL
+    ),
+    SEARCH_EXPIRY_SWEEP_BATCH_SIZE: toEnvSchema(
+      projectorEnvEffectSchemas.SEARCH_EXPIRY_SWEEP_BATCH_SIZE
+    ),
+    SEARCH_EXPIRY_SWEEP_INTERVAL_MS: toEnvSchema(
+      projectorEnvEffectSchemas.SEARCH_EXPIRY_SWEEP_INTERVAL_MS
+    ),
+    SEARCH_EXPIRY_SWEEP_MAX_PER_RUN: toEnvSchema(
+      projectorEnvEffectSchemas.SEARCH_EXPIRY_SWEEP_MAX_PER_RUN
+    ),
+    SEARCH_EXPIRY_SWEEP_MODE: toEnvSchema(
+      projectorEnvEffectSchemas.SEARCH_EXPIRY_SWEEP_MODE
     ),
     SEARCH_HYBRID: toEnvSchema(projectorEnvEffectSchemas.SEARCH_HYBRID),
   },

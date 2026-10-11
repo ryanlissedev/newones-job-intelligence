@@ -254,6 +254,9 @@ const setupIsolatedDatabase = async (): Promise<void> => {
   process.env.DATABASE_TEST_URL = migratorUrl;
   process.env.DATABASE_APP_TEST_URL = appUrl;
   process.env.DATABASE_ADMIN_TEST_URL = adminUrl;
+  // Provenance for specs that must only touch a throwaway database (e.g. the
+  // database-wide unique-key rollback): set only when this preload created it.
+  process.env.JI_TEST_ISOLATED_DATABASE = databaseName;
   // biome-ignore lint: diagnostic output for local/CI test runs, not app code
   console.log(
     `test-isolation: DB specs run against isolated database '${databaseName}'`

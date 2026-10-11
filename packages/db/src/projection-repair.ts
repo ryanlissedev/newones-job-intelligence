@@ -12,7 +12,7 @@ import type {
   SearchPartition,
   SearchVersionStore,
 } from "@ji/search";
-import { and, asc, eq, gt, inArray, isNull } from "drizzle-orm";
+import { and, asc, eq, gt, inArray, isNull, sql } from "drizzle-orm";
 
 import type { BronRuntimeDatabase } from "./bron-runtime";
 import { aanvraag, outboxEvent, searchProjectionState } from "./schema/curated";
@@ -227,6 +227,21 @@ export interface ProjectionDivergence {
   reasons: readonly ProjectionDivergenceReason[];
 }
 
+export interface ReconcileProjectionProgress {
+  phase: "preflight" | "apply";
+  stage: "source" | "inventory";
+  checked: number;
+  divergentCount: number;
+  applied: number;
+  skippedPending: number;
+  sourceCursor: string | null;
+  inventoryPartition?: SearchPartition;
+  manticoreChecked?: number;
+  /** Cumulative physical rows deleted during the inventory scan. */
+  physicalCleanupCount?: number;
+  done: boolean;
+}
+
 export interface ReconcileProjectionInput {
   /** False reports; true emits bounded durable repair/delete events. */
   apply: boolean;
@@ -246,6 +261,8 @@ export interface ReconcileProjectionInput {
   lookupManticoreId?: (documentId: string) => number;
   /** Capped samples retained in the result. Exact totals are tracked separately. */
   sampleLimit?: number;
+  /** Optional best-effort progress reporting for long-running operator scans. */
+  onProgress?: (progress: ReconcileProjectionProgress) => void;
   /**
    * Retained for checkpoint initialization compatibility. Every actual
    * reconciliation fence is read directly from the named checkpoint row.
@@ -298,6 +315,11 @@ export interface ReconcileProjectionResult {
   orphanManticoreCount: number;
   /** Current aanvraag repair candidates already covered by an open outbox event. */
   skippedPending: number;
+  /** Dry-run outbox health snapshot; omitted in apply mode. */
+  pendingOutboxCount?: number;
+  divergentPendingOutboxCount?: number;
+  deadLetteredOutboxCount?: number;
+  oldestPendingOutboxCreatedAt?: Date | null;
 }
 
 interface RepairCandidate {
@@ -338,6 +360,7 @@ interface ScanResult {
   staleManticoreHash: ManticoreProjectionHashDrift[];
   staleManticoreHashCount: number;
   skippedPending: number;
+  divergentPendingOutboxCount?: number;
 }
 
 interface ScanActions {
@@ -572,6 +595,37 @@ const pendingAggregateIds = async (
       )
     );
   return new Set(rows.map((row) => row.aggregateId));
+};
+
+interface ReconcileOutboxHealth {
+  deadLetteredOutboxCount: number;
+  divergentPendingOutboxCount: number;
+  oldestPendingOutboxCreatedAt: Date | null;
+  pendingOutboxCount: number;
+}
+
+const readReconcileOutboxHealth = async (
+  database: BronRuntimeDatabase
+): Promise<ReconcileOutboxHealth> => {
+  const [overall] = await database
+    .select({
+      deadLetteredOutboxCount: sql<number>`count(*) FILTER (WHERE ${outboxEvent.deadLetteredAt} IS NOT NULL)::int`,
+      oldestPendingOutboxCreatedAt: sql<Date | null>`min(${outboxEvent.createdAt}) FILTER (WHERE ${outboxEvent.processedAt} IS NULL AND ${outboxEvent.deadLetteredAt} IS NULL)`,
+      pendingOutboxCount: sql<number>`count(*) FILTER (WHERE ${outboxEvent.processedAt} IS NULL AND ${outboxEvent.deadLetteredAt} IS NULL)::int`,
+    })
+    .from(outboxEvent)
+    .where(eq(outboxEvent.aggregateType, "aanvraag"));
+  const result: ReconcileOutboxHealth = {
+    deadLetteredOutboxCount: overall?.deadLetteredOutboxCount ?? 0,
+    divergentPendingOutboxCount: 0,
+    oldestPendingOutboxCreatedAt:
+      overall?.oldestPendingOutboxCreatedAt === null ||
+      overall?.oldestPendingOutboxCreatedAt === undefined
+        ? null
+        : new Date(overall.oldestPendingOutboxCreatedAt),
+    pendingOutboxCount: overall?.pendingOutboxCount ?? 0,
+  };
+  return result;
 };
 
 const toDivergence = (candidate: RepairCandidate): ProjectionDivergence => ({
@@ -880,11 +934,12 @@ const toScanResult = (input: {
   sampleLimit: number;
   staleManticoreHash: Map<string, ManticoreProjectionHashDrift>;
   skippedPending: number;
+  divergentPendingOutboxCount?: number;
 }): ScanResult => {
   const physicalCorruption = input.physical.corruptionSamples(
     input.sampleLimit
   );
-  return {
+  const result: ScanResult = {
     applied: input.applied,
     checked: input.checked,
     divergent: input.divergent,
@@ -917,6 +972,10 @@ const toScanResult = (input: {
     ),
     staleManticoreHashCount: input.staleManticoreHash.size,
   };
+  if (input.divergentPendingOutboxCount !== undefined) {
+    result.divergentPendingOutboxCount = input.divergentPendingOutboxCount;
+  }
+  return result;
 };
 
 interface ScanOptions {
@@ -927,9 +986,38 @@ interface ScanOptions {
   generation: number;
   input: ReconcileProjectionInput;
   now: Date;
+  phase: ReconcileProjectionProgress["phase"];
   pageSize: number;
   sampleLimit: number;
 }
+
+const swallowProgressRejection = async (
+  pending: Promise<unknown>
+): Promise<void> => {
+  try {
+    await pending;
+  } catch {
+    // Observability must never affect reconciliation.
+  }
+};
+
+const reportProgress = (
+  input: ReconcileProjectionInput,
+  progress: ReconcileProjectionProgress
+): void => {
+  try {
+    // A `void`-typed callback may still be async; a rejected promise must not
+    // become an unhandled rejection that ends the process.
+    const result: unknown = input.onProgress?.(progress);
+    // `Promise.resolve` adopts any thenable (native, PromiseLike, or a
+    // cross-realm promise) and is a no-op wrapper for sync return values, so
+    // every rejection gets a handler without `instanceof Promise` detection.
+    // oxlint-disable-next-line no-void -- best-effort, never awaited by the scan
+    void swallowProgressRejection(Promise.resolve(result));
+  } catch {
+    // Observability must never affect reconciliation.
+  }
+};
 
 const addCandidatesToReport = (
   candidates: readonly RepairCandidate[],
@@ -1003,6 +1091,7 @@ const scanInventoryProjection = async (
   let divergentCount = 0;
   let missingDocumentCount = 0;
   let missingProjectionStateCount = 0;
+  let divergentPendingOutboxCount = 0;
   let cursor: string | null = null;
   const seenLookupManticoreIds = new Map<number, string>();
 
@@ -1162,10 +1251,27 @@ const scanInventoryProjection = async (
       divergent,
       options.sampleLimit
     );
+    if (!options.actions && pageCandidates.length > 0) {
+      const pending = await pendingAggregateIds(
+        options.database,
+        pageCandidates.map((candidate) => candidate.aggregateId)
+      );
+      divergentPendingOutboxCount += pending.size;
+    }
     if (options.actions) {
       addApplyResult(totals, await options.actions.applyRepair(pageCandidates));
     }
     await options.fence();
+    reportProgress(options.input, {
+      applied: totals.applied,
+      checked,
+      divergentCount,
+      done: false,
+      phase: options.phase,
+      skippedPending: totals.skippedPending,
+      sourceCursor: cursor,
+      stage: "source",
+    });
   }
   /* oxlint-enable no-await-in-loop */
 
@@ -1250,6 +1356,19 @@ const scanInventoryProjection = async (
         );
       }
       await options.fence();
+      reportProgress(options.input, {
+        applied: totals.applied,
+        checked,
+        divergentCount,
+        done: false,
+        inventoryPartition: partition,
+        manticoreChecked: inventoryScannedCounts[partition],
+        phase: options.phase,
+        physicalCleanupCount,
+        skippedPending: totals.skippedPending,
+        sourceCursor: cursor,
+        stage: "inventory",
+      });
     }
     inventoryFinalCounts[partition] = await inventory.count(partition);
     const expectedFinalCount =
@@ -1272,11 +1391,28 @@ const scanInventoryProjection = async (
   }
   /* oxlint-enable no-await-in-loop */
 
+  reportProgress(options.input, {
+    applied: totals.applied,
+    checked,
+    divergentCount,
+    done: true,
+    manticoreChecked:
+      inventoryScannedCounts.active + inventoryScannedCounts.archive,
+    phase: options.phase,
+    physicalCleanupCount,
+    skippedPending: totals.skippedPending,
+    sourceCursor: cursor,
+    stage: "inventory",
+  });
+
   return toScanResult({
     applied: totals.applied,
     checked,
     divergent,
     divergentCount,
+    divergentPendingOutboxCount: options.actions
+      ? undefined
+      : divergentPendingOutboxCount,
     expectedPartitionCounts: toCounts(expectedPartitionCounts),
     inventoryCounts: toCounts(inventoryCounts),
     inventoryFinalCounts: toCounts(inventoryFinalCounts),
@@ -1380,6 +1516,7 @@ export const reconcileProjection = async (
     input,
     now,
     pageSize,
+    phase: "preflight",
     sampleLimit,
   };
 
@@ -1387,7 +1524,13 @@ export const reconcileProjection = async (
   // incomplete/count-changing physical scan from partially queuing repairs.
   const preflight = await scanInventoryProjection(options);
   if (!input.apply) {
-    return { ...preflight, generation };
+    const { divergentPendingOutboxCount, ...report } = preflight;
+    return {
+      ...report,
+      ...(await readReconcileOutboxHealth(input.database)),
+      divergentPendingOutboxCount,
+      generation,
+    };
   }
   if (
     preflight.physicalCorruptionCount > 0 &&
@@ -1405,6 +1548,7 @@ export const reconcileProjection = async (
       expectedSchemaHash,
       generation
     ),
+    phase: "apply",
   });
   return { ...applied, generation };
 };

@@ -9,6 +9,8 @@ import {
   partitionInScope,
   partitionTable,
   resolveSearchPartition,
+  roundSearchNowToFenceWindow,
+  SEARCH_CLOCK_GRANULARITY_MS,
   scopeTables,
 } from "./partition";
 import type { SearchDocument } from "./types";
@@ -18,6 +20,16 @@ const DAY = 86_400_000;
 const daysAgo = (days: number): Date => new Date(NOW.getTime() - days * DAY);
 
 describe("resolveSearchPartition (RJC-383)", () => {
+  it("rounds the active fence to five-minute windows", () => {
+    expect(SEARCH_CLOCK_GRANULARITY_MS).toBe(300_000);
+    expect(
+      roundSearchNowToFenceWindow(new Date("2026-09-01T12:04:59Z"))
+    ).toEqual(new Date("2026-09-01T12:00:00Z"));
+    expect(
+      roundSearchNowToFenceWindow(new Date("2026-09-01T12:05:00Z"))
+    ).toEqual(new Date("2026-09-01T12:05:00Z"));
+  });
+
   it("is lifecycle-driven by default: closed and stale archive, active and unknown stay active, whatever the recency", () => {
     expect(ACTIVE_RECENT_DAYS).toBeNull();
     const table: Record<string, [boolean, number, string][]> = {};

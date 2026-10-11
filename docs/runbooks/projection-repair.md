@@ -71,6 +71,37 @@ For a current aanvraag, the report can identify:
 It prints exact totals and only capped samples, so a large index does not turn
 operator output into an unbounded data dump.
 
+### Expired active sweep
+
+Deadline expiry is clock-driven, so it is not safe to wait for a source event
+to move a row from `aanvragen_active` to `aanvragen_archive`. The projector can
+run the bounded sweep with `SEARCH_EXPIRY_SWEEP_MODE=dry-run` (15-minute
+interval, batches of 200, at most 2000 rows per run), then enable `apply` after
+reviewing the structured run totals. It only inserts ordinary
+`aanvraag.search_reindex` outbox intents; the projector reloads the curated row
+and performs the partition move. `off` is the default. The operator command is
+also available without changing the projector:
+
+```bash
+bun run search:sweep-expired
+bun run search:sweep-expired --apply
+```
+
+The active search has a five-minute-rounded deadline filter as a query-time
+backstop. It excludes deadlines at or before that rounded time while retaining
+the 2100 missing-deadline sentinel, and the rounded value is part of the
+search/facet cache key. Result and facet caches have a 120-second TTL, so this
+window avoids rolling cache keys before entries expire while bounding fence
+staleness to five minutes; the sweep moves the row as well. The archive count continues to read the
+archive table without this active-table fence; a stale expired row is therefore
+temporarily counted in neither active results nor the archive decoration until
+the sweep drains it.
+
+Report-only reconciliation also prints pending aanvraag outbox totals, how
+many divergent candidates are covered by a pending event, dead-letter totals,
+and the oldest pending creation time. These are read-only health signals; apply
+semantics are unchanged.
+
 ### Closed drift class: seen-only and status-only curated writes (CTP-498)
 
 Until CTP-498, an observation whose `content_hash` equalled the stored one
@@ -106,6 +137,12 @@ physical corruption, and matching initial/scanned/final partition counts is
 convergence evidence. A second `--apply` before the repair events drain is
 idempotent: the pending events cover the same aggregates and already-deleted
 physical ids no longer appear.
+
+Apply prints progress to stderr. Capture both streams and the exit code with
+`2>&1` and `; echo rc=$?`; do not run it under a client-side timeout. If it is
+interrupted, the last apply-phase `cursor=` line bounds the committed prefix, and
+rerunning is safe because repair is idempotent and pending aggregates are
+skipped.
 
 ## What it refuses
 

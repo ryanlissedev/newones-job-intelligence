@@ -6,6 +6,7 @@ import {
   PostgresSearchDocumentLoader,
   PostgresSearchProjectorRuntimeStore,
   PostgresSearchVersionStore,
+  runSearchExpirySweep,
 } from "@ji/db";
 import { LockLostError, waitForAdvisoryLock } from "@ji/db/process-lock";
 /**
@@ -22,6 +23,10 @@ import { LockLostError, waitForAdvisoryLock } from "@ji/db/process-lock";
 import { env as projectorEnv } from "@ji/env/projector";
 import { ManticoreSearchEngine } from "@ji/search";
 
+import {
+  createSearchExpirySweepRunner,
+  parseSearchExpirySweepConfig,
+} from "./expiry-sweep";
 import { heartbeatFilePath, writeHeartbeat } from "./heartbeat";
 import type { ProjectorCycleLog } from "./loop";
 import { runProjectorLoop } from "./loop";
@@ -126,6 +131,24 @@ const main = async (): Promise<void> => {
   const versionStore = new PostgresSearchVersionStore(runtime.database);
   const engine = ManticoreSearchEngine.fromUrl(manticoreUrl, versionStore);
   const loader = new PostgresSearchDocumentLoader(runtime.database);
+  const expirySweep = createSearchExpirySweepRunner({
+    config: parseSearchExpirySweepConfig({
+      SEARCH_EXPIRY_SWEEP_BATCH_SIZE: String(
+        projectorEnv.SEARCH_EXPIRY_SWEEP_BATCH_SIZE
+      ),
+      SEARCH_EXPIRY_SWEEP_INTERVAL_MS: String(
+        projectorEnv.SEARCH_EXPIRY_SWEEP_INTERVAL_MS
+      ),
+      SEARCH_EXPIRY_SWEEP_MAX_PER_RUN: String(
+        projectorEnv.SEARCH_EXPIRY_SWEEP_MAX_PER_RUN
+      ),
+      SEARCH_EXPIRY_SWEEP_MODE: projectorEnv.SEARCH_EXPIRY_SWEEP_MODE,
+    }),
+    log: (fields) => logLine(process.stdout, "search_expiry_sweep", fields),
+    sweep: (input) =>
+      runSearchExpirySweep({ database: runtime.database, ...input }),
+  });
+  expirySweep.start();
 
   // Deploy readback (docs/runbooks/search-projector.md): the API serves this
   // row at /projector/runtime so a deploy can confirm which container and
@@ -181,6 +204,7 @@ const main = async (): Promise<void> => {
     });
     process.exitCode = 1;
   } finally {
+    await expirySweep.stop();
     await lock.release();
     await runtime.close();
   }

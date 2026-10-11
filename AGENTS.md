@@ -54,6 +54,9 @@ Autoreview and the end-of-deliverable review catch different classes of problem:
 
 ### Production release lane
 
+- Agents may build, merge, and deploy Newones JI themselves; every production action is logged by the hook to `~/.local/state/newones/production-gate.log` (or `PRODUCTION_GATE_LOG`).
+- Destructive SQL, volume/database-container destruction, recursive server deletion, PostgreSQL-data changes, Coolify/API deletes, GitHub-repository deletes, force-updating main/master, and approval-file or `production-gate.conf` tampering are hard-blocked unless Ryan set `RELEASE_APPROVAL=PR-<n>` or the dated approval file; approval-file and `production-gate.conf` tampering has no override; never set or forge approval, and report a block to Ryan.
+
 The architecture and the failure mode that cost a full session to rediscover (2026-09-18).
 
 - `Deploy production` (`.github/workflows/deploy-production.yml`) triggers on every green CI on main and is **fail-closed**: `scripts/production/release-gate.ts` must pass before any Coolify credential exists.
@@ -215,6 +218,8 @@ Most formatting and common issues are automatically fixed by Oxlint + Oxfmt. Run
 ### Visual evidence
 
 A **short screen recording is the default**; a screenshot suffices only when the change is static (renamed label, new field present). Record the actual interaction on a running app using the verify skill and seeded/fixture data so reviewers see what CI would verify.
+
+Committed visual-regression baselines under `tests/visual/baselines/fixtures` are test oracles rendered from fixture data only (not PR evidence) and are allowed; captures of deployed origins are never committed.
 
 **Recorder:** Playwright `recordVideo` / `video: 'on'` against the live-verify instance — one test or clip per claim. Scripts wait on asserted UI states, never sleeps.
 

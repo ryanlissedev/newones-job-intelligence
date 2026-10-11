@@ -60,9 +60,12 @@ const GENERATED_DIRECTORY_NAMES = new Set([
   ".artifacts",
   ".cache",
   ".crabbox",
+  ".e2e-visual",
   ".evlog",
   ".git",
   ".next",
+  // Copied fixture web app + its build for the tester-army fixture suite.
+  ".e2e-fixtures",
   ".nx",
   ".nyc_output",
   ".omc",

@@ -310,6 +310,94 @@ describe("Postgres aanvraag search projection contract aliases", () => {
     }
   });
 
+  it("projects microsecond-precision publication timestamps as their UTC instant (#422 regression)", async () => {
+    if (!available) {
+      expect(available).toBe(false);
+      return;
+    }
+    const db = requireDatabase();
+    const bronId = crypto.randomUUID();
+    const runId = crypto.randomUUID();
+    await db.insert(bron).values({
+      actief: true,
+      categorie: "msp_broker",
+      crawlDelayMs: 0,
+      id: bronId,
+      ingestieType: "html",
+      interval: "*/15 * * * *",
+      naam: `Synthetic publication projection source ${bronId}`,
+      rateLimitPerMinute: 600,
+      status: "ready",
+      voorwaardenStatus: "toegestaan",
+    });
+    await db.insert(scrapeRun).values({ bronId, id: runId });
+    const cases = [
+      // curated column written before #422 (TenderNed/NS shape)
+      {
+        bronSpecifiek: {},
+        key: "column",
+        publicatiedatum: "2026-09-11T04:04:29.608763",
+      },
+      // column left null by curation since #422; bron-fact fallback
+      {
+        bronSpecifiek: { publicatiedatum: "2026-09-11T04:04:29.608763" },
+        key: "fallback",
+        publicatiedatum: null,
+      },
+    ] as const;
+    const rows = await db
+      .insert(aanvraag)
+      .values(
+        cases.map(({ bronSpecifiek, key, publicatiedatum }) => ({
+          beschrijving: `Synthetic publication projection ${key}`,
+          bronId,
+          bronReferentie: key,
+          bronSpecifiek,
+          contentHash: `synthetic-publication-hash-${key}`,
+          eersteGezienOp: NOW,
+          extractieMethode: "html_parser",
+          laatstGezienOp: NOW,
+          publicatiedatum,
+          rawPayloadRef: `raw/synthetic-publication/${key}.json`,
+          scrapeRunId: runId,
+          status: "active",
+          titel: `Synthetic publication case ${key}`,
+          versie: 1,
+        }))
+      )
+      .returning({ id: aanvraag.id });
+    const loader = new PostgresSearchDocumentLoader(db);
+    const aanvraagStore = new PostgresAanvraagStore(db);
+    const bulk = await loader.loadManyByAggregateIds(rows.map(({ id }) => id));
+    for (const { id } of rows) {
+      // oxlint-disable-next-line no-await-in-loop -- single-row loader parity per case
+      const document = await loader.loadByAggregateId(id);
+      expect(document?.publicatiedatum?.toISOString()).toBe(
+        "2026-09-11T04:04:29.608Z"
+      );
+      expect(bulk.get(id)?.publicatiedatum?.toISOString()).toBe(
+        "2026-09-11T04:04:29.608Z"
+      );
+      if (!document) {
+        throw new Error("document missing");
+      }
+      // The hash equals the one the pre-#422 projector stored (raw string
+      // parsed in a UTC container), so those rows converge without re-emit.
+      expect(projectionHash(document, NOW)).toBe(
+        projectionHash(
+          {
+            ...document,
+            publicatiedatum: new Date(Date.parse("2026-09-11T04:04:29.608Z")),
+          },
+          NOW
+        )
+      );
+      // oxlint-disable-next-line no-await-in-loop -- read-path parity per case
+      const record = await aanvraagStore.getById(id);
+      expect(record?.publicatiedatum).toBe("2026-09-11T04:04:29.608763");
+    }
+  });
+
   it("reindexes processed alias history into exact contract filters and facets idempotently", async () => {
     if (!available) {
       expect(available).toBe(false);

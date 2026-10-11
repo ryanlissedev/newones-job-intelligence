@@ -79,6 +79,11 @@ run_phase typecheck bun run check-types
 echo "gate: Effect E2E scripts typecheck"
 run_phase effect-e2e-typecheck bun run check-types:effect-e2e
 
+# tests/**/*.e2e.ts, the e2e configs and scripts/e2e live outside apps/* and
+# packages/*, so turbo never type-checks them.
+echo "gate: tester-army e2e typecheck"
+run_phase e2e-typecheck bun run check-types:e2e
+
 echo "gate: backfill tools typecheck"
 run_phase backfill-typecheck bun run check-types:backfill
 

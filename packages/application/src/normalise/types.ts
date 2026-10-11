@@ -186,8 +186,15 @@ const zonedWallClockToUtc = (wallClock: string, timeZone: string): Date => {
 const OFFSET_PATTERN = /(?:Z|[+-]\d{2}:?\d{2})$/u;
 const ISO_DATE_PREFIX_PATTERN =
   /^(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})/u;
+/**
+ * ISO publication date or date-time. Fractional seconds accept 1-9 digits:
+ * sources and the v1 import store naive timestamps with microsecond precision
+ * (`2026-09-11T04:04:29.608763`). Accepting only 1-3 digits (#422) silently
+ * dropped those dates from the read path, the search projection and curation.
+ */
 const PUBLICATION_DATE_PATTERN =
-  /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:\d{2})?)?$/u;
+  /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,9})?)?(?:Z|[+-]\d{2}:\d{2})?)?$/u;
+const PUBLICATION_FRACTION_PATTERN = /(?<millis>\.\d{1,3})\d*/u;
 
 /** Round-trips year/month/day (1-indexed month) through `Date.UTC` and
  * compares the fields back out, so an impossible calendar date (`2026-02-30`,
@@ -213,10 +220,14 @@ export const isValidCalendarDate = (
 export const toValidPublicationDate = (
   value: string | null | undefined
 ): string | null => {
+  // Parse with at most millisecond precision: ECMAScript only specifies
+  // three fractional digits, so longer fractions are engine-dependent.
   if (
     !value ||
     !PUBLICATION_DATE_PATTERN.test(value) ||
-    Number.isNaN(Date.parse(value))
+    Number.isNaN(
+      Date.parse(value.replace(PUBLICATION_FRACTION_PATTERN, "$<millis>"))
+    )
   ) {
     return null;
   }
@@ -224,6 +235,31 @@ export const toValidPublicationDate = (
   const month = Number(value.slice(5, 7));
   const day = Number(value.slice(8, 10));
   return isValidCalendarDate(year, month, day) ? value : null;
+};
+
+/**
+ * The instant a validated publication value denotes, independent of the host
+ * time zone. An explicit `Z`/offset is honoured; a naive date-time is read as
+ * UTC (what every production container -- TZ unset -- has always done via
+ * `Date.parse`, so existing projection hashes stay stable); a bare date is
+ * UTC midnight (ECMAScript's own rule). Fractional seconds beyond
+ * milliseconds are truncated, as `Date` cannot hold them. Returns null for
+ * anything `toValidPublicationDate` rejects.
+ */
+export const publicationDateInstant = (
+  value: string | null | undefined
+): Date | null => {
+  const valid = toValidPublicationDate(value);
+  if (valid === null) {
+    return null;
+  }
+  const millis = valid.replace(PUBLICATION_FRACTION_PATTERN, "$<millis>");
+  const explicitZone =
+    !millis.includes("T") || OFFSET_PATTERN.test(millis)
+      ? millis
+      : `${millis}Z`;
+  const parsed = Date.parse(explicitZone);
+  return Number.isNaN(parsed) ? null : new Date(parsed);
 };
 
 /**

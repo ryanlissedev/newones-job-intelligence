@@ -264,6 +264,10 @@ services:
       # Production must override this when CATAPULZE_DATABASE_URL is pooled;
       # the projector's typed env rejects a known Neon pooler host here.
       PROJECTOR_DATABASE_URL: ${PROJECTOR_DATABASE_URL:-${CATAPULZE_DATABASE_URL:?CATAPULZE_DATABASE_URL is required}}
+      SEARCH_EXPIRY_SWEEP_BATCH_SIZE: ${SEARCH_EXPIRY_SWEEP_BATCH_SIZE:-200}
+      SEARCH_EXPIRY_SWEEP_INTERVAL_MS: ${SEARCH_EXPIRY_SWEEP_INTERVAL_MS:-900000}
+      SEARCH_EXPIRY_SWEEP_MAX_PER_RUN: ${SEARCH_EXPIRY_SWEEP_MAX_PER_RUN:-2000}
+      SEARCH_EXPIRY_SWEEP_MODE: ${SEARCH_EXPIRY_SWEEP_MODE:-off}
     depends_on:
       postgres:
         condition: service_healthy

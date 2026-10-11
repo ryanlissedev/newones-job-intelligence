@@ -25,6 +25,10 @@
         "MANTICORE_URL",
         "NODE_ENV",
         "PROJECTOR_DATABASE_URL",
+        "SEARCH_EXPIRY_SWEEP_BATCH_SIZE",
+        "SEARCH_EXPIRY_SWEEP_INTERVAL_MS",
+        "SEARCH_EXPIRY_SWEEP_MAX_PER_RUN",
+        "SEARCH_EXPIRY_SWEEP_MODE",
         "SEARCH_HYBRID"
       ],
       "persistent": true

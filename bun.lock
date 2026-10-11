@@ -24,6 +24,7 @@
         "@playwright/test": "1.63.0",
         "@types/bun": "catalog:",
         "@types/picomatch": "2.3.4",
+        "@types/pngjs": "6.0.5",
         "@typescript/native-preview": "7.0.0-dev.20260707.2",
         "drizzle-orm": "^0.45.2",
         "e2e": "0.16.0",
@@ -32,7 +33,9 @@
         "oxfmt": "0.65.0",
         "oxlint": "1.80.0",
         "picomatch": "2.3.1",
+        "pixelmatch": "8.0.0",
         "playwright": "1.63.0",
+        "pngjs": "7.0.0",
         "postgres": "^3.4.7",
         "turbo": "^2.10.7",
         "typescript": "catalog:",
@@ -981,6 +984,8 @@
 
     "@types/picomatch": ["@types/picomatch@2.3.4", "", {}, "sha512-0so8lU8O5zatZS/2Fi4zrwks+vZv7e0dygrgEZXljODXBig97l4cPQD+9LabXfGJOWwoRkTVz6Q4edZvD12UOA=="],
 
+    "@types/pngjs": ["@types/pngjs@6.0.5", "", { "dependencies": { "@types/node": "*" } }, "sha512-0k5eKfrA83JOZPppLtS2C7OUtyNAl2wKNxfyYl9Q5g9lPkgBl/9hNyAu6HuEH2J4XmIv2znEpkDd0SaZVxW6iQ=="],
+
     "@types/react": ["@types/react@19.2.18", "", { "dependencies": { "csstype": "^3.2.2" } }, "sha512-AnzbBERsrLKtk2XSfTbYRLjQPdy116Sty4q+T+Bp3IC4l6jNBvreVPAHmpq9qhXQM7CXZPjLVmGMw9sy+hxQ3w=="],
 
     "@types/react-dom": ["@types/react-dom@19.2.5", "", { "peerDependencies": { "@types/react": "^19.2.0" } }, "sha512-fMPwH9v7r/pp43yUd2/Mbiex5KouJwwR3dzHkhLREUC6764VyDsqxhAxv6OFEYR1RhjOyD1naqba8ECDBe7ZQg=="],
@@ -1702,6 +1707,8 @@
     "picocolors": ["picocolors@1.1.1", "", {}, "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA=="],
 
     "picomatch": ["picomatch@2.3.1", "", {}, "sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA=="],
+
+    "pixelmatch": ["pixelmatch@8.0.0", "", { "dependencies": { "pngjs": "^7.0.0" }, "bin": { "pixelmatch": "bin/pixelmatch" } }, "sha512-cIqOLfh5k52us715qf3B3+kTOxZv+WDv77HN7xokLScYQGYQHi4m/ynoDIPpvF2LvCyUJGyvzY64i0QCXtzu1g=="],
 
     "pkce-challenge": ["pkce-challenge@5.0.1", "", {}, "sha512-wQ0b/W4Fr01qtpHlqSqspcj3EhBvimsdh0KlHhH8HRZnMsEa0ea2fTULOXOS9ccQr3om+GcGRk4e+isrZWV8qQ=="],
 

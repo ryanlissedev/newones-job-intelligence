@@ -313,6 +313,45 @@ describe("InMemorySearchEngine tiebreak parity", () => {
 });
 
 describe("InMemorySearchEngine partitions (RJC-383)", () => {
+  it("hides an expired row that is still physically in the active partition", async () => {
+    const engine = await seeded([
+      document("future", {
+        sluitingsdatum: new Date("2026-09-05T00:00:00.000Z"),
+      }),
+    ]);
+    await engine.applyBatch({
+      appliedSequence: 2n,
+      mutations: [
+        {
+          document: document("expired-active", {
+            sluitingsdatum: new Date("2026-08-01T00:00:00.000Z"),
+          }),
+          kind: "upsert",
+          partition: "active",
+          sequenceNumber: 2n,
+        },
+      ],
+    });
+
+    const active = await engine.search({
+      ast: null,
+      filters: {},
+      limit: 10,
+      offset: 0,
+      sort: "closing-soon",
+    });
+    expect(active.hits.map((hit) => hit.id)).toEqual(["future"]);
+
+    const all = await engine.search({
+      ast: null,
+      filters: {},
+      limit: 10,
+      offset: 0,
+      scope: "all",
+    });
+    expect(all.hits.map((hit) => hit.id)).toContain("expired-active");
+  });
+
   it("defaults to the active scope, counts the archive, and serves both under scope all", async () => {
     const engine = await seeded([
       document("open"),
