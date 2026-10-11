@@ -53,7 +53,7 @@ E2E_VISUAL_BASELINE_DIR=/persistent/dir/live \
 bun run test:e2e:live:verify
 ```
 
-`scripts/e2e/live-verify.sh` validates `E2E_VISUAL` as `off`, `report`, `enforce`, or `update` before running anything. It then runs `e2e run --config e2e.live.config.ts` with `E2E_VISUAL=${E2E_VISUAL:-report}` and compares in the same mode. Exit code = the e2e run's; a visual diff only fails the hook when `E2E_VISUAL=enforce`. Plain `bun run test:e2e:live` (what the current verify step calls) is unchanged: the visual tests skip when `E2E_VISUAL` is unset.
+`scripts/e2e/live-verify.sh` validates `E2E_VISUAL` as `off`, `report`, `enforce`, or `update` before running anything. It then runs `e2e run --config e2e.live.config.ts` with `E2E_VISUAL=${E2E_VISUAL:-report}` and compares in the same mode. Exit code = the e2e run's, else the compare's: a visual diff only fails the hook when `E2E_VISUAL=enforce`, but a broken compare (unwritable baseline dir, missing artifact, malformed report) fails in every enabled mode. Plain `bun run test:e2e:live` (what the current verify step calls) is unchanged: the visual tests skip when `E2E_VISUAL` is unset.
 
 Live tests added next to the existing four:
 
