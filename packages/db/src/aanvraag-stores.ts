@@ -7,6 +7,7 @@ import {
 import type { TitleFallbackDescriptionParts } from "@ji/application/enrichment";
 import {
   parseWeeklyHoursRange,
+  publicationDateInstant,
   toValidPublicationDate,
 } from "@ji/application/normalise";
 import type {
@@ -359,14 +360,6 @@ export class PostgresRawPayloadStore implements RawPayloadStore {
   }
 }
 
-const parsePublicationDate = (value: string | null): Date | null => {
-  if (value === null) {
-    return null;
-  }
-  const parsed = Date.parse(value);
-  return Number.isNaN(parsed) ? null : new Date(parsed);
-};
-
 const toSearchDocument = (row: AanvraagRow): SearchDocument => {
   const bronFacts = readAanvraagBronFacts(row.bronSpecifiek);
   const hours = parseWeeklyHoursRange(row.urenPerWeek);
@@ -383,7 +376,7 @@ const toSearchDocument = (row: AanvraagRow): SearchDocument => {
     eindklantNaam: null,
     id: row.id,
     laatstGezienOp: row.laatstGezienOp,
-    publicatiedatum: parsePublicationDate(publicatiedatum),
+    publicatiedatum: publicationDateInstant(publicatiedatum),
     sluitingsdatum: row.sluitingsdatum ?? undefined,
     // SAFETY: curated.status is constrained to AanvraagLifecycle at write time.
     status: row.status as AanvraagLifecycle,
