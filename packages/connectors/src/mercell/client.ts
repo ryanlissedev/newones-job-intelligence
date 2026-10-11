@@ -1,5 +1,6 @@
 import { loadConnectorFixture } from "../fixtures/load";
 import { resolveHttpTimeoutMs, withHttpTimeout } from "../http-timeout";
+import { withJobIntelligenceUserAgent } from "../user-agent";
 import type {
   MercellDetail,
   MercellListingItem,
@@ -119,7 +120,7 @@ const toMercellDetail = (raw: MercellDetailWire): MercellDetail => {
 export const createMercellClient = (
   options: MercellClientOptions = {}
 ): MercellClient => {
-  const fetchImpl = options.fetchImpl ?? fetch;
+  const fetchImpl = withJobIntelligenceUserAgent(options.fetchImpl ?? fetch);
   const liveEnabled = options.liveEnabled ?? process.env.MERCELL_LIVE === "1";
   const timeoutMs = resolveHttpTimeoutMs(options.timeoutMs);
   const { baseUrl } = options;

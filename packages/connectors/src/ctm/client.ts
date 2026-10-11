@@ -4,6 +4,7 @@ import { XMLParser, XMLValidator } from "fast-xml-parser";
 import type { SourceContact } from "../contract";
 import { resolveEgressFetch } from "../egress";
 import { loadConnectorFixture } from "../fixtures/load";
+import { withJobIntelligenceUserAgent } from "../user-agent";
 import type { CtmCpvCode, CtmEntry, CtmListingPage } from "./types";
 import { CTM_FEED_PATH } from "./types";
 
@@ -205,7 +206,9 @@ export const parseCtmFeed = (xml: string): CtmListingPage => {
 };
 
 export const createCtmClient = (options: CtmClientOptions = {}): CtmClient => {
-  const fetchImpl = options.fetchImpl ?? resolveEgressFetch("ctm");
+  const fetchImpl = withJobIntelligenceUserAgent(
+    options.fetchImpl ?? resolveEgressFetch("ctm")
+  );
   const liveEnabled = options.liveEnabled ?? process.env.CTM_LIVE === "1";
   const listingFixturePath =
     options.listingFixturePath ?? "ctm/listing-page-0.json";
