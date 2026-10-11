@@ -29,6 +29,17 @@ describe("Turbo production database env contracts", () => {
     expect(taskEnv("projector")).toContain("SEARCH_HYBRID");
   });
 
+  it("passes all expiry sweep settings to the projector task", () => {
+    expect(taskEnv("projector")).toEqual(
+      expect.arrayContaining([
+        "SEARCH_EXPIRY_SWEEP_BATCH_SIZE",
+        "SEARCH_EXPIRY_SWEEP_INTERVAL_MS",
+        "SEARCH_EXPIRY_SWEEP_MAX_PER_RUN",
+        "SEARCH_EXPIRY_SWEEP_MODE",
+      ])
+    );
+  });
+
   it.each(["db:generate", "db:migrate", "db:push", "db:studio"])(
     "passes only the explicit migration URL to %s",
     (taskName) => {
