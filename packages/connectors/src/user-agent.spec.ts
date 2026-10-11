@@ -7,10 +7,17 @@ import {
   withJobIntelligenceUserAgent,
 } from "./user-agent";
 
+/** Bun's RequestInit extension that egress.ts sets for proxied sources. */
+interface ProxiedInit extends RequestInit {
+  proxy?: string;
+}
+
 const SRC = import.meta.dir;
 const BROWSER_LIKE =
   /Mozilla\/\d|Chrome\/\d|AppleWebKit|Safari\/\d|Gecko\/|Edg\//u;
-// A file that issues a request must route it through one of these.
+// A file that issues a request must route it through one of these. This is a
+// coarse, file-level check; the per-source runtime guard in
+// packages/application/src/sources/user-agent.spec.ts asserts the actual headers.
 const UA_MARKERS =
   /withJobIntelligenceUserAgent|JOB_INTELLIGENCE_USER_AGENT|buildLiveFetchHeaders|toLiveFetchHeadersInit/u;
 const ISSUES_REQUEST = /\bfetchImpl\(|(?<![.\w])fetch\(\s*[`"'\w]/u;
@@ -61,6 +68,33 @@ describe("withJobIntelligenceUserAgent", () => {
       JOB_INTELLIGENCE_USER_AGENT,
     ]);
     expect(seen[1]?.get("Content-Type")).toBe("application/json");
+  });
+
+  it("applies to Request inputs and keeps extra init fields such as the egress proxy", async () => {
+    const seen: { headers: Headers; proxy?: string }[] = [];
+    const base = Object.assign(
+      (_input: string | URL | Request, init?: ProxiedInit) => {
+        seen.push({ headers: new Headers(init?.headers), proxy: init?.proxy });
+        return Promise.resolve(new Response("ok"));
+      },
+      { preconnect: () => {} }
+    );
+    const wrapped = withJobIntelligenceUserAgent(base);
+    await wrapped(
+      new Request("https://example.test/r", {
+        headers: { Accept: "application/json", "User-Agent": "Bun/1.4.2" },
+      })
+    );
+    const proxied: ProxiedInit = { proxy: "http://proxy.test:3128" };
+    await wrapped("https://example.test/p", proxied);
+    expect(seen[0]?.headers.get("User-Agent")).toBe(
+      JOB_INTELLIGENCE_USER_AGENT
+    );
+    expect(seen[0]?.headers.get("Accept")).toBe("application/json");
+    expect(seen[1]?.headers.get("User-Agent")).toBe(
+      JOB_INTELLIGENCE_USER_AGENT
+    );
+    expect(seen[1]?.proxy).toBe("http://proxy.test:3128");
   });
 });
 

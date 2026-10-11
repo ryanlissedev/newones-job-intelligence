@@ -13,12 +13,13 @@ afterEach(() => {
 
 /**
  * Runtime guard: every registered source, switched live, issues its first
- * listing request with the shared honest User-Agent — never the runtime
+ * request (listing, and detail where a synthetic item reaches the network)
+ * with the shared honest User-Agent — never the runtime
  * default (`Bun/x.y`), never a browser string, never a Cookie. Responses are
  * stubbed (no network); the connector is expected to fail on the stub body,
  * only the outgoing headers matter.
  */
-describe("every source sends the shared User-Agent on live discover", () => {
+describe("every source sends the shared User-Agent on live discover and fetch", () => {
   for (const source of Object.values(SOURCES)) {
     it(`${source.slug}`, async () => {
       const seen: Headers[] = [];
@@ -50,6 +51,18 @@ describe("every source sends the shared User-Agent on live discover", () => {
           runKind: "test",
         });
         await connector.discover(null, abort.signal).catch(() => null);
+        // Detail path: a synthetic item; connectors that need a real listing
+        // payload reject before any request, the rest must still send the UA.
+        await connector
+          .fetch(
+            {
+              bronReferentie: "ua-guard-1",
+              contentHash: "0",
+              listingPayload: {},
+            },
+            abort.signal
+          )
+          .catch(() => null);
       } finally {
         clearTimeout(timer);
         if (previous === undefined) {
