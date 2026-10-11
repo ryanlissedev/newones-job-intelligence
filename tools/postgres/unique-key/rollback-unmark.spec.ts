@@ -36,6 +36,13 @@ if (!postgresAvailable && databaseRequired) {
   throw new Error("Required test database is unavailable");
 }
 if (postgresAvailable && psqlBinary === null) {
+  // The gate sets REQUIRE_DATABASE_TESTS=1: a missing client must fail it,
+  // not silently skip the only coverage of the operator rollback script.
+  if (databaseRequired) {
+    throw new Error(
+      "rollback-unmark.spec: psql is required on PATH when database tests are required"
+    );
+  }
   console.warn(
     "rollback-unmark.spec: psql not on PATH, operator script tests skipped"
   );
@@ -183,7 +190,23 @@ describe
       });
 
       afterAll(async () => {
-        await client?.end({ timeout: 1 });
+        if (!client) {
+          return;
+        }
+        // A supplied DATABASE_TEST_URL is left under the caller's control by
+        // the isolation preload, so remove every fixture row (dependency
+        // order): unprocessed outbox events would otherwise be claimable by
+        // unrelated outbox-drain tests on a shared database.
+        try {
+          const fixtureIds = [...ids.values()];
+          await client`DELETE FROM curated.outbox_event WHERE aggregate_id IN ${client(fixtureIds)}`;
+          await client`DELETE FROM curated.aanvraag_dup_archive WHERE bron_id = ${bronId}`;
+          await client`DELETE FROM curated.aanvraag WHERE bron_id = ${bronId}`;
+          await client`DELETE FROM curated.scrape_run WHERE bron_id = ${bronId}`;
+          await client`DELETE FROM curated.bron WHERE id = ${bronId}`;
+        } finally {
+          await client.end({ timeout: 1 });
+        }
       });
 
       it("unmarks only the rows it marked, stamps restored_at only for those, and re-projects each once", async () => {
