@@ -991,12 +991,28 @@ interface ScanOptions {
   sampleLimit: number;
 }
 
+const swallowProgressRejection = async (
+  pending: Promise<unknown>
+): Promise<void> => {
+  try {
+    await pending;
+  } catch {
+    // Observability must never affect reconciliation.
+  }
+};
+
 const reportProgress = (
   input: ReconcileProjectionInput,
   progress: ReconcileProjectionProgress
 ): void => {
   try {
-    input.onProgress?.(progress);
+    // A `void`-typed callback may still be async; a rejected promise must not
+    // become an unhandled rejection that ends the process.
+    const result: unknown = input.onProgress?.(progress);
+    if (result instanceof Promise) {
+      // oxlint-disable-next-line no-void -- best-effort, never awaited by the scan
+      void swallowProgressRejection(result);
+    }
   } catch {
     // Observability must never affect reconciliation.
   }

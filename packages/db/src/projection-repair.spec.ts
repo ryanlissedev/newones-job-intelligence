@@ -597,6 +597,26 @@ describe("reconcileProjection (RJC-399 repair tool)", () => {
     const withoutCallback = await reconcileProjection(base);
 
     expect(withThrowingCallback).toEqual(withoutCallback);
+
+    let unhandledCount = 0;
+    const onUnhandled = () => {
+      unhandledCount += 1;
+    };
+    process.on("unhandledRejection", onUnhandled);
+    try {
+      const withRejectingCallback = await reconcileProjection({
+        ...base,
+        // oxlint-disable-next-line require-await -- deliberately async
+        onProgress: async () => {
+          throw new Error("async progress callback failed");
+        },
+      });
+      await Bun.sleep(10);
+      expect(withRejectingCallback).toEqual(withoutCallback);
+      expect(unhandledCount).toBe(0);
+    } finally {
+      process.off("unhandledRejection", onUnhandled);
+    }
   });
 
   it("reports pending, divergent-pending, dead-lettered, and oldest pending outbox health only in dry-run", async () => {
