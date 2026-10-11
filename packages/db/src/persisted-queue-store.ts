@@ -61,6 +61,12 @@ interface ClaimedElement {
   readonly queue_name: string;
   element: postgres.JSONValue;
   readonly attempts: number;
+  /**
+   * `acquired_at` of this claim as full-precision text (a JS Date would drop
+   * the microseconds). Fences a release to exactly this lease. Only claims
+   * carry it; `inspect` rows do not.
+   */
+  readonly lease?: string;
 }
 
 export type PersistedQueueStorePostgres = PersistedQueueStore["Service"] & {
@@ -295,29 +301,35 @@ export const makePostgresPersistedQueueStore = (
       Effect.forkScoped
     );
 
-    // A claim the interrupted taker never received: hand the row straight back
-    // instead of letting it sit leased until lockExpiration. Fire-and-forget —
-    // the taker is gone, and a failure here still ends in lease expiry.
+    // Hands back a claim no taker will ack. Fenced to this exact lease
+    // (`acquired_at` as claimed, which refreshLocks never touches before the
+    // ack finalizer exists), so a late release can never clear a successor's
+    // lease on the same row, even one taken by this same worker after expiry.
+    const releaseClaim = (row: ClaimedElement): Effect.Effect<void> => {
+      const { lease, sequence } = row;
+      if (lease === undefined) {
+        return Effect.void;
+      }
+      return runStatement(
+        () => sql`
+        UPDATE ${tableSql}
+        SET acquired_at = NULL, acquired_by = NULL
+        WHERE sequence = ${sequence}
+        AND acquired_by = ${workerId}::uuid
+        AND acquired_at = ${lease}::timestamptz
+      `
+      ).pipe(Effect.asVoid, Effect.ignore);
+    };
+
+    // A claim that completed after its taker was interrupted (the cancel lost
+    // the race): release it in the background — the taker is gone, and a
+    // failed release still ends in lease expiry.
     const releaseAbandonedClaims = (
       claimed: readonly ClaimedElement[]
     ): void => {
-      if (claimed.length === 0) {
-        return;
+      for (const row of claimed) {
+        Effect.runFork(releaseClaim(row));
       }
-      const sequences = claimed.map((row) => row.sequence);
-      const release = async (): Promise<void> => {
-        try {
-          await sql`
-            UPDATE ${tableSql}
-            SET acquired_at = NULL, acquired_by = NULL
-            WHERE sequence IN ${sql(sequences)}
-            AND acquired_by = ${workerId}::uuid
-          `;
-        } catch {
-          // Lease expiry still recovers the row.
-        }
-      };
-      void release();
     };
 
     const claimNext = Effect.fnUntraced(function* claimNext(
@@ -341,9 +353,10 @@ export const makePostgresPersistedQueueStore = (
               FOR UPDATE SKIP LOCKED
               LIMIT 1
             )
-            RETURNING sequence, id, queue_name, element, attempts, updated_at
+            RETURNING sequence, id, queue_name, element, attempts, updated_at,
+              acquired_at::text AS lease
           )
-          SELECT sequence, id, queue_name, element, attempts FROM cte
+          SELECT sequence, id, queue_name, element, attempts, lease FROM cte
           ORDER BY updated_at ASC, sequence ASC
         `,
           releaseAbandonedClaims,
@@ -406,9 +419,7 @@ export const makePostgresPersistedQueueStore = (
             })
           ).pipe(
             Effect.onInterrupt(() =>
-              received === undefined
-                ? Effect.void
-                : interrupt(received.sequence)
+              received === undefined ? Effect.void : releaseClaim(received)
             ),
             Effect.tap((element) => {
               activeSequences.add(element.sequence);
