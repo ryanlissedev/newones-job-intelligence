@@ -83,39 +83,69 @@ export const formatReconcileProgress = (
   );
 };
 
+const countReconcileProgressPage = (
+  progress: ReconcileProjectionProgress,
+  state: ReconcileProgressThrottleState
+): void => {
+  if (progress.done) {
+    return;
+  }
+  if (progress.stage === "source") {
+    state.sourcePages += 1;
+    state.sourcePagesSinceLastPrint += 1;
+  }
+  if (progress.stage === "inventory") {
+    state.inventoryPages = (state.inventoryPages ?? 0) + 1;
+    state.inventoryPagesSinceLastPrint =
+      (state.inventoryPagesSinceLastPrint ?? 0) + 1;
+  }
+};
+
+const shouldPrintStagePage = (
+  phase: ReconcileProjectionProgress["phase"],
+  countersChanged: boolean,
+  pages: number,
+  pagesSinceLastPrint: number
+): boolean =>
+  phase === "preflight"
+    ? pages % 100 === 0
+    : (countersChanged && pagesSinceLastPrint >= 10) || pages % 100 === 0;
+
+const shouldPrintReconcileProgress = (
+  progress: ReconcileProjectionProgress,
+  state: ReconcileProgressThrottleState
+): boolean => {
+  if (progress.done) {
+    return true;
+  }
+  const countersChanged =
+    state.lastPrintedApplied === undefined ||
+    state.lastPrintedSkippedPending === undefined ||
+    progress.applied !== state.lastPrintedApplied ||
+    progress.skippedPending !== state.lastPrintedSkippedPending;
+  if (progress.stage === "inventory") {
+    return shouldPrintStagePage(
+      progress.phase,
+      countersChanged,
+      state.inventoryPages ?? 0,
+      state.inventoryPagesSinceLastPrint ?? 0
+    );
+  }
+  return shouldPrintStagePage(
+    progress.phase,
+    countersChanged,
+    state.sourcePages,
+    state.sourcePagesSinceLastPrint
+  );
+};
+
 export const nextReconcileProgressStatus = (
   progress: ReconcileProjectionProgress,
   previous: ReconcileProgressThrottleState
 ): ReconcileProgressStatus => {
   const state = { ...previous };
-  if (progress.stage === "source" && !progress.done) {
-    state.sourcePages += 1;
-    state.sourcePagesSinceLastPrint += 1;
-  }
-  if (progress.stage === "inventory" && !progress.done) {
-    state.inventoryPages = (state.inventoryPages ?? 0) + 1;
-    state.inventoryPagesSinceLastPrint =
-      (state.inventoryPagesSinceLastPrint ?? 0) + 1;
-  }
-
-  const sourceCountersChanged =
-    state.lastPrintedApplied === undefined ||
-    state.lastPrintedSkippedPending === undefined ||
-    progress.applied !== state.lastPrintedApplied ||
-    progress.skippedPending !== state.lastPrintedSkippedPending;
-  const shouldPrint =
-    progress.done ||
-    (progress.stage === "inventory" &&
-      (progress.phase === "preflight"
-        ? (state.inventoryPages ?? 0) % 100 === 0
-        : (sourceCountersChanged &&
-            (state.inventoryPagesSinceLastPrint ?? 0) >= 10) ||
-          (state.inventoryPages ?? 0) % 100 === 0)) ||
-    (progress.stage === "source" &&
-      (progress.phase === "preflight"
-        ? state.sourcePages % 100 === 0
-        : (sourceCountersChanged && state.sourcePagesSinceLastPrint >= 10) ||
-          state.sourcePages % 100 === 0));
+  countReconcileProgressPage(progress, state);
+  const shouldPrint = shouldPrintReconcileProgress(progress, state);
 
   if (shouldPrint) {
     state.lastPrintedApplied = progress.applied;

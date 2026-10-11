@@ -901,9 +901,13 @@ describe("reconcileProjection (RJC-399 repair tool)", () => {
     expect(applied.applied).toBe(5);
     expect(applied.physicalCleanupCount).toBe(2);
     const inventoryProgress = applyProgress.filter(
-      (event) => event.stage === "inventory" && !event.done
+      (event) =>
+        event.phase === "apply" && event.stage === "inventory" && !event.done
     );
     expect(inventoryProgress).toHaveLength(4);
+    expect(
+      inventoryProgress.map((event) => event.physicalCleanupCount)
+    ).toEqual([1, 2, 2, 2]);
     expect(
       inventoryProgress
         .filter((event) => event.inventoryPartition === "active")

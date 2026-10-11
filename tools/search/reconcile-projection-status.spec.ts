@@ -99,7 +99,11 @@ describe("reconcile projection drift status", () => {
         physicalCleanupCount: 3,
         stage: "inventory",
       },
-      { ...hundredth.state, inventoryPages: 99, inventoryPagesSinceLastPrint: 99 }
+      {
+        ...hundredth.state,
+        inventoryPages: 99,
+        inventoryPagesSinceLastPrint: 99,
+      }
     );
     expect(inventory.shouldPrint).toBe(true);
     expect(inventory.line).toContain("partition=active scanned=12");

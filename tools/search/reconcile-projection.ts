@@ -419,9 +419,7 @@ try {
   process.removeListener("SIGHUP", onSignal);
   process.removeListener("SIGINT", onSignal);
   process.removeListener("SIGTERM", onSignal);
-  if (interrupted) {
-    await closeDb().catch(() => undefined);
-  } else {
-    await closeDb();
-  }
+  // After a signal the handler owns the exit code (128+n); a close failure
+  // must not turn that into an uncaught rejection (exit 1).
+  await (interrupted ? closeDb().catch(() => null) : closeDb());
 }
