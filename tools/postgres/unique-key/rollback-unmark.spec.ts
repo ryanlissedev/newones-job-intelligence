@@ -18,6 +18,12 @@ const migrationsFolder = path.join(
 const rollbackScript = path.join(import.meta.dir, "91-rollback-unmark.sql");
 const psqlBinary = Bun.which("psql");
 const REASON = "dup-key-normalized-v1";
+// 91-rollback-unmark.sql is database-wide (no fixture scope): it unmarks every
+// qualifying row. Run it only on a throwaway database created by the
+// test-isolation preload, never on a caller-supplied shared/persistent one.
+const disposableDatabase = new URL(migratorUrl).pathname
+  .slice(1)
+  .startsWith("ji_test_iso_");
 
 const isPostgresAvailable = async (): Promise<boolean> => {
   const probe = postgres(migratorUrl, { connect_timeout: 2, max: 1 });
@@ -45,6 +51,12 @@ if (postgresAvailable && psqlBinary === null) {
   }
   console.warn(
     "rollback-unmark.spec: psql not on PATH, operator script tests skipped"
+  );
+}
+
+if (postgresAvailable && !disposableDatabase) {
+  console.warn(
+    "rollback-unmark.spec: DATABASE_TEST_URL is not an isolated ji_test_iso_* database; the database-wide rollback script is not run against it"
   );
 }
 
@@ -89,7 +101,7 @@ const outputLines = (stdout: string): string[] =>
  * re-projected exactly once.
  */
 describe
-  .skipIf(!postgresAvailable || psqlBinary === null)
+  .skipIf(!postgresAvailable || psqlBinary === null || !disposableDatabase)
   .serial(
     "unique-key rollback section B (tools/postgres/unique-key/91-rollback-unmark.sql)",
     () => {
