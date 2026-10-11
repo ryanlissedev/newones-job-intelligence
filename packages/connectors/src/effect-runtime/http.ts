@@ -1,6 +1,7 @@
 import { Effect } from "effect";
 
 import { resolveEgressFetch } from "../egress";
+import { withJobIntelligenceUserAgent } from "../user-agent";
 import {
   mapHttpStatusToFault,
   mapUnknownToReadIoFault,
@@ -52,8 +53,9 @@ export const httpRequestOnce = (
   Effect.tryPromise({
     catch: mapUnknownToReadIoFault,
     try: async (signal) => {
-      const fetchImpl =
-        request.fetchImpl ?? resolveEgressFetch(request.sourceSlug);
+      const fetchImpl = withJobIntelligenceUserAgent(
+        request.fetchImpl ?? resolveEgressFetch(request.sourceSlug)
+      );
       const merged = mergeSignals(request.init?.signal ?? undefined, signal);
       if (merged.aborted) {
         throw new DOMException("Aborted", "AbortError");
