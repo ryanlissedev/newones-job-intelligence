@@ -36,8 +36,13 @@ test(
       try {
         const loginButton = banner.getByRole("button", "Inloggen");
         if (!(await loginButton.isVisible())) {
-          await banner.getByRole("button").last().tap();
-          await screen.getByRole("menuitem", "Uitloggen").tap();
+          // The menu may still be open from the failed step: use its logout
+          // item directly instead of toggling the trigger closed again.
+          const logoutItem = screen.getByRole("menuitem", "Uitloggen");
+          if (!(await logoutItem.isVisible())) {
+            await banner.getByRole("button").last().tap();
+          }
+          await logoutItem.tap();
         }
       } catch {
         // Cleanup is best effort; preserve the original test failure.

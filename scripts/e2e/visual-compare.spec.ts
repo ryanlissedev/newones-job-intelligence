@@ -75,9 +75,11 @@ describe("visual compare helpers", () => {
   });
 
   it("skips compare when the report has no visual captures", () => {
-    expect(shouldSkipCompare([])).toBe(true);
-    expect(shouldSkipCompare([{ name: "home", path: "visual-home.png" }])).toBe(
-      false
-    );
+    // A full run never skips: zero captures must surface as missing-capture.
+    expect(shouldSkipCompare([])).toBe(false);
+    expect(shouldSkipCompare([], true)).toBe(true);
+    expect(
+      shouldSkipCompare([{ name: "home", path: "visual-home.png" }], true)
+    ).toBe(false);
   });
 });

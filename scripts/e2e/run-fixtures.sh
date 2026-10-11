@@ -22,11 +22,21 @@ export E2E_TELEMETRY_DISABLED=1
 export TZ=Europe/Amsterdam
 export E2E_VISUAL="$visual_mode"
 
+# The runner leaves the previous report in place when it fails before writing
+# a new one (e.g. APP_UNREACHABLE); never compare (or update baselines from) a
+# stale report.
+rm -f .e2e/report.json
+
 e2e_status=0
 PATH="./node_modules/.bin:$PATH" e2e run --config e2e.fixtures.config.ts "$@" || e2e_status=$?
 
 compare_status=0
-if [[ "$visual_mode" != "off" ]]; then
+if [[ ! -f .e2e/report.json ]]; then
+  echo "visual compare skipped: the e2e run produced no report" >&2
+  (( e2e_status != 0 )) || e2e_status=1
+elif [[ "$visual_mode" == "update" && "$e2e_status" != 0 ]]; then
+  echo "visual compare skipped: refusing to update baselines from a failed e2e run" >&2
+elif [[ "$visual_mode" != "off" ]]; then
   compare_args=(
     scripts/e2e/visual-compare.ts
     --suite fixtures

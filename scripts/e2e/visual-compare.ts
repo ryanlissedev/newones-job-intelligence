@@ -120,9 +120,15 @@ export const selectVisualArtifacts = (
   );
 };
 
+/**
+ * Only a partial run (`--captured-only`) may skip when nothing was captured.
+ * A full run with zero captures still reports every committed baseline as
+ * `missing-capture`, so losing all visual coverage cannot pass silently.
+ */
 export const shouldSkipCompare = (
-  captures: readonly SelectedArtifact[]
-): boolean => captures.length === 0;
+  captures: readonly SelectedArtifact[],
+  capturedOnly = false
+): boolean => capturedOnly && captures.length === 0;
 
 export const decideVisualStatus = (
   mode: CompareMode,
@@ -193,8 +199,8 @@ const main = async (): Promise<number> => {
     await readFile(path.join(output, "report.json"), "utf-8")
   ) as ReportDocument;
   const captures = selectVisualArtifacts(report);
-  if (shouldSkipCompare(captures)) {
-    console.log("no visual captures in this run; skipping compare");
+  if (shouldSkipCompare(captures, args.capturedOnly)) {
+    console.log("no visual captures in this partial run; skipping compare");
     return 0;
   }
   const captureByName = new Map(
