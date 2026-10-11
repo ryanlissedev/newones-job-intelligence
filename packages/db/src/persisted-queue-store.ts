@@ -224,7 +224,10 @@ export const makePostgresPersistedQueueStore = (
       Effect.promise(async () => {
         await Promise.race([
           Promise.allSettled(inFlightClaims),
-          delay(ABANDONED_DRAIN_MS),
+          // Unreferenced: when the claims win the race (the normal case,
+          // often an empty set) the losing timer must not keep the process
+          // alive for the full drain window after shutdown.
+          delay(ABANDONED_DRAIN_MS, undefined, { ref: false }),
         ]);
         await sql.end({ timeout: 5 });
       })
