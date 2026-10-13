@@ -14,6 +14,7 @@ export {
   isSupportedBronSlug,
   resolveSourceByNaam,
   resolveTenderNedTestImportDays,
+  setSourcePauseOverrideForTests,
   SOURCES,
   SUPPORTED_BRON_SLUGS,
   type SupportedBronSlug,

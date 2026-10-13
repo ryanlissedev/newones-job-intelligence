@@ -7,6 +7,7 @@ import { WorkerDependencyFault } from "../effect/faults";
 import {
   bronIngestJobSchema,
   offerBronIngestJob,
+  processDurableBronJob,
   resolveDurableBronnen,
   runDurableBronJobConsumer,
 } from "./durable-jobs";
@@ -93,6 +94,28 @@ describe("offerBronIngestJob", () => {
 });
 
 describe("runDurableBronJobConsumer", () => {
+  it("acknowledges a queued paused-source job as skipped", async () => {
+    let processCalls = 0;
+    let pauseLogs = 0;
+
+    await processDurableBronJob({
+      job: {
+        ...STRIIVE_JOB,
+        bronSlug: "tenderned",
+      },
+      onPaused: () => {
+        pauseLogs += 1;
+      },
+      processJob: () => {
+        processCalls += 1;
+        return Promise.reject(new Error("bron is not pollable"));
+      },
+    });
+
+    expect(processCalls).toBe(1);
+    expect(pauseLogs).toBe(1);
+  });
+
   it("hands each taken job to processJob with its attempt count", async () => {
     const seen: { attempts: number; scrapeRunId: string }[] = [];
     const gate = Promise.withResolvers<null>();

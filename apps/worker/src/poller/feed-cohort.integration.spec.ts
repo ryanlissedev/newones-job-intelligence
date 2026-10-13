@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 
+import { setSourcePauseOverrideForTests } from "@ji/application/sources";
 import type { Connector } from "@ji/connectors";
 import { createInhuurdeskConnector } from "@ji/connectors/inhuurdesk";
 import type {
@@ -268,6 +269,7 @@ describe.serial("feed cohort on the durable ingest path (CTP-629)", () => {
   };
 
   beforeAll(async () => {
+    setSourcePauseOverrideForTests([]);
     available = await isPostgresAvailable();
     if (!available) {
       if (testDatabaseRequired) {
@@ -284,6 +286,7 @@ describe.serial("feed cohort on the durable ingest path (CTP-629)", () => {
   });
 
   afterAll(async () => {
+    setSourcePauseOverrideForTests(undefined);
     if (client && database) {
       await client`DELETE FROM curated.durable_job WHERE queue_name = ${BRON_INGEST_QUEUE}`;
       for (const spec of seededBronnen) {

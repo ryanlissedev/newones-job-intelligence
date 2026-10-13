@@ -123,9 +123,24 @@ export const SUPPORTED_BRON_SLUGS: readonly SupportedBronSlug[] = Object.keys(
 
 const normaliseNaam = (naam: string): string => naam.trim().toLowerCase();
 
+let pausedSourceOverrideForTests: ReadonlySet<string> | undefined;
+
+/** Temporarily replaces operator pauses for integration tests of paused sources. */
+export const setSourcePauseOverrideForTests = (
+  pausedSources: readonly string[] | undefined
+): void => {
+  pausedSourceOverrideForTests =
+    pausedSources === undefined
+      ? undefined
+      : new Set(pausedSources.map(normaliseNaam));
+};
+
 /** Returns whether a source is paused, accepting either slug or bron naam. */
 export const isSourcePaused = (naamOrSlug: string): boolean => {
   const wanted = normaliseNaam(naamOrSlug);
+  if (pausedSourceOverrideForTests !== undefined) {
+    return pausedSourceOverrideForTests.has(wanted);
+  }
   // SAFETY: every SOURCES entry is declared as a SourceDefinition (registry contract); the widening only exposes the optional `paused` field.
   const source = (Object.values(SOURCES) as readonly SourceDefinition[]).find(
     (candidate) =>
