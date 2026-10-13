@@ -25,6 +25,10 @@ export const hays = {
   liveEnv: "HAYS_LIVE",
   naam: "Hays",
   normalise: normaliseJsonLdObservation,
+  paused: {
+    reason: "Paused by operator 2026-10-13",
+    since: "2026-10-13",
+  },
   seed: {
     crawlDelayMs: 10_000,
     methode: "json-ld",

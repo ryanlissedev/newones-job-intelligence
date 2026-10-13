@@ -10,6 +10,7 @@ export type {
 } from "./definition";
 export {
   findSourceByNaam,
+  isSourcePaused,
   isSupportedBronSlug,
   resolveSourceByNaam,
   resolveTenderNedTestImportDays,

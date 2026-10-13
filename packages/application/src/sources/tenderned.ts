@@ -56,6 +56,10 @@ export const tenderned = {
   liveEnv: "TENDER_NED_LIVE",
   naam: "TenderNed",
   normalise: normaliseTenderNedObservation,
+  paused: {
+    reason: "Paused by operator 2026-10-13",
+    since: "2026-10-13",
+  },
   seed: {
     crawlDelayMs: 500,
     methode: "json-api",

@@ -34,6 +34,11 @@ export interface SourceDefinition<Slug extends string = string> {
    * Field-by-field evidence lives in docs/sources/<slug>.md.
    */
   listingHashCoversDetail: boolean;
+  /** Optional operator pause; paused sources must not run poll imports. */
+  paused?: {
+    reason: string;
+    since: string;
+  };
   /** Env var name that switches the connector from fixtures to live HTTP. */
   liveEnv: string;
   /**

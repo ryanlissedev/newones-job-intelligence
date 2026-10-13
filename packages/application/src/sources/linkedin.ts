@@ -30,6 +30,10 @@ export const linkedin = {
   liveEnv: "LINKEDIN_LIVE",
   naam: "LinkedIn Jobs",
   normalise: normaliseJsonLdObservation,
+  paused: {
+    reason: "Paused by operator 2026-10-13",
+    since: "2026-10-13",
+  },
   seed: {
     crawlDelayMs: 2000,
     methode: "json-ld",

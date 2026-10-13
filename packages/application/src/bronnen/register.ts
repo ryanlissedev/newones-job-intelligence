@@ -6,6 +6,8 @@ import {
   validateBronConfig,
 } from "@ji/domain";
 
+import { isSourcePaused } from "../sources/registry";
+
 export type BronLastRunSummary = {
   scrapeRunId: string;
   status: string;
@@ -187,4 +189,6 @@ export const listPublicBronnen = async (
 ): Promise<PublicBronView[]> => mapPublicBronnen(await persistence.list());
 
 export const isPollableBron = (record: BronRegisterRecord): boolean =>
-  record.actief && shouldScheduleBronPoll(record);
+  record.actief &&
+  !isSourcePaused(record.naam) &&
+  shouldScheduleBronPoll(record);

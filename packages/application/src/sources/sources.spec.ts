@@ -6,6 +6,7 @@ import type {
 } from "./definition";
 import {
   findSourceByNaam,
+  isSourcePaused,
   resolveSourceByNaam,
   SOURCES,
   SUPPORTED_BRON_SLUGS,
@@ -37,6 +38,29 @@ describe("source registry", () => {
 
   it("returns undefined for an unknown naam", () => {
     expect(resolveSourceByNaam("not a registered source")).toBeUndefined();
+  });
+
+  it("marks the four operator-paused sources by slug or naam", () => {
+    for (const value of ["hays", "TenderNed", "linkedin", " Intermediair "]) {
+      expect(isSourcePaused(value)).toBe(true);
+    }
+    expect(isSourcePaused("inhuurdesk")).toBe(false);
+    expect(isSourcePaused("not a registered source")).toBe(false);
+  });
+
+  it("records the operator pause metadata on exactly the four sources", () => {
+    // SAFETY: every SOURCES entry is a SourceDefinition; widening only exposes optional `paused`.
+    const pausedDefinitions = (
+      Object.values(SOURCES) as readonly SourceDefinition[]
+    ).filter((source) => source.paused !== undefined);
+    const paused = pausedDefinitions.map((source) => source.slug).toSorted();
+    expect(paused).toEqual(["hays", "intermediair", "linkedin", "tenderned"]);
+    for (const source of pausedDefinitions) {
+      expect(source.paused).toEqual({
+        reason: "Paused by operator 2026-10-13",
+        since: "2026-10-13",
+      });
+    }
   });
 
   it("gives every source a unique bronId (a shared id cross-contaminates known-hashes and observations)", () => {

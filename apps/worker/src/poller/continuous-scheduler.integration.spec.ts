@@ -173,7 +173,7 @@ describe("continuous poller scheduling", () => {
       expect(available).toBe(false);
       return;
     }
-    const bronId = await seedBron(SOURCES.tenderned.naam);
+    const bronId = await seedBron(SOURCES.hero.naam);
     // Three */15 ticks went by without a run: last success 46 minutes ago.
     const past = new Date(Date.now() - 46 * 60_000);
     await database.insert(scrapeRun).values({

@@ -123,6 +123,18 @@ export const SUPPORTED_BRON_SLUGS: readonly SupportedBronSlug[] = Object.keys(
 
 const normaliseNaam = (naam: string): string => naam.trim().toLowerCase();
 
+/** Returns whether a source is paused, accepting either slug or bron naam. */
+export const isSourcePaused = (naamOrSlug: string): boolean => {
+  const wanted = normaliseNaam(naamOrSlug);
+  // SAFETY: every SOURCES entry is declared as a SourceDefinition (registry contract); the widening only exposes the optional `paused` field.
+  const source = (Object.values(SOURCES) as readonly SourceDefinition[]).find(
+    (candidate) =>
+      normaliseNaam(candidate.slug) === wanted ||
+      normaliseNaam(candidate.naam) === wanted
+  );
+  return source?.paused !== undefined;
+};
+
 /** `record.naam` is the only source-identifying field on a bron row (no slug column yet),
  * so match it case-insensitively against each definition's own `naam`. */
 export const findSourceByNaam = <Source extends Pick<SourceDefinition, "naam">>(
