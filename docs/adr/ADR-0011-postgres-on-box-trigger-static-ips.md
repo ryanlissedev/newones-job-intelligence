@@ -13,7 +13,7 @@
 **Catapulze’s production system of record verhuist van Neon Free terug naar een
 dedicated Postgres-resource on-box in Coolify op de Hetzner-box.** Trigger.dev
 Cloud (betaald account) bereikt die database via **vaste egress-IP’s** die in de
-Hetzner-firewall `catapulze-prod` alleen op TCP 5432 worden toegelaten. Coolify-
+Hetzner-firewall `thenewones-prod` (voorheen `catapulze-prod`) alleen op TCP 5432 worden toegelaten. Coolify-
 apps op de box blijven via het interne `coolify`-netwerk praten; 5432 is niet
 publiek voor andere bronnen.
 
@@ -45,7 +45,7 @@ markeerde: Trigger.dev static IPs (paid plans).
 1. Coolify Postgres-resource (PG major gelijk aan huidige Neon) in project
    `catapulze-ji`, volume op NVMe, Coolify-geplande backups naar Cloudflare R2.
 2. Trigger.dev static IPs inschakelen; IPs als bron in firewall
-   `catapulze-prod` (<hetzner-firewall-id>) op TCP 5432.
+   `thenewones-prod` (<hetzner-firewall-id>) op TCP 5432.
 3. Rollen conform ADR-0006’s least-privilege-contract
    (`tools/postgres/neon-roles.sql` / equivalent): `ji_migrator`, `ji_app`,
    `ji_readonly`; alleen migrator krijgt `MIGRATION_DATABASE_URL`.
@@ -78,7 +78,7 @@ markeerde: Trigger.dev static IPs (paid plans).
 
 - Coolify-resource + env-switch voor server/projector/migrator mag al groen
   zijn (`/readyz` 200). Resterende poort: Trigger.dev static IPs + Hetzner
-  firewall `catapulze-prod` TCP 5432 + Trigger prod `DATABASE_URL` flip —
+  firewall `thenewones-prod` TCP 5432 + Trigger prod `DATABASE_URL` flip —
   one-shot: [trigger-on-box-cutover.md](../runbooks/trigger-on-box-cutover.md).
 - Daarna: Trigger.dev `poll-bron` succeeded, projector-lag 0, R2 restore-
   drill (RJC-405) — rest van RJC-418 DoD.

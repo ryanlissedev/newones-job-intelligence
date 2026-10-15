@@ -25,7 +25,7 @@ service, met bron:
 
 | Compose-service | Op de Hetzner-box in productie? | Onderbouwing |
 |---|---|---|
-| `postgres` | **Ja — Coolify Postgres-resource (ADR-0011 / RJC-418).** | Productie-SoR verhuist van Neon Free terug on-box. Coolify-apps bereiken hem via het interne netwerk; Trigger.dev Cloud via static egress-IP’s in firewall `catapulze-prod` op TCP 5432. Compose-Postgres blijft daarnaast de lokale/CI-evidence-lane (ADR-0004). Cutover-DoD: RJC-418. |
+| `postgres` | **Ja — Coolify Postgres-resource (ADR-0011 / RJC-418).** | Productie-SoR verhuist van Neon Free terug on-box. Coolify-apps bereiken hem via het interne netwerk; Trigger.dev Cloud via static egress-IP’s in firewall `thenewones-prod` op TCP 5432. Compose-Postgres blijft daarnaast de lokale/CI-evidence-lane (ADR-0004). Cutover-DoD: RJC-418. |
 | `web` | **Ja.** | Next.js-frontend, poort 3001, Dockerfile `apps/web/Dockerfile`; als Coolify-application per [coolify-local.md](coolify-local.md) § Coolify-proef. |
 | `server` | **Ja.** | Hono/tRPC-API, poort 3000, Dockerfile `apps/server/Dockerfile`, Docker HEALTHCHECK `/livez` (niet `/readyz` — Coolify rollbackt bij HEALTHCHECK-fail). |
 | `redis` | **Ja.** | Zoekresultaat-cache (RJC-388). `REDIS_URL` is optioneel in `packages/env/src/server.ts` — zonder Redis draait de in-process cache — maar in productie weigert de server te starten wanneer een geconfigureerde Redis bij boot onbereikbaar is (`createResultCache`, [ADR-0007](../adr/ADR-0007-search-platform-state-2026-09-01.md), "Invarianten"). |
