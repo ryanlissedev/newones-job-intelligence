@@ -258,6 +258,8 @@ contract:
 
 ### 6. Tenantbesluit: single-tenant per deployment blijft
 
+> **Ingevuld door OS-ADR-0001 (repo `newones-company-os`) en [ADR-0019](ADR-0019-ji-app-onder-company-os.md) op 13 oktober 2026:** het expliciete multi-tenant productbesluit is genomen. De isolatieslice is THE-10; SG-10 blijft gelden tot die slice geïmplementeerd en geverifieerd is.
+
 Voorgestelde bevestiging: de huidige lijn uit ADR-0015 §2 blijft — één
 tenant per deployment, met een server-owned deployment-scope als enige
 scopebron. Een CI-module introduceert geen impliciete multitenancy en geen
