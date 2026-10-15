@@ -11,6 +11,8 @@ Deze map bevat de canonieke architectuurbesluiten die meerdere packages, uitvoer
 
 ## Index
 
+Het Company OS heeft een eigen repository en ADR-reeks (`../newones-company-os/docs/adr/`, OS-ADR-0001 …); JI-ADR's verwijzen daarnaar waar JI zich aan een OS-besluit conformeert. Zie [`os/README.md`](os/README.md).
+
 | ADR | Status | Besluit |
 |---|---|---|
 | [ADR-0001](ADR-0001-performance-evidence-contract.md) | Accepted | Eén veilig, vendor-neutraal performance-evidencecontract |
@@ -31,6 +33,7 @@ Deze map bevat de canonieke architectuurbesluiten die meerdere packages, uitvoer
 | [ADR-0016](ADR-0016-candidate-intelligence-module-contract.md) | Proposed; startgate-items pending-owner-acceptance | Candidate Intelligence-modulecontract en toetsbare CI0-startgate (CTP-636, parent CTP-345) |
 | [ADR-0017](ADR-0017-rpo-rto-herstelgrens.md) | Proposed; grens pending-owner-acceptance | Numerieke RPO/RTO-grens voor JI-productie en een restore-drill die er hard op faalt (CTP-654, parent CTP-340) |
 | [ADR-0018](ADR-0018-volledige-bronvastlegging-en-bijlagen.md) | Proposed; §1 en §4 pending-owner-acceptance | Bronbytes naast extractie bewaren, alle bronvelden vastleggen en bijlagen via een eigen pipeline (raakt DEC-008) |
+| [ADR-0019](ADR-0019-ji-app-onder-company-os.md) | Proposed (volgt OS-ADR-0001) | JI wordt applicatie #1 onder het Company OS; registry-extractie naar `@os/core`; vult ADR-0016 §6 in |
 
 ## Runbooks
 
