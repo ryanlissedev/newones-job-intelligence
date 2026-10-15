@@ -3,7 +3,7 @@
 Status: **Operator one-shot** — Coolify apps already use on-box `ji_*`
 (`DATABASE_URL` / `PROJECTOR_DATABASE_URL` / `MIGRATION_DATABASE_URL`).
 Remaining gap: Trigger.dev Cloud prod still points at Neon, and Hetzner
-firewall `catapulze-prod` must allow Trigger **static egress IPs** on TCP 5432.
+firewall `thenewones-prod` must allow Trigger **static egress IPs** on TCP 5432.
 
 Catapulze owns Coolify mutate + this firewall work. This agent lane has **no**
 Trigger.dev API and must **not** print secret values or connection strings
@@ -57,7 +57,7 @@ Inspect current rules (no secrets):
 
 ```bash
 hcloud firewall describe <hetzner-firewall-id>
-# name: catapulze-prod
+# name: thenewones-prod
 ```
 
 Expect: 80/443 public; 22 restricted; **no** world-open 5432. After step 3,
@@ -80,7 +80,7 @@ Paid Trigger plan required (free = dynamic IPs → cannot allowlist).
 Official refs: [Static IPs changelog](https://trigger.dev/changelog/static-ips),
 [Launchweek AWS regions](https://trigger.dev/launchweek/2/4x-concurrency-static-ips-aws).
 
-### 3) Add static IPs to Hetzner firewall `catapulze-prod`
+### 3) Add static IPs to Hetzner firewall `thenewones-prod`
 
 For each Trigger static IPv4 `A.B.C.D`:
 
@@ -91,7 +91,7 @@ hcloud firewall add-rule <hetzner-firewall-id> \
   --description "Trigger.dev static egress (RJC-418)"
 ```
 
-Or edit via Console → Firewalls → `catapulze-prod` → inbound TCP 5432 from
+Or edit via Console → Firewalls → `thenewones-prod` → inbound TCP 5432 from
 those `/32`s only. Re-run `hcloud firewall describe <hetzner-firewall-id>` and confirm
 rule count matches the Regions list.
 
