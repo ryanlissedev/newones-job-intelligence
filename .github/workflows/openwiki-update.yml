@@ -6,6 +6,10 @@ name: OpenWiki Update
   schedule:
     - cron: "0 8 * * *"
 
+concurrency:
+  group: openwiki-update
+  cancel-in-progress: false
+
 permissions:
   contents: write
   pull-requests: write
@@ -13,6 +17,11 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # Explicit job scope: the repo default GITHUB_TOKEN is read-only.
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - name: Check out repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
@@ -53,11 +62,14 @@ jobs:
           # Optional: also trace this workflow's own OpenWiki run to LangSmith.
           LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
           LANGCHAIN_PROJECT: openwiki
-          LANGCHAIN_TRACING_V2: "true"
+          # Disable self-tracing; the LangSmith endpoint repeatedly returns 403.
+          LANGCHAIN_TRACING_V2: "false"
 
       - name: Create OpenWiki update pull request
         uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676  # v7
         with:
+          # Enable the repo setting or add OPENWIKI_PR_TOKEN (fine-grained PAT with contents + pull-requests write).
+          token: ${{ secrets.OPENWIKI_PR_TOKEN || github.token }}
           add-paths: |
             openwiki
             AGENTS.md
