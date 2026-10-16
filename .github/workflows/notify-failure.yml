@@ -1,0 +1,62 @@
+---
+name: Notify failure
+
+# Pings the commit author in Slack when a watched workflow fails on main.
+# Requires repository secret SLACK_WEBHOOK_URL (Slack incoming webhook).
+# Optional repository variable SLACK_USER_MAP: JSON object mapping GitHub
+# login -> Slack member ID, e.g. {"RyanLisse":"U0123ABCD"}, for a real @-mention.
+# Without the secret the notify step is skipped (job stays green).
+
+on:
+  workflow_run:
+    workflows: [CI, Deploy production]
+    types: [completed]
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: notify-failure-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+jobs:
+  slack:
+    if: github.event.workflow_run.conclusion == 'failure' || github.event.workflow_run.conclusion == 'timed_out'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+    steps:
+      - name: Report missing Slack secret
+        if: env.SLACK_WEBHOOK_URL == ''
+        run: echo "::warning::SLACK_WEBHOOK_URL is not configured; skipping Slack failure ping."
+
+      - name: Ping commit author in Slack
+        if: env.SLACK_WEBHOOK_URL != ''
+        env:
+          WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          COMMIT_MESSAGE: ${{ github.event.workflow_run.head_commit.message }}
+          COMMIT_AUTHOR: ${{ github.event.workflow_run.head_commit.author.name }}
+          ACTOR_LOGIN: ${{ github.event.workflow_run.actor.login }}
+          REPOSITORY: ${{ github.repository }}
+          USER_MAP: ${{ vars.SLACK_USER_MAP }}
+        run: |
+          set -euo pipefail
+          slack_id=""
+          if [ -n "${USER_MAP:-}" ]; then
+            slack_id="$(jq -r --arg login "$ACTOR_LOGIN" '.[$login] // empty' <<<"$USER_MAP" 2>/dev/null || true)"
+          fi
+          if [ -n "$slack_id" ]; then
+            mention="<@${slack_id}>"
+          else
+            mention="${COMMIT_AUTHOR:-$ACTOR_LOGIN} (@${ACTOR_LOGIN} on GitHub)"
+          fi
+          subject="$(printf '%s' "$COMMIT_MESSAGE" | head -n1 | cut -c1-120)"
+          text="$(printf ':red_circle: %s %s on %s main\nCommit %s by %s: %s\n<%s|View run>' \
+            "$WORKFLOW_NAME" "$CONCLUSION" "$REPOSITORY" "${HEAD_SHA:0:7}" "$mention" "$subject" "$RUN_URL")"
+          jq -n --arg text "$text" '{text: $text}' \
+            | curl --fail --silent --show-error --max-time 20 \
+                -H 'Content-Type: application/json' --data @- "$SLACK_WEBHOOK_URL" >/dev/null
