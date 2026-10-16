@@ -22,7 +22,12 @@ Bun monorepo for **Newones** (`@ji/*`). This file is a map: read only the rows y
 | No secrets in git | `bun run check-secrets` |
 | Types must pass (`bun test` does not type-check) | `bun run check-types`, `bun run gate` (Lefthook pre-push) |
 
-Never use `--no-verify`.
+## Hard rules (always loaded)
+
+- Never use `--no-verify`. A commit in a linked worktree can skip hooks: re-run the gates by hand.
+- `bun test` (max 2 workers, no watch) is not a type-check: finish with `bun run gate` or at least `bun run check-types`.
+- Never set or forge `RELEASE_APPROVAL` or the approval file; report a production-gate block to Ryan ([Production release lane](docs/agents/production-release.md)).
+- Never run `qlty fmt` or `qlty githooks install`.
 
 <!-- OPENWIKI:START -->
 
