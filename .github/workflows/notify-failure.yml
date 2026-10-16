@@ -29,8 +29,7 @@ jobs:
     if: >-
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_repository.full_name == github.repository &&
-      (github.event.workflow_run.conclusion == 'failure' ||
-       github.event.workflow_run.conclusion == 'timed_out')
+      contains(fromJSON('["failure","timed_out"]'), github.event.workflow_run.conclusion)
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
@@ -57,12 +56,15 @@ jobs:
           set -euo pipefail
           # Deploy production is red by design when the fail-closed release gate
           # blocks (manual-lane release, see AGENTS.md "Production release
-          # lane"). Skip the ping when the only failed step is that gate step.
+          # lane"). Skip the ping when the FIRST failed step is that gate step;
+          # the always() ledger finalizer then fails as a consequence.
           # Known limitation: a genuine crash inside the gate step is skipped too.
           if [ "$WORKFLOW_NAME" = "Deploy production" ]; then
-            failed_steps="$(gh api "repos/${REPOSITORY}/actions/runs/${RUN_ID}/jobs" \
-              --jq '[.jobs[].steps[]? | select(.conclusion == "failure") | .name] | unique | join("\n")' 2>/dev/null || true)"
-            if [ "$failed_steps" = "Run fail-closed release gate" ]; then
+            first_failed="$(gh api "repos/${REPOSITORY}/actions/runs/${RUN_ID}/jobs" \
+              --jq '[.jobs[] | select(.name == "deploy") | .steps[]?
+                | select(.conclusion == "failure")] | sort_by(.number)
+                | (.[0].name // "")' 2>/dev/null || true)"
+            if [ "$first_failed" = "Run fail-closed release gate" ]; then
               echo "::notice::Deploy production blocked by the release gate (by design); no Slack ping."
               exit 0
             fi
