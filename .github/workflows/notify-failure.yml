@@ -60,7 +60,9 @@ jobs:
           # blocks (manual-lane release, see AGENTS.md "Production release
           # lane"). Skip the ping when the FIRST failed step is that gate step;
           # the always() ledger finalizer then fails as a consequence.
-          # Known limitation: a genuine crash inside the gate step is skipped too.
+          # Known limitation: the gate step cannot tell a by-design block from
+          # any other gate failure (ledger red state, API error, crash), so ALL
+          # gate-step failures are silent here; watch the Deploy run itself.
           if [ "$WORKFLOW_NAME" = "Deploy production" ]; then
             first_failed="$(gh api "repos/${REPOSITORY}/actions/runs/${RUN_ID}/jobs" \
               --jq '[.jobs[] | select(.name == "deploy") | .steps[]?
