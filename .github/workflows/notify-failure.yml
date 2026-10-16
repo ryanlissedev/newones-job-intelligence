@@ -13,7 +13,8 @@ on:
     types: [completed]
     branches: [main]
 
-permissions: {}
+permissions:
+  contents: read
 
 concurrency:
   group: notify-failure-${{ github.event.workflow_run.id }}
@@ -41,22 +42,30 @@ jobs:
           COMMIT_MESSAGE: ${{ github.event.workflow_run.head_commit.message }}
           COMMIT_AUTHOR: ${{ github.event.workflow_run.head_commit.author.name }}
           ACTOR_LOGIN: ${{ github.event.workflow_run.actor.login }}
+          GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
           USER_MAP: ${{ vars.SLACK_USER_MAP }}
         run: |
           set -euo pipefail
+          # Resolve the GitHub login of the commit author (not the workflow actor);
+          # fall back to the actor only if the commit has no linked account.
+          author_login="$(gh api "repos/${REPOSITORY}/commits/${HEAD_SHA}" --jq '.author.login // empty' 2>/dev/null || true)"
+          author_login="${author_login:-$ACTOR_LOGIN}"
+          # Untrusted text: escape Slack control characters so commit data cannot
+          # inject <!channel>, mentions or links.
+          esc() { printf '%s' "$1" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g'; }
           slack_id=""
           if [ -n "${USER_MAP:-}" ]; then
-            slack_id="$(jq -r --arg login "$ACTOR_LOGIN" '.[$login] // empty' <<<"$USER_MAP" 2>/dev/null || true)"
+            slack_id="$(jq -r --arg login "$author_login" '.[$login] // empty' <<<"$USER_MAP" 2>/dev/null || true)"
           fi
           if [ -n "$slack_id" ]; then
             mention="<@${slack_id}>"
           else
-            mention="${COMMIT_AUTHOR:-$ACTOR_LOGIN} (@${ACTOR_LOGIN} on GitHub)"
+            mention="$(esc "${COMMIT_AUTHOR:-$author_login}") (@$(esc "$author_login") on GitHub)"
           fi
-          subject="$(printf '%s' "$COMMIT_MESSAGE" | head -n1 | cut -c1-120)"
+          subject="$(esc "$(printf '%s' "$COMMIT_MESSAGE" | head -n1 | cut -c1-120)")"
           text="$(printf ':red_circle: %s %s on %s main\nCommit %s by %s: %s\n<%s|View run>' \
-            "$WORKFLOW_NAME" "$CONCLUSION" "$REPOSITORY" "${HEAD_SHA:0:7}" "$mention" "$subject" "$RUN_URL")"
+            "$(esc "$WORKFLOW_NAME")" "$CONCLUSION" "$REPOSITORY" "${HEAD_SHA:0:7}" "$mention" "$subject" "$RUN_URL")"
           jq -n --arg text "$text" '{text: $text}' \
             | curl --fail --silent --show-error --max-time 20 \
                 -H 'Content-Type: application/json' --data @- "$SLACK_WEBHOOK_URL" >/dev/null
