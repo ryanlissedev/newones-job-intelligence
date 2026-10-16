@@ -1,0 +1,99 @@
+---
+name: Notify failure
+
+# Pings the commit author in Slack when a watched workflow fails on main.
+# Requires repository secret SLACK_WEBHOOK_URL (Slack incoming webhook).
+# Optional repository variable SLACK_USER_MAP: JSON object mapping GitHub
+# login -> Slack member ID, e.g. {"RyanLisse":"U0123ABCD"}, for a real @-mention.
+# Without the secret the notify step is skipped (job stays green).
+
+"on":
+  workflow_run:
+    workflows: [CI, Deploy production]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  actions: read  # list the failed run's jobs/steps (release-gate check)
+
+concurrency:
+  group: notify-failure-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+jobs:
+  slack:
+    # Only CI runs triggered by a push (and Deploy production runs, which are themselves
+    # workflow_run-chained off push-only CI) in this repo. workflow_run's
+    # `branches` filter matches head_branch, so a pull_request run from a
+    # fork's `main` would otherwise fire this job with secrets.
+    if: >-
+      ((github.event.workflow_run.name == 'CI' && github.event.workflow_run.event == 'push') ||
+       (github.event.workflow_run.name == 'Deploy production' && github.event.workflow_run.event == 'workflow_run')) &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      contains(fromJSON('["failure","timed_out"]'), github.event.workflow_run.conclusion)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+    steps:
+      - name: Report missing Slack secret
+        if: env.SLACK_WEBHOOK_URL == ''
+        run: echo "::warning::SLACK_WEBHOOK_URL is not configured; skipping Slack failure ping."
+
+      - name: Ping commit author in Slack
+        if: env.SLACK_WEBHOOK_URL != ''
+        env:
+          WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          COMMIT_MESSAGE: ${{ github.event.workflow_run.head_commit.message }}
+          COMMIT_AUTHOR: ${{ github.event.workflow_run.head_commit.author.name }}
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          USER_MAP: ${{ vars.SLACK_USER_MAP }}
+        run: |
+          set -euo pipefail
+          # Deploy production is red by design when the fail-closed release gate
+          # blocks (manual-lane release, see AGENTS.md "Production release
+          # lane"). Skip the ping when the FIRST failed step is that gate step;
+          # the always() ledger finalizer then fails as a consequence.
+          # Known limitation: the gate step cannot tell a by-design block from
+          # any other gate failure (ledger red state, API error, crash), so ALL
+          # gate-step failures are silent here; watch the Deploy run itself.
+          if [ "$WORKFLOW_NAME" = "Deploy production" ]; then
+            first_failed="$(gh api "repos/${REPOSITORY}/actions/runs/${RUN_ID}/jobs" \
+              --jq '[.jobs[] | select(.name == "deploy") | .steps[]?
+                | select(.conclusion == "failure")] | sort_by(.number)
+                | (.[0].name // "")' 2>/dev/null || true)"
+            if [ "$first_failed" = "Run fail-closed release gate" ]; then
+              echo "::notice::Deploy production blocked by the release gate (by design); no Slack ping."
+              exit 0
+            fi
+          fi
+          # GitHub login of the commit author (commits API), never the workflow
+          # actor: empty when the commit email has no linked GitHub account.
+          author_login="$(gh api "repos/${REPOSITORY}/commits/${HEAD_SHA}" --jq '.author.login // empty' 2>/dev/null || true)"
+          # Untrusted text: escape Slack control characters so commit data cannot
+          # inject <!channel>, mentions or links.
+          esc() { printf '%s' "$1" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g'; }
+          slack_id=""
+          if [ -n "${USER_MAP:-}" ] && [ -n "$author_login" ]; then
+            slack_id="$(jq -r --arg login "$author_login" '.[$login] // empty' <<<"$USER_MAP" 2>/dev/null || true)"
+          fi
+          if [ -n "$slack_id" ]; then
+            mention="<@${slack_id}>"
+          else
+            mention="$(esc "${COMMIT_AUTHOR:-unknown author}")"
+            if [ -n "$author_login" ]; then
+              mention="${mention} (@$(esc "$author_login") on GitHub)"
+            fi
+          fi
+          subject="$(esc "$(printf '%s' "$COMMIT_MESSAGE" | head -n1 | cut -c1-120)")"
+          text="$(printf ':red_circle: %s %s on %s main\nCommit %s by %s: %s\n<%s|View run>' \
+            "$(esc "$WORKFLOW_NAME")" "$CONCLUSION" "$REPOSITORY" "${HEAD_SHA:0:7}" "$mention" "$subject" "$RUN_URL")"
+          jq -n --arg text "$text" '{text: $text}' \
+            | curl --fail --silent --show-error --max-time 20 \
+                -H 'Content-Type: application/json' --data @- "$SLACK_WEBHOOK_URL" >/dev/null
