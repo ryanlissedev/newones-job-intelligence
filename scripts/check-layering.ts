@@ -68,6 +68,9 @@ if (import.meta.main) {
     for (const line of violations) {
       console.error(line);
     }
+    console.error(
+      "Agent: apps/web must not reach the database. Move this read/write behind a procedure in packages/api (served by apps/server) and call it from the web app via tRPC, then re-run `bun run check-layering`."
+    );
     process.exit(1);
   }
 }
