@@ -102,35 +102,36 @@ jobs:
           nohup docker compose --env-file .env.example pull -q postgres \
             >/dev/null 2>&1 &
 
-      - name: Restore Bun dependency cache
-        id: bun-cache
-        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf  # v4.2.2
-        with:
-          path: |
-            node_modules
-            ~/.bun/install/cache
-          key: bun-deps-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-          restore-keys: |
-            bun-deps-${{ runner.os }}-
+      - parallel:
+          - name: Restore Bun dependency cache
+            id: bun-cache
+            uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf  # v4.2.2
+            with:
+              path: |
+                node_modules
+                ~/.bun/install/cache
+              key: bun-deps-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+              restore-keys: |
+                bun-deps-${{ runner.os }}-
 
-      - name: Install Qlty
-        uses: qltysh/qlty-action/install@08a0a862c159eae9b9003081da6663d96efef637  # v2.3.0
+          - name: Install Qlty
+            uses: qltysh/qlty-action/install@08a0a862c159eae9b9003081da6663d96efef637  # v2.3.0
 
-      - name: Restore Qlty cache
-        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf  # v4.2.2
-        with:
-          path: ~/.qlty
-          key: qlty-${{ runner.os }}-${{ hashFiles('.qlty/qlty.toml') }}
-          restore-keys: |
-            qlty-${{ runner.os }}-
+          - name: Restore Qlty cache
+            uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf  # v4.2.2
+            with:
+              path: ~/.qlty
+              key: qlty-${{ runner.os }}-${{ hashFiles('.qlty/qlty.toml') }}
+              restore-keys: |
+                qlty-${{ runner.os }}-
 
-      - name: Restore Turborepo cache
-        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf  # v4.2.2
-        with:
-          path: .turbo/cache
-          key: turbo-verify-${{ runner.os }}-${{ github.sha }}
-          restore-keys: |
-            turbo-verify-${{ runner.os }}-
+          - name: Restore Turborepo cache
+            uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf  # v4.2.2
+            with:
+              path: .turbo/cache
+              key: turbo-verify-${{ runner.os }}-${{ github.sha }}
+              restore-keys: |
+                turbo-verify-${{ runner.os }}-
 
       - name: Install locked dependencies
         env:
@@ -147,8 +148,16 @@ jobs:
           docker volume create "$POSTGRES_DATA_VOLUME"
           docker compose --env-file .env.example up -d --wait postgres
 
-      - name: Verify
-        run: bun scripts/performance/measure.ts --label gate -- bun run gate
+      # Deploy gate unchanged; job name `verify` and workflow conclusion semantics unchanged.
+      - parallel:
+          - name: Verify (static)
+            env:
+              GATE_PART: static
+            run: bun scripts/performance/measure.ts --label gate-static -- bun run gate
+          - name: Verify (tests)
+            env:
+              GATE_PART: tests
+            run: bun scripts/performance/measure.ts --label gate-tests -- bun run gate
 
       - name: Stop isolated PostgreSQL
         if: always()

@@ -2,3 +2,10 @@
 self-hosted-runner:
   labels:
     - crabbox
+
+# Remove once actionlint supports parallel steps: https://github.com/rhysd/actionlint/issues/693
+paths:
+  .github/workflows/ci.yml:
+    ignore:
+      - '^step must run script with "run" section or run action with "uses" section$'
+      - '^property "bun-cache" is not defined in object type \{\}$'

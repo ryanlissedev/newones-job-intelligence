@@ -19,6 +19,8 @@
   "deliveryPhases": [
     "install",
     "gate",
+    "gate-static",
+    "gate-tests",
     "ultracite",
     "qlty",
     "typecheck",
