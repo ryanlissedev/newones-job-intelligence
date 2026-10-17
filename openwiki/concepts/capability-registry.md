@@ -1,8 +1,8 @@
 ---
 type: architectural-concept
-title: Capability Registry
-description: The capability registry as the single application boundary that defines capabilities, binds them to REST, MCP, and UI transports, authorises each call, and keeps transport parity.
-tags: [capability-registry, registry, transport-parity, authorization, mcp, rest, agent-native]
+title: Capability Registry and Approval-as-Data
+description: The capability registry as the single application boundary that defines capabilities, binds them to REST, MCP, and UI transports, authorises each call, keeps transport parity, and stores approval state as data in the curated schema for idempotent, auditable workflows.
+tags: [capability-registry, registry, transport-parity, authorization, mcp, rest, agent-native, approval-as-data]
 sources:
   - id: openwiki-source-082025b8c988d94fe0369b28
     resource: repo://apps/server/src/capabilities/capability-availability.ts
@@ -34,19 +34,25 @@ sources:
     resource: repo://packages/application/src/registry/registry.ts
   - id: openwiki-source-7e08af4815534ff243b36bec
     resource: repo://packages/application/src/registry/schema-helpers.ts
+  - id: openwiki-source-f552c04ac22832d677c47346
+    resource: repo://packages/db/src/migrations/0003_u9_snapshot_approval.sql
+  - id: openwiki-source-4fb914bdea98060eb137d0bf
+    resource: repo://packages/db/src/schema/curated.ts
   - id: openwiki-source-dbbddbb7341bd2b01d4821cf
     resource: repo://scripts/check-capability-coverage.ts
   - id: openwiki-source-15662a88e3022caa61dc260d
     resource: repo://scripts/check-capability-registry.ts
-generated: { by: "openwiki/0.4.3", at: "2026-09-14T14:34:20.891Z" }
+generated: { by: "openwiki/0.7.0", at: "2026-10-17T11:51:19.756Z" }
 verified:
   - by: openwiki/0.7.0
-    at: 2026-10-06T08:52:28.787Z
+    at: 2026-10-17T11:51:19.756Z
 ---
 
-# Capability Registry
+# Capability Registry and Approval-as-Data
 
 The capability registry is the **single application boundary** for Job Intelligence. Every user outcome — searching vacancies, approving a snapshot, exporting to Spott, acknowledging an alert — is defined once as a *capability* and invoked through one registry. UI actions, REST routes, and the MCP `tools/list` + `tools/call` endpoint all call the same capability handlers; there is no second domain implementation beside the registry. This is the agent-native design premise: agents are first-class citizens from day one, so the recruiter's UI and the agent's tool surface share one permissioned, schema-validated invocation path.
+
+Additionally, certain capabilities store their state as data in the curated schema rather than as a side channel, enabling idempotent, auditable, and agent-native approval workflows.
 
 ## One capability, three transports, one handler
 
@@ -119,6 +125,29 @@ Construction is fail-closed: if any check fails, `createCapabilityRegistry` retu
 
 Internal errors are reported through the `InternalErrorReporter` with a bounded timeout (`reporterTimeoutMs`, clamped to 5 s) and counted in `registry.health()` as `reporterFailures` / `reporterTimeouts`. The reporter never blocks the response: if it times out or throws, the invocation still returns its contract-violation error.
 
+## Approval-as-data storage
+
+Certain capabilities, such as `approve_snapshot`, store their state directly in the curated schema as regular data rather than as a side channel. This enables idempotent, auditable, and agent-native approval workflows.
+
+The `approval_record` table in the curated schema stores approval state with fields including:
+- `actorId` — who performed the approval
+- `createdAt` and `expiresAt` — when the approval was made and when it expires
+- `motivatie` — the reason for approval
+- `resultIds` — what was approved
+- `snapshotId` — what snapshot the approval applies to
+
+When the `approve_snapshot` capability is invoked, it:
+1. Checks if an approval already exists for the snapshot (idempotency)
+2. If not, creates a new approval record in the curated schema
+3. Returns the approval data through the standard capability response mechanism
+
+This stored approval state can then be queried by other capabilities like `get_snapshot_approval` and `validate_snapshot_approval`, making approval state visible and accessible through the same registry interface used for all other capabilities.
+
+This approach ensures that approval state is:
+- **Idempotent**: Calling approve_snapshot multiple times with the same input returns the same result
+- **Auditable**: All approval details are stored as queryable data
+- **Agent-native**: Approval state can be accessed through the same capability registry interface as any other data
+
 ## Transport bindings and parity
 
 `dualBindings(method, path, toolName)` (`packages/application/src/registry/handlers/bindings.ts`) emits both a REST binding and an MCP binding for a capability in one declaration. The `check-capability-registry` script asserts that every capability id in `sliceACapabilityIds` has exactly one REST and one MCP binding, and that each `wiredTransports` entry in metadata corresponds to a real binding (and vice versa). The `check-capability-coverage` script additionally asserts that every UI action references a capability that is wired to `mcp:`, `rest:`, and `ui:` transports.
@@ -188,3 +217,4 @@ Per ADR-0014 / CTP-469, Effect Schema is the hand-maintained source of truth for
 - **Transport parity invariant**: REST and MCP invoke the same handler through the same registry invoker with the same serialisation. Parity is asserted by `parity.spec.ts`; a capability that returns different shapes per transport is a defect.
 - **Availability invariant**: an unavailable capability never executes; both transports return `CAPABILITY_DISABLED` with the reason. Listing it in `tools/list` is allowed; calling it is not.
 - **Construction-time invariant**: duplicate ids, duplicate bindings, invalid schemas, and a missing error reporter for a non-empty catalog all fail at registry construction, not at call time.
+- **Approval-as-data invariant**: approval state is stored as queryable data in the curated schema, enabling idempotent, auditable agent-native workflows through the standard capability interface.

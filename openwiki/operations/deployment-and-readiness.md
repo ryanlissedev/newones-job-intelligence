@@ -52,10 +52,10 @@ sources:
     resource: repo://scripts/docker-compose-smoke.sh
   - id: openwiki-source-8e7d1f4c06ccf720a9ba1beb
     resource: repo://tools/postgres/init/10-bootstrap-roles.sh
-generated: { by: "openwiki/0.7.0", at: "2026-10-06T08:52:28.787Z" }
+generated: { by: "openwiki/0.7.0", at: "2026-10-17T11:51:19.756Z" }
 verified:
   - by: openwiki/0.7.0
-    at: 2026-10-06T08:52:28.787Z
+    at: 2026-10-17T11:51:19.756Z
 ---
 
 # Deployment, Readiness & Runbooks
@@ -366,13 +366,8 @@ Operational detail lives in `docs/runbooks/` and architectural decisions in
 
 ### Related pages
 
-<!-- openwiki: broken internal link [/openwiki/architecture/overview.md] link "/openwiki/architecture/overview.md" is root-absolute, which no real consumer resolves against the repository root (not a coding agent reading the page, not GitHub's Markdown renderer, not a local viewer); use a path relative to this file instead. Fix the href or restore the target, then delete this comment. -->
-- [/openwiki/architecture/overview.md](/openwiki/architecture/overview.md) — monorepo layout, package layering, the three runtime processes, request flow.
-<!-- openwiki: broken internal link [/openwiki/architecture/data-model.md] link "/openwiki/architecture/data-model.md" is root-absolute, which no real consumer resolves against the repository root (not a coding agent reading the page, not GitHub's Markdown renderer, not a local viewer); use a path relative to this file instead. Fix the href or restore the target, then delete this comment. -->
-- [/openwiki/architecture/data-model.md](/openwiki/architecture/data-model.md) — Postgres zones, SCD2, outbox, search projection checkpoint.
-<!-- openwiki: broken internal link [/openwiki/operations/quality-gates.md] link "/openwiki/operations/quality-gates.md" is root-absolute, which no real consumer resolves against the repository root (not a coding agent reading the page, not GitHub's Markdown renderer, not a local viewer); use a path relative to this file instead. Fix the href or restore the target, then delete this comment. -->
-- [/openwiki/operations/quality-gates.md](/openwiki/operations/quality-gates.md) — the four quality verbs (`fix`, `check`, `gate`, `wiki`) and the pre-push gate.
-<!-- openwiki: broken internal link [/openwiki/workflows/ingest-pipeline.md] link "/openwiki/workflows/ingest-pipeline.md" is root-absolute, which no real consumer resolves against the repository root (not a coding agent reading the page, not GitHub's Markdown renderer, not a local viewer); use a path relative to this file instead. Fix the href or restore the target, then delete this comment. -->
-- [/openwiki/workflows/ingest-pipeline.md](/openwiki/workflows/ingest-pipeline.md) — poll → raw → normalise → curate → outbox.
-<!-- openwiki: broken internal link [/openwiki/workflows/search-projection.md] link "/openwiki/workflows/search-projection.md" is root-absolute, which no real consumer resolves against the repository root (not a coding agent reading the page, not GitHub's Markdown renderer, not a local viewer); use a path relative to this file instead. Fix the href or restore the target, then delete this comment. -->
-- [/openwiki/workflows/search-projection.md](/openwiki/workflows/search-projection.md) — outbox drain into Manticore, generation/checkpoint lifecycle.
+- [../architecture/overview.md](../architecture/overview.md) — monorepo layout, package layering, the three runtime processes, request flow.
+- [../architecture/data-model.md](../architecture/data-model.md) — Postgres zones, SCD2, outbox, search projection checkpoint.
+- [../operations/quality-gates.md](../operations/quality-gates.md) — the four quality verbs (`fix`, `check`, `gate`, `wiki`) and the pre-push gate.
+- [../workflows/ingest-pipeline.md](../workflows/ingest-pipeline.md) — poll → raw → normalise → curate → outbox.
+- [../workflows/search-projection.md](../workflows/search-projection.md) — outbox drain into Manticore, generation/checkpoint lifecycle.

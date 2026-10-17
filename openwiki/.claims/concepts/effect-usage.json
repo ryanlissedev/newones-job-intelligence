@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:5c851d5641dda1957fc59c86aa5a7f2c20b599d660fc3789ad6cc4cbb4ccb66d",
+  "claims": [
+    {
+      "id": "claim_da47a20a474e484ca76d42d0c24f81b5",
+      "statement": "Effect-TS is used to encapsulate side effects with guaranteed resource safety.",
+      "evidence": [
+        {
+          "resource": "repo://packages/env/src/schema-helpers.ts",
+          "version": "repo-file-v1:sha256:ca5da65d443587b9e34eb6f801b7ffb80f16f7255203d6463702ef7bbf2953ea"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.0",
+    "at": "2026-10-17T11:51:19.756Z"
+  }
+}
