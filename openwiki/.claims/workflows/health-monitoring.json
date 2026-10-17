@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:2d40c0067c902dc66e7b4de75ed77b539dcc5d54a11e1d56ee34e42dc9a53c54",
+  "claims": [
+    {
+      "id": "claim_830d11999abe41da87c7892ad07fb55f",
+      "statement": "The discovery floor evaluates the last 7 days of successful runs, requires a peak of at least 5 records found in-window, and triggers after 3 consecutive zero-found polls.",
+      "evidence": [
+        {
+          "resource": "repo://packages/application/src/observability/discovery-floor.ts",
+          "version": "repo-file-v1:sha256:8e3e7a7ea8d9e9de1baa1e42a49c5ba8ad0713f564245a4283150af1e2eb206d"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.0",
+    "at": "2026-10-17T11:51:19.756Z"
+  }
+}

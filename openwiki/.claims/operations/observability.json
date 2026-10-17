@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:281ba70282f411c6a1367975ada72a4e418af25bed8489ddcd2bc5d361c6c474",
+  "claims": [
+    {
+      "id": "claim_8a80eedec2a84333bf834e1822f30115",
+      "statement": "Source health signals consist of five independent dimensions (process, database, advisory lock, progress, freshness) that are combined into an aggregate state.",
+      "evidence": [
+        {
+          "resource": "repo://packages/application/src/observability/source-health-signals.ts",
+          "version": "repo-file-v1:sha256:95760a87645ac6e37a63cd9233d0b84e2b7b13a31c740a8f3d03b7b255117f09"
+        }
+      ]
+    },
+    {
+      "id": "claim_2c0ce349ffac4536b9e7e5505f7bf1ad",
+      "statement": "The detection of a discovery floor breach requires three consecutive zero-found runs and a historical peak of at least five found records within a seven-day window.",
+      "evidence": [
+        {
+          "resource": "repo://packages/application/src/observability/discovery-floor.ts",
+          "version": "repo-file-v1:sha256:8e3e7a7ea8d9e9de1baa1e42a49c5ba8ad0713f564245a4283150af1e2eb206d"
+        }
+      ]
+    },
+    {
+      "id": "claim_1dbf395d6eb247d291589d2ee35d1fc2",
+      "statement": "Telemetry callbacks from the poller are designed to never interrupt the polling process; callback failures are caught and logged to stderr.",
+      "evidence": [
+        {
+          "resource": "repo://apps/worker/src/poller/telemetry-callback.ts",
+          "version": "repo-file-v1:sha256:9ca8f8184a2bb3bc8a4a8e1b185d8581bf9c5564123f7a5f5805490647864f53"
+        }
+      ]
+    },
+    {
+      "id": "claim_aec2d77b62f7483482afc750b164aae1",
+      "statement": "Alert notifications include a stage field to distinguish between initial opening and escalation, and are delivered via an alert sink.",
+      "evidence": [
+        {
+          "resource": "repo://packages/application/src/observability/alert-sink.ts",
+          "version": "repo-file-v1:sha256:6ed665ab167ffe8b89157764f2163494ab4f34e53475d6e790f1b0afdb662758"
+        }
+      ]
+    },
+    {
+      "id": "claim_63e260ef3e994f02a590b98f11c24584",
+      "statement": "The alert writer is responsible for persisting alert records and updating the bron health store.",
+      "evidence": [
+        {
+          "resource": "repo://packages/application/src/observability/writer.ts",
+          "version": "repo-file-v1:sha256:37da48687452e218402186787ceef5e874d430eaeff81d2cdfbd86d7e039e738"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.0",
+    "at": "2026-10-17T11:51:19.756Z"
+  }
+}

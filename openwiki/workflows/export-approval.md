@@ -1,7 +1,11 @@
 ---
-type: "Reference"
-title: "Export & Approval"
-openwiki_generated: true
+type: Reference
+title: Export Approval and Spott.io Integration
+description: Human approval workflow for curated data and idempotent export to Spott.io via the capability registry.
+tags: [export, approval, spott, workflow]
+verified:
+  - by: openwiki/0.7.0
+    at: 2026-10-17T11:51:19.756Z
 sources:
   - id: openwiki-source-1e4ae844344034d9b31e6094
     resource: repo://apps/server/src/export/reconcile-spott-export.ts
@@ -33,10 +37,7 @@ sources:
     resource: repo://packages/db/src/export-reconciliation.ts
   - id: openwiki-source-00816f778098498c26e02a7f
     resource: repo://packages/db/src/export-stores.ts
-generated: { by: "openwiki/0.4.3", at: "2026-09-14T14:34:20.891Z" }
-verified:
-  - by: openwiki/0.7.0
-    at: 2026-10-06T08:52:28.787Z
+generated: { by: "openwiki/0.7.0", at: "2026-10-17T11:51:19.756Z" }
 ---
 
 
@@ -46,11 +47,12 @@ Export is the only path that writes job vacancies to Spott.io, and it is
 approval-gated. A recruiter query snapshot is first approved; then
 `commit_export` writes each approved vacancy to Spott with a stable
 idempotency key, records external receipts, and leaves a durable effect
-reservation. Reconciliation is a separate, operator-driven command that binds
-an externally verified Spott ID to an uncertain reservation when the create
-outcome could not be confirmed. Production write wiring is deliberately
-disabled; the fixture client stands in until the provider contract and
-company/stage mapping are separately verified.
+reservation. Approval state for snapshots is stored in the `approvalRecord`
+table in the curated schema. Reconciliation is a separate, operator-driven
+command that binds an externally verified Spott ID to an uncertain reservation
+when the create outcome could not be confirmed. Production write wiring is
+deliberately disabled; the fixture client stands in until the provider contract
+and company/stage mapping are separately verified.
 
 ## End-to-end flow
 

@@ -59,9 +59,6 @@ sources:
   - id: openwiki-source-117965f66c1ab0fea66a42dc
     resource: repo://scripts/check-layering.ts
 generated: { by: "openwiki/0.7.0", at: "2026-10-06T08:52:28.787Z" }
-verified:
-  - by: openwiki/0.7.0
-    at: 2026-10-06T08:52:28.787Z
 ---
 
 # Architecture Overview

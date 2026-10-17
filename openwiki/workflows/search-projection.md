@@ -41,7 +41,7 @@ sources:
 generated: { by: "openwiki/0.4.3", at: "2026-09-14T14:34:20.891Z" }
 verified:
   - by: openwiki/0.7.0
-    at: 2026-10-06T08:52:28.787Z
+    at: 2026-10-17T11:51:19.756Z
 ---
 
 # Search Projection

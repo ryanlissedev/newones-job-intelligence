@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:0a7ee7cd660a0505729f1e05d5b4e61eecc96fdd24323bbd789b475bad1e61cd",
+  "pageVersion": "sha256:53da3f936b872554afb3deebbdd9aecb23027ed7e404dd57e0ff6876fdfa931d",
   "claims": [
     {
       "id": "claim_dd147241824943d69ae7d967213fcee8",
       "statement": "The capability registry is the single application boundary: UI actions, REST routes, and the MCP tools/list + tools/call endpoint all invoke the same capability handlers through the same registry invoker, with no second domain implementation beside it.",
       "evidence": [
         {
-          "resource": "repo://apps/server/src/index.ts#L114-L170",
+          "resource": "repo://apps/server/src/index.ts#L100-L156",
           "version": "repo-lines-v1:sha256:aee8d985f03fc3b9ee61a94d0cfabff7c00522528202b72675bd92a3f5275684:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBlZGFkYmI5ZjFiMTI5ZjQxODM4MGQzOGE0Y2ZjM2VkMmI4Yzk4NGY3ZTFjNGUzMzgwOWYyYzk2NTEyOGYzNDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5OTRlYjRhYWQ5YzI3OTVjMmYyYjhiMDVkMmQ2OGFlNTNjZWZmNTE2OWFkYzU2ZDY1ODQyNDVlODIxZGNmNmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdiZGZkMmUzYjllZjgwODYxYjg0ZWU4YTlkNWJmMzlkZDE4NjZkN2ZjMThkZDk5NTdiM2I4MjA2ZTRkNDdiMmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRmYjUzYThkZDgxMmM2OGRhNWU2Nzc4YmJkZWVkNjhmYzc0ZWRhZTY2YjUzMTIwMWIxZDEwYzhkN2ZiN2Q5YWIifQ"
         },
         {
@@ -187,7 +187,7 @@
           "version": "repo-lines-v1:sha256:1b35cacb8ff42128283ba967dffbc29588af2a83459b9e9e05175ee30fa7eba2:eyJzZWxlY3RlZExpbmVDb3VudCI6NjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2MGJkZjMyMmY4ZDE5NTk4MTdkM2FmYmNjODY5ZGZlYWExNzE4M2ZjYmZjYzJjMGI5MmUwNzEyYzczYjM0NWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiM2MzMWM0ZjY2ZjI1OGUxZjE3NTk4NDM1NTFhNmE1NWYyZmFjZmZiNWJlMzhkMzk4NDNmOGMyN2M1MzJlZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQxZmRjMmM2ODU5YmRiMThiMmExNjQ3MTE5YTNmYTRkYTFjYTFjNzMyN2FhNjE3NzgzMTJhZDc5ODA1NGMxODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmYzM3OTE4N2FjNTIzYzA1MGQ3YzllNTg5OGI5NjQ5M2Q4ZGU4YjM2OTk0Nzk3M2FjNzYzMGNmNzkxZWE2YjIifQ"
         },
         {
-          "resource": "repo://apps/server/src/index.ts#L137-L169",
+          "resource": "repo://apps/server/src/index.ts#L123-L155",
           "version": "repo-lines-v1:sha256:71bb27659ad0d2f2063216b3bac6b467a3ba9cbd13b517d745a35dc08f11b0db:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwZGRlNmM2OTZkNWU2ZTA5ODk0NGVlNjYzNzhmMjgwMDFkZjE3OTVlYWIyZmE5NTBkMGFiZDI5NTM2ZTMzYmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3ZDBlNmIxMjRjY2JiNzUyZGYxODczYTJkMTRlYTgzZWEzYWNkN2NmNWZmOWVmZmE3ZTMwOTRiZjEwNzAxYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4YzljYWNlZDFkZDdjYzFmZDNiMzExZDNkZjM0NmY0MTU1MzVlOTFmMDNjZDFjOTdjYzQyOWJhZTZjZjdlNmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNjMTJiNDEzN2M5ZWNmZTg3YmRlMGE3NWVkOTBhODIyMGRiZjNiYTlkMTMxOWViOGQyNjg0MDZiNTI0NDE4MjkifQ"
         }
       ]
@@ -233,10 +233,28 @@
           "version": "repo-lines-v1:sha256:51ac9786ec119604c1189c33430d4f72e4a8f3b24aaf452faabaf820358dc1cf:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyM2NiNGMxM2Q2Nzc1OWQ1NGY3NjcxZDQ0MDM0OTcyZDA5MDNhMzlkMDhhZmFlNzNiYjk4MWViOWFiMGRjZjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk3NzhmZmQ0NDc0Y2RjZWYwYzk0ZDlmYTFjNjgzMjViNGMyYmRjZDMzNTE3NGYwOGQ0YWFjZTJhMTNhMjgyMjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQyYzk1MjEyMGQ2OTc4OWQ4MWFlZGJlMDkzODQ4OTI0ZGZmM2U4N2Y4MGU3MDJiNGY3ZmY5MGYwNWY2MTc3MzMifQ"
         }
       ]
+    },
+    {
+      "id": "claim_71dfc8912a73486e8501fbadc14e359a",
+      "statement": "Certain capabilities, such as approve_snapshot, store their state as data in the curated schema (approval_record table) rather than as a side channel, enabling idempotent, auditable, and agent-native approval workflows through the standard capability interface.",
+      "evidence": [
+        {
+          "resource": "repo://packages/application/src/registry/handlers/index.ts#L1091-L1113",
+          "version": "repo-lines-v1:sha256:26c54532e1d3447c806e967501a75635de7a05b043a831bd72f8b8a10963d3d3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQyMDM1NWIyZmI1YjZlODdlZWU5MWI3ZjMxNjBhNmQxZWNkNGE1Y2MyMjMzNGQ1MGZlNDBmMTJjOThmOGE1NGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkOWUxMjU0NjQyNTU3NmQzZGVhZThjOWI5ZGJmMTI4ZDVkNmRkYWY1ZDdmZTg1NzkzNDkyN2RlZmZhM2I5ZGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNmYTdmNDA4MWRlMzU1YzM5MmIwYzFkOTZjMTdiYzQ0MTg3ZDllOTlmZTMzMWFiN2FlYWI3NmNhZTc1Njg5ZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFkOWJkYjhhOTFiOWI5Y2I3ZmUyMDljMGIwNWM2NmQwMTA2MWFiMmE4YzJiNGIyNTMyN2I5OTQ2ZTNhOWIxZDkifQ"
+        },
+        {
+          "resource": "repo://packages/db/src/migrations/0003_u9_snapshot_approval.sql#L1-L15",
+          "version": "repo-lines-v1:sha256:75e9bca8d4986e34e96a737eedf87a50ed8383309cdd096eb61c31bac3bccaf1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlYjYyMjI3ODkxNTJlNTY3NGNhYTJlMTE1MWQ3ZDZhNTk4ZWIzYjQ1NTMyMWYxMzlmMDg3NjNiYzg2ZjQyZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM1MDM2YTRhZGQ5ZWQ4MjVmNmNiYWYyYTI1MzRmM2I5ZDEwNWNjZjRlNGZmOGQ3MDU3ZmIyNWYwYzJjZDcwOTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://packages/db/src/schema/curated.ts#L1023-L1053",
+          "version": "repo-lines-v1:sha256:2296573a28bc36d470ac161ce432ea845e4f687a33878e92b65daae0b90c03fd:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImExNTZiNDgzMDIwN2U3ZDQ3Zjk5YTQ5MWE3OTg5ZGQ3NjNiMDM2OTdhZTdlMjMxMWQ2MDAwMTAwNWZjOWVkMTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMmM0MTRiNTRjZjg2ZGZiNGY5MGRmZTdkN2JkYmZhNjY2YjdkZGRkMzJmMTI4NmYyMzBhNWI1MzI0MTgxOGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJhOGM4NGI0ZDFhMTFiYWExYmU0ODkyOTFjYTgyYTNkMzI2OGNlZDkzOWJjZDFiNmVlOWMxMzhjNjZlNTYzMGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVkNzdlYmIxYTZmZDYwYjI4MDJlZTdhYjlkYTNlMmRhYmRkNDNjNzhlNzA2MmUwYWJlYjIyODliNDQ0OGI2OWQifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.0",
-    "at": "2026-10-06T08:52:28.787Z"
+    "at": "2026-10-17T11:51:19.756Z"
   }
 }

@@ -38,10 +38,10 @@ sources:
     resource: repo://tools/quality/load-compose-env.sh
   - id: openwiki-source-a154829d66d9c70b47a23508
     resource: repo://tools/quality/resolve-changed.sh
-generated: { by: "openwiki/0.7.0", at: "2026-10-06T08:52:28.787Z" }
+generated: { by: "openwiki/0.7.0", at: "2026-10-17T11:51:19.756Z" }
 verified:
   - by: openwiki/0.7.0
-    at: 2026-10-06T08:52:28.787Z
+    at: 2026-10-17T11:51:19.756Z
 ---
 
 # Quality Gates
@@ -115,8 +115,8 @@ flowchart TD
   QLTYCHECK -->|yes| Q["qlty check --all --jobs $QLTY_JOBS --no-upgrade-check --no-progress --no-formatters"]
   Q --> TYPES["check-types (turbo)"]
   TYPES --> EFFECT["check-types:effect-e2e"]
-  EFFECT --> BF["check-types:backfill"]
-  BF --> PROD["check-types:production"]
+  EFFECT --> BACKFILL["check-types:backfill"]
+  BACKFILL --> PROD["check-types:production"]
   PROD --> PERF["check-types:performance"]
   PERF --> CIM["check-types:ci-metrics"]
   CIM --> BENCH["check-types:benchmarks"]
