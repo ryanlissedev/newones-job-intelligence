@@ -1,4 +1,4 @@
-import { SUPPORTED_BRON_SLUGS } from "@ji/application/sources";
+import { isSourcePaused, SUPPORTED_BRON_SLUGS } from "@ji/application/sources";
 import type { BronRuntimeDatabase } from "@ji/db/bron-runtime";
 import { makePostgresPersistedQueueStore } from "@ji/db/persisted-queue-store";
 import type {
@@ -161,6 +161,31 @@ export interface DurableBronJobConsumerOptions {
   readonly onJobError?: (error: Error, job: BronIngestJob | null) => void;
   readonly signal: AbortSignal;
 }
+
+/**
+ * A queued poll can outlive an operator pause. `executeBronRun` rejects that
+ * stale work before connector execution; resolve it here so the durable queue
+ * acknowledges the job instead of burning attempts into a dead letter.
+ */
+export const processDurableBronJob = async (options: {
+  readonly job: BronIngestJob;
+  readonly processJob: () => Promise<void>;
+  readonly onPaused: () => void;
+}): Promise<void> => {
+  try {
+    await options.processJob();
+  } catch (error) {
+    if (
+      isSourcePaused(options.job.bronSlug) &&
+      error instanceof Error &&
+      error.message === "bron is not pollable"
+    ) {
+      options.onPaused();
+      return;
+    }
+    throw error;
+  }
+};
 
 /**
  * The take side of the durable path. One job at a time — a bron's politeness

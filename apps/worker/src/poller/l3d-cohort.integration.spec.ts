@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 
+import { setSourcePauseOverrideForTests } from "@ji/application/sources";
 import type { Connector } from "@ji/connectors";
 import {
   createHarveyNashClient,
@@ -413,6 +414,7 @@ describe.serial(
     };
 
     beforeAll(async () => {
+      setSourcePauseOverrideForTests([]);
       available = await isPostgresAvailable();
       if (!available) {
         if (testDatabaseRequired) {
@@ -431,6 +433,7 @@ describe.serial(
     });
 
     afterAll(async () => {
+      setSourcePauseOverrideForTests(undefined);
       if (client && database) {
         await client`DELETE FROM curated.durable_job WHERE queue_name = ${BRON_INGEST_QUEUE}`;
         for (const spec of seededBronnen) {

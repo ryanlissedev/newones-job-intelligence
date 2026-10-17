@@ -7,6 +7,7 @@ import {
   sleep,
 } from "@ji/connectors";
 
+import { SOURCES } from "../sources";
 import { executeBronRun as execute } from "./execute";
 import * as bronnenApi from "./index";
 import {
@@ -19,14 +20,14 @@ import {
 } from "./register";
 import type { BronPersistence, BronRegisterRecord } from "./register";
 
-const tendernedBron = () => ({
+const tendernedBron = (naam = "Inhuurdesk") => ({
   categorie: "overheidsportaal",
   crawlDelayMs: 1000,
   interval: "*/15 * * * *",
   loginVereist: false,
   mappingRef: "fixtures/connectors/tenderned/mapping.json",
   method: "json-api" as const,
-  naam: "TenderNed",
+  naam,
   rateLimitPerMinute: 30,
   retentionDays: 90,
   secretRef: null,
@@ -52,6 +53,87 @@ describe("bron register", () => {
     }
 
     expect(isPollableBron(created.record)).toBe(false);
+  });
+
+  it("excludes paused sources from pollability and leaves other sources pollable", () => {
+    const recordFor = (naam: string): BronRegisterRecord => ({
+      ...tendernedBron(),
+      actief: true,
+      bronId: crypto.randomUUID(),
+      lastRun: null,
+      naam,
+      status: "ready",
+    });
+
+    for (const slug of [
+      "hays",
+      "tenderned",
+      "linkedin",
+      "intermediair",
+    ] as const) {
+      expect(isPollableBron(recordFor(SOURCES[slug].naam))).toBe(false);
+    }
+    expect(isPollableBron(recordFor(SOURCES.inhuurdesk.naam))).toBe(true);
+  });
+
+  it("rejects paused sources for poll runs before invoking the connector", async () => {
+    const record: BronRegisterRecord = {
+      ...tendernedBron("TenderNed"),
+      actief: true,
+      bronId: "bron-paused-tenderned",
+      lastRun: null,
+      status: "ready",
+    };
+    let calls = 0;
+    const connector = {
+      bronId: record.bronId,
+      discover: () => {
+        calls += 1;
+        return Promise.resolve({ checkpoint: {}, hasMore: false, items: [] });
+      },
+      fetch: () => Promise.resolve(null),
+    };
+
+    await expect(
+      execute(persistenceFor(record), {
+        bronId: record.bronId,
+        bronSlug: "tenderned",
+        connector,
+        objectStore: new InMemoryObjectStore(),
+        observationRecorder: new InMemoryObservationRecorder(),
+        runLifecycleStore: new InMemoryRunLifecycleStore(),
+        scrapeRunId: "run-paused-tenderned",
+      })
+    ).rejects.toThrow("bron is not pollable");
+    expect(calls).toBe(0);
+  });
+
+  it("still permits a paused source in a test-import run", async () => {
+    const record: BronRegisterRecord = {
+      ...tendernedBron("TenderNed"),
+      actief: true,
+      bronId: "bron-test-tenderned",
+      lastRun: null,
+      status: "ready",
+    };
+
+    await expect(
+      execute(persistenceFor(record), {
+        bronId: record.bronId,
+        bronSlug: "tenderned",
+        connector: {
+          bronId: record.bronId,
+          discover: () =>
+            Promise.resolve({ checkpoint: {}, hasMore: false, items: [] }),
+          fetch: () => Promise.resolve(null),
+        },
+        objectStore: new InMemoryObjectStore(),
+        observationRecorder: new InMemoryObservationRecorder(),
+        runKind: "test",
+        runLifecycleStore: new InMemoryRunLifecycleStore(),
+        scrapeRunId: "run-test-tenderned",
+      })
+    ).resolves.toMatchObject({ metrics: { found: 0 } });
   });
 
   it("always creates an inactive bron, even when runtime input requests activation", () => {
@@ -281,7 +363,7 @@ describe("bron register", () => {
     const waits: number[] = [];
     await execute(persistence, {
       bronId: "bron-1",
-      bronSlug: "tenderned",
+      bronSlug: "inhuurdesk",
       connector,
       now: () => now,
       objectStore,
@@ -297,7 +379,7 @@ describe("bron register", () => {
       writeNow: () => new Date("2026-08-29T00:00:00Z"),
     });
     const object = await objectStore.get(
-      "raw/tenderned/2026/08/ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff.html"
+      "raw/inhuurdesk/2026/08/ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff.html"
     );
     expect(object?.expiresAt.getTime()).toBe(
       new Date("2026-11-27T00:00:00Z").getTime()
@@ -318,7 +400,7 @@ describe("bron register", () => {
     const executeOnce = (scrapeRunId: string) =>
       execute(persistenceFor(record), {
         bronId: record.bronId,
-        bronSlug: "tenderned",
+        bronSlug: "inhuurdesk",
         connector: {
           bronId: record.bronId,
           discover: () =>
@@ -360,7 +442,7 @@ describe("bron register", () => {
     const executeOnce = (scrapeRunId: string) =>
       execute(persistenceFor(record), {
         bronId: record.bronId,
-        bronSlug: "tenderned",
+        bronSlug: "inhuurdesk",
         connector: {
           bronId: record.bronId,
           discover: () =>
@@ -396,7 +478,7 @@ describe("bron register", () => {
         }),
         {
           bronId: "bron-policy-refresh",
-          bronSlug: "tenderned",
+          bronSlug: "inhuurdesk",
           connector: {
             bronId: "bron-policy-refresh",
             discover: () =>
@@ -462,7 +544,7 @@ describe("bron register", () => {
         }),
         {
           bronId: record.bronId,
-          bronSlug: "tenderned",
+          bronSlug: "inhuurdesk",
           connector: {
             bronId: record.bronId,
             discover: () =>

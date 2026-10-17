@@ -74,7 +74,7 @@ const runTwoBronnen = async (
     ["cap-bron-a", "cap-bron-b"].map((bronId) =>
       executeBronRun(persistenceFor(record(bronId)), {
         bronId,
-        bronSlug: "tenderned",
+        bronSlug: "inhuurdesk",
         connector: connectorFor(bronId, starts),
         fetchRateCap,
         objectStore: new InMemoryObjectStore(),

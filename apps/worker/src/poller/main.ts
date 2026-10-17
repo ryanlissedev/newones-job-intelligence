@@ -49,6 +49,7 @@ import {
   durableJobTablePresent,
   findOpenBronJob,
   offerBronIngestJob,
+  processDurableBronJob,
   resolveDurableBronnen,
   runDurableBronJobConsumer,
 } from "./durable-jobs";
@@ -662,22 +663,31 @@ const main = async (): Promise<void> => {
                       queue: BRON_INGEST_QUEUE,
                     });
                   },
-                  processJob: async (job) => {
-                    // SAFETY: the queue payload schema validates UUID shape on
-                    // take, and the pipeline re-validates slug↔bronId pairing
-                    // fail-closed.
-                    const log = await runPollSourceAttempt({
-                      bronId: job.bronId as BronId,
-                      bronSlug: job.bronSlug as SliceABronSlug,
-                      curateBudgetMs,
-                      runBudgetMs: runBudgetFor(job.bronSlug),
-                      runtime: activeRuntime,
-                      scrapeRunId: job.scrapeRunId as ScrapeRunId,
-                      signal: controller.signal,
-                      telemetryLayer: activeRuntimeHealth.layer,
-                    });
-                    logLine(process.stdout, "poller_source", log);
-                  },
+                  processJob: (job) =>
+                    processDurableBronJob({
+                      job,
+                      onPaused: () => {
+                        logLine(process.stdout, "poller_source_paused", {
+                          bronSlug: job.bronSlug,
+                        });
+                      },
+                      processJob: async () => {
+                        // SAFETY: the queue payload schema validates UUID shape on
+                        // take, and the pipeline re-validates slug↔bronId pairing
+                        // fail-closed.
+                        const log = await runPollSourceAttempt({
+                          bronId: job.bronId as BronId,
+                          bronSlug: job.bronSlug as SliceABronSlug,
+                          curateBudgetMs,
+                          runBudgetMs: runBudgetFor(job.bronSlug),
+                          runtime: activeRuntime,
+                          scrapeRunId: job.scrapeRunId as ScrapeRunId,
+                          signal: controller.signal,
+                          telemetryLayer: activeRuntimeHealth.layer,
+                        });
+                        logLine(process.stdout, "poller_source", log);
+                      },
+                    }),
                   queue: ingestQueue.queue,
                   signal: controller.signal,
                 }),

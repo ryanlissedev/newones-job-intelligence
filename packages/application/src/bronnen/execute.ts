@@ -27,6 +27,7 @@ import type {
   LifecycleReconcilePorts,
   ReconcileMissedPollsResult,
 } from "../lifecycle/reconcile-missed-polls";
+import { isSourcePaused } from "../sources/registry";
 import { isPollableBron } from "./register";
 import type { BronPersistence } from "./register";
 
@@ -229,7 +230,10 @@ export const executeBronRun = async (
     throw new Error("bron not found");
   }
   const runKind = input.runKind ?? "poll";
-  if (runKind === "poll" && !isPollableBron(record)) {
+  if (
+    runKind === "poll" &&
+    (isSourcePaused(input.bronSlug) || !isPollableBron(record))
+  ) {
     throw new Error("bron is not pollable");
   }
   if (runKind === "test" && record.voorwaardenStatus !== "toegestaan") {

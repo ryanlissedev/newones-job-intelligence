@@ -10,9 +10,11 @@ export type {
 } from "./definition";
 export {
   findSourceByNaam,
+  isSourcePaused,
   isSupportedBronSlug,
   resolveSourceByNaam,
   resolveTenderNedTestImportDays,
+  setSourcePauseOverrideForTests,
   SOURCES,
   SUPPORTED_BRON_SLUGS,
   type SupportedBronSlug,

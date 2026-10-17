@@ -26,6 +26,10 @@ export const intermediair = {
   liveEnv: "INTERMEDIAIR_LIVE",
   naam: "Intermediair",
   normalise: normaliseJsonLdObservation,
+  paused: {
+    reason: "Paused by operator 2026-10-13",
+    since: "2026-10-13",
+  },
   // ~2,800 child-sitemap detail URLs (2,828 on 8 Oct 2026) × 2 s crawl delay
   // is ~94 minutes of pacing alone, so the 1 hour poller default aborted every
   // run. 2.5 h is the pacing plus ~60 % for fetch latency and catalog growth.
